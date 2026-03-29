@@ -389,7 +389,7 @@ LAYER_CONTENTS=$(cat ${WORKTREE_PATH}/docs/code-structure/db.md \
                  ${WORKTREE_PATH}/docs/code-structure/utils.md \
                  ${WORKTREE_PATH}/docs/code-structure/pages.md)
 
-AUDIT_RESULT=$(gemini --yolo -m gemini-2.5-flash --save-chat story-${STORY_NUMBER}-audit -p "$(cat ${PROJECT_ROOT}/.ai/agents/librarian-agent.md)
+gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/librarian-agent.md)
 
 ---
 CHANGED_FILES:
@@ -403,7 +403,10 @@ ${LAYER_CONTENTS}
 
 COMMIT_LOG:
 ${COMMIT_LOG}
-")
+" > /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
+AUDIT_RESULT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
 ```
 
 Read `AUDIT_RESULT`:
@@ -419,8 +422,11 @@ Apply the **Quality Assessment Loop** (see `/gemini`). Expected output sections 
 
 If any section is missing:
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-audit \
-  -p "The response is missing [section]. Please provide it."
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "The response is missing [section]. Please provide it." \
+  > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
+AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
 ```
 Maximum 2 follow-up attempts.
 
@@ -448,12 +454,15 @@ If no changes were needed, explicitly note "no documentation drift found" — do
 After applying drift corrections from a DRIFT FOUND verdict, verify accuracy by resuming the session with only the updated layer file entries — no need to re-send all source files:
 
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-audit \
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "Here are the updated layer file entries after corrections were applied:
 
 [paste only the modified entries]
 
-Do these corrections now accurately reflect the source code? Are there any remaining drift issues?"
+Do these corrections now accurately reflect the source code? Are there any remaining drift issues?" \
+  > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
+AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
 ```
 
 Only proceed to the checklist below once the re-audit confirms CLEAN or all remaining issues are explicitly noted.

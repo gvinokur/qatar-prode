@@ -176,7 +176,7 @@ UI_TAG="${STORY_NUMBER:+story-${STORY_NUMBER}-ui}${STORY_NUMBER:-ui-$(echo ${FEA
 # With screenshot(s):
 gemini \
   --yolo -m gemini-2.5-flash \
-  --save-chat ${UI_TAG} \
+  -o json \
   -i /tmp/current-ui-state.png \
   -p "$(cat ${PROJECT_ROOT}/.ai/agents/ui-ux-designer-agent.md)
 
@@ -189,12 +189,15 @@ ${THEME_CONFIG}
 
 SCREENSHOTS:
 Attached: current state of [describe the page/component shown]
-" > /tmp/design-spec.md
+" > /tmp/gemini-${UI_TAG}-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
+jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
 
 # Without screenshots (description-only mode):
 gemini \
   --yolo -m gemini-2.5-flash \
-  --save-chat ${UI_TAG} \
+  -o json \
   -p "$(cat ${PROJECT_ROOT}/.ai/agents/ui-ux-designer-agent.md)
 
 ---
@@ -206,7 +209,10 @@ ${THEME_CONFIG}
 
 SCREENSHOTS:
 None provided. Design from scratch using FEATURE_DESCRIPTION and THEME_CONFIG.
-" > /tmp/design-spec.md
+" > /tmp/gemini-${UI_TAG}-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
+jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
 ```
 
 ---
@@ -222,8 +228,11 @@ Apply the **Quality Assessment Loop** (see `/gemini`). Expected sections in `/tm
 
 **Images are expensive context** — if any section is missing, always resume rather than re-sending screenshots:
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat ${UI_TAG} \
-  -p "The spec is missing [section(s)]. Please provide: [specific request]. You already have the screenshots in context."
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "The spec is missing [section(s)]. Please provide: [specific request]. You already have the screenshots in context." \
+  > /tmp/gemini-${UI_TAG}-2.json
+jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec.md
 ```
 Maximum 2 follow-up attempts.
 
@@ -241,14 +250,16 @@ Use AskUserQuestion to confirm or adjust **before** writing the HTML. One round 
 **Design iteration path:** When the user requests changes after reviewing the spec or the rendered mockup — layout adjustments, component swaps, color changes, new states, anything — use `--resume-chat` rather than a fresh Gemini call. Gemini retains the full screenshot and theme context without re-sending images.
 
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat ${UI_TAG} \
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "[Only the change request. Example: 'Change the card layout to a horizontal list. Replace the Avatar with a numbered rank badge. Add a trending-up/down icon next to the score.']" \
-  > /tmp/design-spec-v2.md
+  > /tmp/gemini-${UI_TAG}-2.json
+jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec-v2.md
 ```
 
 Save the revised mockup as `mockups/[feature-slug]-mockup-v2.html`.
 
-**Only make a fresh call** (new `--save-chat`) if the design scope changes fundamentally — entirely new screens, a different feature entirely, or the session has gone off-track.
+**Only make a fresh call** (new `-o json` with a new `UI_TAG`) if the design scope changes fundamentally — entirely new screens, a different feature entirely, or the session has gone off-track.
 
 ---
 

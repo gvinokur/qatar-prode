@@ -27,14 +27,17 @@ SONAR_OUTPUT=$(./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER})
 PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
 mkdir -p ${PROJECT_ROOT}/tmp
 
-gemini --yolo -m gemini-2.5-flash --save-chat story-${STORY_NUMBER}-sonar -p "$(cat ${PROJECT_ROOT}/.ai/agents/explainer-agent.md)
+gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/explainer-agent.md)
 
 ---
 PR_NUMBER: ${PR_NUMBER}
 SONAR_OUTPUT:
 ${SONAR_OUTPUT}
 COVERAGE_THRESHOLD: 80
-" > ${PROJECT_ROOT}/tmp/sonar-explanation.md
+" > /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
+jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 
 ---
@@ -48,8 +51,11 @@ Apply the **Quality Assessment Loop** (see `/gemini`). Expected sections in `tmp
 
 If any issue lacks a concrete fix suggestion:
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-sonar \
-  -p "The following issues lack concrete fix suggestions: [list them]. Please provide specific fix guidance for each."
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "The following issues lack concrete fix suggestions: [list them]. Please provide specific fix guidance for each." \
+  > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
+jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 Maximum 2 follow-up attempts.
 
@@ -97,14 +103,16 @@ Then fetch the new sonar output and resume the existing session — do not re-ru
 
 ```bash
 SONAR_OUTPUT=$(./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER})
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
 
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-sonar \
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "Here is the updated SonarCloud output after fixes were applied:
 
 ${SONAR_OUTPUT}
 
 Identify which issues remain, which were resolved, and update your analysis. Provide fix suggestions for any remaining issues." \
-  > ${PROJECT_ROOT}/tmp/sonar-explanation.md
+  > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
+jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 
 Then loop back to **Step 3** (re-present the updated explanation). Re-run until Quality Gate shows **PASS**.

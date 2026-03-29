@@ -47,8 +47,8 @@ gemini --yolo -m gemini-2.5-flash -p "$(cat ${PROJECT_ROOT}/.ai/agents/[agent-na
 **Rules:**
 - Always resolve `PROJECT_ROOT` dynamically — never hardcode user-specific paths
 - Separate the agent prompt from inputs with `---` on its own line
-- To write output to a file: `gemini --yolo -m gemini-2.5-flash -p "..." > ${PROJECT_ROOT}/tmp/output.md`
-- To pass images (multimodal): `gemini --yolo -m gemini-2.5-flash -i /path/to/image.png -p "$(cat agent.md) ..."`
+- Always use `-o json` so the session_id is captured for follow-up calls (see Session Management below)
+- To pass images (multimodal): `gemini --yolo -m gemini-2.5-flash -i /path/to/image.png -o json -p "$(cat agent.md) ..."`
 
 ---
 
@@ -82,20 +82,18 @@ gemini --yolo -m gemini-2.5-flash -p "your prompt" > output.md
 # First-time auth (Google One AI Pro — interactive)
 gemini
 
-# Session management — save state after a call
-gemini --yolo -m gemini-2.5-flash --save-chat <tag> -p "your prompt here"
+# Call with JSON output — always use this form to capture session_id
+gemini --yolo -m gemini-2.5-flash -o json -p "your prompt here" > /tmp/gemini-${TAG}-1.json
 
-# Resume a named session (new prompt, no re-send of original context)
-gemini --yolo -m gemini-2.5-flash --resume-chat <tag> -p "follow-up prompt"
+# Extract response and session_id
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
+RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-1.json)
 
-# Resume the absolute latest session in the current directory
-gemini --yolo -m gemini-2.5-flash --resume -p "follow-up prompt"
-
-# List existing sessions for this project
-gemini --list-sessions
+# Resume a specific session by session_id (no re-send of original context)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "follow-up prompt" > /tmp/gemini-${TAG}-2.json
+RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-2.json)
 ```
-
-Sessions are stored at `~/.gemini/tmp/<project_hash>/chats/`, scoped to the project directory.
 
 - Auto-loads `.gemini/GEMINI.md` from the project root on every invocation
 - Auth: Google One AI Pro via OAuth (cached after first login)
@@ -104,18 +102,43 @@ Sessions are stored at `~/.gemini/tmp/<project_hash>/chats/`, scoped to the proj
 
 ## Session Management
 
-Sessions persist Gemini context between calls so follow-up prompts don't need to re-send large inputs (code files, screenshots, sonar output). Each session is identified by a tag and stored locally, scoped to the project directory.
+Sessions persist Gemini context between calls so follow-up prompts don't need to re-send large inputs (code files, screenshots, sonar output). Every call uses `-o json` to capture the `session_id` returned by Gemini, which is then used to resume that exact session — safe for parallel agent workflows since each session has a unique UUID.
 
-### Tag Naming Convention
+### Pattern
 
-| Use case | Tag format | Example |
-|----------|-----------|---------|
-| Architect analysis | `story-{N}-architect` | `story-295-architect` |
-| Librarian audit | `story-{N}-audit` | `story-295-audit` |
-| Sonar explainer | `story-{N}-sonar` | `story-295-sonar` |
-| Ticket feasibility | `ticket-{slug}` | `ticket-join-requests` |
-| UI/UX design | `story-{N}-ui` or `ui-{slug}` | `story-295-ui` |
-| Ad-hoc (direct) | `adhoc-{keyword}` | `adhoc-leaderboard` |
+```bash
+# ── Initial call ──────────────────────────────────────────────────────────
+gemini --yolo -m gemini-2.5-flash -o json -p "$(cat agent.md)
+---
+INPUTS...
+" > /tmp/gemini-${TAG}-1.json
+
+# Extract — discard stats, keep only what's needed
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
+RESPONSE=$(jq -r '.response'    /tmp/gemini-${TAG}-1.json)
+
+# ── Resume (Quality Assessment follow-up, iteration, etc.) ────────────────
+# Always read session_id from the first response file for this tag
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "follow-up prompt" > /tmp/gemini-${TAG}-2.json
+RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-2.json)
+```
+
+### File Naming Convention
+
+`/tmp/gemini-{tag}-{n}.json` where `{n}` increments per call in the same session.
+
+| Use case | TAG value | Example file |
+|----------|-----------|--------------|
+| Architect analysis | `story-${STORY_NUMBER}-architect` | `/tmp/gemini-story-295-architect-1.json` |
+| Librarian audit | `story-${STORY_NUMBER}-audit` | `/tmp/gemini-story-295-audit-1.json` |
+| Sonar explainer | `story-${STORY_NUMBER}-sonar` | `/tmp/gemini-story-295-sonar-1.json` |
+| Ticket feasibility | `ticket-${TICKET_KEYWORD}` | `/tmp/gemini-ticket-join-requests-1.json` |
+| UI/UX design | `${UI_TAG}` | `/tmp/gemini-story-295-ui-1.json` |
+| Ad-hoc (direct) | `adhoc-${keyword}` | `/tmp/gemini-adhoc-leaderboard-1.json` |
+
+The session_id is always read from the `-1.json` file (it remains consistent across all turns in a conversation).
 
 ---
 
@@ -141,11 +164,11 @@ Always use `gemini --yolo -m gemini-2.5-flash`:
 3. **COHERENCE** — does the response align with what Claude knows about the codebase from prior research?
 
 **If any check fails:**
-- Issue a targeted follow-up using `--resume-chat <tag>` addressing only the gap.
+- Issue a targeted follow-up using `--resume-chat ${SESSION_ID}` addressing only the gap (read SESSION_ID from `/tmp/gemini-${TAG}-1.json`).
 - **Maximum 2 follow-up attempts** per call. After 2 attempts, proceed but surface the gap to the user.
 
 **If the response is fundamentally off-track** (wrong framing, misunderstood the question):
-- Do NOT continue the session. Start fresh with a new tag (`--save-chat <new-tag>`) and a better-structured prompt.
+- Do NOT continue the session. Start a fresh call with a new TAG (new `/tmp/gemini-${TAG}-v2-1.json`) and a better-structured prompt.
 
 Each skill specifies the expected output sections for its agent.
 
@@ -155,7 +178,7 @@ Each skill specifies the expected output sections for its agent.
 
 When a user directly asks Claude to use Gemini (not through a specific skill):
 
-1. **Always save the session**: use `--save-chat adhoc-{keyword}` where `{keyword}` is 1–2 words from the request, kebab-cased.
+1. **Always use `-o json`**: set TAG to `adhoc-{keyword}` (1–2 words from the request, kebab-cased), write to `/tmp/gemini-adhoc-{keyword}-1.json`, extract `SESSION_ID` and `RESPONSE` with `jq`.
 2. **Apply the Quality Assessment Loop** above on every response.
-3. **Detect user follow-ups**: if the user's next message signals continuation ("also...", "what about...", "change X", "can you expand on...") → use `--resume` (picks up the latest session) rather than making a fresh call.
-4. **Self-initiated follow-ups**: if Claude itself needs clarification or expansion on a prior Gemini response → use `--resume-chat adhoc-{keyword}` proactively. Do not make a fresh call for the same analysis.
+3. **Detect user follow-ups**: if the user's next message signals continuation ("also...", "what about...", "change X", "can you expand on...") → use `--resume-chat ${SESSION_ID}` (read from `/tmp/gemini-adhoc-{keyword}-1.json`) rather than making a fresh call.
+4. **Self-initiated follow-ups**: if Claude itself needs clarification or expansion on a prior Gemini response → use `--resume-chat ${SESSION_ID}` proactively. Do not make a fresh call for the same analysis.

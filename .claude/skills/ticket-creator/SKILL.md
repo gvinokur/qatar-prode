@@ -49,7 +49,7 @@ PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
 # e.g., "join-requests" for "Friend group join requests"
 TICKET_KEYWORD="[derive from FEATURE_DESCRIPTION]"
 
-GEMINI_ANALYSIS=$(gemini --yolo -m gemini-2.5-flash --save-chat ticket-${TICKET_KEYWORD} -p "$(cat ${PROJECT_ROOT}/.ai/agents/ticket-creator-agent.md)
+gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/ticket-creator-agent.md)
 
 ---
 FEATURE_DESCRIPTION:
@@ -61,7 +61,10 @@ $(cat ${PROJECT_ROOT}/CODE-STRUCTURE.md)
 RELEVANT_LAYER_FILES:
 $(cat ${PROJECT_ROOT}/docs/code-structure/actions.md \
       ${PROJECT_ROOT}/docs/code-structure/db.md)
-")
+" > /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)
+GEMINI_ANALYSIS=$(jq -r '.response' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)
 ```
 
 Use the analysis to:

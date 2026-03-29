@@ -145,7 +145,7 @@ CODE_STRUCTURE=$(cat ${WORKTREE_PATH}/CODE-STRUCTURE.md)
 LAYER_FILES=$(cat ${WORKTREE_PATH}/docs/code-structure/actions.md \
               ${WORKTREE_PATH}/docs/code-structure/db.md)
 
-GEMINI_DRAFT=$(gemini --yolo -m gemini-2.5-flash --save-chat story-${STORY_NUMBER}-architect -p "$(cat ${PROJECT_ROOT}/.ai/agents/architect-agent.md)
+gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/architect-agent.md)
 
 ---
 STORY_CONTENT:
@@ -156,7 +156,10 @@ ${CODE_STRUCTURE}
 
 RELEVANT_LAYER_FILES:
 ${LAYER_FILES}
-")
+" > /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
+
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
+GEMINI_DRAFT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
 ```
 
 **Adjust `LAYER_FILES`** based on what the story touches (add components, utils, pages layer files if relevant).
@@ -179,8 +182,11 @@ Apply the **Quality Assessment Loop** (see `/gemini`). Expected output sections 
 
 If any section is missing or vague, resume with:
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-architect \
-  -p "The response is missing [section]. Please provide it."
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "The response is missing [section]. Please provide it." \
+  > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
+GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
 ```
 Maximum 2 follow-up attempts. If still incomplete, proceed and note the gap.
 
@@ -591,8 +597,11 @@ Forbidden phrases (if you use any of these, you have FAILED):
 
 **Resume path for architectural reconsideration:** If feedback in this step requires architectural rethinking (changed requirements, new constraints, wrong approach), do NOT make a fresh Gemini call. Use:
 ```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat story-${STORY_NUMBER}-architect \
-  -p "[only the feedback delta — what changed and why]"
+SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
+gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
+  -p "[only the feedback delta — what changed and why]" \
+  > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
+GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
 ```
 Gemini retains the original story and codebase context. Send only the new constraints.
 
