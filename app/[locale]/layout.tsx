@@ -32,7 +32,7 @@ export async function generateMetadata(
   // Determine alternate locale
   const alternateLocale = locale === 'es' ? 'en' : 'es'
 
-  const adSenseAccount = process.env.NEXT_PUBLIC_ADSENSE_ACCOUNT
+  const adSenseAccount = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
 
   return {
     title: appName,
