@@ -32,15 +32,15 @@ export async function generateMetadata(
   // Determine alternate locale
   const alternateLocale = locale === 'es' ? 'en' : 'es'
 
-  const adSenseAccount = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
 
   return {
     title: appName,
     description: appDescription,
     manifest: `/${locale}/manifest.webmanifest`,
-    ...(adSenseAccount && {
+    ...(publisherId && {
       other: {
-        'google-adsense-account': adSenseAccount,
+        'google-adsense-account': `ca-${publisherId}`,
       },
     }),
     metadataBase: new URL(appUrl),
@@ -105,7 +105,7 @@ export default async function LocaleLayout({
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && !user?.isAdFree && (
           <Script
             async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
             strategy="afterInteractive"
             crossOrigin="anonymous"
           />
