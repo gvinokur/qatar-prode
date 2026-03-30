@@ -8,7 +8,7 @@ Every page currently renders the same generic title and description (e.g., "Worl
 
 ## Approach
 
-Add `generateMetadata` to 5 pages/layouts, add localized translation keys for metadata descriptions, and write unit tests for each new function.
+Add `generateMetadata` to 10 pages/layouts (5 top-level + 5 tournament sub-pages), add localized translation keys for metadata descriptions, and write unit tests for each new function.
 
 **No new DB functions needed** — existing repo functions (`findTournamentById`, `findProdeGroupById`) already return all required data.
 
@@ -49,6 +49,31 @@ Add `generateMetadata` with improved home page description (overrides the generi
 - Title: `{appName}` (unchanged)
 - Description: `t('common', 'home.metadata.description')`
 
+### 6. `app/[locale]/tournaments/[id]/results/page.tsx` *(modified)*
+- Title: `{t('tables.results.title')} – {tournament.long_name} | {appName}` → e.g. `"Results and Standings – FIFA 2026 | App Name"`
+- Description: `t('tables', 'metadata.description', { name: tournament.long_name })`
+- Calls `findTournamentById(id)` (already imported at line 1)
+
+### 7. `app/[locale]/tournaments/[id]/stats/page.tsx` *(modified)*
+- Title: `{t('stats.sidebar.title')} – {tournament.long_name} | {appName}` → e.g. `"Your Stats – FIFA 2026 | App Name"`
+- Description: `t('stats', 'metadata.description', { name: tournament.long_name })`
+- Calls `findTournamentById(id)` (already imported)
+
+### 8. `app/[locale]/tournaments/[id]/awards/page.tsx` *(modified)*
+- Title: `{t('awards.metadata.title')} – {tournament.long_name} | {appName}` → e.g. `"Awards – FIFA 2026 | App Name"`
+- Description: `t('awards', 'metadata.description', { name: tournament.long_name })`
+- Calls `findTournamentById(id)` (already imported)
+
+### 9. `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` *(modified)*
+- Title: `{t('qualified-teams.page.title')} – {tournament.long_name} | {appName}` → e.g. `"Qualified Teams Prediction – FIFA 2026 | App Name"`
+- Description: `t('qualified-teams', 'metadata.description', { name: tournament.long_name })`
+- Calls `findTournamentById` (will need to add import; all other repos already imported)
+
+### 10. `app/[locale]/tournaments/[id]/rules/page.tsx` *(modified)*
+- Title: `{t('rules.title')} – {tournament.long_name} | {appName}` → e.g. `"General Rules – FIFA 2026 | App Name"`
+- Description: `t('rules', 'metadata.description', { name: tournament.long_name })`
+- Calls `findTournamentById(id)` (already imported)
+
 ---
 
 ## Translation Files
@@ -82,6 +107,88 @@ Add:
 ```json
 "metadata": {
   "description": "Ver la tabla de posiciones del grupo {name}"
+}
+```
+
+### `locales/en/tables.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "View results and group standings for {name}"
+}
+```
+
+### `locales/es/tables.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Ver resultados y posiciones para {name}"
+}
+```
+
+### `locales/en/stats.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "View your prediction stats and performance for {name}"
+}
+```
+
+### `locales/es/stats.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Ver tus estadísticas y rendimiento en {name}"
+}
+```
+
+### `locales/en/awards.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "title": "Awards",
+  "description": "Make your awards predictions for {name}"
+}
+```
+
+### `locales/es/awards.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "title": "Premios",
+  "description": "Hacé tus predicciones de premios para {name}"
+}
+```
+
+### `locales/en/qualified-teams.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Predict which teams qualify from each group in {name}"
+}
+```
+
+### `locales/es/qualified-teams.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Predecí qué equipos clasifican de cada grupo en {name}"
+}
+```
+
+### `locales/en/rules.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Scoring rules and point system for {name}"
+}
+```
+
+### `locales/es/rules.json` *(modified)*
+Add:
+```json
+"metadata": {
+  "description": "Reglas de puntuación y sistema de puntos para {name}"
 }
 ```
 
@@ -179,6 +286,66 @@ No new cross-layer call relationships. Existing `findTournamentById` and `findPr
   - title is the appName
   - openGraph metadata is present
 
+### `app/[locale]/tournaments/[id]/results/page.tsx` *(modified)*
+
+**New function:**
+
+- **generateMetadata({ params })**: `Promise<Metadata>`
+  Returns page-specific title combining the results page label and tournament name.
+  Calls: `findTournamentById`, `getTranslations`
+  Tests:
+  - returns `"Results and Standings – {tournamentName} | {appName}"` as title when tournament exists
+  - returns fallback appName when tournament not found
+  - returns fallback appName when repository throws an error
+
+### `app/[locale]/tournaments/[id]/stats/page.tsx` *(modified)*
+
+**New function:**
+
+- **generateMetadata({ params })**: `Promise<Metadata>`
+  Returns page-specific title combining the stats label and tournament name.
+  Calls: `findTournamentById`, `getTranslations`
+  Tests:
+  - returns `"Your Stats – {tournamentName} | {appName}"` as title when tournament exists
+  - returns fallback appName when tournament not found
+  - returns fallback appName when repository throws an error
+
+### `app/[locale]/tournaments/[id]/awards/page.tsx` *(modified)*
+
+**New function:**
+
+- **generateMetadata({ params })**: `Promise<Metadata>`
+  Returns page-specific title combining the awards label and tournament name.
+  Calls: `findTournamentById`, `getTranslations`
+  Tests:
+  - returns `"Awards – {tournamentName} | {appName}"` as title when tournament exists
+  - returns fallback appName when tournament not found
+  - returns fallback appName when repository throws an error
+
+### `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` *(modified)*
+
+**New function:**
+
+- **generateMetadata({ params })**: `Promise<Metadata>`
+  Returns page-specific title combining the qualified teams label and tournament name. Requires adding `findTournamentById` import (not currently imported in this file).
+  Calls: `findTournamentById`, `getTranslations`
+  Tests:
+  - returns `"Qualified Teams Prediction – {tournamentName} | {appName}"` as title when tournament exists
+  - returns fallback appName when tournament not found
+  - returns fallback appName when repository throws an error
+
+### `app/[locale]/tournaments/[id]/rules/page.tsx` *(modified)*
+
+**New function:**
+
+- **generateMetadata({ params })**: `Promise<Metadata>`
+  Returns page-specific title combining the rules label and tournament name.
+  Calls: `findTournamentById`, `getTranslations`
+  Tests:
+  - returns `"General Rules – {tournamentName} | {appName}"` as title when tournament exists
+  - returns fallback appName when tournament not found
+  - returns fallback appName when repository throws an error
+
 ---
 
 ## Implementation Steps
@@ -187,20 +354,33 @@ No new cross-layer call relationships. Existing `findTournamentById` and `findPr
 1. Add `metadata` keys to `locales/en/tournament.json` and `locales/es/tournament.json`
 2. Add `metadata` keys to `locales/en/groups.json` and `locales/es/groups.json`
 3. Add `home.metadata.description` to `locales/en/common.json` and `locales/es/common.json`
+4. Add `metadata` keys to `tables`, `stats`, `awards`, `qualified-teams`, `rules` locale files (EN + ES)
 
-**Wave 2 — Page metadata functions**
-4. Add `generateMetadata` to `app/[locale]/tournaments/[id]/layout.tsx`
-5. Add `generateMetadata` to `app/[locale]/tournaments/[id]/page.tsx`
-6. Add `generateMetadata` to `app/[locale]/friend-groups/[id]/page.tsx`
-7. Add `generateMetadata` to `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx`
-8. Add `generateMetadata` to `app/[locale]/page.tsx`
+**Wave 2 — Top-level page metadata functions**
+5. Add `generateMetadata` to `app/[locale]/tournaments/[id]/layout.tsx`
+6. Add `generateMetadata` to `app/[locale]/tournaments/[id]/page.tsx`
+7. Add `generateMetadata` to `app/[locale]/friend-groups/[id]/page.tsx`
+8. Add `generateMetadata` to `app/[locale]/tournaments/[id]/friend-groups/[group_id]/page.tsx`
+9. Add `generateMetadata` to `app/[locale]/page.tsx`
 
-**Wave 3 — Tests**
-9. Create `app/[locale]/tournaments/[id]/__tests__/layout-metadata.test.tsx`
-10. Create `app/[locale]/tournaments/[id]/__tests__/page-metadata.test.tsx`
-11. Create `app/[locale]/friend-groups/[id]/__tests__/page-metadata.test.tsx`
-12. Create `app/[locale]/tournaments/[id]/friend-groups/[group_id]/__tests__/page-metadata.test.tsx`
-13. Extend or create `app/[locale]/__tests__/home-metadata.test.tsx`
+**Wave 3 — Sub-page metadata functions**
+10. Add `generateMetadata` to `app/[locale]/tournaments/[id]/results/page.tsx`
+11. Add `generateMetadata` to `app/[locale]/tournaments/[id]/stats/page.tsx`
+12. Add `generateMetadata` to `app/[locale]/tournaments/[id]/awards/page.tsx`
+13. Add `generateMetadata` to `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` (add `findTournamentById` import)
+14. Add `generateMetadata` to `app/[locale]/tournaments/[id]/rules/page.tsx`
+
+**Wave 4 — Tests**
+15. Create `app/[locale]/tournaments/[id]/__tests__/layout-metadata.test.tsx`
+16. Create `app/[locale]/tournaments/[id]/__tests__/page-metadata.test.tsx`
+17. Create `app/[locale]/friend-groups/[id]/__tests__/page-metadata.test.tsx`
+18. Create `app/[locale]/tournaments/[id]/friend-groups/[group_id]/__tests__/page-metadata.test.tsx`
+19. Extend or create `app/[locale]/__tests__/home-metadata.test.tsx`
+20. Create `app/[locale]/tournaments/[id]/results/__tests__/page-metadata.test.tsx`
+21. Create `app/[locale]/tournaments/[id]/stats/__tests__/page-metadata.test.tsx`
+22. Create `app/[locale]/tournaments/[id]/awards/__tests__/page-metadata.test.tsx`
+23. Create `app/[locale]/tournaments/[id]/qualified-teams/__tests__/page-metadata.test.tsx`
+24. Create `app/[locale]/tournaments/[id]/rules/__tests__/page-metadata.test.tsx`
 
 ---
 
@@ -229,5 +409,5 @@ All `generateMetadata` tests follow the same pattern as the existing `app/[local
 ---
 
 ## CODE-STRUCTURE Files to Update
-- `docs/code-structure/pages.md` — add `generateMetadata` entries for all 5 modified files
+- `docs/code-structure/pages.md` — add `generateMetadata` entries for all 10 modified files
 - Call graph: No changes needed (no new cross-layer flows introduced)
