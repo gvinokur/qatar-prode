@@ -1,6 +1,8 @@
 // mark as client component
 'use server'
 
+import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
 import {getTournaments} from "../actions/tournament-actions";
 import {getLoggedInUser} from "../actions/user-actions";
 import {getOnboardingStatus} from "../db/onboarding-repository";
@@ -10,6 +12,25 @@ import TournamentRedirect from "../components/home/tournament-redirect";
 
 type ServerHomeProps = {
   readonly searchParams: Promise<{ showOnboarding?: string }>
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: 'common' })
+  const appName = t('app.name')
+  const description = t('home.metadata.description')
+
+  return {
+    title: appName,
+    description,
+    openGraph: {
+      type: 'website',
+      title: appName,
+      description,
+      images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
+    },
+    twitter: { card: 'summary', title: appName, description },
+  }
 }
 
 export default async function ServerHome({ searchParams }: ServerHomeProps) {

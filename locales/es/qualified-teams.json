@@ -42,5 +42,8 @@
     "noSelection": "Aún no has seleccionado equipos de tercer lugar. Selecciona equipos desde la posición 3 en cada grupo para predecir cuáles clasificarán.",
     "progress": "{count} / {max}",
     "limitReached": "Máximo de {max} terceros puestos ya seleccionados"
+  },
+  "metadata": {
+    "description": "Predecí qué equipos clasifican de cada grupo en {name}"
   }
 }

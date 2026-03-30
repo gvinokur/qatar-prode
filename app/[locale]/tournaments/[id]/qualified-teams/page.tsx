@@ -1,9 +1,11 @@
+import { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation';
 import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { applyLocalizationBatch } from '../../../../utils/localization-helper';
+import { findTournamentById } from '../../../../db/tournament-repository';
 import {
   Team,
   TournamentGroup,
@@ -25,6 +27,39 @@ interface PageProps {
     readonly locale: string;
   }>;
   readonly searchParams: Promise<{ [k: string]: string }>;
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tQualified = await getTranslations({ locale, namespace: 'qualified-teams' })
+  const appName = tCommon('app.name')
+
+  try {
+    const tournament = await findTournamentById(id)
+    if (!tournament) return { title: appName }
+
+    const pageLabel = tQualified('page.title')
+    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
+    const description = tQualified('metadata.description', { name: tournament.long_name })
+
+    return {
+      title,
+      description,
+      openGraph: {
+        type: 'website',
+        title,
+        description,
+        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
+      },
+      twitter: { card: 'summary', title, description },
+    }
+  } catch {
+    return { title: appName }
+  }
 }
 
 /** Fetch groups with their teams */

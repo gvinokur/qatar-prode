@@ -1,5 +1,7 @@
 'use server'
 
+import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
 import {Box, Grid, Typography} from "../../../components/mui-wrappers";
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../../components/debug";
@@ -31,6 +33,38 @@ type Props = {
     locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tGroups = await getTranslations({ locale, namespace: 'groups' })
+  const appName = tCommon('app.name')
+
+  try {
+    const group = await findProdeGroupById(id)
+    if (!group) return { title: appName }
+
+    const title = `${group.name} | ${appName}`
+    const description = tGroups('metadata.description', { name: group.name })
+
+    return {
+      title,
+      description,
+      openGraph: {
+        type: 'website',
+        title,
+        description,
+        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
+      },
+      twitter: { card: 'summary', title, description },
+    }
+  } catch {
+    return { title: appName }
+  }
 }
 
 export default async function FriendsGroup(props : Props){

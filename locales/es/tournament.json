@@ -25,5 +25,8 @@
       "heading": "Torneos Pasados:",
       "endedOn": "Finalizado {date}"
     }
+  },
+  "metadata": {
+    "description": "Hacé tus predicciones para {name} y competí con tus amigos"
   }
 }

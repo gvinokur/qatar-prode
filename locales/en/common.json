@@ -49,6 +49,9 @@
   },
   "home": {
     "availableTournaments": "Available Tournaments",
-    "loadingTournaments": "Loading Tournaments"
+    "loadingTournaments": "Loading Tournaments",
+    "metadata": {
+      "description": "Make sports predictions, compete with friends, and track your standings across tournaments"
+    }
   }
 }

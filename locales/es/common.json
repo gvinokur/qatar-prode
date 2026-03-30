@@ -49,6 +49,9 @@
   },
   "home": {
     "availableTournaments": "Torneos Disponibles",
-    "loadingTournaments": "Cargando Torneos"
+    "loadingTournaments": "Cargando Torneos",
+    "metadata": {
+      "description": "Hacé tus predicciones deportivas, competí con amigos y seguí tus posiciones en cada torneo"
+    }
   }
 }

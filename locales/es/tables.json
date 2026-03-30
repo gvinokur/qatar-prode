@@ -65,5 +65,8 @@
       "semifinals": "Semifinales",
       "final": "Final"
     }
+  },
+  "metadata": {
+    "description": "Ver resultados y posiciones para {name}"
   }
 }

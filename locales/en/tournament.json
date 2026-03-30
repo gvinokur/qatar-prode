@@ -25,5 +25,8 @@
       "heading": "Past Tournaments:",
       "endedOn": "Ended {date}"
     }
+  },
+  "metadata": {
+    "description": "Make your predictions for {name} and compete with friends"
   }
 }

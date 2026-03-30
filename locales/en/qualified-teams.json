@@ -42,5 +42,8 @@
     "noSelection": "You haven't selected any third place teams yet. Select teams from position 3 in each group to predict which will qualify.",
     "progress": "{count} / {max}",
     "limitReached": "Maximum of {max} third place teams already selected"
+  },
+  "metadata": {
+    "description": "Predict which teams qualify from each group in {name}"
   }
 }

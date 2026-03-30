@@ -72,5 +72,8 @@
   },
   "actions": {
     "viewFullRules": "View Full Rules"
+  },
+  "metadata": {
+    "description": "Scoring rules and point system for {name}"
   }
 }

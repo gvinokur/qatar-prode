@@ -97,5 +97,8 @@
       "qualifiedTeams": "Qualified Teams",
       "groupPosition": "Group Position"
     }
+  },
+  "metadata": {
+    "description": "View your prediction stats and performance for {name}"
   }
 }

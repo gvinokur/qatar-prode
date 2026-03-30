@@ -1,14 +1,49 @@
 'use server'
 
+import { Metadata } from 'next'
 import { Box } from '@mui/material'
 import Rules, { ScoringConfig } from '../../../../components/tournament-page/rules'
 import { findTournamentById } from '../../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
+import { getTranslations, getLocale } from 'next-intl/server'
 
 type Props = {
   readonly params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tRules = await getTranslations({ locale, namespace: 'rules' })
+  const appName = tCommon('app.name')
+
+  try {
+    const tournament = await findTournamentById(id)
+    if (!tournament) return { title: appName }
+
+    const pageLabel = tRules('title')
+    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
+    const description = tRules('metadata.description', { name: tournament.long_name })
+
+    return {
+      title,
+      description,
+      openGraph: {
+        type: 'website',
+        title,
+        description,
+        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
+      },
+      twitter: { card: 'summary', title, description },
+    }
+  } catch {
+    return { title: appName }
+  }
 }
 
 export default async function TournamentRulesPage(props: Props) {
