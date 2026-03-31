@@ -9,6 +9,7 @@ import {
 import {
   updateOrCreateGameGuesses
 } from "../../actions/guesses-actions";
+import { trackEvent } from '@/app/utils/ga4'; // Add this import
 
 type GameGuessMap = {[k:string]: GameGuessNew}
 
@@ -79,6 +80,12 @@ export function GuessesContextProvider ({children,
       console.error('[GuessesContext] Save failed:', result.error)
       throw new Error(result.error || 'Failed to save prediction')
     }
+
+    // --- NEW: Track analytics event ---
+    if (result && result.success && result.analyticsEvent) {
+      trackEvent(result.analyticsEvent.name, result.analyticsEvent.params);
+    }
+    // --- END NEW ---
   }, [autoSave, gameGuesses, locale])
 
   const context = useMemo(() => ({

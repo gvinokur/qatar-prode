@@ -34,20 +34,15 @@ Claude Code uses a permission system to control what operations it can perform. 
       "Edit",
       "Glob",
       "Grep",
-      "Bash(git *)",
-      "Bash(npm *)",
-      "Bash(gh *)",
-      "Bash(ls *)",
-      "Bash(cat *)",
-      "Bash(find *)",
-      "Bash(mkdir *)",
-      "Bash(cp *)",
-      "Bash(mv *)",
-      "Bash(./scripts/*)"
+      "Bash(*)",
+      "mcp__github__search_issues",
+      "mcp__github__pull_request_read"
     ]
   }
 }
 ```
+
+> **Why `Bash(*)`?** Pattern-based bash permissions (`Bash(git *)`, `Bash(gh *)`, etc.) only match when the allowed command is the first word. Compound commands — variable assignments with `$()`, `cd /path && ./scripts/...`, piped chains — bypass all specific patterns and trigger prompts anyway. Since this project already grants broad `Read`/`Write`/`Edit`, the practical approach is to allow all bash. Safety is enforced by CLAUDE.md guidelines and git history, not the permission gate.
 
 ## Permission Types Explained
 

@@ -13,7 +13,7 @@ import {getLoggedInUser} from "../actions/user-actions";
 import { TimezoneProvider } from '../components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../components/context-providers/countdown-context-provider';
 import Footer from '../components/home/footer';
-import AdSensePageViewTracker from '../components/ads/adsense-page-view-tracker';
+import AnalyticsPageViewTracker from '../components/shared-ui/AnalyticsPageViewTracker'; // Import the new tracker
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'es' }];
@@ -33,6 +33,7 @@ export async function generateMetadata(
   const alternateLocale = locale === 'es' ? 'en' : 'es'
 
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
   return {
     title: appName,
@@ -90,6 +91,7 @@ export default async function LocaleLayout({
   const t = await getTranslations({ locale, namespace: 'common' })
 
   const appName = t('app.name')
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (
     <html lang={locale} style={{ height: '100%' }}>
@@ -110,6 +112,13 @@ export default async function LocaleLayout({
             crossOrigin="anonymous"
           />
         )}
+        {gaMeasurementId && !user?.isAdFree && (
+          <Script
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body style={{minHeight: '100%'}}>
         <NextIntlClientProvider messages={messages} locale={locale}>
@@ -125,7 +134,8 @@ export default async function LocaleLayout({
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
-                    <AdSensePageViewTracker />
+                    {/* <AdSensePageViewTracker /> - Removed as per requirements */}
+                    <AnalyticsPageViewTracker user={user} /> {/* Render the new tracker */}
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

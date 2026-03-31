@@ -190,6 +190,7 @@ ${THEME_CONFIG}
 SCREENSHOTS:
 Attached: current state of [describe the page/component shown]
 " > /tmp/gemini-${UI_TAG}-1.json
+sed -i 's/^[^{]*//' /tmp/gemini-${UI_TAG}-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
 jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
@@ -210,6 +211,7 @@ ${THEME_CONFIG}
 SCREENSHOTS:
 None provided. Design from scratch using FEATURE_DESCRIPTION and THEME_CONFIG.
 " > /tmp/gemini-${UI_TAG}-1.json
+sed -i 's/^[^{]*//' /tmp/gemini-${UI_TAG}-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
 jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
@@ -232,6 +234,7 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "The spec is missing [section(s)]. Please provide: [specific request]. You already have the screenshots in context." \
   > /tmp/gemini-${UI_TAG}-2.json
+sed -i 's/^[^{]*//' /tmp/gemini-${UI_TAG}-2.json
 jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec.md
 ```
 Maximum 2 follow-up attempts.
@@ -254,6 +257,7 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "[Only the change request. Example: 'Change the card layout to a horizontal list. Replace the Avatar with a numbered rank badge. Add a trending-up/down icon next to the score.']" \
   > /tmp/gemini-${UI_TAG}-2.json
+sed -i 's/^[^{]*//' /tmp/gemini-${UI_TAG}-2.json
 jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec-v2.md
 ```
 

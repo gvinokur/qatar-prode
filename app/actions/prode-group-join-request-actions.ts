@@ -24,6 +24,7 @@ import {
   generateJoinRequestRejectedEmail
 } from '../utils/email-templates';
 import { Locale } from '@/i18n.config';
+import { AnalyticsEventPayload } from '@/app/utils/ga4'; // Import AnalyticsEventPayload
 
 /**
  * Request to join a friend group
@@ -170,7 +171,11 @@ export async function getGroupJoinRequests(groupId: string) {
 /**
  * Approve join request
  */
-export async function approveJoinRequestAction(requestId: string, groupId: string, tournamentId?: string) {
+export async function approveJoinRequestAction(
+  requestId: string,
+  groupId: string,
+  tournamentId?: string
+): Promise<{ success: boolean; message: string; analyticsEvent?: AnalyticsEventPayload }> {
   const user = await getLoggedInUser();
   if (!user) {
     throw new Error('Should not call this action from a logged out page');
@@ -215,7 +220,17 @@ export async function approveJoinRequestAction(requestId: string, groupId: strin
   // Revalidate group page
   revalidatePath(`/tournaments/[tournament_id]/friend-groups/${groupId}`);
 
-  return { success: true, message: 'Join request approved' };
+  return {
+    success: true,
+    message: 'Join request approved',
+    analyticsEvent: {
+      name: 'group_joined',
+      params: {
+        group_id: groupId,
+        tournament_id: tournamentId,
+      },
+    },
+  };
 }
 
 /**

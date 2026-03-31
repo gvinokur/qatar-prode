@@ -52,3 +52,6 @@ public/swe-worker*
 certificates
 .claude/settings.local.json
 .claude/worktrees/
+
+# Ephemeral AI outputs (regenerated per session)
+tmp/

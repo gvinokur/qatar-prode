@@ -13,8 +13,12 @@ import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { AnalyticsEventPayload } from '@/app/utils/ga4'; // Import AnalyticsEventPayload
 
-export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], locale: Locale = 'es') {
+export async function updateOrCreateGameGuesses(
+  gameGuesses: GameGuessNew[],
+  locale: Locale = 'es'
+): Promise<{ success: boolean; error?: string; analyticsEvent?: AnalyticsEventPayload }> {
   const t = await getTranslations({ locale, namespace: 'games' });
   try {
     const user = await getLoggedInUser()
@@ -29,7 +33,18 @@ export async function updateOrCreateGameGuesses(gameGuesses: GameGuessNew[], loc
         })
       })
     )
-    return { success: true }
+
+    // Return analytics event payload
+    return {
+      success: true,
+      analyticsEvent: {
+        name: 'prediction_submitted',
+        params: {
+          number_of_guesses: gameGuesses.length,
+          game_ids: gameGuesses.map(gg => gg.game_id),
+        },
+      },
+    };
   } catch (error: any) {
     // Return error message so client can display it
     return { success: false, error: error.message || t('guess.saveFailed') }
