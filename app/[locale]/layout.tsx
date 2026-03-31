@@ -135,7 +135,7 @@ export default async function LocaleLayout({
                     <InstallPwa />
                     <OfflineDetection />
                     {/* <AdSensePageViewTracker /> - Removed as per requirements */}
-                    <AnalyticsPageViewTracker user={user} /> {/* Render the new tracker */}
+                    <AnalyticsPageViewTracker user={user ?? null} /> {/* Render the new tracker */}
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

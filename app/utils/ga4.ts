@@ -4,7 +4,7 @@
 // Extend the Window interface to include gtag
 declare global {
   interface Window {
-    gtag?: (_command: string, _targetId: string, _config?: Record<string, unknown>) => void;
+    gtag?: (_command: string, _targetId: string | Date, _config?: Record<string, unknown>) => void;
   }
 }
 
