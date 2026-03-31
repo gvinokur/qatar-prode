@@ -4,9 +4,8 @@ import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { buildPageMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 import { applyLocalizationBatch } from '../../../../utils/localization-helper';
-import { findTournamentById } from '../../../../db/tournament-repository';
 import {
   Team,
   TournamentGroup,
@@ -39,18 +38,12 @@ export async function generateMetadata(
   const tQualified = await getTranslations({ locale, namespace: 'qualified-teams' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const pageLabel = tQualified('page.title')
-    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
-    const description = tQualified('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tQualified('page.title')} – ${t.long_name} | ${appName}`,
+    (t) => tQualified('metadata.description', { name: t.long_name })
+  )
 }
 
 /** Fetch groups with their teams */

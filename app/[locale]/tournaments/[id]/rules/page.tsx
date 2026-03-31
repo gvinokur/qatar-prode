@@ -6,7 +6,7 @@ import Rules, { ScoringConfig } from '../../../../components/tournament-page/rul
 import { findTournamentById } from '../../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
 import { getTranslations, getLocale } from 'next-intl/server'
-import { buildPageMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -23,18 +23,12 @@ export async function generateMetadata(
   const tRules = await getTranslations({ locale, namespace: 'rules' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const pageLabel = tRules('title')
-    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
-    const description = tRules('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tRules('title')} – ${t.long_name} | ${appName}`,
+    (t) => tRules('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentRulesPage(props: Props) {

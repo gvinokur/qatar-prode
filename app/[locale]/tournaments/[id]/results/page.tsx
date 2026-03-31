@@ -1,14 +1,13 @@
 import { Metadata } from 'next'
 import { findGamesInTournament } from '@/app/db/game-repository'
 import { findPlayoffStagesWithGamesInTournament } from '@/app/db/tournament-playoff-repository'
-import { findTournamentById } from '@/app/db/tournament-repository'
 import { getTeamsMap, getGroupStandingsForTournament } from '@/app/actions/tournament-actions'
 import { Box, Typography } from '@/app/components/mui-wrappers'
 import ResultsPageClient from '@/app/components/results-page/results-page-client'
 import LoadingSkeleton from '@/app/components/results-page/loading-skeleton'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { Suspense } from 'react'
-import { buildPageMetadata } from '@/app/utils/metadata-utils'
+import { buildTournamentMetadata } from '@/app/utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -25,18 +24,12 @@ export async function generateMetadata(
   const tTables = await getTranslations({ locale, namespace: 'tables' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const pageLabel = tTables('results.title')
-    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
-    const description = tTables('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tTables('results.title')} – ${t.long_name} | ${appName}`,
+    (t) => tTables('metadata.description', { name: t.long_name })
+  )
 }
 
 /**

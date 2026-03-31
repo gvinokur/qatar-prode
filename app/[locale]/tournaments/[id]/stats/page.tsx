@@ -16,7 +16,7 @@ import { HistoryTabCard } from "../../../../components/tournament-stats/history-
 import { StatsTabs } from "../../../../components/tournament-stats/stats-tabs";
 import { calculateAccuracyStats, calculateBoostStats, type PerformanceStats } from "../../../../utils/stats-calculations";
 import { getTranslations, getLocale } from 'next-intl/server';
-import { buildPageMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -33,18 +33,12 @@ export async function generateMetadata(
   const tStats = await getTranslations({ locale, namespace: 'stats' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const pageLabel = tStats('sidebar.title')
-    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
-    const description = tStats('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tStats('sidebar.title')} – ${t.long_name} | ${appName}`,
+    (t) => tStats('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentStatsPage(props: Props) {

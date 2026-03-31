@@ -19,7 +19,7 @@ import { getAllTournamentGames } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
 import { getTranslations, getLocale } from 'next-intl/server';
-import { buildPageMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -42,18 +42,12 @@ export async function generateMetadata(
   const tAwards = await getTranslations({ locale, namespace: 'awards' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const pageLabel = tAwards('metadata.title')
-    const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
-    const description = tAwards('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tAwards('metadata.title')} – ${t.long_name} | ${appName}`,
+    (t) => tAwards('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function Awards(props: Props) {

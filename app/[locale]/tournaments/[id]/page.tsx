@@ -4,8 +4,7 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import {Box} from "../../../components/mui-wrappers/";
 import {UnifiedGamesPage} from "../../../components/unified-games-page";
-import { findTournamentById } from '../../../db/tournament-repository'
-import { buildPageMetadata } from '../../../utils/metadata-utils'
+import { buildTournamentMetadata } from '../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -22,17 +21,12 @@ export async function generateMetadata(
   const tTournament = await getTranslations({ locale, namespace: 'tournament' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const title = `${tournament.long_name} | ${appName}`
-    const description = tTournament('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${t.long_name} | ${appName}`,
+    (t) => tTournament('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentLandingPage(props: Props) {

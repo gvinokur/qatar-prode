@@ -29,7 +29,7 @@ import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale, getTranslations } from 'next-intl/server'
-import { buildPageMetadata } from '../../../utils/metadata-utils';
+import { buildTournamentMetadata } from '../../../utils/metadata-utils';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -97,17 +97,12 @@ export async function generateMetadata(
   const tTournament = await getTranslations({ locale, namespace: 'tournament' })
   const appName = tCommon('app.name')
 
-  try {
-    const tournament = await findTournamentById(id)
-    if (!tournament) return { title: appName }
-
-    const title = `${tournament.long_name} | ${appName}`
-    const description = tTournament('metadata.description', { name: tournament.long_name })
-
-    return buildPageMetadata(title, description)
-  } catch {
-    return { title: appName }
-  }
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${t.long_name} | ${appName}`,
+    (t) => tTournament('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentLayout(props: TournamentLayoutProps) {
