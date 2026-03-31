@@ -459,4 +459,19 @@ Key flows:
 
 19. Ad-free toggle
     UsersTab [Client] → toggleUserAdFreeAction [server action] → updateUserAdFreeStatus
+
+20. GA4 Analytics (page-view tracking and event tracking)
+    LocaleLayout (Server)
+      └── <Suspense> → AnalyticsPageViewTracker [Client]
+            ├── skips all tracking when NEXT_PUBLIC_GA_MEASUREMENT_ID unset or user.isAdFree
+            ├── initializeGA4() on mount (sets gtag config, disables auto page views)
+            └── trackPageView(url) on each pathname/searchParams change
+
+    Modified flows for event tracking:
+    - Flow 1 (Predictions): GuessesContextProvider.updateGameGuess
+          → updateOrCreateGameGuesses [server action] returns analyticsEvent
+          → trackEvent('prediction_submitted', { number_of_guesses, game_ids })
+    - Flow 13 (Friend group management): JoinRequestManager.handleApprove
+          → approveJoinRequestAction [server action] returns analyticsEvent
+          → trackEvent('group_joined', { group_id, tournament_id })
 ```

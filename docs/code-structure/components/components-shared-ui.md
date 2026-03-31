@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-28
+**Last updated:** 2026-03-31
 
 ---
 
@@ -208,6 +208,10 @@ Popover displaying detailed tournament predictions (final standings, awards, qua
 **app/components/tournament-bottom-nav/tournament-bottom-nav-wrapper.tsx**
 Mobile-only wrapper that conditionally renders bottom navigation using media queries.
 - `TournamentBottomNavWrapper` - [Client] - Uses: `useMediaQuery`, `useTheme`, `usePathname` - Renders: TournamentBottomNav
+
+**app/components/shared-ui/AnalyticsPageViewTracker.tsx**
+Client component that fires GA4 page-view events on each navigation. Reads `NEXT_PUBLIC_GA_MEASUREMENT_ID` inside effects (not at module level) so test isolation works correctly. Must be wrapped in `<Suspense>` at the call site because it calls `useSearchParams()`.
+- `AnalyticsPageViewTracker` - [Client] - Props: `user: Session['user'] | null` - Calls: `initializeGA4`, `trackPageView` from `app/utils/ga4` - Renders: null
 
 **app/components/tournament-bottom-nav/tournament-bottom-nav.tsx**
 Mobile bottom navigation with tabs for home, results, rules, stats, friend groups with active state detection.

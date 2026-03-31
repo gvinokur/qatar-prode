@@ -575,7 +575,7 @@ describe('Prode Group Join Request Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/tournaments/[tournament_id]/friend-groups/group-1`
       );
-      expect(result).toEqual({ success: true, message: 'Join request approved' });
+      expect(result).toEqual(expect.objectContaining({ success: true, message: 'Join request approved' }));
     });
 
     it('succeeds as admin: calls approveJoinRequest and revalidatePath', async () => {
@@ -587,7 +587,7 @@ describe('Prode Group Join Request Actions', () => {
 
       expect(mockApproveJoinRequest).toHaveBeenCalledWith('request-1', 'user-1');
       expect(mockRevalidatePath).toHaveBeenCalled();
-      expect(result).toEqual({ success: true, message: 'Join request approved' });
+      expect(result).toEqual(expect.objectContaining({ success: true, message: 'Join request approved' }));
     });
 
     it('sends approval email to the requester (fire-and-forget)', async () => {

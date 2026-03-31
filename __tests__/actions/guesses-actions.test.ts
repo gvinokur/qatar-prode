@@ -151,7 +151,7 @@ describe('Guesses Actions', () => {
         ...mockGameGuess,
         user_id: mockUser.id
       });
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual(expect.objectContaining({ success: true }));
     });
 
     it('returns unauthorized when user is not logged in', async () => {

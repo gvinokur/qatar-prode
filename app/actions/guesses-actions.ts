@@ -13,7 +13,7 @@ import {toMap} from "../utils/ObjectUtils";
 import {db} from "../db/database";
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
-import { AnalyticsEventPayload } from '@/app/utils/ga4'; // Import AnalyticsEventPayload
+import { AnalyticsEventPayload } from '@/app/utils/ga4';
 
 export async function updateOrCreateGameGuesses(
   gameGuesses: GameGuessNew[],
