@@ -135,7 +135,7 @@ Offline fallback page shown when service worker catches offline navigation.
 Tournament landing page showing games for selected group.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns tournament-specific title `"{long_name} | {appName}"` and localized description; falls back to appName on error or missing tournament.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **TournamentLandingPage(props)**: `JSX.Element` — [Server] Renders unified games page for tournament.
   Renders: UnifiedGamesPage
 
@@ -143,7 +143,7 @@ Tournament landing page showing games for selected group.
 Tournament context layout with header, sidebar, and bottom navigation.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns tournament-specific title `"{long_name} | {appName}"` and localized description; applies to all pages nested under this layout; falls back to appName on error or missing tournament.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **checkDevTournamentPermission(tournamentId, tournament, user, locale)**: `Promise<void>` — [Server] Validates user access to dev-only tournaments in production.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
@@ -162,7 +162,7 @@ Error boundary for tournament access denied scenarios.
 Results and standings page showing group stage and playoff results.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{results.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **ResultsPage(props)**: `JSX.Element` — [Server] Fetches game results, group standings, and playoff data; displays in tabbed interface with loading skeleton fallback.
   Calls: findGamesInTournament, getTeamsMap, getGroupStandingsForTournament, findPlayoffStagesWithGamesInTournament, getTranslations
   Renders: LoadingSkeleton, ResultsPageClient
@@ -171,7 +171,7 @@ Results and standings page showing group stage and playoff results.
 Tournament-specific rules page with scoring configuration.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{rules.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **TournamentRulesPage(props)**: `JSX.Element` — [Server] Fetches tournament scoring config and renders rules component.
   Calls: findTournamentById
   Renders: Rules
@@ -180,7 +180,7 @@ Tournament-specific rules page with scoring configuration.
 User tournament statistics page showing performance, accuracy, boost analysis, and score history.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{sidebar.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations, and score history; calculates performance and accuracy metrics; renders stats in tabbed interface.
   Calls: getLoggedInUser, findTournamentById, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers
   Renders: StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
@@ -189,7 +189,7 @@ User tournament statistics page showing performance, accuracy, boost analysis, a
 Awards prediction page for tournament individual awards and podium.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{awards.metadata.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **Awards(props)**: `JSX.Element` — [Server] Fetches all players, tournament guesses, playoff stages, and games; checks if predictions are locked; renders awards panel.
   Calls: getLoggedInUser, findTournamentGuessByUserIdTournament, findAllPlayersInTournamentWithTeamData, getTournamentStartDate, getTeamsMap, findTournamentById, getPlayoffRounds, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion
   Renders: AwardsPanel
@@ -198,7 +198,7 @@ Awards prediction page for tournament individual awards and podium.
 Qualified teams (group finalists) prediction page with drag-and-drop interface.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{page.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
-  Calls: findTournamentById, getTranslations, getLocale
+  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **fetchGroupsWithTeams(tournamentId)**: `Promise<Array>` — [Server] Fetches tournament groups with localized team names.
   Calls: getLocale, applyLocalizationBatch
 - **initializePredictions(userId, tournamentId, groupsWithTeams)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Creates initial JSONB predictions for user in each group.

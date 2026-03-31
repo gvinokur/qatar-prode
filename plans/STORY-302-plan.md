@@ -411,3 +411,12 @@ All `generateMetadata` tests follow the same pattern as the existing `app/[local
 ## CODE-STRUCTURE Files to Update
 - `docs/code-structure/pages.md` — add `generateMetadata` entries for all 10 modified files
 - Call graph: No changes needed (no new cross-layer flows introduced)
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: Extract buildTournamentMetadata to fix SonarCloud CPD
+**Date:** 2026-03-30
+**Reason:** After initial implementation, SonarCloud reported `new_duplicated_lines_density = 5.8%` (threshold: 3%) due to 10 identical OpenGraph/Twitter return blocks. A second pass found that 4.2% duplication remained after the first extraction (`buildPageMetadata`) because the try/catch + `findTournamentById` pattern was repeated verbatim across 7 tournament `generateMetadata` functions.
+**Change:** Added `buildTournamentMetadata(id, appName, buildTitle, buildDescription)` to `metadata-utils.ts`. This function encapsulates the repeated try/catch + `findTournamentById` + null-check + `buildPageMetadata` call. All 7 tournament page `generateMetadata` functions now call this helper instead of inlining the pattern. `findTournamentById` import removed from `results/page.tsx` and `qualified-teams/page.tsx` (it was only used in `generateMetadata`).
