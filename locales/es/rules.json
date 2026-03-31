@@ -72,5 +72,8 @@
   },
   "actions": {
     "viewFullRules": "Ver Reglas Completas"
+  },
+  "metadata": {
+    "description": "Reglas de puntuación y sistema de puntos para {name}"
   }
 }

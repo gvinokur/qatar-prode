@@ -1,5 +1,6 @@
 'use server'
 
+import { Metadata } from 'next'
 import { Box } from "../../../../components/mui-wrappers";
 import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
@@ -14,11 +15,30 @@ import { BoostAnalysisCard } from "../../../../components/tournament-stats/boost
 import { HistoryTabCard } from "../../../../components/tournament-stats/history-tab-card";
 import { StatsTabs } from "../../../../components/tournament-stats/stats-tabs";
 import { calculateAccuracyStats, calculateBoostStats, type PerformanceStats } from "../../../../utils/stats-calculations";
+import { getTranslations, getLocale } from 'next-intl/server';
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tStats = await getTranslations({ locale, namespace: 'stats' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tStats('sidebar.title')} – ${t.long_name} | ${appName}`,
+    (t) => tStats('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentStatsPage(props: Props) {

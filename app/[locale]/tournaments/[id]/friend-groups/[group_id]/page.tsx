@@ -1,9 +1,10 @@
 'use server'
 
+import type { Metadata } from 'next'
 import {Box, Grid, Typography, Button} from "../../../../../components/mui-wrappers";
 import Link from 'next/link';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../../../../components/debug";
 import {findParticipantsInGroup, findProdeGroupById} from "../../../../../db/prode-group-repository";
@@ -30,7 +31,8 @@ import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privac
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
 import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
-import { computeSnapshotScores } from '../../../../../utils/score-history-utils';
+import { computeSnapshotScores } from '../../../../../utils/score-history-utils'
+import { buildPageMetadata } from '../../../../../utils/metadata-utils';
 
 type Props = {
   readonly params: Promise<{
@@ -39,6 +41,33 @@ type Props = {
     locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string; group_id: string }> }
+): Promise<Metadata> {
+  const { id, group_id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tGroups = await getTranslations({ locale, namespace: 'groups' })
+  const appName = tCommon('app.name')
+
+  try {
+    const [group, tournament] = await Promise.all([
+      findProdeGroupById(group_id),
+      findTournamentById(id),
+    ])
+
+    if (!group) return { title: appName }
+
+    const tournamentSuffix = tournament?.short_name ? ` | ${tournament.short_name}` : ''
+    const title = `${group.name}${tournamentSuffix} | ${appName}`
+    const description = tGroups('metadata.description', { name: group.name })
+
+    return buildPageMetadata(title, description)
+  } catch {
+    return { title: appName }
+  }
 }
 
 export default async function TournamentScopedFriendGroup(props : Props){

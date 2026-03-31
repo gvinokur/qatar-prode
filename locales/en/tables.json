@@ -65,5 +65,8 @@
       "semifinals": "Semifinals",
       "final": "Final"
     }
+  },
+  "metadata": {
+    "description": "View results and group standings for {name}"
   }
 }

@@ -2,11 +2,19 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-30
 
 ---
 
 ## Files
+
+### app/utils/metadata-utils.ts
+Next.js page metadata builder shared by all `generateMetadata` functions.
+
+- **buildPageMetadata(title, description)**: `Metadata` — Builds a standard Next.js Metadata object with title, description, OpenGraph (type: website, static 512×512 image), and Twitter card (summary) fields.
+  Calls: none
+- **buildTournamentMetadata(id, appName, buildTitle, buildDescription)**: `Promise<Metadata>` — Fetches a tournament by ID and invokes the provided title/description builder callbacks; returns a fallback `{ title: appName }` on not-found or DB error. Encapsulates the repeated try/catch + `findTournamentById` pattern shared by all tournament `generateMetadata` functions.
+  Calls: findTournamentById, buildPageMetadata
 
 ### app/utils/environment-utils.ts
 Environment configuration utilities.

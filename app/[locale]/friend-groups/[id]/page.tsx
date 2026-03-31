@@ -1,5 +1,7 @@
 'use server'
 
+import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
 import {Box, Grid, Typography} from "../../../components/mui-wrappers";
 import {redirect} from "next/navigation";
 import {DebugObject} from "../../../components/debug";
@@ -23,7 +25,8 @@ import { getTournamentStartDate } from "../../../actions/tournament-actions";
 import { generateShortUrlForGroup } from '../../../actions/short-url-actions';
 import type { TournamentBadgeConfig } from "../../../components/leaderboard/types";
 import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
-import { computeSnapshotScores } from '../../../utils/score-history-utils';
+import { computeSnapshotScores } from '../../../utils/score-history-utils'
+import { buildPageMetadata } from '../../../utils/metadata-utils';
 
 type Props = {
   readonly params: Promise<{
@@ -31,6 +34,28 @@ type Props = {
     locale: string
   }>,
   readonly searchParams: Promise<{[k:string]:string}>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tGroups = await getTranslations({ locale, namespace: 'groups' })
+  const appName = tCommon('app.name')
+
+  try {
+    const group = await findProdeGroupById(id)
+    if (!group) return { title: appName }
+
+    const title = `${group.name} | ${appName}`
+    const description = tGroups('metadata.description', { name: group.name })
+
+    return buildPageMetadata(title, description)
+  } catch {
+    return { title: appName }
+  }
 }
 
 export default async function FriendsGroup(props : Props){

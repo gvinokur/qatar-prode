@@ -1,5 +1,6 @@
 'use server'
 
+import type { Metadata } from 'next'
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
 import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
@@ -27,7 +28,8 @@ import TournamentSidebar from '../../../components/tournament-page/tournament-si
 import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server'
+import { buildTournamentMetadata } from '../../../utils/metadata-utils';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -84,6 +86,23 @@ function isWithinFiveDaysOfStart(startDate: Date): boolean {
   const timeDiff = Math.abs(startTime - currentTime)
 
   return timeDiff <= FIVE_DAYS_MS
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tTournament = await getTranslations({ locale, namespace: 'tournament' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${t.long_name} | ${appName}`,
+    (t) => tTournament('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentLayout(props: TournamentLayoutProps) {

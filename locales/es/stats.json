@@ -97,5 +97,8 @@
       "qualifiedTeams": "Equipos Clasificados",
       "groupPosition": "Posición de Grupo"
     }
+  },
+  "metadata": {
+    "description": "Ver tus estadísticas y rendimiento en {name}"
   }
 }

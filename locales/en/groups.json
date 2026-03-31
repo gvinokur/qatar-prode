@@ -572,5 +572,8 @@
     "rankChartTitle": "Rank Over Time",
     "noHistory": "No history yet",
     "noHistoryDescription": "Score history will appear once the tournament starts and scores are calculated."
+  },
+  "metadata": {
+    "description": "View friend group standings and compete in {name}"
   }
 }

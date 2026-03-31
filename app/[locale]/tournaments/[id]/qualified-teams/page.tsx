@@ -1,8 +1,10 @@
+import { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation';
 import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 import { applyLocalizationBatch } from '../../../../utils/localization-helper';
 import {
   Team,
@@ -25,6 +27,23 @@ interface PageProps {
     readonly locale: string;
   }>;
   readonly searchParams: Promise<{ [k: string]: string }>;
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tQualified = await getTranslations({ locale, namespace: 'qualified-teams' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tQualified('page.title')} – ${t.long_name} | ${appName}`,
+    (t) => tQualified('metadata.description', { name: t.long_name })
+  )
 }
 
 /** Fetch groups with their teams */

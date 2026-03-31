@@ -38,5 +38,9 @@
   "selector": {
     "none": "None",
     "selectItem": "Select"
+  },
+  "metadata": {
+    "title": "Awards",
+    "description": "Make your awards predictions for {name}"
   }
 }

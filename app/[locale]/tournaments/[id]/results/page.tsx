@@ -1,16 +1,35 @@
+import { Metadata } from 'next'
 import { findGamesInTournament } from '@/app/db/game-repository'
 import { findPlayoffStagesWithGamesInTournament } from '@/app/db/tournament-playoff-repository'
 import { getTeamsMap, getGroupStandingsForTournament } from '@/app/actions/tournament-actions'
 import { Box, Typography } from '@/app/components/mui-wrappers'
 import ResultsPageClient from '@/app/components/results-page/results-page-client'
 import LoadingSkeleton from '@/app/components/results-page/loading-skeleton'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { Suspense } from 'react'
+import { buildTournamentMetadata } from '@/app/utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tTables = await getTranslations({ locale, namespace: 'tables' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tTables('results.title')} – ${t.long_name} | ${appName}`,
+    (t) => tTables('metadata.description', { name: t.long_name })
+  )
 }
 
 /**

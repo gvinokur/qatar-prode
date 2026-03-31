@@ -1,5 +1,6 @@
 'use server'
 
+import { Metadata } from 'next'
 import {Box} from "../../../../components/mui-wrappers";
 import {findAllPlayersInTournamentWithTeamData} from "../../../../db/player-repository";
 import {DebugObject} from "../../../../components/debug";
@@ -17,6 +18,8 @@ import {findTournamentById} from "../../../../db/tournament-repository";
 import { getAllTournamentGames } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -29,6 +32,23 @@ const buildTournamentGuesses = (userId: string, tournamentId: string) => ({
   user_id: userId,
   tournament_id: tournamentId
 } as TournamentGuessNew)
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tAwards = await getTranslations({ locale, namespace: 'awards' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tAwards('metadata.title')} – ${t.long_name} | ${appName}`,
+    (t) => tAwards('metadata.description', { name: t.long_name })
+  )
+}
 
 export default async function Awards(props: Props) {
   const params = await props.params

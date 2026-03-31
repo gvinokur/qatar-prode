@@ -1,14 +1,34 @@
 'use server'
 
+import { Metadata } from 'next'
 import { Box } from '@mui/material'
 import Rules, { ScoringConfig } from '../../../../components/tournament-page/rules'
 import { findTournamentById } from '../../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tRules = await getTranslations({ locale, namespace: 'rules' })
+  const appName = tCommon('app.name')
+
+  return buildTournamentMetadata(
+    id,
+    appName,
+    (t) => `${tRules('title')} – ${t.long_name} | ${appName}`,
+    (t) => tRules('metadata.description', { name: t.long_name })
+  )
 }
 
 export default async function TournamentRulesPage(props: Props) {
