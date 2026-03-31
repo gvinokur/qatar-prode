@@ -8,6 +8,7 @@ import ResultsPageClient from '@/app/components/results-page/results-page-client
 import LoadingSkeleton from '@/app/components/results-page/loading-skeleton'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { Suspense } from 'react'
+import { buildPageMetadata } from '@/app/utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -32,17 +33,7 @@ export async function generateMetadata(
     const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
     const description = tTables('metadata.description', { name: tournament.long_name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }

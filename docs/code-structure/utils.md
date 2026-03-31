@@ -2,11 +2,17 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-30
 
 ---
 
 ## Files
+
+### app/utils/metadata-utils.ts
+Next.js page metadata builder shared by all `generateMetadata` functions.
+
+- **buildPageMetadata(title, description)**: `Metadata` — Builds a standard Next.js Metadata object with title, description, OpenGraph (type: website, static 512×512 image), and Twitter card (summary) fields. Used by all 10 page/layout `generateMetadata` functions to avoid duplicating the return shape.
+  Calls: none
 
 ### app/utils/environment-utils.ts
 Environment configuration utilities.

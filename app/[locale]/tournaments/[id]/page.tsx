@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import {Box} from "../../../components/mui-wrappers/";
 import {UnifiedGamesPage} from "../../../components/unified-games-page";
 import { findTournamentById } from '../../../db/tournament-repository'
+import { buildPageMetadata } from '../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -28,17 +29,7 @@ export async function generateMetadata(
     const title = `${tournament.long_name} | ${appName}`
     const description = tTournament('metadata.description', { name: tournament.long_name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }

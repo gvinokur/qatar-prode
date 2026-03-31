@@ -31,7 +31,8 @@ import PrivacyIndicatorIcon from "../../../../../components/friend-groups/privac
 import AdminSectionTabs from "../../../../../components/friend-groups/admin-section-tabs";
 import { generateShortUrlForGroup } from '../../../../../actions/short-url-actions';
 import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
-import { computeSnapshotScores } from '../../../../../utils/score-history-utils';
+import { computeSnapshotScores } from '../../../../../utils/score-history-utils'
+import { buildPageMetadata } from '../../../../../utils/metadata-utils';
 
 type Props = {
   readonly params: Promise<{
@@ -63,17 +64,7 @@ export async function generateMetadata(
     const title = `${group.name}${tournamentSuffix} | ${appName}`
     const description = tGroups('metadata.description', { name: group.name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }

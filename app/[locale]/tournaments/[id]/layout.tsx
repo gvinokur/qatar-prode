@@ -28,7 +28,8 @@ import TournamentSidebar from '../../../components/tournament-page/tournament-si
 import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
-import { getLocale, getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '../../../utils/metadata-utils';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -103,17 +104,7 @@ export async function generateMetadata(
     const title = `${tournament.long_name} | ${appName}`
     const description = tTournament('metadata.description', { name: tournament.long_name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }

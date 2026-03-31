@@ -3,6 +3,7 @@
 
 import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
+import { buildPageMetadata } from '../utils/metadata-utils'
 import {getTournaments} from "../actions/tournament-actions";
 import {getLoggedInUser} from "../actions/user-actions";
 import {getOnboardingStatus} from "../db/onboarding-repository";
@@ -20,17 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const appName = t('app.name')
   const description = t('home.metadata.description')
 
-  return {
-    title: appName,
-    description,
-    openGraph: {
-      type: 'website',
-      title: appName,
-      description,
-      images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-    },
-    twitter: { card: 'summary', title: appName, description },
-  }
+  return buildPageMetadata(appName, description)
 }
 
 export default async function ServerHome({ searchParams }: ServerHomeProps) {

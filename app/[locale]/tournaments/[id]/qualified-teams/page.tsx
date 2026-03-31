@@ -4,6 +4,7 @@ import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { buildPageMetadata } from '../../../../utils/metadata-utils'
 import { applyLocalizationBatch } from '../../../../utils/localization-helper';
 import { findTournamentById } from '../../../../db/tournament-repository';
 import {
@@ -46,17 +47,7 @@ export async function generateMetadata(
     const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
     const description = tQualified('metadata.description', { name: tournament.long_name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }

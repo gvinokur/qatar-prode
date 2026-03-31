@@ -6,6 +6,7 @@ import Rules, { ScoringConfig } from '../../../../components/tournament-page/rul
 import { findTournamentById } from '../../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
 import { getTranslations, getLocale } from 'next-intl/server'
+import { buildPageMetadata } from '../../../../utils/metadata-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -30,17 +31,7 @@ export async function generateMetadata(
     const title = `${pageLabel} – ${tournament.long_name} | ${appName}`
     const description = tRules('metadata.description', { name: tournament.long_name })
 
-    return {
-      title,
-      description,
-      openGraph: {
-        type: 'website',
-        title,
-        description,
-        images: [{ url: '/web-app-manifest-512x512.png', width: 512, height: 512 }],
-      },
-      twitter: { card: 'summary', title, description },
-    }
+    return buildPageMetadata(title, description)
   } catch {
     return { title: appName }
   }
