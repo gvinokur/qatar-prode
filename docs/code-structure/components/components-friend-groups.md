@@ -77,7 +77,7 @@ Tooltip icon showing group privacy status. [Client]
 Admin card to view, approve, and reject pending join requests. [Client]
 
 - **JoinRequestManager(props: Props)**: `JSX.Element` — [Client] List pending and rejected requests with approve/reject buttons, formatted timestamps, and source info.
-  Calls: approveJoinRequestAction, rejectJoinRequestAction
+  Calls: approveJoinRequestAction, rejectJoinRequestAction, trackEvent
   Uses: useTranslations, useRouter
 
 ### app/components/friend-groups/public-groups-browser.tsx

@@ -81,7 +81,7 @@ Locale-specific layout that sets up i18n providers, theme, and session context.
   Calls: getTranslations
 - **LocaleLayout({ children, params })**: `JSX.Element` — [Server] Sets up locale context, theme providers, session wrapper, header, footer, and AdSense Auto Ads. AdSense Script loaded afterInteractive when NEXT_PUBLIC_ADSENSE_CLIENT_ID is set and user is NOT ad-free. Mounts AdSensePageViewTracker to signal virtual page views on SPA navigation.
   Calls: getLoggedInUser, getMessages, getTranslations
-  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, AdSensePageViewTracker, Footer, InstallPwa, OfflineDetection
+  Renders: NextIntlClientProvider, TimezoneProvider, CountdownProvider, NextThemeProvider, ThemeProvider, SessionWrapper, ConditionalHeader, Header, AdSensePageViewTracker, Footer, InstallPwa, OfflineDetection, AnalyticsPageViewTracker
 
 ### app/[locale]/page.tsx
 Home/landing page that conditionally shows onboarding or redirects to first tournament.

@@ -49,7 +49,7 @@ Manages tournament game filters (active filter, group filter, round filter) with
 
 **app/components/context-providers/guesses-context-provider.tsx**
 Manages game guesses and boost counts for a tournament with optional auto-save functionality.
-- `GuessesContextProvider` - [Provider] - Calls: `updateOrCreateGameGuesses` - Renders: GuessesContext.Provider
+- `GuessesContextProvider` - [Provider] - Calls: `updateOrCreateGameGuesses`, `trackEvent` - Renders: GuessesContext.Provider
 - `GuessesContext` - Context export
 - `useLocale` - Uses: next-intl hook
 
