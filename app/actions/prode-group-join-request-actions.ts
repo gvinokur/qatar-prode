@@ -24,7 +24,7 @@ import {
   generateJoinRequestRejectedEmail
 } from '../utils/email-templates';
 import { Locale } from '@/i18n.config';
-import { AnalyticsEventPayload } from '@/app/utils/ga4'; // Import AnalyticsEventPayload
+import { AnalyticsEventPayload } from '@/app/utils/ga4';
 
 /**
  * Request to join a friend group

@@ -252,6 +252,14 @@ Pure TypeScript badge calculation engine. No framework dependencies.
 - **TournamentBadgeConfig**: `{ tournamentStarted, championPoints, runnerUpPoints, thirdPlacePoints, individualAwardPoints, totalQualifyingSlots }`. `tournamentStarted: false` skips all badges. 0 values disable corresponding badges.
 - **UserBadgeInput**: `{ userId, rank, rankChange, totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, honorRollScore, individualAwardsScore, boostsUsed, scoredBoosts, rankHistory?: number[] }`. `rankHistory` is chronological rank array (oldest index 0, newest last); when absent or too short, all 5 time-dimension badges suppress silently. Updated emoji: rocket=🚀, free-fall=🪂.
 
+### app/utils/ga4.ts
+Google Analytics 4 utility. All functions are no-ops when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is unset or `window.gtag` is not a function, so GA4 only activates in production when the measurement ID is configured.
+
+- **initializeGA4()**: `void` — Calls `gtag('js', new Date())` and `gtag('config', GA_MEASUREMENT_ID, { send_page_view: false })`. No-op when measurement ID unset or `window.gtag` unavailable.
+- **trackPageView(url: string, title?: string)**: `void` — Calls `gtag('config', GA_MEASUREMENT_ID, { page_path, page_title })`. No-op guard same as above.
+- **trackEvent(eventName: string, eventParams?: Record<string, any>)**: `void` — Calls `gtag('event', eventName, eventParams)`. No-op guard same as above.
+- **AnalyticsEventPayload**: `{ name: string; params?: Record<string, any> }` (TypeScript interface — type-only, no runtime value).
+
 ### app/utils/share-utils.ts
 Image capture and sharing utilities for social media.
 

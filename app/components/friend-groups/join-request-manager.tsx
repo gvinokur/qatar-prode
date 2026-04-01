@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation';
 import { approveJoinRequestAction, rejectJoinRequestAction } from '@/app/actions/prode-group-join-request-actions';
 import { Locale } from '@/i18n.config';
 import { PersonAdd as PersonAddIcon, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
-import { trackEvent } from '@/app/utils/ga4'; // Add this import
+import { trackEvent } from '@/app/utils/ga4';
 
 interface JoinRequest {
   id: string;
@@ -59,15 +59,13 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
     try {
-      const result = await approveJoinRequestAction(requestId, groupId, tournamentId); // Capture the result
+      const result = await approveJoinRequestAction(requestId, groupId, tournamentId);
       setSuccessMessage(t('approveSuccess'));
       router.refresh();
 
-      // --- NEW: Track analytics event ---
       if (result && result.success && result.analyticsEvent) {
         trackEvent(result.analyticsEvent.name, result.analyticsEvent.params);
       }
-      // --- END NEW ---
 
     } catch (err) {
       // Revert optimistic update on error

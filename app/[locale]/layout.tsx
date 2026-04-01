@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, getTranslations} from 'next-intl/server';
 import {Metadata} from 'next';
@@ -13,7 +14,8 @@ import {getLoggedInUser} from "../actions/user-actions";
 import { TimezoneProvider } from '../components/context-providers/timezone-context-provider';
 import { CountdownProvider } from '../components/context-providers/countdown-context-provider';
 import Footer from '../components/home/footer';
-import AnalyticsPageViewTracker from '../components/shared-ui/AnalyticsPageViewTracker'; // Import the new tracker
+import AdSensePageViewTracker from '../components/ads/adsense-page-view-tracker';
+import AnalyticsPageViewTracker from '../components/shared-ui/AnalyticsPageViewTracker';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'es' }];
@@ -33,7 +35,6 @@ export async function generateMetadata(
   const alternateLocale = locale === 'es' ? 'en' : 'es'
 
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
-  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
   return {
     title: appName,
@@ -113,11 +114,24 @@ export default async function LocaleLayout({
           />
         )}
         {gaMeasurementId && !user?.isAdFree && (
-          <Script
-            async
-            src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-            strategy="afterInteractive"
-          />
+          <>
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){window.dataLayer.push(arguments);}
+                gtag('js', new Date());
+
+                gtag('config', '${gaMeasurementId}', {
+                  send_page_view: false
+                });
+              `}
+            </Script>
+          </>
         )}
       </head>
       <body style={{minHeight: '100%'}}>
@@ -134,8 +148,10 @@ export default async function LocaleLayout({
                     <Footer message={`${appName} © 2025`} />
                     <InstallPwa />
                     <OfflineDetection />
-                    {/* <AdSensePageViewTracker /> - Removed as per requirements */}
-                    <AnalyticsPageViewTracker user={user ?? null} /> {/* Render the new tracker */}
+                    <AdSensePageViewTracker />
+                    <Suspense fallback={null}>
+                      <AnalyticsPageViewTracker user={user ?? null} />
+                    </Suspense>
                   </SessionWrapper>
                 </ThemeProvider>
               </NextThemeProvider>

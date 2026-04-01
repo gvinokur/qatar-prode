@@ -101,8 +101,8 @@ Manages tournament betting configuration and payment tracking for friend groups.
 ### app/actions/guesses-actions.ts
 Manages game and tournament predictions (guesses).
 
-- **updateOrCreateGameGuesses(gameGuesses, locale)**: `Promise<{ success: boolean; error?: string }>` — Saves game predictions (upsert).
-  Calls: getLoggedInUser, updateOrCreateGuess
+- **updateOrCreateGameGuesses(gameGuesses, locale)**: `Promise<{ success: boolean; error?: string; analyticsEvent?: AnalyticsEventPayload }>` — Saves game predictions (upsert). Returns analytics event payload on success.
+  Calls: getLoggedInUser, updateOrCreateGuess, trackEvent
 - **updateOrCreateTournamentGuess(guess, locale)**: `Promise<TournamentGuess>` — Saves tournament-level prediction.
   Calls: dbUpdateOrCreateTournamentGuess
 - **updatePlayoffGameGuesses(tournamentId, user)**: `Promise<void>` — Recalculates and updates playoff guesses from position predictions.
@@ -197,8 +197,8 @@ Manages join requests for friend groups — requesting, approving, rejecting, an
   Calls: getLoggedInUser, findJoinRequestsByUser
 - **getGroupJoinRequests(groupId)**: `Promise<JoinRequest[]>` — Gets pending requests for a group (admin only).
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findJoinRequestsByGroup
-- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: boolean; message: string }>` — Approves a join request (admin).
-  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath
+- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: boolean; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Returns analytics event payload on success.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath, trackEvent
 - **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: boolean; message: string }>` — Rejects a join request (admin).
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, rejectJoinRequestRepo, findUsersByIds, generateJoinRequestRejectedEmail, sendEmail, revalidatePath
 - **cancelJoinRequestAction(requestId)**: `Promise<{ success: boolean; message: string }>` — Cancels own pending join request.
