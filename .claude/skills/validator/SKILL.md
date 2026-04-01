@@ -1,9 +1,33 @@
 ---
 name: validator
 description: Quality analysis skill — invoke when user says "check quality gates" or "sonar results". Fetches SonarCloud issues, delegates to Gemini Explainer agent, writes human-readable explanation to tmp/sonar-explanation.md, presents findings, and awaits user authorization before fixing anything.
+context: fork
+agent: general-purpose
 ---
 
 # Validator (Quality Analysis Skill)
+
+## Step 0: Read Story Context File (MANDATORY)
+
+**First action before anything else:**
+
+```typescript
+const contextFile = `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
+Read({ file_path: contextFile })
+```
+
+Extract from the context file:
+- `STORY_NUMBER` — used in Gemini output file naming (`/tmp/gemini-story-${STORY_NUMBER}-sonar-1.json`)
+- `PR_NUMBER` — used to fetch SonarCloud results
+- `WORKTREE_PATH` — used for `PROJECT_ROOT` resolution
+
+**If you don't know these values** (fresh session after `/compact` or `/clear`):
+```bash
+ls /Users/gvinokur/Personal/qatar-prode-story-*/plans/STORY-*-context.md 2>/dev/null | tail -1
+```
+Read that file to bootstrap your session.
+
+---
 
 ## When to Invoke
 

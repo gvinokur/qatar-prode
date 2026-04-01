@@ -1,11 +1,38 @@
 ---
 name: code-reviewer
 description: Code review skill — use when user says "code looks good". Persona A (Quality Officer) enforces 0 new SonarCloud issues. Persona B (Librarian) performs the Documentation Audit (Section 7.5). Hard gate: story complete is prohibited until Section 7.5 passes.
+context: inline
 ---
 
 # Code Reviewer (Validation Skill)
 
 Complete workflow for validating code quality before final PR review and merge.
+
+## Step 0: Read Story Context File (MANDATORY)
+
+**First action before anything else:**
+
+```typescript
+// Find and read the context file
+const contextFile = `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
+Read({ file_path: contextFile })
+```
+
+Extract from the context file:
+- `STORY_NUMBER` — the story being reviewed
+- `WORKTREE_PATH` — absolute path to the story's worktree
+- `PR_NUMBER` — the PR to review
+
+**If you don't know WORKTREE_PATH or STORY_NUMBER yet** (fresh session after `/compact` or `/clear`):
+```bash
+# Find the context file from the most recent story worktree
+ls /Users/gvinokur/Personal/qatar-prode-story-*/plans/STORY-*-context.md 2>/dev/null | tail -1
+```
+Read that file to bootstrap your session.
+
+**Why this matters:** After a `/compact` or `/clear`, conversation history is gone. The context file is the single source of truth for story metadata.
+
+---
 
 ## Personas
 

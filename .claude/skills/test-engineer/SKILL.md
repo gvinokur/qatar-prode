@@ -1,9 +1,28 @@
 ---
 name: test-engineer
 description: Testing skill — use when creating tests during implementation. Covers parallel Haiku subagent test creation, mandatory test utilities (renderWithTheme, testFactories, mock helpers), and 80% coverage requirements.
+context: fork
+agent: haiku
 ---
 
 # Test Engineer (Testing Skill)
+
+## Step 0: Read Story Context File
+
+**First action — get WORKTREE_PATH and STORY_NUMBER:**
+
+```typescript
+const contextFile = `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
+Read({ file_path: contextFile })
+// Extract: WORKTREE_PATH, STORY_NUMBER
+```
+
+**If bootstrapping from scratch** (fresh subagent with no prior context):
+```bash
+ls /Users/gvinokur/Personal/qatar-prode-story-*/plans/STORY-*-context.md 2>/dev/null | tail -1
+```
+
+---
 
 ## MANDATORY UTILITIES — READ THIS FIRST
 

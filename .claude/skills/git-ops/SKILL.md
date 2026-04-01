@@ -1,6 +1,46 @@
 ---
 name: git-ops
 description: Git operations skill — use when committing plans, creating PRs, or completing stories. Contains exact Bash subagent templates for plan commits (DRAFT PR), plan iteration commits, CI/CD polling, story complete workflow, and post-merge main worktree update.
+context: fork
+agent: general-purpose
+---
+
+# ⚡ Invocation: Always Forked
+
+**This skill has `context: fork` — it must NEVER be loaded into the main conversation via `Skill({ skill: "git-ops" })`.**
+
+Callers should spawn this skill as an Agent:
+```typescript
+Agent({
+  subagent_type: "general-purpose",
+  description: "Git operation description",
+  prompt: `Read and follow Section N of /Users/gvinokur/Personal/qatar-prode/.claude/skills/git-ops/SKILL.md
+
+Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md
+
+Read the context file first to get WORKTREE_PATH, STORY_NUMBER, BRANCH_NAME, and PR_NUMBER.`
+})
+```
+
+**Why:** Git operations generate verbose output (commit hashes, push logs, PR URLs) that bloats the main context. Running in a forked agent keeps this output isolated and returns only the essential result.
+
+---
+
+## Step 0: Read Story Context File
+
+**First action:** Read the context file to get required variables.
+
+```bash
+CONTEXT_FILE=$(find ${WORKTREE_PATH}/plans -name "STORY-*-context.md" | head -1)
+```
+
+```typescript
+const context = Read({ file_path: CONTEXT_FILE })
+// Extract: STORY_NUMBER, WORKTREE_PATH, BRANCH_NAME, PR_NUMBER
+```
+
+If the context file doesn't exist, check if the caller passed these values in the prompt directly. If neither, report an error.
+
 ---
 
 # Git Ops (Git Operations Skill)

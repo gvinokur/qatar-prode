@@ -1,6 +1,7 @@
 ---
 name: ui-ux-designer
 description: UI/UX design skill — invoke when a feature needs high-fidelity mockups using real MUI v7 components. Optionally uses Playwright to capture current app state, delegates to Gemini for multimodal MUI component analysis, then produces a standalone HTML file (React + MUI v7 CDN, no build step) saved to mockups/. Can be invoked standalone or by /ticket-creator.
+context: inline
 ---
 
 # UI/UX Designer (Mockup Creation Skill)

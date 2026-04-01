@@ -18,24 +18,65 @@ Invoke the `/architect` skill — it contains the complete planning workflow.
 
 ## Skill Router
 
-| Phase | Trigger | Invoke |
-|-------|---------|--------|
-| Ticket Creation | "let's create a ticket" / "new story idea" | `/ticket-creator` |
-| UI/UX Design | "design this" / "create a mockup" | `/ui-ux-designer` |
-| Planning | "implement story #N" | `/architect` |
-| Plan Review | After creating plan document | `/plan-reviewer` |
-| Implementation | "execute the plan" | `/implementer` |
-| Testing | Creating tests | `/test-engineer` |
-| Code Review | "code looks good" | `/code-reviewer` |
-| Quality Analysis | "check quality gates" / "sonar results" | `/validator` |
-| Git Operations | Committing plan / PR / story complete | `/git-ops` |
-| Gemini Delegation | >30 files, non-code tasks, multimodal | `/gemini` |
+Each skill declares its invocation mode in frontmatter (`context: inline | fork`).
+
+| Phase | Trigger | Invoke | Mode |
+|-------|---------|--------|------|
+| Ticket Creation | "let's create a ticket" / "new story idea" | `/ticket-creator` | inline |
+| UI/UX Design | "design this" / "create a mockup" | `/ui-ux-designer` | inline |
+| Planning | "implement story #N" | `/architect` | inline |
+| Plan Review | After creating plan document | `/plan-reviewer` | **fork** (haiku) |
+| Implementation | "execute the plan" | `/implementer` | inline |
+| Testing | Creating tests | `/test-engineer` | **fork** (haiku) |
+| Code Review | "code looks good" | `/code-reviewer` | inline |
+| Quality Analysis | "check quality gates" / "sonar results" | `/validator` | **fork** |
+| Git Operations | Committing plan / PR / story complete | `/git-ops` | **fork** |
+| Gemini Delegation | >30 files, non-code tasks, multimodal | `/gemini` | **fork** |
+
+### Invoking Skills
+
+**`context: inline`** — use `Skill({ skill: "name" })` in the current conversation:
+```typescript
+Skill({ skill: "architect" })   // loads in current context
+Skill({ skill: "implementer" }) // loads in current context
+```
+
+**`context: fork`** — NEVER use `Skill({ skill: "name" })`. Always spawn as a fresh Agent:
+```typescript
+// ✅ CORRECT — fork mode skill invocation
+Agent({
+  subagent_type: "general-purpose",
+  model: "haiku",  // only for agent: haiku skills (plan-reviewer, test-engineer)
+  description: "Run plan review",
+  prompt: `Read and follow /Users/gvinokur/Personal/qatar-prode/.claude/skills/plan-reviewer/SKILL.md
+Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
+})
+
+// ❌ WRONG — never load fork-mode skills into main conversation
+Skill({ skill: "git-ops" })
+Skill({ skill: "gemini" })
+Skill({ skill: "plan-reviewer" })
+```
+
+### Context File Handover
+
+Every story has a context file at `plans/STORY-N-context.md` (in the worktree). It holds all story metadata and enables safe `/compact` or `/clear` between skill phases.
+
+**After each phase completes:**
+1. Skill writes/updates `plans/STORY-N-context.md`
+2. Tell the user: _"Phase complete — you can `/compact` now. The context file has everything needed to resume."_
+3. Next skill reads the context file at Step 0 — no reliance on conversation history
+
+**After `/compact` or `/clear`:** Each skill's Step 0 reads the context file to bootstrap. The compact summary will be brief; the file is authoritative.
+
+**Maximum-aggression mode:** Between major phases (planning → implementation → review), use `/clear` instead of `/compact`. Safe because context files are comprehensive.
 
 **DO NOT:**
 - ❌ Start planning before invoking `/architect`
 - ❌ Think you understand the workflow from this file
 - ❌ Use EnterPlanMode before invoking `/architect`
 - ❌ Follow "standard Claude planning" behavior
+- ❌ Use `Skill({ skill: "X" })` for any skill with `context: fork`
 
 **The complete workflow is IN `/architect`. Invoke it first. Nothing else.**
 
@@ -64,7 +105,7 @@ Invoke the `/architect` skill — it contains the complete planning workflow.
    - If YES → Invoke `/implementer`, then proceed
 
 2. Have I created a PR with the plan?
-   - If NO → Create it first (via `/git-ops` Section 1)
+   - If NO → Create it first (spawn git-ops Agent — context: fork)
    - If YES → STOP, stay in plan mode, WAIT for user
 
 3. Am I in plan mode?
@@ -172,7 +213,7 @@ For detailed guidance, see:
 | No visual prototypes for UI changes | No design alignment, wasted implementation | Include prototypes in plan when UI changes | /architect Step 3.1 |
 | Only 1 plan review cycle | Misses issues that iterative review catches | Run 2-3 cycles until "no significant concerns" | /plan-reviewer |
 | Skipping pre-commit checklist | Rush ahead without verification | Complete checklist before committing plan | /architect Step 6 |
-| Exiting plan mode to commit | Confusion about when to start coding | Use Bash subagent via /git-ops Section 1 | /architect Step 7 |
+| Exiting plan mode to commit | Confusion about when to start coding | Spawn git-ops Agent (context: fork) from plan mode | /architect Step 7 |
 | Starting implementation after creating plan | User hasn't approved yet | Commit plan → PR → Complete checkpoint → WAIT | /architect Step 7 "CRITICAL CHECKPOINT" |
 | Not completing verification checkpoint | Jump to implementation prematurely | Complete all checklist items, verify state | /architect Step 7 checklist |
 | Exiting plan mode before "execute the plan" | User hasn't approved yet | NEVER exit until user says "execute the plan" | /architect "CRITICAL: NEVER Exit" |
@@ -205,6 +246,8 @@ For detailed guidance, see:
 | Not including "CODE-STRUCTURE files to update" in TaskCreate | CODE-STRUCTURE update gets forgotten during implementation | Every TaskCreate description MUST have a "CODE-STRUCTURE files to update" section — name the exact layer files and state YES/NO for call graph | /implementer Section 2 |
 | Updating CODE-STRUCTURE.md at end of story instead of per-task | Batch updates are incomplete; function signatures may have drifted from plan | Update the layer file and call graph in the SAME COMMIT as the source change, not after | /implementer Section 2 |
 | Missing call graph update after adding a new action or cross-layer call | Call graph becomes stale and misleads future planning | Update `## Call Graph` in CODE-STRUCTURE.md whenever a new page→action→repo flow is added or an existing flow gains a new step | code-structure.md |
+| Using `Skill({ skill: "git-ops" })` or `Skill({ skill: "gemini" })` in main conversation | Loads large skill content + verbose output into context, bloating it | These skills have `context: fork` — always spawn as `Agent({ subagent_type: "general-purpose" })` with skill path in prompt | Skill Router "fork" invocation |
+| Not using `/compact` between skill phases | Context accumulates across planning, implementation, review — becomes expensive | After each phase writes its context file, tell user to `/compact`; next skill reads context file cold | Skill Router "Context File Handover" |
 
 ## Development Guidelines
 

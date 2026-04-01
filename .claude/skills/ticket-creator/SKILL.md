@@ -1,6 +1,7 @@
 ---
 name: ticket-creator
 description: Ticket creation skill — invoke when user wants to brainstorm a new feature or problem. Interactive loop that clarifies requirements at feature/user level (never implementation), calls Gemini internally for technical context, optionally invokes /ui-ux-designer for mockups, and creates a properly-formed GitHub issue with Priority/Effort/Category fields set.
+context: inline
 ---
 
 # Ticket Creator (Interactive Story Definition Skill)

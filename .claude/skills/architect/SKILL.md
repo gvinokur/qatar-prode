@@ -1,6 +1,7 @@
 ---
 name: architect
 description: Planning phase skill — use when implementing a story. Covers context gathering, ASCII prototyping, creating /plans/STORY-N-plan.md, plan review via /plan-reviewer, and committing via /git-ops. Key guardrail: NEVER exit plan mode until user says "execute the plan".
+context: inline
 ---
 
 # Architect (Planning Skill)
@@ -75,6 +76,46 @@ Every story must go through a planning phase before implementation. The plan is 
 
 ---
 
+### 0. Read / Create Story Context File (MANDATORY)
+
+**First action before anything else:**
+
+```bash
+CONTEXT_FILE="${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md"
+```
+
+**If the context file already exists** (resumed session after `/compact` or `/clear`):
+```typescript
+Read({ file_path: CONTEXT_FILE })
+// Extract: STORY_NUMBER, WORKTREE_PATH, BRANCH_NAME, current phase
+// Continue from where you left off
+```
+
+**If the context file does NOT exist** (fresh start), create it now:
+```markdown
+# Story ${STORY_NUMBER} Context
+
+## Metadata
+- **Story Number:** ${STORY_NUMBER}
+- **Story Title:** (fill after fetching issue)
+- **Worktree Path:** ${WORKTREE_PATH}
+- **Branch:** (fill after worktree creation)
+- **PR Number:** (fill after PR creation)
+- **PR URL:** (fill after PR creation)
+
+## State
+- **Current Phase:** planning
+- **Plan File:** plans/STORY-${STORY_NUMBER}-plan.md
+- **Task File:** (fill when implementation starts)
+
+## Quick Summary
+(fill after drafting plan — 1 paragraph describing what this story does)
+```
+
+**Why this matters:** After a `/compact` or `/clear`, this file is the only source of truth for story metadata. Every skill reads it at start, so it must exist before any other work.
+
+---
+
 ### 1. Enter Plan Mode
 
 Use the EnterPlanMode tool to transition into planning mode:
@@ -126,6 +167,38 @@ gh api repos/{owner}/{repo}/milestones/<milestone_number> --jq '.description'
 - Use Grep to search for patterns
 - Use Read to understand existing implementations
 - Identify files that need to be created or modified
+
+**Use parallel Explore agents for research (faster, keeps main context clean):**
+
+```typescript
+// Launch up to 2 Explore agents in parallel for the initial research phase
+// Agent 1: Codebase structure + relevant layer files
+Agent({
+  subagent_type: "Explore",
+  description: "Read CODE-STRUCTURE and layer files",
+  prompt: `Read these files in the worktree at ${WORKTREE_PATH} and return their complete contents:
+1. CODE-STRUCTURE.md (the index + call graph)
+2. docs/code-structure/[layer].md files relevant to this story's domain
+
+Also search for any existing implementations related to [story topic].
+
+Return: full content of CODE-STRUCTURE.md, relevant layer files, and any related existing code found.`
+})
+
+// Agent 2: Story details + related tests/components
+Agent({
+  subagent_type: "Explore",
+  description: "Fetch story details and search patterns",
+  prompt: `In the worktree at ${WORKTREE_PATH}:
+1. Run: gh issue view ${STORY_NUMBER} --json number,title,body,labels,milestone,projectItems
+2. Search for existing implementations related to the story's domain
+3. Find any similar patterns in app/actions/, app/db/, app/components/ that should be followed
+
+Return: full issue details and relevant code patterns found.`
+})
+```
+
+Wait for both agents to return before proceeding to Step 2.5 (Gemini delegation).
 
 **Clarify requirements:**
 - Use AskUserQuestion tool for ambiguities
@@ -444,7 +517,23 @@ Before invoking `/plan-reviewer`:
 
 **CRITICAL:** Before committing the plan to PR, you MUST run a Plan Reviewer subagent for 2-3 review cycles.
 
-Invoke `/plan-reviewer` for the full dual-persona review loop. The skill contains the complete Haiku subagent pattern with Persona A (The Architect) and Persona B (The TDD Engineer).
+**Since `plan-reviewer` has `context: fork`, spawn it as an Agent — do NOT use `Skill({ skill: "plan-reviewer" })`:**
+
+```typescript
+Agent({
+  subagent_type: "general-purpose",
+  model: "haiku",
+  description: "Plan review cycle",
+  prompt: `Read and follow /Users/gvinokur/Personal/qatar-prode/.claude/skills/plan-reviewer/SKILL.md
+
+Context:
+- WORKTREE_PATH: ${WORKTREE_PATH}
+- STORY_NUMBER: ${STORY_NUMBER}
+- PLAN_FILE: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md
+
+Read the plan file and run the dual-persona review. Return your findings.`
+})
+```
 
 **Run 2-3 cycles until:**
 - Subagent responds "No significant concerns" → proceed to Step 6
@@ -461,7 +550,7 @@ Invoke `/plan-reviewer` for the full dual-persona review loop. The skill contain
 
 **🛑 STOP - Complete this checklist before committing plan 🛑**
 
-Before launching Bash subagent via `/git-ops` Section 1:
+Before spawning the git-ops Agent:
 - [ ] Plan review loop completed (2-3 cycles OR "no significant concerns")
 - [ ] All reviewer feedback incorporated
 - [ ] Visual prototypes included (if UI changes)
@@ -481,21 +570,28 @@ Before launching Bash subagent via `/git-ops` Section 1:
 
 **Step 7 has exactly ONE action: invoke the `/git-ops` skill and follow Section 1.**
 
-**🛑 MANDATORY FIRST ACTION — invoke the git-ops skill now:**
+**🛑 MANDATORY FIRST ACTION — spawn git-ops as an Agent (context: fork — do NOT use Skill({ skill: "git-ops" })):**
 
 ```typescript
-Skill({ skill: "git-ops" })
+// git-ops has context: fork — spawn as Agent, do NOT use Skill({ skill: "git-ops" })
+Agent({
+  subagent_type: "general-purpose",
+  description: "Commit plan and create DRAFT PR",
+  prompt: `Read and follow Section 1 of /Users/gvinokur/Personal/qatar-prode/.claude/skills/git-ops/SKILL.md
+
+Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md
+
+Read the context file for WORKTREE_PATH, STORY_NUMBER, and BRANCH_NAME. Then execute Section 1 exactly.
+
+Return: PR number, PR URL, and branch name.`
+})
 ```
-
-Then follow **Section 1** of the loaded skill exactly. It contains the complete Task() template you must use to launch a general-purpose subagent that handles all git operations while you stay in plan mode.
-
-**If the `/git-ops` skill is not available or you are unsure how to proceed:** STOP. Tell the user: "I need to commit the plan and create a PR but I don't have the git-ops template. Please tell me how to proceed (hint: invoke `/git-ops`)."
 
 **🛑 BEFORE YOU PROCEED - Answer These Verification Questions: 🛑**
 
 1. **Have I completed the plan review loop (2-3 cycles)?** (Answer MUST be YES)
-2. **Have I invoked the `/git-ops` skill?** (Answer MUST be YES)
-3. **Am I using the Task tool with subagent_type: "general-purpose"?** (Answer MUST be YES)
+2. **Have I spawned a git-ops Agent (context: fork)?** (Answer MUST be YES)
+3. **Did I avoid using `Skill({ skill: "git-ops" })` in the main conversation?** (Answer MUST be YES)
 4. **Am I still in plan mode?** (Answer MUST be YES)
 5. **Am I about to exit plan mode to commit?** (Answer MUST be NO)
 6. **Am I trying to commit manually with git commands?** (Answer MUST be NO)
@@ -561,6 +657,29 @@ Forbidden phrases (if you use any of these, you have FAILED):
 
 **IF YOUR NEXT MESSAGE CONTAINS MORE THAN THE REQUIRED CONTENT ABOVE, YOU HAVE VIOLATED THE WORKFLOW.**
 
+**🗂️ Update the Story Context File:**
+
+After the git-ops Agent returns the PR number and URL, update the context file:
+```typescript
+// Update context file with PR info
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`,
+  old_string: "- **PR Number:** (fill after PR creation)",
+  new_string: `- **PR Number:** #${PR_NUMBER}`
+})
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`,
+  old_string: "- **PR URL:** (fill after PR creation)",
+  new_string: `- **PR URL:** ${PR_URL}`
+})
+// Also fill in Story Title, Branch, and Quick Summary if not already done
+```
+
+**💡 Suggest `/compact` to the user:**
+
+Tell the user:
+> "Plan created and PR is ready for your review. All planning context is saved in `plans/STORY-${STORY_NUMBER}-context.md`. You can run `/compact` now to clear the accumulated planning context — the next skill will read the context file to resume from where we left off."
+
 **What you MUST do now:**
 - ✅ STAY IN PLAN MODE
 - ✅ WAIT for user to review plan
@@ -594,7 +713,16 @@ Forbidden phrases (if you use any of these, you have FAILED):
 
 2. **Launch subagent to commit updates:**
    ```typescript
-   Skill({ skill: "git-ops" })
+   // git-ops has context: fork — spawn as Agent
+   Agent({
+     subagent_type: "general-purpose",
+     description: "Commit plan updates",
+     prompt: `Read and follow Section 2 of /Users/gvinokur/Personal/qatar-prode/.claude/skills/git-ops/SKILL.md
+
+Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md
+
+Read the context file for WORKTREE_PATH, STORY_NUMBER, and BRANCH_NAME. Then execute Section 2 exactly.`
+   })
    ```
    Then follow **Section 2** of the loaded skill for the exact commit template. If unsure, STOP and tell the user: "I need to commit plan updates but need the git-ops template — please invoke `/git-ops`."
 

@@ -1,6 +1,7 @@
 ---
 name: implementer
 description: Implementation phase skill — use when user says "execute the plan". Covers wave-based execution, TaskCreate/TaskUpdate usage, CODE-STRUCTURE updates in same commit, mandatory validation (tests+lint+build) before commit, and Vercel Preview default workflow.
+context: inline
 ---
 
 # Implementer (Implementation Skill)
@@ -43,6 +44,38 @@ After the planning phase is complete and the user approves the plan with "execut
 6. **ALWAYS mark tasks in_progress** when starting, completed when done
 7. **NEVER commit without running validation checks** - MUST run tests, lint, and build before ANY commit (see Section 9)
 8. **ALWAYS document deviations from plan** - Add amendments when gaps/issues discovered (see Section 8)
+
+## Step 0: Read Story Context File (MANDATORY)
+
+**First action before anything else:**
+
+```typescript
+// Read the context file to get all story metadata
+const contextFile = `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
+Read({ file_path: contextFile })
+```
+
+**Extract from the context file:**
+- `STORY_NUMBER` — the story being implemented
+- `WORKTREE_PATH` — absolute path to the story's worktree
+- `PR_NUMBER` — the PR to push commits to
+
+**If bootstrapping from scratch** (fresh session after `/compact` or `/clear`):
+```bash
+ls /Users/gvinokur/Personal/qatar-prode-story-*/plans/STORY-*-context.md 2>/dev/null | tail -1
+```
+Read that file to get your variables.
+
+**Update the context file phase:**
+```typescript
+Edit({
+  file_path: contextFile,
+  old_string: "- **Current Phase:** planning",
+  new_string: "- **Current Phase:** implementing"
+})
+```
+
+---
 
 ## Implementation Workflow
 
@@ -211,6 +244,59 @@ CODE-STRUCTURE files to update:
 })
 ```
 
+#### Step B.5: Write Task File (MANDATORY alongside TaskCreate)
+
+**After creating all tasks with TaskCreate, also write them to disk** so fresh subagents can check state:
+
+```typescript
+Write({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-tasks.md`,
+  content: `# Story ${STORY_NUMBER} Tasks
+
+## Wave Summary
+- Wave 1 (Sequential): [Task N]
+- Wave 2 (Parallel): [Tasks N, N]
+- Wave 3 (Sequential): [Task N]
+
+## Tasks
+
+### Task 1 — [Subject]
+**Status:** pending
+**Owner:**
+**Wave:** 1
+**Blocked by:** —
+**Files:** [files]
+**Description:** [description]
+
+### Task 2 — [Subject]
+**Status:** pending
+**Owner:**
+**Wave:** 2
+**Blocked by:** Task 1
+**Files:** [files]
+**Description:** [description]
+`
+})
+```
+
+**Also update the context file to reference the task file:**
+```typescript
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`,
+  old_string: "- **Task File:** (fill when implementation starts)",
+  new_string: `- **Task File:** plans/STORY-${STORY_NUMBER}-tasks.md`
+})
+```
+
+**After completing each task**, update the task file status:
+```typescript
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-tasks.md`,
+  old_string: "**Status:** pending\n**Owner:** \n**Wave:** N\n**Blocked by:** [for that task]",
+  new_string: "**Status:** completed\n**Owner:** main-agent\n**Wave:** N\n**Blocked by:** [for that task]"
+})
+```
+
 #### **[Canonical] CODE-STRUCTURE.md Update Rule (MANDATORY)**
 
 **Every task that creates or modifies source files must update `CODE-STRUCTURE.md` as part of its commit.**
@@ -354,6 +440,42 @@ Created implementation tasks:
 - <4 total tasks OR <2 simple tasks
 - Highly coupled tasks
 - First time implementing this type of feature
+
+**Recommend "Per-Wave Agent Mode" when:**
+- 3+ waves AND each wave is relatively self-contained
+- Previous wave generated significant context (Gemini output, large build logs, verbose test output)
+- Story is larger than expected and context is visibly accumulating
+
+**How per-wave agent mode works:**
+- Main agent executes Wave 1 tasks
+- After Wave 1 completes, main agent updates `plans/STORY-N-tasks.md`
+- Main agent spawns a fresh `general-purpose` Agent for Wave 2 with:
+
+```typescript
+Agent({
+  subagent_type: "general-purpose",
+  description: "Implement Wave 2 tasks",
+  prompt: `You are implementing Wave 2 of Story ${STORY_NUMBER}.
+
+WORKTREE_PATH: ${WORKTREE_PATH}
+STORY_NUMBER: ${STORY_NUMBER}
+PLAN_FILE: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-plan.md
+TASK_FILE: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-tasks.md
+
+1. Read the TASK_FILE — find all tasks in Wave 2 (status: pending, blocked by completed tasks)
+2. Read the PLAN_FILE — get full implementation details for each Wave 2 task
+3. Read /Users/gvinokur/Personal/qatar-prode/.claude/skills/implementer/SKILL.md Section 3
+
+Execute each Wave 2 task:
+- Update TASK_FILE status to "in_progress" before starting each task
+- Update TASK_FILE status to "completed" after finishing each task
+- Follow all CODE-STRUCTURE update requirements from the task description
+
+After all Wave 2 tasks complete:
+- Run validation (tests, lint, build) if this is the last wave
+- Return: list of completed tasks, files changed, any issues encountered`
+})
+```
 
 #### Step C: Present Analysis and Proceed
 
@@ -714,6 +836,15 @@ These migrations will modify the database schema.
 #### Step 5: Commit and Push (Triggers Vercel Preview Deployment)
 
 **Only commit if ALL validation checks passed:**
+
+```typescript
+// Update context file phase before committing
+Edit({
+  file_path: `${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`,
+  old_string: "- **Current Phase:** implementing",
+  new_string: "- **Current Phase:** review-ready"
+})
+```
 
 ```bash
 # Add changes

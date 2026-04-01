@@ -1,6 +1,34 @@
 ---
 name: gemini
 description: Gemini delegation guide — when and how to call Gemini CLI instead of working in Claude directly. Defines the five agent entry points, standard invocation pattern with portable PROJECT_ROOT resolution, and heuristics for when delegation is appropriate.
+context: fork
+agent: general-purpose
+---
+
+# ⚡ Invocation: Always Forked
+
+**This skill has `context: fork` — it must NEVER be loaded into the main conversation via `Skill({ skill: "gemini" })`.**
+
+Callers should spawn this skill as an Agent:
+```typescript
+Agent({
+  subagent_type: "general-purpose",
+  description: "Gemini: [agent name] analysis",
+  prompt: `Read and follow /Users/gvinokur/Personal/qatar-prode/.claude/skills/gemini/SKILL.md
+
+Then invoke the [agent-name] agent for this story:
+- Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md
+- Agent file: /Users/gvinokur/Personal/qatar-prode/.ai/agents/[agent].md
+- Output file: /tmp/gemini-story-${STORY_NUMBER}-[agent]-1.json
+
+Return: A 3-5 sentence summary of the Gemini output. Do NOT return the raw JSON.`
+})
+```
+
+**Why:** Gemini calls generate large JSON responses (50-200 lines) plus this skill's guidance content. Running in a forked agent means the main conversation only receives a short summary, not the full raw output.
+
+**IMPORTANT for callers:** The Agent prompt must specify the output file and instruct the agent to return only a summary, not the full JSON content.
+
 ---
 
 # Gemini (Delegation Guide)
@@ -49,6 +77,8 @@ gemini --yolo -m gemini-2.5-flash -p "$(cat ${PROJECT_ROOT}/.ai/agents/[agent-na
 - Separate the agent prompt from inputs with `---` on its own line
 - Always use `-o json` so the session_id is captured for follow-up calls (see Session Management below)
 - To pass images (multimodal): `gemini --yolo -m gemini-2.5-flash -i /path/to/image.png -o json -p "$(cat agent.md) ..."`
+
+> **Note:** When invoked as a forked Agent (the required mode), write output to the specified file AND return a 3-5 sentence summary as the agent's result. The caller reads the summary — they do NOT need the raw JSON.
 
 ---
 

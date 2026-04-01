@@ -1,6 +1,8 @@
 ---
 name: plan-reviewer
 description: Plan review skill — use after creating the initial plan document, before committing to PR. Runs 2-3 Haiku cycles with Persona A (The Architect) validating Mid-Level Design and Persona B (The TDD Engineer) validating test scenarios.
+context: fork
+agent: haiku
 ---
 
 # Plan Reviewer
