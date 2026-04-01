@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import JoinRequestManager from '../../../app/components/friend-groups/join-request-manager';
 import { renderWithTheme } from '../../utils/test-utils';
 import { createMockRouter } from '../../mocks/next-navigation.mocks';
+import { trackEvent } from '@/app/utils/ga4';
 
 vi.mock('@/app/actions/prode-group-join-request-actions', () => ({
   approveJoinRequestAction: vi.fn(),
@@ -14,6 +15,12 @@ vi.mock('@/app/actions/prode-group-join-request-actions', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+}));
+
+vi.mock('@/app/utils/ga4', () => ({
+  trackEvent: vi.fn(),
+  initializeGA4: vi.fn(),
+  trackPageView: vi.fn(),
 }));
 
 const makeRequest = (overrides: Partial<{
@@ -136,7 +143,11 @@ describe('JoinRequestManager', () => {
   describe('Approve action', () => {
     it('calls approveJoinRequestAction and shows success message on approve', async () => {
       const { approveJoinRequestAction } = await import('@/app/actions/prode-group-join-request-actions');
-      (approveJoinRequestAction as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (approveJoinRequestAction as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
+        message: 'Approved',
+        analyticsEvent: { name: 'group_joined', params: { group_id: 'group-1' } }
+      });
 
       // Use two requests so that after one is approved the list is not empty
       // (the empty-state card does not render the success Alert)
@@ -146,18 +157,21 @@ describe('JoinRequestManager', () => {
         <JoinRequestManager {...defaultProps} initialRequests={[request1, request2]} />
       );
 
-      fireEvent.click(screen.getAllByRole('button', { name: /^Aprobar$/i })[0]);
+      await act(async () => {
+        fireEvent.click(screen.getAllByRole('button', { name: /^Aprobar$/i })[0]);
+      });
 
       await waitFor(() => {
         expect(approveJoinRequestAction).toHaveBeenCalledWith('request-1', 'group-1', undefined);
         expect(screen.getByText('Solicitud aprobada')).toBeInTheDocument();
+        expect(trackEvent).toHaveBeenCalledWith('group_joined', { group_id: 'group-1' });
       });
     });
 
     it('performs optimistic update: removes request from list immediately after approve', async () => {
       const { approveJoinRequestAction } = await import('@/app/actions/prode-group-join-request-actions');
       (approveJoinRequestAction as ReturnType<typeof vi.fn>).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 200))
+        () => new Promise(resolve => setTimeout(() => resolve({ success: true, message: 'OK' }), 200))
       );
 
       const request = makeRequest({ user_nickname: 'OptimisticUser', status: 'pending' });
@@ -167,12 +181,12 @@ describe('JoinRequestManager', () => {
 
       expect(screen.getByText('OptimisticUser')).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: /Aprobar/i }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /Aprobar/i }));
+      });
 
       // After click the item should be removed optimistically before server responds
-      await waitFor(() => {
-        expect(screen.queryByText('OptimisticUser')).not.toBeInTheDocument();
-      });
+      expect(screen.queryByText('OptimisticUser')).not.toBeInTheDocument();
     });
 
     it('reverts the list on approve failure', async () => {
@@ -186,7 +200,9 @@ describe('JoinRequestManager', () => {
         <JoinRequestManager {...defaultProps} initialRequests={[request]} />
       );
 
-      fireEvent.click(screen.getByRole('button', { name: /Aprobar/i }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /Aprobar/i }));
+      });
 
       await waitFor(() => {
         // Request should be restored after failure
@@ -198,7 +214,7 @@ describe('JoinRequestManager', () => {
   describe('Reject action', () => {
     it('calls rejectJoinRequestAction and shows success message on reject', async () => {
       const { rejectJoinRequestAction } = await import('@/app/actions/prode-group-join-request-actions');
-      (rejectJoinRequestAction as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (rejectJoinRequestAction as ReturnType<typeof vi.fn>).mockResolvedValue({ success: true });
 
       // Use two requests so that after one is rejected the list is not empty
       // (the empty-state card does not render the success Alert)
@@ -208,7 +224,9 @@ describe('JoinRequestManager', () => {
         <JoinRequestManager {...defaultProps} initialRequests={[request1, request2]} />
       );
 
-      fireEvent.click(screen.getAllByRole('button', { name: /Rechazar/i })[0]);
+      await act(async () => {
+        fireEvent.click(screen.getAllByRole('button', { name: /Rechazar/i })[0]);
+      });
 
       await waitFor(() => {
         expect(rejectJoinRequestAction).toHaveBeenCalledWith('request-1', 'group-1');
