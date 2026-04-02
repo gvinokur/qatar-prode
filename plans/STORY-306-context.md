@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Configurable Transfermarkt import URL and persistent team IDs
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-306
 - **Branch:** feature/story-306
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 307
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/307
 
 ## State
 - **Current Phase:** planning
