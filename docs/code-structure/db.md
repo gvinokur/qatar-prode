@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-28
+**Last updated:** 2026-04-03
 
 ---
 
@@ -30,6 +30,10 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **AdSettingsUpdate**: `Updateable<AdSettingsTable>` — update shape.
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
+
+`TournamentTable` includes `transfermarkt_url_template?: string | null` — configurable URL template for Transfermarkt player imports; uses `{teamName}` and `{teamId}` placeholders (Story #306).
+
+`TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 
