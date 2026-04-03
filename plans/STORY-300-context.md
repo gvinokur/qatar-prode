@@ -12,4 +12,4 @@
 
 ## Status
 - Phase: Planning
-- PR: TBD (will be updated after PR creation)
+- PR: #308 (https://github.com/gvinokur/qatar-prode/pull/308)
