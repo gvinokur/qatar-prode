@@ -460,7 +460,20 @@ Key flows:
 19. Ad-free toggle
     UsersTab [Client] → toggleUserAdFreeAction [server action] → updateUserAdFreeStatus
 
-20. GA4 Analytics (page-view tracking and event tracking)
+20. Backoffice player import (Transfermarkt)
+    Backoffice [Server] → PlayersTab [Client]
+      ├── getPlayersInTournament [server action] (on mount)
+      │     └── findTeamInTournament, findPlayersByTeamId
+      ├── getTransfermarktPlayerData [server action] (on import submit)
+      │     └── getTournamentStartDate → findFirstGameInTournament
+      ├── createTournamentTeamPlayers [server action] (after scrape)
+      │     └── createPlayer
+      ├── deleteTournamentTeamPlayers [server action] (when deleteExisting checked)
+      │     └── deletePlayer
+      └── saveTeamTransfermarktId [server action] (fire-and-forget after successful import)
+            └── updateTeaminDb
+
+21. GA4 Analytics (page-view tracking and event tracking)
     LocaleLayout (Server)
       └── <Suspense> → AnalyticsPageViewTracker [Client]
             ├── skips all tracking when NEXT_PUBLIC_GA_MEASUREMENT_ID unset or user.isAdFree
