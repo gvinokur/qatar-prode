@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "notebooklm-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "notebooklm-mcp"
+      ]
+    }
+  },
+  "mcp": {
+    "excluded": [
+      "atlassian",
+      "gitlab",
+      "indeed-google-workspace",
+      "glean",
+      "glean2",
+      "sourcegraph",
+      "deepsearch",
+      "a11y-mcp",
+      "design-system-mcp"
+    ]
+  }
+}
