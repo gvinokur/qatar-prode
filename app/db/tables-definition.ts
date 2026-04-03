@@ -72,6 +72,9 @@ export interface TournamentTable extends Identifiable{
   // Third place qualification configuration
   allows_third_place_qualification?: boolean | null
   max_third_place_qualifiers?: number | null
+
+  // Transfermarkt import configuration
+  transfermarkt_url_template?: string | null
 }
 
 export type Tournament = Selectable<TournamentTable>
@@ -162,6 +165,9 @@ export interface TeamTable extends Identifiable {
 
   // Internationalization columns
   name_i18n?: JSONColumnType<Record<string, string>>
+
+  // Transfermarkt import data
+  transfermarkt_id?: string | null
 }
 
 export type Team = Selectable<TeamTable>

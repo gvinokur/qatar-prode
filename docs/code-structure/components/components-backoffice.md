@@ -68,7 +68,7 @@ Component for editing i18n JSONB fields with English and Spanish inputs. Reusabl
 
 ### app/components/backoffice/tournament-main-data-tab.tsx
 Main tournament configuration form with colors, logos, playoff rounds. [Client] comprehensive tournament setup.
-- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, and third-place qualification settings.
+- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, third-place qualification settings, and Transfermarkt URL template (Story #306).
   Calls: getTournamentById, createOrUpdateTournament, getPlayoffRounds, getTournamentPermissionData, updateTournamentPermissions
   Uses: useTranslations, useLocale, useRouter, useCallback, useEffect, useState
   Renders: MuiColorInput, ImagePicker, TextField, FormControlLabel, Switch, PlayoffRoundDialog, TournamentPermissionsSelector, Button, Paper, Alert
@@ -95,8 +95,8 @@ Admin user list with search, pagination, and ad-free toggle. [Client] self-fetch
 
 ### app/components/backoffice/PlayersTab.tsx
 Player management with Transfermarkt import. [Client] import interface and player list.
-- **PlayersTab({ tournamentId }: { readonly tournamentId: string })**: `JSX.Element` — [Client] Displays teams with player lists and Transfermarkt import dialog.
-  Calls: getPlayersInTournament, getTransfermarktPlayerData, createTournamentTeamPlayers, deleteTournamentTeamPlayers
+- **PlayersTab({ tournamentId, transfermarktUrlTemplate }: PlayersTabProps)**: `JSX.Element` — [Client] Displays teams with player lists and Transfermarkt import dialog. Pre-fills team's stored Transfermarkt ID on modal open; persists it after a successful import (Story #306).
+  Calls: getPlayersInTournament, getTransfermarktPlayerData, createTournamentTeamPlayers, deleteTournamentTeamPlayers, saveTeamTransfermarktId
   Uses: useCallback, useEffect, useState
   Renders: Accordion, Dialog, TextField, Checkbox, Table, Button, Alert
 

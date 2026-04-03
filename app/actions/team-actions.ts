@@ -220,7 +220,8 @@ function calculateAge(birth: Date, future: Date) {
 export async function getTransfermarktPlayerData(
   transfermarktTeamName: string,
   transfermarktTeamId: string,
-  tournamentId: string
+  tournamentId: string,
+  urlTemplate?: string | null
 ): Promise<PlayerData[]> {
   // Check if user is admin
   const user = await getLoggedInUser();
@@ -229,8 +230,11 @@ export async function getTransfermarktPlayerData(
   }
 
   try {
-    // Construct the URL
-    const url = `https://www.transfermarkt.com/${transfermarktTeamName}/kader/verein/${transfermarktTeamId}/saison_id/2024/plus/1`;
+    // Construct the URL — use template if provided and valid, otherwise fall back to hardcoded club URL
+    const hasValidTemplate = urlTemplate && urlTemplate.includes('{teamName}') && urlTemplate.includes('{teamId}');
+    const url = hasValidTemplate
+      ? urlTemplate.replace('{teamName}', transfermarktTeamName).replace('{teamId}', transfermarktTeamId)
+      : `https://www.transfermarkt.com/${transfermarktTeamName}/kader/verein/${transfermarktTeamId}/saison_id/2024/plus/1`;
 
     // Set headers to mimic a browser request
     const headers = {
@@ -344,4 +348,13 @@ export async function moveTournamentTeamPlayer(player: Player, newTeamId: string
   }
 
   return updatePlayer(player.id, { team_id: newTeamId });
+}
+
+export async function saveTeamTransfermarktId(teamId: string, transfermarktId: string): Promise<void> {
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can access this data');
+  }
+
+  await updateTeaminDb(teamId, { transfermarkt_id: transfermarktId });
 }

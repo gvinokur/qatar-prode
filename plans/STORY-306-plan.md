@@ -212,6 +212,12 @@ All tests use project-standard utilities: `testFactories.*` for mock data, `rend
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: tournament-actions.ts requires no code changes
+**Date:** 2026-04-02
+**Reason:** `prepareTournamentData` already spreads all `tournamentData` fields via `{ ...tournamentData, theme: ... }`, and `saveOrUpdateTournament` uses `any` types. The `transfermarkt_url_template` field flows through automatically when included in the client JSON payload — no explicit handling needed.
+
 ## Verification Checklist
 
 - [ ] Migrations applied without errors

@@ -6,7 +6,8 @@ import {
   createTournamentTeamPlayers,
   deleteTournamentTeamPlayers,
   getPlayersInTournament,
-  getTransfermarktPlayerData
+  getTransfermarktPlayerData,
+  saveTeamTransfermarktId
 } from "../../actions/team-actions";
 import {
   Accordion,
@@ -34,7 +35,12 @@ interface TeamWithPlayers {
   players: Player[];
 }
 
-export default function PlayersTab({tournamentId}: {readonly tournamentId: string}) {
+interface PlayersTabProps {
+  readonly tournamentId: string;
+  readonly transfermarktUrlTemplate?: string | null;
+}
+
+export default function PlayersTab({tournamentId, transfermarktUrlTemplate}: PlayersTabProps) {
   const [teamsWithPlayers, setTeamsWithPlayers] = useState<TeamWithPlayers[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -68,7 +74,7 @@ export default function PlayersTab({tournamentId}: {readonly tournamentId: strin
     try {
       setImportLoading(true);
       let existingPlayers = teamsWithPlayers.find(teamWithPlayers => teamWithPlayers.team.id === selectedTeam.id)?.players || [];
-      const players = await getTransfermarktPlayerData(transfermarktName, transfermarktId, tournamentId)
+      const players = await getTransfermarktPlayerData(transfermarktName, transfermarktId, tournamentId, transfermarktUrlTemplate)
       if(deleteExistingPlayers && existingPlayers.length > 0) {
         const toDelete =
           existingPlayers.filter(player =>
@@ -110,7 +116,10 @@ export default function PlayersTab({tournamentId}: {readonly tournamentId: strin
       });
       setTeamsWithPlayers(newTeamsWithPlayers);
 
-      // Check if team has transfermarkt data
+      // Persist the Transfermarkt ID for pre-filling on re-import (fire-and-forget)
+      saveTeamTransfermarktId(selectedTeam.id, transfermarktId).catch((err) => {
+        console.error('Failed to persist Transfermarkt team ID:', err);
+      });
     } catch (error) {
       console.error(`Error loading Transfermarkt players for team ${selectedTeam.name}:`, error);
     } finally {
@@ -121,7 +130,7 @@ export default function PlayersTab({tournamentId}: {readonly tournamentId: strin
   const openImportPlayersModal = (team: Team) => {
     setSelectedTeam(team);
     setTransfermarktName(team.name.replace(' ', '-') + '-fc-players');
-    setTransfermarktId('');
+    setTransfermarktId(team.transfermarkt_id ?? '');
     setDeleteExistingPlayers(false);
     setOpenImportModal(true);
   };

@@ -255,6 +255,28 @@ Manages third-place playoff bracket rules (admin only).
 - **deleteThirdPlaceRuleAction(ruleId, locale)**: `Promise<void>` — Deletes a rule.
   Calls: deleteThirdPlaceRule
 
+### app/actions/team-actions.ts
+Team and player management for backoffice — creates/updates teams, imports player rosters from Transfermarkt, and manages player assignments.
+
+- **createTeam(formData: FormData, tournamentId: string)**: `Promise<Team>` — Creates a new team with optional logo upload (admin only).
+  Calls: getLoggedInUser, createTeaminDb, handleLogoUpload
+- **updateTeam(teamId: string, formData: FormData)**: `Promise<Team>` — Updates team fields and logo (admin only).
+  Calls: getLoggedInUser, updateTeaminDb, handleLogoUpload
+- **getPlayersInTournament(tournamentId: string)**: `Promise<{team: Team, players: Player[]}[]>` — Returns all teams in a tournament with their player rosters.
+  Calls: findTeamInTournament, findPlayersByTeamId
+- **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only).
+  Calls: getLoggedInUser, getTournamentStartDate
+- **deleteAllTeamPlayersInTournament(tournamentId: string, teamId: string)**: `Promise<void>` — Deletes all players for a team in a tournament (admin only).
+  Calls: getLoggedInUser, findPlayersByTeamId, deletePlayer
+- **createTournamentTeamPlayers(players: PlayerNew[])**: `Promise<Player[]>` — Bulk-creates player records (admin only).
+  Calls: getLoggedInUser, createPlayer
+- **deleteTournamentTeamPlayers(players: Player[])**: `Promise<void>` — Bulk-deletes player records (admin only).
+  Calls: getLoggedInUser, deletePlayer
+- **moveTournamentTeamPlayer(player: Player, newTeamId: string)**: `Promise<Player>` — Moves a player to a different team (admin only).
+  Calls: getLoggedInUser, updatePlayer
+- **saveTeamTransfermarktId(teamId: string, transfermarktId: string)**: `Promise<void>` — Persists a team's Transfermarkt ID after a successful import for pre-filling on re-import (admin only).
+  Calls: getLoggedInUser, updateTeaminDb
+
 ### app/actions/tournament-actions.ts
 Tournament CRUD and data retrieval — the primary data access layer for tournament-related pages.
 
@@ -278,7 +300,7 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
   Calls: findFirstGameInTournament
 - **deactivateTournament(tournamentId, locale)**: `Promise<Tournament>` — Deactivates tournament (admin).
   Calls: getLoggedInUser, findTournamentById, updateTournament, applyLocalization
-- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload.
+- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template` when included in the JSON payload.
   Calls: validateAdminUser, parseFormData, getExistingTournament, handleLogoUpload, prepareTournamentData, saveOrUpdateTournament, cleanupOldLogo, applyLocalization
 - **getTournamentById(tournamentId)**: `Promise<Tournament | null>` — Gets single tournament with localization.
   Calls: findTournamentById, applyLocalization

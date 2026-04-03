@@ -78,6 +78,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [allowsThirdPlaceQualification, setAllowsThirdPlaceQualification] = useState<boolean>(false);
   const [maxThirdPlaceQualifiers, setMaxThirdPlaceQualifiers] = useState<number>(4);
 
+  // Transfermarkt import configuration
+  const [transfermarktUrlTemplate, setTransfermarktUrlTemplate] = useState<string>('');
+
   // Fetch playoff rounds
   const fetchPlayoffRounds = useCallback(async () => {
     setLoadingPlayoffRounds(true);
@@ -124,6 +127,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setIsActive(tournamentData.is_active);
         setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
         setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
+        setTransfermarktUrlTemplate(tournamentData.transfermarkt_url_template || '');
 
         // Fetch playoff rounds
         await fetchPlayoffRounds();
@@ -184,6 +188,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         display_name: displayName,
         allows_third_place_qualification: allowsThirdPlaceQualification,
         max_third_place_qualifiers: maxThirdPlaceQualifiers,
+        transfermarkt_url_template: transfermarktUrlTemplate || null,
       }));
 
       if (logoFile) {
@@ -648,6 +653,17 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                 helperText="Maximum number of third place teams that can qualify (e.g., 4 for best 4 third-place teams)"
               />
             )}
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              label="Transfermarkt URL Template"
+              fullWidth
+              value={transfermarktUrlTemplate}
+              onChange={(e) => setTransfermarktUrlTemplate(e.target.value)}
+              margin="normal"
+              helperText={`Use {teamName} and {teamId} as placeholders. E.g.: https://www.transfermarkt.com/{teamName}/kader/verein/{teamId}/saison_id/2024/plus/1`}
+            />
           </Grid>
         </Grid>
 

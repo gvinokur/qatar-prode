@@ -31,6 +31,10 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
+`TournamentTable` includes `transfermarkt_url_template?: string | null` — configurable URL template for Transfermarkt player imports; uses `{teamName}` and `{teamId}` placeholders (Story #306).
+
+`TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
+
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 
 ### app/db/game-guess-repository.ts

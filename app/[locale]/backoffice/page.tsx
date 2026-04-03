@@ -58,7 +58,7 @@ export default async function Backoffice() {
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
                   createTab('Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
                   createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
-                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id} transfermarktUrlTemplate={tournament.transfermarkt_url_template}/>),
                 ]}/>
               ),
               tournament.dev_only,
@@ -77,7 +77,7 @@ export default async function Backoffice() {
                   createTab('Tournament Groups', <TournamentGroupsManagerTab tournamentId={tournament.id}/>),
                   createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
                   createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
-                  createTab('Players', <PlayersTab tournamentId={tournament.id}/>),
+                  createTab('Players', <PlayersTab tournamentId={tournament.id} transfermarktUrlTemplate={tournament.transfermarkt_url_template}/>),
                 ]}/>
               ),
               tournament.dev_only,
