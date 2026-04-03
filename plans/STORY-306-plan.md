@@ -214,6 +214,16 @@ All tests use project-standard utilities: `testFactories.*` for mock data, `rend
 
 ## Implementation Amendments
 
+### Amendment 2: TypeScript fixes for Kysely Selectable behavior
+**Date:** 2026-04-02
+**Reason:** Kysely's `Selectable<T>` treats `?: string | null` columns as required in the inferred type (optional only for inserts). Any code that explicitly constructs a `Team` object or SELECTs specific columns without including `transfermarkt_id` caused build errors.
+**Change:** Added `'teams.transfermarkt_id'` to the SELECT in `qualified-teams/page.tsx` and added `transfermarkt_id: undefined` to hardcoded Team objects in `demo-data.ts`.
+
+### Amendment 3: Extend position map with "Midfield" (no -er) variants
+**Date:** 2026-04-03
+**Reason:** Transfermarkt uses both "XXX Midfield" and "XXX Midfielder" spellings depending on tournament/locale. The original plan only listed the `-er` variants.
+**Change:** Added `Central Midfield`, `Attacking Midfield`, `Defensive Midfield`, `Left Midfield`, `Right Midfield` to `positioMap` in `team-actions.ts`.
+
 ### Amendment 1: tournament-actions.ts requires no code changes
 **Date:** 2026-04-02
 **Reason:** `prepareTournamentData` already spreads all `tournamentData` fields via `{ ...tournamentData, theme: ... }`, and `saveOrUpdateTournament` uses `any` types. The `transfermarkt_url_template` field flows through automatically when included in the client JSON payload — no explicit handling needed.
