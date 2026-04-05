@@ -14,6 +14,17 @@ Root layout that sets up global metadata and CSS imports, returns raw children w
 - **generateMetadata()**: `Metadata` — [Server] Generates global app metadata including PWA configuration, OpenGraph, Twitter cards, and favicons from environment variables.
 - **RootLayout({ children })**: `JSX.Element` — [Server] Root layout component that returns children directly without any wrappers.
 
+### app/robots.ts
+Static robots.txt via Next.js MetadataRoute. Returns disallow rules for admin/auth/API paths.
+
+- **robots()**: `MetadataRoute.Robots` — [Server] Returns static robots configuration. Allows all user agents with disallow rules for `/*/backoffice`, `/*/delete-account`, `/*/verify-email`, `/*/reset-password`, `/api/`. Points sitemap to `${baseUrl}/sitemap.xml`.
+
+### app/sitemap.ts
+Dynamic XML sitemap via Next.js MetadataRoute. Fetches active tournaments and public groups at request time to generate localized URL entries for all public pages.
+
+- **sitemap()**: `Promise<MetadataRoute.Sitemap>` — [Server] Fetches active tournaments and public friend-groups, returns sitemap entries for home pages, 6 tournament sub-pages, and friend-group pages in all locales (en, es). Each entry includes `alternates.languages` for hreflang support.
+  Calls: findAllActiveTournaments, findAllPublicGroupsForSitemap
+
 ### app/template.tsx
 Template component that applies email verification overlay and banner logic across all routes.
 

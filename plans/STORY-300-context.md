@@ -11,5 +11,5 @@
 - **Plan file:** plans/STORY-300-plan.md
 
 ## Status
-- Phase: Planning
+- Phase: Implementing
 - PR: #308 (https://github.com/gvinokur/qatar-prode/pull/308)

@@ -487,4 +487,16 @@ Key flows:
     - Flow 13 (Friend group management): JoinRequestManager.handleApprove
           → approveJoinRequestAction [server action] returns analyticsEvent
           → trackEvent('group_joined', { group_id, tournament_id })
+
+22. Sitemap (dynamic XML sitemap for SEO)
+    GET /sitemap.xml → app/sitemap.ts
+      ├── findAllActiveTournaments() (no userId → dev_only excluded)
+      └── findAllPublicGroupsForSitemap()
+      → returns MetadataRoute.Sitemap with localized URLs (en, es)
+         and alternates.languages hreflang for each entry
+
+23. Robots.txt (static crawl directives)
+    GET /robots.txt → app/robots.ts
+      → returns MetadataRoute.Robots (static, no DB calls)
+         disallows: /*/backoffice, /*/delete-account, /*/verify-email, /*/reset-password, /api/
 ```
