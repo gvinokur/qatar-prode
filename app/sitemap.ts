@@ -3,6 +3,8 @@ import { locales } from '../i18n.config'
 import { findAllActiveTournaments } from './db/tournament-repository'
 import { findAllPublicGroupsForSitemap } from './db/prode-group-repository'
 
+export const dynamic = 'force-dynamic'
+
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://prodemundial.app'
 
 const tournamentSubPages = [
