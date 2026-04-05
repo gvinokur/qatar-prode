@@ -232,6 +232,18 @@ export async function countPublicGroups(searchTerm?: string): Promise<number> {
 }
 
 /**
+ * Return IDs of all public groups for sitemap generation.
+ * Lightweight query — no joins, no pagination. WHERE is_public = true only.
+ */
+export async function findAllPublicGroupsForSitemap(): Promise<{ id: string }[]> {
+  return db
+    .selectFrom('prode_groups')
+    .select('id')
+    .where('is_public', '=', true)
+    .execute()
+}
+
+/**
  * Update group privacy settings.
  * If making private, bulk-rejects all pending 'discovery' source join requests for this group.
  * Does NOT affect 'invite_link' or 'email_invite' requests.

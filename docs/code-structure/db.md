@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-03
+**Last updated:** 2026-04-05
 
 ---
 
@@ -149,6 +149,7 @@ Repository for prode_groups (friend groups) and related tables. Manages group cr
 - **findPublicGroups(searchTerm?: string, limit: number, offset: number, tournamentId?: string)**: `Promise<PublicGroupData[]>` — Finds public groups for discovery (paginated).
 - **countPublicGroups(searchTerm?: string)**: `Promise<number>` — Counts public groups for pagination.
 - **updateGroupPrivacy(groupId: string, isPublic: boolean, description?: string | null)**: `Promise<ProdeGroup>` — Updates privacy and rejects discovery requests if making private.
+- **findAllPublicGroupsForSitemap()**: `Promise<{ id: string }[]>` — Returns IDs of all public groups for sitemap generation. No pagination, no joins.
 
 ### app/db/qualified-teams-repository.ts
 Repository for group position predictions (JSONB-based). Handles group position predictions and qualified team selections.
