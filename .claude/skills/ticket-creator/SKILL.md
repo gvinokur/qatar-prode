@@ -63,7 +63,17 @@ RELEVANT_LAYER_FILES:
 $(cat ${PROJECT_ROOT}/docs/code-structure/actions.md \
       ${PROJECT_ROOT}/docs/code-structure/db.md)
 " > /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
-sed -i 's/^[^{]*//' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)
 GEMINI_ANALYSIS=$(jq -r '.response' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)

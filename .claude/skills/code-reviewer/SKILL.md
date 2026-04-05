@@ -431,7 +431,17 @@ ${LAYER_CONTENTS}
 COMMIT_LOG:
 ${COMMIT_LOG}
 " > /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
 AUDIT_RESULT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
@@ -454,7 +464,17 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "The response is missing [section]. Please provide it." \
   > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
 AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
 ```
 Maximum 2 follow-up attempts.
@@ -491,7 +511,17 @@ gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
 
 Do these corrections now accurately reflect the source code? Are there any remaining drift issues?" \
   > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
 AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
 ```
 

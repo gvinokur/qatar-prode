@@ -114,8 +114,18 @@ gemini
 
 # Call with JSON output — always use this form to capture session_id
 gemini --yolo -m gemini-2.5-flash -o json -p "your prompt here" > /tmp/gemini-${TAG}-1.json
-# Strip MCP warning prefix that Gemini may prepend before the JSON (e.g. "MCP issues detected...{")
-sed -i 's/^[^{]*//' /tmp/gemini-${TAG}-1.json
+# Extract Gemini JSON — scan past any MCP/tool-init output to find the object containing session_id
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-${TAG}-1.json
 
 # Extract response and session_id
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
@@ -124,7 +134,17 @@ RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-1.json)
 # Resume a specific session by session_id (no re-send of original context)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "follow-up prompt" > /tmp/gemini-${TAG}-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-${TAG}-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-${TAG}-2.json
 RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-2.json)
 ```
 
@@ -145,8 +165,18 @@ gemini --yolo -m gemini-2.5-flash -o json -p "$(cat agent.md)
 ---
 INPUTS...
 " > /tmp/gemini-${TAG}-1.json
-# Strip MCP warning prefix (e.g. "MCP issues detected...{") before parsing JSON
-sed -i 's/^[^{]*//' /tmp/gemini-${TAG}-1.json
+# Extract Gemini JSON — scan past any MCP/tool-init output to find the object containing session_id
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-${TAG}-1.json
 
 # Extract — discard stats, keep only what's needed
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
@@ -157,7 +187,17 @@ RESPONSE=$(jq -r '.response'    /tmp/gemini-${TAG}-1.json)
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${TAG}-1.json)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "follow-up prompt" > /tmp/gemini-${TAG}-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-${TAG}-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-${TAG}-2.json
 RESPONSE=$(jq -r '.response' /tmp/gemini-${TAG}-2.json)
 ```
 

@@ -232,8 +232,18 @@ ${LAYER_FILES}
 " > /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
 # Note: this call can take 3-5 minutes for large codebases — use timeout: 300000 in Bash tool
 
-# Strip MCP warning prefix (e.g. "MCP issues detected...{") before parsing JSON
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
+# Extract Gemini JSON — scan past any MCP/tool-init output to find the object containing session_id
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
 GEMINI_DRAFT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
@@ -263,7 +273,17 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.j
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "The response is missing [section]. Please provide it." \
   > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
 GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
 ```
 Maximum 2 follow-up attempts. If still incomplete, proceed and note the gap.
@@ -734,7 +754,17 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.j
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "[only the feedback delta — what changed and why]" \
   > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
 GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
 ```
 Gemini retains the original story and codebase context. Send only the new constraints.

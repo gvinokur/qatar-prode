@@ -59,7 +59,17 @@ SONAR_OUTPUT:
 ${SONAR_OUTPUT}
 COVERAGE_THRESHOLD: 80
 " > /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
 
 SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
 jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
@@ -80,7 +90,17 @@ SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
 gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
   -p "The following issues lack concrete fix suggestions: [list them]. Please provide specific fix guidance for each." \
   > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
 jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 Maximum 2 follow-up attempts.
@@ -138,7 +158,17 @@ ${SONAR_OUTPUT}
 
 Identify which issues remain, which were resolved, and update your analysis. Provide fix suggestions for any remaining issues." \
   > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-sed -i 's/^[^{]*//' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
+python3 -c "\
+import json, re, sys
+content = open(sys.argv[1]).read()
+for m in re.finditer(r'\\{', content):
+    try:
+        obj = json.loads(content[m.start():])
+        if 'session_id' in obj:
+            open(sys.argv[1], 'w').write(json.dumps(obj))
+            break
+    except: pass
+" /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
 jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 
