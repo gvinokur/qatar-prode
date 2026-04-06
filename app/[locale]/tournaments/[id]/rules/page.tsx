@@ -3,10 +3,11 @@
 import { Metadata } from 'next'
 import { Box } from '@mui/material'
 import Rules, { ScoringConfig } from '../../../../components/tournament-page/rules'
-import { findTournamentById } from '../../../../db/tournament-repository'
 import { redirect } from 'next/navigation'
 import { getTranslations, getLocale } from 'next-intl/server'
-import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
+import JsonLd from '../../../../components/shared/json-ld'
+import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -34,9 +35,13 @@ export async function generateMetadata(
 export default async function TournamentRulesPage(props: Props) {
   const params = await props.params
   const tournamentId = params.id
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tRules = await getTranslations({ locale, namespace: 'rules' })
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   // Server Component pattern: Import repository directly, fetch data, pass as props
-  const tournament = await findTournamentById(tournamentId)
+  const tournament = await findTournamentByIdCached(tournamentId)
 
   if (!tournament) {
     redirect('/es')
@@ -57,8 +62,15 @@ export default async function TournamentRulesPage(props: Props) {
   }
 
   return (
-    <Box sx={{ pt: 2 }}>
-      <Rules fullpage scoringConfig={scoringConfig} />
-    </Box>
+    <>
+      <JsonLd data={buildBreadcrumbListJsonLd([
+        { name: tCommon('breadcrumb.home'), url: `${appUrl}/${locale}` },
+        { name: tournament.long_name, url: `${appUrl}/${locale}/tournaments/${tournamentId}` },
+        { name: tRules('title'), url: `${appUrl}/${locale}/tournaments/${tournamentId}/rules` },
+      ])} />
+      <Box sx={{ pt: 2 }}>
+        <Rules fullpage scoringConfig={scoringConfig} />
+      </Box>
+    </>
   )
 }

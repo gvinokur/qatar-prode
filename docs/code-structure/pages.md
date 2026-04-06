@@ -159,9 +159,9 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
 - **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
-- **TournamentLayout(props)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, and badges.
-  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode
-  Renders: TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
+- **TournamentLayout(props)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, and SportsEvent JSON-LD structured data.
+  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd
+  Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.
@@ -174,36 +174,36 @@ Results and standings page showing group stage and playoff results.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{results.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **ResultsPage(props)**: `JSX.Element` — [Server] Fetches game results, group standings, and playoff data; displays in tabbed interface with loading skeleton fallback.
-  Calls: findGamesInTournament, getTeamsMap, getGroupStandingsForTournament, findPlayoffStagesWithGamesInTournament, getTranslations
-  Renders: LoadingSkeleton, ResultsPageClient
+- **ResultsPage(props)**: `JSX.Element` — [Server] Fetches game results, group standings, playoff data, and tournament (for breadcrumbs); displays in tabbed interface with loading skeleton fallback and BreadcrumbList JSON-LD.
+  Calls: findGamesInTournament, getTeamsMap, getGroupStandingsForTournament, findPlayoffStagesWithGamesInTournament, getTranslations, getLocale, findTournamentByIdCached, buildBreadcrumbListJsonLd
+  Renders: JsonLd, LoadingSkeleton, ResultsPageClient
 
 ### app/[locale]/tournaments/[id]/rules/page.tsx
 Tournament-specific rules page with scoring configuration.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{rules.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentRulesPage(props)**: `JSX.Element` — [Server] Fetches tournament scoring config and renders rules component.
-  Calls: findTournamentById
-  Renders: Rules
+- **TournamentRulesPage(props)**: `JSX.Element` — [Server] Fetches tournament (via cache) and renders scoring config rules with BreadcrumbList JSON-LD.
+  Calls: findTournamentByIdCached, getLocale, getTranslations, buildBreadcrumbListJsonLd
+  Renders: JsonLd, Rules
 
 ### app/[locale]/tournaments/[id]/stats/page.tsx
 User tournament statistics page showing performance, accuracy, boost analysis, and score history.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{sidebar.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations, and score history; calculates performance and accuracy metrics; renders stats in tabbed interface.
-  Calls: getLoggedInUser, findTournamentById, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers
-  Renders: StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
+- **TournamentStatsPage(props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations, and score history (tournament via cache); calculates performance and accuracy metrics; renders stats with BreadcrumbList JSON-LD.
+  Calls: getLoggedInUser, findTournamentByIdCached, getLocale, getTranslations, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers, buildBreadcrumbListJsonLd
+  Renders: JsonLd, StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
 
 ### app/[locale]/tournaments/[id]/awards/page.tsx
 Awards prediction page for tournament individual awards and podium.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{awards.metadata.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **Awards(props)**: `JSX.Element` — [Server] Fetches all players, tournament guesses, playoff stages, and games; checks if predictions are locked; renders awards panel.
-  Calls: getLoggedInUser, findTournamentGuessByUserIdTournament, findAllPlayersInTournamentWithTeamData, getTournamentStartDate, getTeamsMap, findTournamentById, getPlayoffRounds, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion
-  Renders: AwardsPanel
+- **Awards(props)**: `JSX.Element` — [Server] Fetches all players, tournament guesses, playoff stages, and games (tournament via cache); checks if predictions are locked; renders awards panel with BreadcrumbList JSON-LD.
+  Calls: getLoggedInUser, getLocale, getTranslations, findTournamentGuessByUserIdTournament, findAllPlayersInTournamentWithTeamData, getTournamentStartDate, getTeamsMap, findTournamentByIdCached, getPlayoffRounds, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, buildBreadcrumbListJsonLd
+  Renders: JsonLd, AwardsPanel
 
 ### app/[locale]/tournaments/[id]/qualified-teams/page.tsx
 Qualified teams (group finalists) prediction page with drag-and-drop interface.
@@ -214,9 +214,9 @@ Qualified teams (group finalists) prediction page with drag-and-drop interface.
   Calls: getLocale, applyLocalizationBatch
 - **initializePredictions(userId, tournamentId, groupsWithTeams)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Creates initial JSONB predictions for user in each group.
 - **fetchAndFlattenPredictions(userId, tournamentId)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Fetches JSONB predictions and flattens into array format.
-- **QualifiedTeamsPage({ params, searchParams })**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; renders client page with scoring breakdown.
-  Calls: getLoggedInUser, getTournamentQualificationConfig, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap
-  Renders: QualifiedTeamsClientPage
+- **QualifiedTeamsPage({ params, searchParams })**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; renders client page with scoring breakdown and BreadcrumbList JSON-LD.
+  Calls: getLoggedInUser, getTranslations, findTournamentByIdCached, getTournamentQualificationConfig, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap, buildBreadcrumbListJsonLd
+  Renders: JsonLd, QualifiedTeamsClientPage
 
 ### app/[locale]/tournaments/[id]/friend-groups/page.tsx
 Tournament-scoped friend groups list showing group stats for specific tournament.

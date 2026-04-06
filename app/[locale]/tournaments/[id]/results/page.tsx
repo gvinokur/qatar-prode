@@ -7,7 +7,9 @@ import ResultsPageClient from '@/app/components/results-page/results-page-client
 import LoadingSkeleton from '@/app/components/results-page/loading-skeleton'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { Suspense } from 'react'
-import { buildTournamentMetadata } from '@/app/utils/metadata-utils'
+import { buildTournamentMetadata, findTournamentByIdCached } from '@/app/utils/metadata-utils'
+import JsonLd from '@/app/components/shared/json-ld'
+import { buildBreadcrumbListJsonLd } from '@/app/utils/json-ld-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -40,7 +42,19 @@ export async function generateMetadata(
 export default async function ResultsPage(props: Props) {
   const params = await props.params
   const tournamentId = params.id
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
   const t = await getTranslations('tables')
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const tournament = await findTournamentByIdCached(tournamentId)
+
+  const breadcrumb = tournament ? (
+    <JsonLd data={buildBreadcrumbListJsonLd([
+      { name: tCommon('breadcrumb.home'), url: `${appUrl}/${locale}` },
+      { name: tournament.long_name, url: `${appUrl}/${locale}/tournaments/${tournamentId}` },
+      { name: t('results.title'), url: `${appUrl}/${locale}/tournaments/${tournamentId}/results` },
+    ])} />
+  ) : null
 
   try {
     // Fetch all data in parallel
@@ -58,54 +72,63 @@ export default async function ResultsPage(props: Props) {
     // If no data at all, show empty state
     if (!hasGroups && !hasPlayoffs) {
       return (
-        <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h5" color="text.secondary" gutterBottom>
-              {t('results.unavailable')}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {t('results.unavailableDescription')}
-            </Typography>
+        <>
+          {breadcrumb}
+          <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h5" color="text.secondary" gutterBottom>
+                {t('results.unavailable')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {t('results.unavailableDescription')}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
+        </>
       )
     }
 
     // Render the main results page
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          width: '100%',
-        }}
-      >
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ResultsPageClient
-            groups={groupStandings.groups}
-            qualifiedTeams={groupStandings.qualifiedTeams}
-            games={games}
-            teamsMap={teamsMap}
-            playoffStages={playoffStages}
-          />
-        </Suspense>
-      </Box>
+      <>
+        {breadcrumb}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          <Suspense fallback={<LoadingSkeleton />}>
+            <ResultsPageClient
+              groups={groupStandings.groups}
+              qualifiedTeams={groupStandings.qualifiedTeams}
+              games={games}
+              teamsMap={teamsMap}
+              playoffStages={playoffStages}
+            />
+          </Suspense>
+        </Box>
+      </>
     )
   } catch (error) {
     console.error('Error loading results page:', error)
 
     return (
-      <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h5" color="error" gutterBottom>
-            {t('results.error')}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {t('results.errorDescription')}
-          </Typography>
+      <>
+        {breadcrumb}
+        <Box sx={{ maxWidth: 'lg', mx: 'auto', py: 4, px: 2 }}>
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Typography variant="h5" color="error" gutterBottom>
+              {t('results.error')}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {t('results.errorDescription')}
+            </Typography>
+          </Box>
         </Box>
-      </Box>
+      </>
     )
   }
 }

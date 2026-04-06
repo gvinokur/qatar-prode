@@ -324,6 +324,7 @@ Key flows:
 10. Awards prediction
     Awards (Server)
       ├── getLoggedInUser
+      ├── findTournamentByIdCached (in parallel, for breadcrumb)
       ├── findTournamentGuessByUserIdTournament
       ├── findAllPlayersInTournamentWithTeamData
       ├── getTournamentStartDate [server action]
@@ -355,7 +356,7 @@ Key flows:
 12. User stats page
     TournamentStatsPage (Server)
       ├── getLoggedInUser
-      ├── findTournamentById
+      ├── findTournamentByIdCached
       ├── getGameGuessStatisticsForUsers
       ├── findTournamentGuessByUserIdTournament
       ├── getBoostAllocationBreakdown
@@ -508,4 +509,20 @@ Key flows:
 
     getTournamentLocations [server action] (read path for story #303 JSON-LD use)
       └── findTournamentById → returns tournament.locations ?? []
+
+25. JSON-LD structured data — SportsEvent (tournament layout)
+    TournamentLayout (Server)
+      ├── [already-fetched] layoutData.tournament.long_name (from getTournamentAndGroupsData)
+      ├── [already-fetched] tournamentStartDate (from getTournamentStartDate)
+      ├── getTournamentLocations [server action] → tournament.locations ?? []
+      └── buildSportsEventJsonLd(name, url, startDate, locations) (json-ld-utils)
+            └── JsonLd [renders] → <script type="application/ld+json">
+
+26. JSON-LD structured data — BreadcrumbList (tournament sub-pages)
+    Sub-page generateMetadata (results, stats, awards, qualified-teams, rules)
+      └── buildTournamentMetadata → findTournamentByIdCached (React.cache deduplicates with sub-page)
+    Sub-page default export (results, stats, awards, qualified-teams, rules)
+      └── findTournamentByIdCached (cache hit — no extra DB call)
+            └── buildBreadcrumbListJsonLd(items) (json-ld-utils)
+                  └── JsonLd [renders] → <script type="application/ld+json">
 ```

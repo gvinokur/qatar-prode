@@ -8,13 +8,23 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
+### app/utils/json-ld-utils.ts
+Pure builder functions for schema.org JSON-LD structured data objects.
+
+- **buildSportsEventJsonLd(name, url, startDate)**: `object` — Returns a schema.org SportsEvent JSON-LD object with `@context`, `@type`, `name`, `startDate` (ISO string), and `url`.
+  Calls: none
+- **buildBreadcrumbListJsonLd(items)**: `object` — Returns a schema.org BreadcrumbList JSON-LD object. Each `BreadcrumbItem` (`{ name, url }`) maps to a `ListItem` with 1-indexed `position`, `name`, and `item` (url).
+  Calls: none
+
 ### app/utils/metadata-utils.ts
 Next.js page metadata builder shared by all `generateMetadata` functions.
 
+- **findTournamentByIdCached**: `(id: string) => Promise<Tournament | undefined>` — `React.cache()`-wrapped version of `findTournamentById`. Deduplicates DB calls within the same React render request. Used by `buildTournamentMetadata` internally and exported for sub-pages rendering JSON-LD breadcrumbs.
+  Calls: findTournamentById
 - **buildPageMetadata(title, description)**: `Metadata` — Builds a standard Next.js Metadata object with title, description, OpenGraph (type: website, static 512×512 image), and Twitter card (summary) fields.
   Calls: none
-- **buildTournamentMetadata(id, appName, buildTitle, buildDescription)**: `Promise<Metadata>` — Fetches a tournament by ID and invokes the provided title/description builder callbacks; returns a fallback `{ title: appName }` on not-found or DB error. Encapsulates the repeated try/catch + `findTournamentById` pattern shared by all tournament `generateMetadata` functions.
-  Calls: findTournamentById, buildPageMetadata
+- **buildTournamentMetadata(id, appName, buildTitle, buildDescription)**: `Promise<Metadata>` — Fetches a tournament by ID and invokes the provided title/description builder callbacks; returns a fallback `{ title: appName }` on not-found or DB error. Now calls `findTournamentByIdCached` (instead of `findTournamentById`) to share cache with page components.
+  Calls: findTournamentByIdCached, buildPageMetadata
 
 ### app/utils/environment-utils.ts
 Environment configuration utilities.

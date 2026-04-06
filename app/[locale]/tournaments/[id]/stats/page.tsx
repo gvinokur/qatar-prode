@@ -6,7 +6,6 @@ import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
 import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, findGameGuessesByUserId } from "../../../../db/game-guess-repository";
 import { findTournamentGuessByUserIdTournament } from "../../../../db/tournament-guess-repository";
-import { findTournamentById } from "../../../../db/tournament-repository";
 import { getGameCountsForTournament } from "../../../../db/game-repository";
 import { getScoreHistoryForUsers } from "../../../../db/score-history-repository";
 import { PerformanceOverviewCard } from "../../../../components/tournament-stats/performance-overview-card";
@@ -16,7 +15,9 @@ import { HistoryTabCard } from "../../../../components/tournament-stats/history-
 import { StatsTabs } from "../../../../components/tournament-stats/stats-tabs";
 import { calculateAccuracyStats, calculateBoostStats, type PerformanceStats } from "../../../../utils/stats-calculations";
 import { getTranslations, getLocale } from 'next-intl/server';
-import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
+import JsonLd from '../../../../components/shared/json-ld'
+import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -44,6 +45,10 @@ export async function generateMetadata(
 export default async function TournamentStatsPage(props: Props) {
   const params = await props.params
   const tournamentId = params.id
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tStats = await getTranslations({ locale, namespace: 'stats' })
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   // Auth check
   const user = await getLoggedInUser()
@@ -52,7 +57,7 @@ export default async function TournamentStatsPage(props: Props) {
   }
 
   // Fetch all required data
-  const tournament = await findTournamentById(tournamentId)
+  const tournament = await findTournamentByIdCached(tournamentId)
   if (!tournament) {
     redirect(`/es/tournaments`)
   }
@@ -116,18 +121,25 @@ export default async function TournamentStatsPage(props: Props) {
   const userHistory = await getScoreHistoryForUsers([user.id], tournamentId)
 
   return (
-    <Box sx={{ pt: 2, height: '100%' }}>
-      <StatsTabs
-        performanceTab={<PerformanceOverviewCard {...performanceStats} />}
-        precisionTab={<PredictionAccuracyCard {...accuracyStats} />}
-        boostsTab={
-          <BoostAnalysisCard
-            silverBoost={silverBoostStats}
-            goldenBoost={goldenBoostStats}
-          />
-        }
-        historyTab={<HistoryTabCard rows={userHistory} />}
-      />
-    </Box>
+    <>
+      <JsonLd data={buildBreadcrumbListJsonLd([
+        { name: tCommon('breadcrumb.home'), url: `${appUrl}/${locale}` },
+        { name: tournament.long_name, url: `${appUrl}/${locale}/tournaments/${tournamentId}` },
+        { name: tStats('sidebar.title'), url: `${appUrl}/${locale}/tournaments/${tournamentId}/stats` },
+      ])} />
+      <Box sx={{ pt: 2, height: '100%' }}>
+        <StatsTabs
+          performanceTab={<PerformanceOverviewCard {...performanceStats} />}
+          precisionTab={<PredictionAccuracyCard {...accuracyStats} />}
+          boostsTab={
+            <BoostAnalysisCard
+              silverBoost={silverBoostStats}
+              goldenBoost={goldenBoostStats}
+            />
+          }
+          historyTab={<HistoryTabCard rows={userHistory} />}
+        />
+      </Box>
+    </>
   )
 }

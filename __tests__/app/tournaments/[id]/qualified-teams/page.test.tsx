@@ -5,6 +5,28 @@ import * as userActions from '../../../../../app/actions/user-actions';
 import * as qualificationActions from '../../../../../app/actions/qualification-actions';
 import { db } from '../../../../../app/db/database';
 
+// Mock next-intl/server
+vi.mock('next-intl/server', () => ({
+  getTranslations: vi.fn().mockResolvedValue((key: string) => key),
+  getLocale: vi.fn().mockResolvedValue('en'),
+}))
+
+// Mock metadata-utils (findTournamentByIdCached for breadcrumbs)
+vi.mock('../../../../../app/utils/metadata-utils', () => ({
+  buildTournamentMetadata: vi.fn(),
+  findTournamentByIdCached: vi.fn().mockResolvedValue(null),
+}))
+
+// Mock JsonLd component
+vi.mock('../../../../../app/components/shared/json-ld', () => ({
+  default: () => null,
+}))
+
+// Mock json-ld-utils
+vi.mock('../../../../../app/utils/json-ld-utils', () => ({
+  buildBreadcrumbListJsonLd: vi.fn().mockReturnValue({}),
+}))
+
 // Mock Next.js navigation - these must throw to stop execution like real Next.js
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(() => {

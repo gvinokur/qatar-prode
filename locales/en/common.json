@@ -47,6 +47,9 @@
     "viewAll": "View all",
     "back": "Back"
   },
+  "breadcrumb": {
+    "home": "Home"
+  },
   "home": {
     "availableTournaments": "Available Tournaments",
     "loadingTournaments": "Loading Tournaments",
