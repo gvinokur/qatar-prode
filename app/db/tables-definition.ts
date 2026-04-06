@@ -1,4 +1,5 @@
 import {
+  ColumnType,
   Generated,
   Insertable,
   JSONColumnType,
@@ -75,6 +76,10 @@ export interface TournamentTable extends Identifiable{
 
   // Transfermarkt import configuration
   transfermarkt_url_template?: string | null
+
+  // Location data for SportsEvent structured data (story #310)
+  // ColumnType: select=string[], insert=optional (DB DEFAULT '[]'), update=accepts array or raw JSON
+  locations: ColumnType<string[], string[] | string | undefined, string[] | string>
 }
 
 export type Tournament = Selectable<TournamentTable>

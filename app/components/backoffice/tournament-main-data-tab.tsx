@@ -23,6 +23,7 @@ import { MuiColorInput } from 'mui-color-input';
 import LinkIcon from '@mui/icons-material/Link';
 import ImagePicker from "../friend-groups/image-picker";
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { TournamentFormSkeleton } from '../skeletons';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayoffRoundDialog from './internal/playoff-round-dialog';
@@ -81,6 +82,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   // Transfermarkt import configuration
   const [transfermarktUrlTemplate, setTransfermarktUrlTemplate] = useState<string>('');
 
+  // Tournament locations for SportsEvent structured data
+  const [locations, setLocations] = useState<string[]>([]);
+
   // Fetch playoff rounds
   const fetchPlayoffRounds = useCallback(async () => {
     setLoadingPlayoffRounds(true);
@@ -128,6 +132,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
         setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
         setTransfermarktUrlTemplate(tournamentData.transfermarkt_url_template || '');
+        setLocations(tournamentData.locations ?? []);
 
         // Fetch playoff rounds
         await fetchPlayoffRounds();
@@ -194,6 +199,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
       if (logoFile) {
         formData.append('logo', logoFile);
       }
+
+      formData.append('locations', JSON.stringify(locations.filter(l => l.trim() !== '')));
 
       const updatedTournament = await createOrUpdateTournament(tournamentId, formData);
 
@@ -267,6 +274,19 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
     } finally {
       setLoading(false);
     }
+  };
+
+  // Location management handlers
+  const handleLocationChange = (index: number, newName: string) => {
+    setLocations(prev => prev.map((loc, i) => (i === index ? newName : loc)));
+  };
+
+  const addLocation = () => {
+    setLocations(prev => [...prev, '']);
+  };
+
+  const deleteLocation = (index: number) => {
+    setLocations(prev => prev.filter((_, i) => i !== index));
   };
 
   // Handle logo file selection
@@ -664,6 +684,51 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
               margin="normal"
               helperText={`Use {teamName} and {teamId} as placeholders. E.g.: https://www.transfermarkt.com/{teamName}/kader/verein/{teamId}/saison_id/2024/plus/1`}
             />
+          </Grid>
+
+          <Grid size={{ xs: 12 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+              <Typography variant="subtitle2">
+                Tournament Locations
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={addLocation}
+              >
+                Add Location
+              </Button>
+            </Box>
+            {locations.length === 0 ? (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                No locations defined for this tournament.
+              </Alert>
+            ) : (
+              <Paper variant="outlined" sx={{ mt: 1, maxHeight: 300, overflow: 'auto' }}>
+                <List dense>
+                  {locations.map((loc, index) => (
+                    <ListItem
+                      key={index}
+                      secondaryAction={
+                        <IconButton edge="end" onClick={() => deleteLocation(index)} size="small">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <TextField
+                        variant="standard"
+                        value={loc}
+                        onChange={(e) => handleLocationChange(index, e.target.value)}
+                        placeholder="e.g. Qatar, New York"
+                        fullWidth
+                        size="small"
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
           </Grid>
         </Grid>
 

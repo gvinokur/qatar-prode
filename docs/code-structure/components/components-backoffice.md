@@ -67,11 +67,11 @@ Component for editing i18n JSONB fields with English and Spanish inputs. Reusabl
   Renders: TextField, Typography, Grid, Alert
 
 ### app/components/backoffice/tournament-main-data-tab.tsx
-Main tournament configuration form with colors, logos, playoff rounds. [Client] comprehensive tournament setup.
-- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, third-place qualification settings, and Transfermarkt URL template (Story #306).
+Main tournament configuration form with colors, logos, playoff rounds, and location management. [Client] comprehensive tournament setup.
+- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, third-place qualification settings, Transfermarkt URL template, and city/country locations for SportsEvent JSON-LD (Story #310).
   Calls: getTournamentById, createOrUpdateTournament, getPlayoffRounds, getTournamentPermissionData, updateTournamentPermissions
   Uses: useTranslations, useLocale, useRouter, useCallback, useEffect, useState
-  Renders: MuiColorInput, ImagePicker, TextField, FormControlLabel, Switch, PlayoffRoundDialog, TournamentPermissionsSelector, Button, Paper, Alert
+  Renders: MuiColorInput, ImagePicker, TextField, FormControlLabel, Switch, PlayoffRoundDialog, TournamentPermissionsSelector, Button, Paper, Alert, List, ListItem, IconButton (delete)
 
 ### app/components/backoffice/tournament-game-manager-tab.tsx
 Table for managing all tournament games with create/edit/delete. [Client] game CRUD interface.

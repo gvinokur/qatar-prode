@@ -211,6 +211,18 @@ Use `vi.mock('../../actions/tournament-actions')` with `vi.mocked(getTournamentL
 8. Update `docs/code-structure/components/components-backoffice.md`
 9. Update `CODE-STRUCTURE.md` call graph
 
+## Implementation Amendments
+
+### Amendment 1: Use ColumnType instead of JSONColumnType for locations
+**Date:** 2026-04-06
+**Reason:** `JSONColumnType<string[]>` made `locations` required in inserts, breaking `backoffice-actions.ts` and `awards-tab.tsx` which create/update tournaments without providing `locations`. Since locations has a DB DEFAULT '[]', it should be optional in inserts.
+**Change:** Used `ColumnType<string[], string[] | string | undefined, string[] | string>` to explicitly define select=`string[]`, insert=optional, update=accepts array or JSON string. Also added `ColumnType` to imports.
+
+### Amendment 2: parseFormData stringifies locations before DB write
+**Date:** 2026-04-06
+**Reason:** Following the same pattern as `theme` (which is explicitly JSON.stringify'd before DB write), `locations` must be stringified before being passed to Kysely to ensure correct JSONB serialization.
+**Change:** `parseFormData` now returns `locations: JSON.stringify(parsedLocations)` (a raw JSON string) instead of the `string[]` array directly.
+
 ## Validation Considerations
 
 - **Migration**: `ALTER TABLE` adding a `NOT NULL DEFAULT '[]'` column is safe on existing rows — Postgres backfills with the default.
