@@ -2,21 +2,18 @@
 
 ## Context
 
-The SportsEvent JSON-LD added in story #303 is missing the `location` field required by Google's Rich Results Test. This story creates the data model and admin UI for tournament locations so admins can configure city/country-level names (e.g., "Qatar", "New York"). Story #303 will then use this data when generating JSON-LD structured data.
-
-A partial reference implementation exists as uncommitted changes in the main worktree — the plan incorporates those patterns with bug fixes.
+The SportsEvent JSON-LD added in story #303 is missing the `location` field required by Google's Rich Results Test. This story adds a `locations` JSONB column to the `tournaments` table so admins can configure city/country-level location names (e.g., "Qatar", "New York"). Story #303 will then use this data when generating JSON-LD structured data.
 
 ## Objective
 
-Enable admins to configure one or more location names for each tournament, persisted in a dedicated `tournament_locations` table. Provide read access via a server action for future JSON-LD integration.
+Enable admins to configure one or more location names for each tournament, stored as a `locations` JSONB column (`string[]`) on the `tournaments` table. Provide read access via the existing tournament fetch for future JSON-LD integration.
 
 ## Acceptance Criteria
 
 - [ ] Each tournament can have zero or more location names (e.g., "Qatar", "Lusail", "New York")
 - [ ] Admins can add, edit, and remove locations for a tournament in the backoffice "Tournament Data" tab
 - [ ] Tournaments with no locations configured show a clear "no locations" state in the UI
-- [ ] `getTournamentLocations` returns an empty array for tournaments with no locations (supports graceful JSON-LD omission in story #303)
-- [ ] All CRUD location actions require admin authentication
+- [ ] `tournament.locations` returns `[]` for tournaments with no locations (supports graceful JSON-LD omission in story #303)
 
 ## Out of Scope
 
@@ -28,38 +25,29 @@ Enable admins to configure one or more location names for each tournament, persi
 
 ## Technical Approach
 
+### Why JSONB over a separate table
+
+Locations are a simple `string[]` — no metadata, no individual querying, no need for normalization. The `tournaments` table already uses JSONB for `theme` and i18n fields. A `locations JSONB DEFAULT '[]'` column keeps the implementation minimal: one migration, no new repository, no new server action. Uniqueness is enforced in the application layer.
+
 ### Database
 
-New table `tournament_locations` with `(id, tournament_id, name, created_at, updated_at)`. Unique constraint on `(tournament_id, name)`. Cascade delete on tournament removal. Follows the same pattern as `tournament_venues`.
+`ALTER TABLE tournaments ADD COLUMN locations JSONB NOT NULL DEFAULT '[]'::jsonb`
 
-### Repository
+### TypeScript Types
 
-New `app/db/tournament-location-repository.ts` using the project's `createBaseFunctions` utility plus a custom `findByTournamentId` function. Consistent with `tournament-venue-repository.ts`.
+Add `locations: JSONColumnType<string[]>` to `TournamentTable` in `tables-definition.ts`. The existing `Tournament`, `TournamentNew`, `TournamentUpdate` derived types automatically include it via Kysely's `Selectable`/`Insertable`/`Updateable`.
 
 ### Server Actions
 
-Add to `app/actions/tournament-actions.ts`:
-- `getTournamentLocations(tournamentId)` — public read, no admin check needed
-- `createTournamentLocation`, `updateTournamentLocation`, `deleteTournamentLocation` — admin-only, for future direct CRUD use
-- Private `handleLocationsUpdate(tournamentId, locations)` — batch sync called from `createOrUpdateTournament`
-- Update `parseFormData` to extract locations with null safety
-- Update `createOrUpdateTournament` to call `handleLocationsUpdate` after saving
+No new action file needed. Locations are saved via the existing `createOrUpdateTournament(tournamentId, formData, locale)` action — `parseFormData` extracts the locations array from FormData and it gets merged into the tournament update payload.
+
+Add a thin `getTournamentLocations(tournamentId)` helper action for story #303's use (reads from the existing `findTournamentById` result).
 
 ### Admin UI
 
-Extend `TournamentMainDataTab` with an inline "Tournament Locations" section (not a new tab). The section shows a scrollable list of location TextFields with delete buttons, plus an "Add Location" button. Locations are saved when the user clicks "Save Changes".
-
-**Key design fix vs reference**: Use a `localId` field (stable UUID for new items, DB id for existing) to eliminate the key-matching bug in the uncommitted implementation.
-
-### Testing
-
-- Unit tests for `tournament-location-repository.ts` (mocked Kysely)
-- Unit tests for location actions in `tournament-actions.ts` (mocked repository + auth)
-- Component tests for the new locations UI in `TournamentMainDataTab`
+Extend `TournamentMainDataTab` with an inline "Tournament Locations" section (below Transfermarkt URL Template). Uses local React state (`string[]`) — no separate fetch needed since the tournament object already contains `locations`. Locations are saved with the main "Save Changes" button.
 
 ## Visual Prototype
-
-The "Tournament Data" tab already exists. Below the "Transfermarkt URL Template" field, add:
 
 ```
 Tournament Locations                              [ + Add Location ]
@@ -78,268 +66,154 @@ Tournament Locations                              [ + Add Location ]
 ℹ️  No locations defined for this tournament.
 ```
 
-Each row is an inline `TextField` (variant="standard") with a delete `IconButton`. Changes are saved with the main "Save Changes" button at the bottom of the form.
+Each row is an inline `TextField` (variant="standard") with a delete `IconButton`. Changes are saved with the main "Save Changes" button.
 
 ## Files to Create
 
 | File | Description |
 |------|-------------|
-| `migrations/20260406000000_create_tournament_locations.sql` | New table with unique constraint and cascade delete |
-| `app/db/tournament-location-repository.ts` | Repository with base CRUD + `findByTournamentId` |
-| `app/actions/__tests__/tournament-location-actions.test.ts` | Unit tests for location actions |
-| `app/db/__tests__/tournament-location-repository.test.ts` | Unit tests for repository |
+| `migrations/20260406000000_add_locations_to_tournaments.sql` | ADD COLUMN locations JSONB |
+| `app/actions/__tests__/tournament-location-actions.test.ts` | Unit tests for `getTournamentLocations` |
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `app/db/tables-definition.ts` | Add `TournamentLocationTable` interface + `TournamentLocation`, `TournamentLocationNew`, `TournamentLocationUpdate` types |
-| `app/db/database.ts` | Import `TournamentLocationTable` + add `tournament_locations` entry |
-| `app/actions/tournament-actions.ts` | Add location actions, `LocationFormDataType`, `handleLocationsUpdate`, update `parseFormData` + `createOrUpdateTournament` |
-| `app/components/backoffice/tournament-main-data-tab.tsx` | Add location state/handlers/UI section |
-| `docs/code-structure/db.md` | Add `tournament-location-repository.ts` entry |
-| `docs/code-structure/actions.md` | Add location actions + update `createOrUpdateTournament` signature |
+| `app/db/tables-definition.ts` | Add `locations: JSONColumnType<string[]>` to `TournamentTable` |
+| `app/actions/tournament-actions.ts` | Add `getTournamentLocations`, update `parseFormData` to extract locations, update `createOrUpdateTournament` to include locations in save payload |
+| `app/components/backoffice/tournament-main-data-tab.tsx` | Initialize `locations` state from `tournament.locations`, add location management UI section |
+| `docs/code-structure/db.md` | Add `locations` field to `tournament-repository.ts` entry |
+| `docs/code-structure/actions.md` | Add `getTournamentLocations`, update `createOrUpdateTournament` signature |
 | `docs/code-structure/components/components-backoffice.md` | Update `TournamentMainDataTab` entry |
-| `CODE-STRUCTURE.md` | Update call graph with new location flows |
+| `CODE-STRUCTURE.md` | Update call graph |
 
 ## Mid-Level Design
 
 ### Call Graph Changes
 
-**YES — new flows added:**
+**YES — one existing flow modified:**
 
-- **New: Location read flow** — `TournamentMainDataTab` (Client) →  `getTournamentLocations(tournamentId)` → `tournamentLocationRepository.findByTournamentId`
-- **Modified: Tournament save flow** — `TournamentMainDataTab` (Client) → `createOrUpdateTournament(tournamentId, formData, locale)` (extended) → `handleLocationsUpdate(tournamentId, locations)` → `tournamentLocationRepository.{create|update|delete}`
+- **Modified: Tournament save flow** — `TournamentMainDataTab` (Client) → `createOrUpdateTournament(tournamentId, formData, locale)` now includes `locations: string[]` in the tournament data payload
+
+No new cross-layer flows; `getTournamentLocations` is a thin wrapper over the existing tournament fetch.
 
 ---
 
-### `migrations/20260406000000_create_tournament_locations.sql` *(new)*
+### `migrations/20260406000000_add_locations_to_tournaments.sql` *(new)*
 
 ```sql
-CREATE TABLE tournament_locations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tournament_id UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE (tournament_id, name)
-);
-
-CREATE INDEX idx_tournament_locations_tournament_id ON tournament_locations(tournament_id);
-
-CREATE TRIGGER update_tournament_locations_updated_at
-BEFORE UPDATE ON tournament_locations
-FOR EACH ROW
-EXECUTE FUNCTION update_updated_at_column();
+ALTER TABLE tournaments
+  ADD COLUMN locations JSONB NOT NULL DEFAULT '[]'::jsonb;
 ```
 
 ---
 
 ### `app/db/tables-definition.ts` *(modified)*
 
-**New types:**
-
+Add to `TournamentTable`:
 ```typescript
-export interface TournamentLocationTable extends Identifiable {
-  tournament_id: string;
-  name: string;
-  created_at: Generated<Date>;
-  updated_at: Generated<Date>;
-}
-
-export type TournamentLocation = Selectable<TournamentLocationTable>;
-export type TournamentLocationNew = Insertable<TournamentLocationTable>;
-export type TournamentLocationUpdate = Updateable<TournamentLocationTable>;
+locations: JSONColumnType<string[]>
 ```
-
----
-
-### `app/db/tournament-location-repository.ts` *(new)*
-
-- **`tournamentLocationRepository.findByTournamentId(tournamentId: string)`**: `Promise<TournamentLocation[]>`
-  Returns all locations for a tournament ordered by name. Uses `react.cache`.
-  Tests:
-  - returns empty array when tournament has no locations
-  - returns locations sorted by name ascending
-  - only returns locations for the specified tournament (not others)
-
-- **`tournamentLocationRepository.create(data: TournamentLocationNew)`**: `Promise<TournamentLocation>`
-  From `createBaseFunctions`. Inserts a new location row.
-  Tests: covered by `createBaseFunctions` (shared utility)
-
-- **`tournamentLocationRepository.update(id: string, data: TournamentLocationUpdate)`**: `Promise<TournamentLocation>`
-  From `createBaseFunctions`. Updates a location by id.
-
-- **`tournamentLocationRepository.delete(id: string)`**: `Promise<void>`
-  From `createBaseFunctions`. Deletes a location by id.
 
 ---
 
 ### `app/actions/tournament-actions.ts` *(modified)*
 
-**New private interface:**
+**New exported function:**
 
-```typescript
-interface LocationFormDataType {
-  id?: string;       // DB id, undefined for new unsaved items
-  localId: string;   // Stable key: DB id for existing, UUID for new
-  name: string;
-  isDeleted?: boolean;
-}
-```
-
-**New exported functions:**
-
-- **`getTournamentLocations(tournamentId: string)`**: `Promise<TournamentLocation[]>`
-  Reads all locations for a tournament. No admin check (read-only, called from admin page context).
-  Calls: `tournamentLocationRepository.findByTournamentId`
+- **`getTournamentLocations(tournamentId: string)`**: `Promise<string[]>`
+  Returns the `locations` array from the tournament record. Returns `[]` if tournament not found.
+  Calls: `findTournamentById`
   Tests:
-  - returns empty array when no locations exist
-  - returns array of TournamentLocation objects
-  - delegates to repository with correct tournamentId
+  - returns empty array when tournament has no locations (empty JSONB array)
+  - returns array of location strings for tournament with locations
+  - returns empty array when tournament not found
 
-- **`createTournamentLocation(tournamentId: string, name: string)`**: `Promise<TournamentLocation>`
-  Admin-only. Creates one location.
-  Calls: `validateAdminUser`, `tournamentLocationRepository.create`
+**Modified private function:**
+
+- **`parseFormData(formData: FormData)`**: `{ tournamentData: any; logoFile: File | null }`
+  Now merges `locations` (parsed from FormData `'locations'` key) into `tournamentData`. Null-safe: defaults to `[]` when key absent.
   Tests:
-  - throws Unauthorized when user is not admin
-  - creates and returns TournamentLocation when admin
-  - passes correct tournament_id and name to repository
+  - includes locations array in returned tournamentData when key present
+  - defaults locations to empty array when key absent
+  - filters out empty/whitespace-only location strings before merging
 
-- **`updateTournamentLocation(locationId: string, name: string)`**: `Promise<TournamentLocation>`
-  Admin-only. Updates location name.
-  Calls: `validateAdminUser`, `tournamentLocationRepository.update`
-  Tests:
-  - throws Unauthorized when user is not admin
-  - calls repository update with correct id and name
-  - returns updated TournamentLocation
+**Modified exported function:**
 
-- **`deleteTournamentLocation(locationId: string)`**: `Promise<void>`
-  Admin-only. Deletes a location.
-  Calls: `validateAdminUser`, `tournamentLocationRepository.delete`
-  Tests:
-  - throws Unauthorized when user is not admin
-  - calls repository delete with correct id
-  - returns without error when location exists and is deleted successfully
-
-**Modified private functions:**
-
-- **`parseFormData(formData: FormData)`**: `{ tournamentData: any; logoFile: File | null; locations: LocationFormDataType[] }`
-  Extracts tournament data, logo, and locations from FormData. Null-safe for locations. Trims location names and filters out empty/whitespace-only entries.
-  Tests:
-  - returns empty array when 'locations' key is absent
-  - parses locations array from JSON string
-  - handles empty locations array
-  - trims whitespace and skips whitespace-only location names
-
-- **`handleLocationsUpdate(tournamentId: string, locations: LocationFormDataType[])`**: `Promise<void>`
-  Private. Diffs incoming locations against DB state, then creates/updates/deletes as needed. Skips items with empty names. Uses try-catch to log and skip individual errors; throws after processing all items if any errors occurred.
-  Calls: `tournamentLocationRepository.findByTournamentId`, `tournamentLocationRepository.create`, `tournamentLocationRepository.update`, `tournamentLocationRepository.delete`
-  Tests:
-  - creates new locations (no id, not deleted, non-empty name)
-  - updates existing locations (has id, not deleted)
-  - deletes locations marked isDeleted
-  - deletes locations present in DB but absent from incoming list (implicit delete)
-  - skips items with empty name strings
-  - logs and skips errors from individual repository operations (partial success)
-
-**Modified exported functions:**
-
-- **`createOrUpdateTournament(tournamentId: string | null, tournamentFormData: FormData, locale: Locale)`**: `Promise<Tournament>` *(was: `tournamentFormData: any`)*
-  Now extracts and saves locations as part of the tournament save flow.
-  Calls: `validateAdminUser`, `parseFormData` (updated), `getExistingTournament`, `handleLogoUpload`, `prepareTournamentData`, `saveOrUpdateTournament`, `cleanupOldLogo`, `handleLocationsUpdate`, `applyLocalization`
+- **`createOrUpdateTournament(tournamentId: string | null, tournamentFormData: FormData, locale: Locale)`**: `Promise<Tournament>` *(unchanged signature; `locations` now flows through `tournamentData`)*
+  Calls: (unchanged) `validateAdminUser`, `parseFormData`, `getExistingTournament`, `handleLogoUpload`, `prepareTournamentData`, `saveOrUpdateTournament`, `cleanupOldLogo`, `applyLocalization`
   Tests (new scenarios only):
-  - locations are synchronized when saving a tournament
-  - no-op on locations when empty array provided
-  - returns Tournament and skips location sync if handleLocationsUpdate throws (error boundary)
+  - tournament is saved with provided locations array
+  - tournament is saved with empty locations array when none provided
+  - throws Unauthorized when non-admin attempts save (validateAdminUser guard)
 
 ---
 
 ### `app/components/backoffice/tournament-main-data-tab.tsx` *(modified)*
 
-**New interface** (local, not exported):
+**Modified state initialization** (in `fetchTournamentData` useEffect):
 ```typescript
-interface LocationFormDataType {
-  id?: string;
-  localId: string;  // stable key: DB id for existing, UUID for new
-  name: string;
-  isDeleted?: boolean;
-}
+setLocations(tournamentData.locations ?? []);
 ```
 
-**New state:** `const [locations, setLocations] = useState<LocationFormDataType[]>([])`
+**New state:** `const [locations, setLocations] = useState<string[]>([])`
 
 **New handlers:**
-- `handleLocationChange(localId: string, newName: string)`: `void` — updates name by `localId`
-- `addLocation()`: `void` — appends `{ localId: crypto.randomUUID(), name: '', isDeleted: false }`
-- `deleteLocation(localId: string)`: `void` — marks matching item as `isDeleted: true`
+- `handleLocationChange(index: number, newName: string)`: `void` — updates `locations[index]` by array index
+- `addLocation()`: `void` — appends `''` to locations array
+- `deleteLocation(index: number)`: `void` — removes `locations[index]`
 
-**Modified `useEffect` (fetchTournamentData):** Also calls `getTournamentLocations(tournamentId)` and maps to `LocationFormDataType` with `localId: loc.id`.
-
-**Modified `handleSubmit`:** Appends `formData.append('locations', JSON.stringify(locations))`.
+**Modified `handleSubmit`:** Appends `formData.append('locations', JSON.stringify(locations.filter(l => l.trim() !== '')))`.
 
 **New JSX section** below Transfermarkt URL Template: "Tournament Locations" with Add button, scrollable `List` of `TextField`+delete pairs, and empty `Alert`.
 
-Note: The `LocationFormDataType` interface is duplicated in `tournament-main-data-tab.tsx` (component state) and `tournament-actions.ts` (form parsing). This is intentional — the component type is purely local UI state; the action type is for parsing form data. They happen to have the same shape.
+Note: Using array index as key/handler parameter is safe here because re-renders always use the current filtered list (no async key mismatches).
 
 **Component tests:**
-- renders "No locations" alert when no locations loaded
-- renders list of location TextFields when locations exist
-- adds new location field when "Add Location" clicked
-- removes location from visible list when delete clicked
-- sends locations JSON in FormData on submit
+- renders "No locations" alert when `locations` is empty
+- renders list of location TextFields for each location string
+- adds new empty TextField when "Add Location" clicked
+- removes correct entry when delete clicked
+- sends locations JSON in FormData on submit (filters empty strings)
 
 ---
 
 ## Testing Strategy
 
-### Repository Tests (`tournament-location-repository.test.ts`)
-Mock `db` from `@/app/db/database`. Test `findByTournamentId` with mocked `selectFrom` chain using `vi.fn()` to create mock query builders.
-
 ### Action Tests (`tournament-location-actions.test.ts`)
-Mock `tournamentLocationRepository` using `vi.mock()` and `getLoggedInUser` using `vi.mocked()`. Use `testFactories.createTournamentLocation()` for fixture data. Cover:
-- All 4 exported location actions (happy path + unauthorized)
-- `parseFormData` null-safety, parsing, and whitespace trimming
-- `handleLocationsUpdate` diff logic (creates/updates/deletes/implicit deletes/partial errors)
+Use `vi.mock('@/app/db/tournament-repository')` and `vi.mocked(findTournamentById)` for mock setup. Use `testFactories.tournament({ locations: ['Qatar', 'Lusail'] })` (or inline object) for fixture data. Cover:
+- `getTournamentLocations` (empty, populated, not found)
+- `parseFormData` locations extraction and filtering
 
 ### Component Tests
-Extend or create tests for `TournamentMainDataTab`:
-- Mock `getTournamentLocations` and `createOrUpdateTournament`
-- Verify location list renders and interactions work
+Use `vi.mock('../../actions/tournament-actions')` with `vi.mocked(getTournamentLocations)` returning fixture arrays. Use `renderWithTheme(<TournamentMainDataTab ... />)` from project test utilities. Cover:
+- Verify location section renders, add/delete interactions update state
 
 ### Coverage Target
-≥80% on new files (repository, actions, component location logic)
+≥80% on changed code paths
 
 ## Implementation Steps
 
-### Wave 1 — Data Layer (prerequisite for everything)
-1. Create `migrations/20260406000000_create_tournament_locations.sql`
-2. Update `app/db/tables-definition.ts` — add `TournamentLocationTable` + types
-3. Update `app/db/database.ts` — import + add to `Database` interface
-4. Create `app/db/tournament-location-repository.ts`
+### Wave 1 — Data Layer
+1. Create `migrations/20260406000000_add_locations_to_tournaments.sql`
+2. Update `app/db/tables-definition.ts` — add `locations` field to `TournamentTable`
 
 ### Wave 2 — Actions Layer
-5. Update `app/actions/tournament-actions.ts` — add `LocationFormDataType`, location actions, `parseFormData` update, `handleLocationsUpdate`, `createOrUpdateTournament` update
+3. Update `app/actions/tournament-actions.ts` — add `getTournamentLocations`, update `parseFormData`, update `createOrUpdateTournament`
 
 ### Wave 3 — UI
-6. Update `app/components/backoffice/tournament-main-data-tab.tsx` — add location state, handlers, and UI section
+4. Update `app/components/backoffice/tournament-main-data-tab.tsx` — add location state, handlers, and UI section
 
 ### Wave 4 — Tests + Documentation
-7. Create `app/db/__tests__/tournament-location-repository.test.ts`
-8. Create `app/actions/__tests__/tournament-location-actions.test.ts`
-9. Update `docs/code-structure/db.md`
-10. Update `docs/code-structure/actions.md`
-11. Update `docs/code-structure/components/components-backoffice.md`
-12. Update `CODE-STRUCTURE.md` call graph
+5. Create `app/actions/__tests__/tournament-location-actions.test.ts`
+6. Update `docs/code-structure/db.md` (add `locations` to tournament entry)
+7. Update `docs/code-structure/actions.md`
+8. Update `docs/code-structure/components/components-backoffice.md`
+9. Update `CODE-STRUCTURE.md` call graph
 
 ## Validation Considerations
 
-- **Migration**: Requires running `20260406000000_create_tournament_locations.sql` against the DB before the app works (admin must run it)
-- **SonarCloud**: No new quality issues; ≥80% coverage on new code
-- **TypeScript**: `TournamentLocationTable` import in `database.ts` is critical — missing it causes compile error
-- **Null safety**: `parseFormData` must handle `locationsJson` being null (e.g., if `createOrUpdateTournament` is called without locations)
-- **UNIQUE constraint**: `(tournament_id, name)` — duplicate location names for the same tournament will throw at DB level; the UI should handle this gracefully (show error)
-
-## Open Questions
-
-None — requirements are clear. JSON-LD integration is out of scope per story notes.
+- **Migration**: `ALTER TABLE` adding a `NOT NULL DEFAULT '[]'` column is safe on existing rows — Postgres backfills with the default.
+- **SonarCloud**: No new quality issues; ≥80% coverage on new/changed code
+- **TypeScript**: `JSONColumnType<string[]>` — Kysely automatically parses JSONB on read, so `tournament.locations` will be `string[]` at runtime
+- **Deduplication**: Filter empty/whitespace strings before saving; UI should show an error if a duplicate name is entered (nice-to-have, not a hard requirement)
