@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/utils/json-ld-utils.ts
 Pure builder functions for schema.org JSON-LD structured data objects.
 
-- **buildSportsEventJsonLd(name, url, startDate)**: `object` — Returns a schema.org SportsEvent JSON-LD object with `@context`, `@type`, `name`, `startDate` (ISO string), and `url`.
+- **buildSportsEventJsonLd(name, url, startDate, locations?)**: `object` — Returns a schema.org SportsEvent JSON-LD object with `@context`, `@type`, `name`, `startDate` (ISO string), `url`, and optionally `location` (array of `Place` objects) when `locations` is a non-empty string array.
   Calls: none
 - **buildBreadcrumbListJsonLd(items)**: `object` — Returns a schema.org BreadcrumbList JSON-LD object. Each `BreadcrumbItem` (`{ name, url }`) maps to a `ListItem` with 1-indexed `position`, `name`, and `item` (url).
   Calls: none

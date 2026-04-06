@@ -30,6 +30,32 @@ describe('buildSportsEventJsonLd', () => {
     const result = buildSportsEventJsonLd('Copa América 2024', url, startDate) as Record<string, unknown>
     expect(result.url).toBe(url)
   })
+
+  it('omits location when no locations are provided', () => {
+    const result = buildSportsEventJsonLd('Copa América 2024', 'https://lamaquina.app/en/tournaments/copa-america-2024', startDate) as Record<string, unknown>
+    expect(result.location).toBeUndefined()
+  })
+
+  it('omits location when an empty array is provided', () => {
+    const result = buildSportsEventJsonLd('Copa América 2024', 'https://lamaquina.app/en/tournaments/copa-america-2024', startDate, []) as Record<string, unknown>
+    expect(result.location).toBeUndefined()
+  })
+
+  it('maps each location string to a Place object with @type and name', () => {
+    const result = buildSportsEventJsonLd('Copa América 2024', 'https://lamaquina.app/en/tournaments/copa-america-2024', startDate, ['USA', 'Canada', 'Mexico']) as Record<string, unknown>
+    expect(result.location).toEqual([
+      { '@type': 'Place', name: 'USA' },
+      { '@type': 'Place', name: 'Canada' },
+      { '@type': 'Place', name: 'Mexico' },
+    ])
+  })
+
+  it('sets location to a single Place when one location is provided', () => {
+    const result = buildSportsEventJsonLd('Copa América 2024', 'https://lamaquina.app/en/tournaments/copa-america-2024', startDate, ['Qatar']) as Record<string, unknown>
+    const locations = result.location as Array<Record<string, unknown>>
+    expect(locations).toHaveLength(1)
+    expect(locations[0]).toEqual({ '@type': 'Place', name: 'Qatar' })
+  })
 })
 
 describe('buildBreadcrumbListJsonLd', () => {

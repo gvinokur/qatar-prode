@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import TournamentLayout from '../layout';
-import { getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments } from '@/app/actions/tournament-actions';
+import { getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments, getTournamentLocations } from '@/app/actions/tournament-actions';
 import { getGroupsForUser } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
@@ -17,7 +17,8 @@ vi.mock('@/app/actions/tournament-actions', () => ({
   getTournamentAndGroupsData: vi.fn(),
   getTournamentStartDate: vi.fn(),
   getGroupStandingsForTournament: vi.fn(),
-  getTournaments: vi.fn()
+  getTournaments: vi.fn(),
+  getTournamentLocations: vi.fn()
 }));
 
 vi.mock('@/app/actions/prode-group-actions', () => ({
@@ -128,6 +129,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     });
     (findTournamentById as any).mockResolvedValue(mockTournamentData.tournament);
     (getGameGuessStatisticsForUsers as any).mockResolvedValue([]);
+    (getTournamentLocations as any).mockResolvedValue([]);
   });
 
   it('renders tournament layout with all header components', async () => {
