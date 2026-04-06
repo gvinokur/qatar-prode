@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import {
   Box,
   Grid,
@@ -32,6 +32,8 @@ import {useRouter} from "next/navigation";
 import TournamentPermissionsSelector from './tournament-permissions-selector';
 import { getTournamentPermissionData, updateTournamentPermissions } from '../../actions/backoffice-actions';
 import I18nFieldEditor from './i18n-field-editor';
+
+type LocationItem = { id: number; value: string };
 
 type Props = {
   readonly tournamentId: string;
@@ -83,7 +85,8 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [transfermarktUrlTemplate, setTransfermarktUrlTemplate] = useState<string>('');
 
   // Tournament locations for SportsEvent structured data
-  const [locations, setLocations] = useState<string[]>([]);
+  const locationIdCounterRef = useRef(0);
+  const [locations, setLocations] = useState<LocationItem[]>([]);
 
   // Fetch playoff rounds
   const fetchPlayoffRounds = useCallback(async () => {
@@ -132,7 +135,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
         setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
         setTransfermarktUrlTemplate(tournamentData.transfermarkt_url_template || '');
-        setLocations(tournamentData.locations ?? []);
+        setLocations((tournamentData.locations ?? []).map((v: string) => ({ id: locationIdCounterRef.current++, value: v })));
 
         // Fetch playoff rounds
         await fetchPlayoffRounds();
@@ -200,7 +203,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         formData.append('logo', logoFile);
       }
 
-      formData.append('locations', JSON.stringify(locations.filter(l => l.trim() !== '')));
+      formData.append('locations', JSON.stringify(locations.map(l => l.value).filter(v => v.trim() !== '')));
 
       const updatedTournament = await createOrUpdateTournament(tournamentId, formData);
 
@@ -278,11 +281,11 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
 
   // Location management handlers
   const handleLocationChange = (index: number, newName: string) => {
-    setLocations(prev => prev.map((loc, i) => (i === index ? newName : loc)));
+    setLocations(prev => prev.map((loc, i) => (i === index ? { ...loc, value: newName } : loc)));
   };
 
   const addLocation = () => {
-    setLocations(prev => [...prev, '']);
+    setLocations(prev => [...prev, { id: locationIdCounterRef.current++, value: '' }]);
   };
 
   const deleteLocation = (index: number) => {
@@ -709,7 +712,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                 <List dense>
                   {locations.map((loc, index) => (
                     <ListItem
-                      key={index}
+                      key={loc.id}
                       secondaryAction={
                         <IconButton edge="end" onClick={() => deleteLocation(index)} size="small">
                           <DeleteIcon fontSize="small" />
@@ -718,7 +721,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                     >
                       <TextField
                         variant="standard"
-                        value={loc}
+                        value={loc.value}
                         onChange={(e) => handleLocationChange(index, e.target.value)}
                         placeholder="e.g. Qatar, New York"
                         fullWidth
