@@ -108,6 +108,7 @@ export const testFactories = {
     exact_position_qualified_points: 1,
     max_silver_games: 5,
     max_golden_games: 3,
+    locations: [],
     ...overrides,
   }),
 

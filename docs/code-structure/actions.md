@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-03
+**Last updated:** 2026-04-06
 
 ---
 
@@ -300,8 +300,10 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
   Calls: findFirstGameInTournament
 - **deactivateTournament(tournamentId, locale)**: `Promise<Tournament>` — Deactivates tournament (admin).
   Calls: getLoggedInUser, findTournamentById, updateTournament, applyLocalization
-- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template` when included in the JSON payload.
+- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template` and `locations` when included in the JSON payload.
   Calls: validateAdminUser, parseFormData, getExistingTournament, handleLogoUpload, prepareTournamentData, saveOrUpdateTournament, cleanupOldLogo, applyLocalization
+- **getTournamentLocations(tournamentId)**: `Promise<string[]>` — Returns the locations array for a tournament; returns `[]` if not found. Used by story #303 for SportsEvent JSON-LD.
+  Calls: findTournamentById
 - **getTournamentById(tournamentId)**: `Promise<Tournament | null>` — Gets single tournament with localization.
   Calls: findTournamentById, applyLocalization
 - **getCompleteTournamentGroups(tournamentId)**: `Promise<ExtendedGroupData[]>` — Gets all groups for tournament.

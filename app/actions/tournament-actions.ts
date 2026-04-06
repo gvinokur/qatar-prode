@@ -247,8 +247,12 @@ async function validateAdminUser(locale: Locale = 'es'): Promise<void> {
 
 function parseFormData(formData: any): { tournamentData: any; logoFile: any } {
   const data = Object.fromEntries(formData);
+  const tournamentData = JSON.parse(data.tournament);
+  const parsedLocations: string[] = data.locations
+    ? (JSON.parse(data.locations as string) as string[]).filter((l: string) => l.trim() !== '')
+    : [];
   return {
-    tournamentData: JSON.parse(data.tournament),
+    tournamentData: { ...tournamentData, locations: JSON.stringify(parsedLocations) },
     logoFile: data.logo
   };
 }
@@ -344,6 +348,16 @@ async function cleanupOldLogo(existingTournament: Tournament | null, logoFile: a
       console.error('Error deleting old logo:', error);
     }
   }
+}
+
+/**
+ * Returns the locations array for a tournament.
+ * Returns [] if tournament not found or has no locations.
+ * Used by story #303 to populate the `location` field in SportsEvent JSON-LD.
+ */
+export async function getTournamentLocations(tournamentId: string): Promise<string[]> {
+  const tournament = await findTournamentById(tournamentId);
+  return tournament?.locations ?? [];
 }
 
 export async function getTournamentById(tournamentId: string) {

@@ -499,4 +499,13 @@ Key flows:
     GET /robots.txt → app/robots.ts
       → returns MetadataRoute.Robots (static, no DB calls)
          disallows: /*/backoffice, /*/delete-account, /*/verify-email, /*/reset-password, /api/
+
+24. Tournament location management (Story #310)
+    TournamentMainDataTab [Client] → createOrUpdateTournament [server action]
+      ├── parseFormData (extracts locations[] from FormData 'locations' key)
+      └── prepareTournamentData → saveOrUpdateTournament → updateTournament / createTournament
+          (locations flows as part of tournamentData payload)
+
+    getTournamentLocations [server action] (read path for story #303 JSON-LD use)
+      └── findTournamentById → returns tournament.locations ?? []
 ```

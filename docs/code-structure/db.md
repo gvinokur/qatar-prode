@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-05
+**Last updated:** 2026-04-06
 
 ---
 
@@ -32,6 +32,8 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
 `TournamentTable` includes `transfermarkt_url_template?: string | null` — configurable URL template for Transfermarkt player imports; uses `{teamName}` and `{teamId}` placeholders (Story #306).
+
+`TournamentTable` includes `locations: ColumnType<string[], string[] | string | undefined, string[] | string>` — ordered list of city/country location names (e.g., `["Qatar", "Lusail"]`) stored as JSONB NOT NULL DEFAULT '[]'; select returns `string[]`, insert is optional (uses DB default), update accepts array or raw JSON string; used for SportsEvent JSON-LD structured data (Story #310).
 
 `TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
 

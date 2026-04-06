@@ -633,6 +633,7 @@ describe('Tournament Actions', () => {
 
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
+        locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
           logo: undefined,
@@ -652,6 +653,7 @@ describe('Tournament Actions', () => {
       expect(mockFindTournamentById).toHaveBeenCalledWith('tournament1');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
+        locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
           secondary_color: '#00ff00',
@@ -701,6 +703,7 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
+        locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
           logo: 'https://s3.example.com/new-logo.png',
@@ -726,6 +729,7 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
+        locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
           secondary_color: '#00ff00',
