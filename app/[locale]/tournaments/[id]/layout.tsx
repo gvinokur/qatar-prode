@@ -3,7 +3,7 @@
 import type { Metadata } from 'next'
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments, getTournamentLocations} from "../../../actions/tournament-actions";
+import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
 import TournamentSwitcher from "../../../components/tournament/tournament-switcher";
 import NewTournamentSnackbar from "../../../components/tournament/new-tournament-snackbar";
 import {getGroupsForUser} from "../../../actions/prode-group-actions";
@@ -140,7 +140,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
   const tournamentUrl = `${appUrl}/${locale}/tournaments/${params.id}`
-  const tournamentLocations = await getTournamentLocations(params.id)
 
   return (
     <Box sx={{
@@ -157,7 +156,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       }
     }}>
       {layoutData.tournament && (
-        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, tournamentLocations)} />
+        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, tournament?.locations)} />
       )}
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         {/* Background color spans full width */}
