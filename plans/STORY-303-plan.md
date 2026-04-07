@@ -209,6 +209,23 @@ Each sub-page default export is modified using this pattern (example for results
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Location data added to SportsEvent schema
+**Date:** 2026-04-06
+**Reason:** Story 310 added location data to the tournament model (`tournament.locations`). This was wired into the SportsEvent JSON-LD as part of closing out story 303, extending the schema beyond the original plan which stated "Location omitted — not in data model."
+**Change:** `buildSportsEventJsonLd` signature extended with `locations?: string[]` parameter. When provided and non-empty, a `location` array of `{ "@type": "Place", name }` objects is added to the SportsEvent output. The tournament layout passes `tournament?.locations` (already fetched via `findTournamentById` for sidebar data) — no extra DB query.
+
+### Amendment 2: Refactor to use already-fetched locations
+**Date:** 2026-04-06
+**Reason:** Initial implementation called `getTournamentLocations()` as a separate server action to get location data. Discovered that `findTournamentById(params.id)` (already called for sidebar data) returns a `tournament` object that includes `locations`. Refactored to use `tournament?.locations` directly.
+**Change:** Removed the `getTournamentLocations()` action call from the layout. Location data sourced from the already-fetched `tournament` object returned by `findTournamentById`. This preserves the "no extra DB queries solely for JSON-LD" acceptance criterion.
+
+### Amendment 3: Test fix — missing mock export in friend-groups test
+**Date:** 2026-04-07
+**Reason:** `metadata-utils.ts` now calls `cache(findTournamentById)` at module initialization time. The existing `app/[locale]/friend-groups/[id]/__tests__/page-metadata.test.tsx` mocked `@/app/db/tournament-repository` without `findTournamentById`, causing vitest to error on module load.
+**Change:** Added `findTournamentById: vi.fn()` to the tournament-repository mock in that test file.
+
 ## Testing Strategy
 
 ### New test files
