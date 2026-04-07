@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-30
+**Last updated:** 2026-04-06
 
 ---
 
@@ -11,9 +11,9 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/utils/json-ld-utils.ts
 Pure builder functions for schema.org JSON-LD structured data objects.
 
-- **buildSportsEventJsonLd(name, url, startDate, locations?)**: `object` — Returns a schema.org SportsEvent JSON-LD object with `@context`, `@type`, `name`, `startDate` (ISO string), `url`, and optionally `location` (array of `Place` objects) when `locations` is a non-empty string array.
+- **buildSportsEventJsonLd(name: string, url: string, startDate: Date, locations?: string[])**: `object` — Returns a schema.org SportsEvent JSON-LD object with `@context`, `@type`, `name`, `startDate` (ISO string), `url`, and optionally `location` (array of `Place` objects) when `locations` is a non-empty string array.
   Calls: none
-- **buildBreadcrumbListJsonLd(items)**: `object` — Returns a schema.org BreadcrumbList JSON-LD object. Each `BreadcrumbItem` (`{ name, url }`) maps to a `ListItem` with 1-indexed `position`, `name`, and `item` (url).
+- **buildBreadcrumbListJsonLd(items: BreadcrumbItem[])**: `object` — Returns a schema.org BreadcrumbList JSON-LD object. Each `BreadcrumbItem` (`{ name, url }`) maps to a `ListItem` with 1-indexed `position`, `name`, and `item` (url).
   Calls: none
 
 ### app/utils/metadata-utils.ts
@@ -21,9 +21,9 @@ Next.js page metadata builder shared by all `generateMetadata` functions.
 
 - **findTournamentByIdCached**: `(id: string) => Promise<Tournament | undefined>` — `React.cache()`-wrapped version of `findTournamentById`. Deduplicates DB calls within the same React render request. Used by `buildTournamentMetadata` internally and exported for sub-pages rendering JSON-LD breadcrumbs.
   Calls: findTournamentById
-- **buildPageMetadata(title, description)**: `Metadata` — Builds a standard Next.js Metadata object with title, description, OpenGraph (type: website, static 512×512 image), and Twitter card (summary) fields.
+- **buildPageMetadata(title: string, description: string)**: `Metadata` — Builds a standard Next.js Metadata object with title, description, OpenGraph (type: website, static 512×512 image), and Twitter card (summary) fields.
   Calls: none
-- **buildTournamentMetadata(id, appName, buildTitle, buildDescription)**: `Promise<Metadata>` — Fetches a tournament by ID and invokes the provided title/description builder callbacks; returns a fallback `{ title: appName }` on not-found or DB error. Now calls `findTournamentByIdCached` (instead of `findTournamentById`) to share cache with page components.
+- **buildTournamentMetadata(id: string, appName: string, buildTitle: (t: TournamentShape) => string, buildDescription: (t: TournamentShape) => string)**: `Promise<Metadata>` — Fetches a tournament by ID and invokes the provided title/description builder callbacks; returns a fallback `{ title: appName }` on not-found or DB error. Now calls `findTournamentByIdCached` (instead of `findTournamentById`) to share cache with page components.
   Calls: findTournamentByIdCached, buildPageMetadata
 
 ### app/utils/environment-utils.ts

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-31
+**Last updated:** 2026-04-06
 
 ---
 
@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/shared/json-ld.tsx
 Server component that injects JSON-LD structured data into the page body as a `<script type="application/ld+json">` tag.
 
-- **JsonLd({ data })**: `JSX.Element` — [Server] Renders a `<script type="application/ld+json">` with `dangerouslySetInnerHTML` set to the JSON-serialized form of `data`. Used in tournament layout (SportsEvent) and sub-pages (BreadcrumbList).
+- **JsonLd({ data }: Readonly<{ data: object }>)**: `JSX.Element` — [Server] Renders a `<script type="application/ld+json">` with `dangerouslySetInnerHTML` set to the JSON-serialized form of `data`. Used in tournament layout (SportsEvent) and sub-pages (BreadcrumbList).
   Calls: none
 
 ### app/components/ads/adsense-page-view-tracker.tsx

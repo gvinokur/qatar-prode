@@ -39,6 +39,14 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 
+### TournamentLocationTable
+Database table for storing specific locations associated with a tournament (e.g., cities, venues).
+
+- **TournamentLocationTable**: Interface for the `tournament_locations` table with `id`, `tournament_id`, `name`, `created_at`, `updated_at`.
+- **TournamentLocation**: `Selectable<TournamentLocationTable>` — full row shape.
+- **TournamentLocationNew**: `Insertable<TournamentLocationTable>` — insert shape.
+- **TournamentLocationUpdate**: `Updateable<TournamentLocationTable>` — update shape.
+
 ### app/db/game-guess-repository.ts
 Repository for game_guesses table. Handles user predictions with boost tracking and materialized score storage.
 

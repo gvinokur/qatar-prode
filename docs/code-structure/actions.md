@@ -191,17 +191,17 @@ Public group discovery and search for group browsing.
 ### app/actions/prode-group-join-request-actions.ts
 Manages join requests for friend groups — requesting, approving, rejecting, and cancelling.
 
-- **requestToJoinGroup(groupId, source, locale, tournamentId, message)**: `Promise<{ success: boolean; message: string }>` — Sends a join request to a group.
+- **requestToJoinGroup(groupId, source, locale, tournamentId, message)**: `Promise<{ success: true; message: string }>` — Sends a join request to a group.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findPendingJoinRequest, findRecentRejectedRequest, createJoinRequest, findUsersByIds, generateJoinRequestNotificationEmail, sendEmail
 - **getUserJoinRequests()**: `Promise<JoinRequest[]>` — Gets current user's join requests.
   Calls: getLoggedInUser, findJoinRequestsByUser
 - **getGroupJoinRequests(groupId)**: `Promise<JoinRequest[]>` — Gets pending requests for a group (admin only).
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findJoinRequestsByGroup
-- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: boolean; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Returns analytics event payload on success.
+- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: true; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Returns analytics event payload on success.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath, trackEvent
-- **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: boolean; message: string }>` — Rejects a join request (admin).
+- **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: true; message: string }>` — Rejects a join request (admin).
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, rejectJoinRequestRepo, findUsersByIds, generateJoinRequestRejectedEmail, sendEmail, revalidatePath
-- **cancelJoinRequestAction(requestId)**: `Promise<{ success: boolean; message: string }>` — Cancels own pending join request.
+- **cancelJoinRequestAction(requestId)**: `Promise<{ success: true; message: string }>` — Cancels own pending join request.
   Calls: getLoggedInUser, cancelJoinRequestRepo
 - **getPendingRequestCount(groupId)**: `Promise<number>` — Gets pending request count for notification badge (admin).
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, countPendingRequestsRepo
@@ -301,9 +301,15 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
 - **deactivateTournament(tournamentId, locale)**: `Promise<Tournament>` — Deactivates tournament (admin).
   Calls: getLoggedInUser, findTournamentById, updateTournament, applyLocalization
 - **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template` and `locations` when included in the JSON payload.
-  Calls: validateAdminUser, parseFormData, getExistingTournament, handleLogoUpload, prepareTournamentData, saveOrUpdateTournament, cleanupOldLogo, applyLocalization
-- **getTournamentLocations(tournamentId)**: `Promise<string[]>` — Returns the locations array for a tournament; returns `[]` if not found. Used by story #303 for SportsEvent JSON-LD.
-  Calls: findTournamentById
+  Calls: validateAdminUser, parseFormData, getExistingTournament, handleLogoUpload, prepareTournamentData, saveOrUpdateTournament, cleanupOldLogo, handleLocationsUpdate, applyLocalization
+- **getTournamentLocations(tournamentId)**: `Promise<TournamentLocation[]>` — Fetches all stored locations for a given tournament as `TournamentLocation` objects.
+  Calls: tournamentLocationRepository.findByTournamentId
+- **createTournamentLocation(tournamentId, name)**: `Promise<TournamentLocation>` — Creates a new location entry for a tournament. Admin only.
+  Calls: validateAdminUser, tournamentLocationRepository.create
+- **updateTournamentLocation(locationId, name)**: `Promise<TournamentLocation>` — Updates the name of an existing tournament location. Admin only.
+  Calls: validateAdminUser, tournamentLocationRepository.update
+- **deleteTournamentLocation(locationId)**: `Promise<void>` — Deletes a tournament location entry. Admin only.
+  Calls: validateAdminUser, tournamentLocationRepository.delete
 - **getTournamentById(tournamentId)**: `Promise<Tournament | null>` — Gets single tournament with localization.
   Calls: findTournamentById, applyLocalization
 - **getCompleteTournamentGroups(tournamentId)**: `Promise<ExtendedGroupData[]>` — Gets all groups for tournament.
@@ -363,4 +369,3 @@ Authentication and user account management — signup, verification, password, O
   Calls: getLoggedInUser, findUsersPaginated, countUsers
 - **toggleUserAdFreeAction(userId: string, isAdFree: boolean)**: `Promise<void>` — Admin-only. Toggles ad-free status for a user.
   Calls: getLoggedInUser, updateUserAdFreeStatus
-
