@@ -4,7 +4,9 @@ import { getLoggedInUser } from '../../../../actions/user-actions';
 import { getTournamentQualificationConfig } from '../../../../actions/qualification-actions';
 import { db } from '../../../../db/database';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
+import JsonLd from '../../../../components/shared/json-ld'
+import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 import { applyLocalizationBatch } from '../../../../utils/localization-helper';
 import {
   Team,
@@ -157,6 +159,10 @@ async function fetchAndFlattenPredictions(
 export default async function QualifiedTeamsPage({ params, searchParams }: PageProps) {
   const { id: tournamentId, locale } = await params;
   const searchParamsResolved = await searchParams;
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tQualified = await getTranslations({ locale, namespace: 'qualified-teams' })
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const tournamentForBreadcrumb = await findTournamentByIdCached(tournamentId)
 
   try {
     // Check authentication
@@ -237,6 +243,13 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
 
     return (
       <>
+        {tournamentForBreadcrumb && (
+          <JsonLd data={buildBreadcrumbListJsonLd([
+            { name: tCommon('breadcrumb.home'), url: `${appUrl}/${locale}` },
+            { name: tournamentForBreadcrumb.long_name, url: `${appUrl}/${locale}/tournaments/${tournamentId}` },
+            { name: tQualified('page.title'), url: `${appUrl}/${locale}/tournaments/${tournamentId}/qualified-teams` },
+          ])} />
+        )}
         {debugData && <DebugObject object={debugData} />}
         <QualifiedTeamsClientPage
           tournament={tournament}

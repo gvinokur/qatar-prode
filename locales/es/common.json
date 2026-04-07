@@ -47,6 +47,9 @@
     "viewAll": "Ver todo",
     "back": "Volver"
   },
+  "breadcrumb": {
+    "home": "Inicio"
+  },
   "home": {
     "availableTournaments": "Torneos Disponibles",
     "loadingTournaments": "Cargando Torneos",

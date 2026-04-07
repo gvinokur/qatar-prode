@@ -29,7 +29,9 @@ import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale, getTranslations } from 'next-intl/server'
-import { buildTournamentMetadata } from '../../../utils/metadata-utils';
+import { buildTournamentMetadata } from '../../../utils/metadata-utils'
+import JsonLd from '../../../components/shared/json-ld'
+import { buildSportsEventJsonLd } from '../../../utils/json-ld-utils';
 
 type TournamentLayoutProps = {
   readonly params: Promise<{
@@ -136,6 +138,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const tournamentUrl = `${appUrl}/${locale}/tournaments/${params.id}`
+
   return (
     <Box sx={{
       display: 'flex',
@@ -150,6 +155,9 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         height: 'calc(100dvh - 56px)'
       }
     }}>
+      {layoutData.tournament && (
+        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, tournament?.locations)} />
+      )}
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         {/* Background color spans full width */}
         <Box sx={{

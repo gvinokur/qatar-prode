@@ -14,12 +14,13 @@ import {
   getTeamsMap,
   getTournamentStartDate
 } from "../../../../actions/tournament-actions";
-import {findTournamentById} from "../../../../db/tournament-repository";
 import { getAllTournamentGames } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
 import { getTranslations, getLocale } from 'next-intl/server';
-import { buildTournamentMetadata } from '../../../../utils/metadata-utils'
+import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
+import JsonLd from '../../../../components/shared/json-ld'
+import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 
 type Props = {
   readonly params: Promise<{
@@ -53,6 +54,10 @@ export async function generateMetadata(
 export default async function Awards(props: Props) {
   const params = await props.params
   const searchParams = await props.searchParams
+  const locale = await getLocale()
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const tAwards = await getTranslations({ locale, namespace: 'awards' })
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   const user = await getLoggedInUser()
   if(!user) {
@@ -65,7 +70,7 @@ export default async function Awards(props: Props) {
     findAllPlayersInTournamentWithTeamData(params.id),
     getTournamentStartDate(params.id),
     getTeamsMap(params.id),
-    findTournamentById(params.id),
+    findTournamentByIdCached(params.id),
     getPlayoffRounds(params.id),
     getAllTournamentGames(params.id),
     findGameGuessesByUserId(user.id, params.id)
@@ -87,7 +92,15 @@ export default async function Awards(props: Props) {
   const isPredictionLocked = (currentTime.getTime() - tournamentStartDate.getTime()) >= FIVE_DAYS_MS;
 
   return (
-    <Box pt={2}>
+    <>
+      {tournament && (
+        <JsonLd data={buildBreadcrumbListJsonLd([
+          { name: tCommon('breadcrumb.home'), url: `${appUrl}/${locale}` },
+          { name: tournament.long_name, url: `${appUrl}/${locale}/tournaments/${params.id}` },
+          { name: tAwards('metadata.title'), url: `${appUrl}/${locale}/tournaments/${params.id}/awards` },
+        ])} />
+      )}
+      <Box pt={2}>
       {searchParams.hasOwnProperty('debug') && (
         <DebugObject object={{
           allPlayers,
@@ -111,6 +124,7 @@ export default async function Awards(props: Props) {
         tournamentStartDate={tournamentStartDate}
         teamsMap={teamsMap}
       />}
-    </Box>
+      </Box>
+    </>
   )
 }

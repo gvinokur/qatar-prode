@@ -1,5 +1,12 @@
+import { cache } from 'react'
 import type { Metadata } from 'next'
 import { findTournamentById } from '../db/tournament-repository'
+
+/**
+ * Cache-wrapped version of findTournamentById. Deduplicates DB calls within
+ * the same React render request (shared between generateMetadata and page components).
+ */
+export const findTournamentByIdCached = cache(findTournamentById)
 
 const OG_IMAGE = { url: '/web-app-manifest-512x512.png', width: 512, height: 512 }
 
@@ -34,7 +41,7 @@ export async function buildTournamentMetadata(
   buildDescription: (t: TournamentShape) => string
 ): Promise<Metadata> {
   try {
-    const tournament = await findTournamentById(id)
+    const tournament = await findTournamentByIdCached(id)
     if (!tournament) return { title: appName }
     return buildPageMetadata(buildTitle(tournament), buildDescription(tournament))
   } catch {

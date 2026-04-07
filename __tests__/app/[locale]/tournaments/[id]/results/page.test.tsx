@@ -3,11 +3,28 @@ import ResultsPage from '@/app/[locale]/tournaments/[id]/results/page'
 import * as gameRepository from '@/app/db/game-repository'
 import * as tournamentPlayoffRepository from '@/app/db/tournament-playoff-repository'
 import * as tournamentActions from '@/app/actions/tournament-actions'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 
 // Mock next-intl/server
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
+  getLocale: vi.fn(),
+}))
+
+// Mock metadata-utils (findTournamentByIdCached for breadcrumbs)
+vi.mock('@/app/utils/metadata-utils', () => ({
+  buildTournamentMetadata: vi.fn(),
+  findTournamentByIdCached: vi.fn().mockResolvedValue(null),
+}))
+
+// Mock JsonLd component
+vi.mock('@/app/components/shared/json-ld', () => ({
+  default: () => null,
+}))
+
+// Mock json-ld-utils
+vi.mock('@/app/utils/json-ld-utils', () => ({
+  buildBreadcrumbListJsonLd: vi.fn().mockReturnValue({}),
 }))
 
 // Mock game repository
@@ -56,6 +73,7 @@ vi.mock('react', async () => {
 })
 
 const mockGetTranslations = vi.mocked(getTranslations)
+const mockGetLocale = vi.mocked(getLocale)
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament)
 const mockFindPlayoffStages = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament)
 const mockGetTeamsMap = vi.mocked(tournamentActions.getTeamsMap)
@@ -64,6 +82,7 @@ const mockGetGroupStandings = vi.mocked(tournamentActions.getGroupStandingsForTo
 describe('ResultsPage i18n', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetLocale.mockResolvedValue('en' as any)
   })
 
   describe('English translations', () => {

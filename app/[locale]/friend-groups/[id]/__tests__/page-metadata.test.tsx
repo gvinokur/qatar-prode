@@ -26,7 +26,7 @@ vi.mock('@/app/db/prode-group-repository', () => ({
 }))
 
 vi.mock('@/app/actions/user-actions', () => ({ getLoggedInUser: vi.fn() }))
-vi.mock('@/app/db/tournament-repository', () => ({ findAllActiveTournaments: vi.fn() }))
+vi.mock('@/app/db/tournament-repository', () => ({ findAllActiveTournaments: vi.fn(), findTournamentById: vi.fn() }))
 vi.mock('@/app/db/users-repository', () => ({ findUsersByIds: vi.fn() }))
 
 beforeEach(() => { mockFindProdeGroupById.mockReset() })
