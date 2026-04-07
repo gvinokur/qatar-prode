@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-05
+**Last updated:** 2026-04-06
 
 ---
 
@@ -160,7 +160,7 @@ Tournament context layout with header, sidebar, and bottom navigation.
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
 - **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
 - **TournamentLayout(props)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, and SportsEvent JSON-LD structured data.
-  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd
+  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, checkDevTournamentPermission, findTournamentGuessByUserIdTournament, getTournamentStartDate, getPlayersInTournament, findTournamentById, getGroupsForUser, getGroupStandingsForTournament, getGameGuessStatisticsForUsers, extractScoringConfig, isWithinFiveDaysOfStart, getThemeLogoUrl, buildSportsEventJsonLd
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
 ### app/[locale]/tournaments/[id]/error.tsx
@@ -203,7 +203,7 @@ Awards prediction page for tournament individual awards and podium.
   Calls: buildTournamentMetadata, getTranslations, getLocale
 - **Awards(props)**: `JSX.Element` — [Server] Fetches all players, tournament guesses, playoff stages, and games (tournament via cache); checks if predictions are locked; renders awards panel with BreadcrumbList JSON-LD.
   Calls: getLoggedInUser, getLocale, getTranslations, findTournamentGuessByUserIdTournament, findAllPlayersInTournamentWithTeamData, getTournamentStartDate, getTeamsMap, findTournamentByIdCached, getPlayoffRounds, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, buildBreadcrumbListJsonLd
-  Renders: JsonLd, AwardsPanel
+  Renders: JsonLd, DebugObject, AwardsPanel
 
 ### app/[locale]/tournaments/[id]/qualified-teams/page.tsx
 Qualified teams (group finalists) prediction page with drag-and-drop interface.
@@ -213,10 +213,11 @@ Qualified teams (group finalists) prediction page with drag-and-drop interface.
 - **fetchGroupsWithTeams(tournamentId)**: `Promise<Array>` — [Server] Fetches tournament groups with localized team names.
   Calls: getLocale, applyLocalizationBatch
 - **initializePredictions(userId, tournamentId, groupsWithTeams)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Creates initial JSONB predictions for user in each group.
+  Calls: fetchAndFlattenPredictions
 - **fetchAndFlattenPredictions(userId, tournamentId)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Fetches JSONB predictions and flattens into array format.
 - **QualifiedTeamsPage({ params, searchParams })**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; renders client page with scoring breakdown and BreadcrumbList JSON-LD.
-  Calls: getLoggedInUser, getTranslations, findTournamentByIdCached, getTournamentQualificationConfig, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap, buildBreadcrumbListJsonLd
-  Renders: JsonLd, QualifiedTeamsClientPage
+  Calls: getLoggedInUser, redirect, db.selectFrom, notFound, getTournamentQualificationConfig, fetchGroupsWithTeams, initializePredictions, fetchAndFlattenPredictions, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap, findTournamentByIdCached, getTranslations, getLocale, buildBreadcrumbListJsonLd
+  Renders: JsonLd, DebugObject, QualifiedTeamsClientPage
 
 ### app/[locale]/tournaments/[id]/friend-groups/page.tsx
 Tournament-scoped friend groups list showing group stats for specific tournament.
