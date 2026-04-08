@@ -8,25 +8,28 @@
 
 ## Objective
 
-Persist group rankings in the database so that rank data is available as a O(1) lookup
-instead of being computed at runtime on every page load. Recalculation is triggered only
-when an admin updates a match result or confirms a tournament milestone.
+Persist group rankings in the database as daily snapshots so that rank data is available
+as a fast DB query instead of being computed at runtime on every page load. Snapshots are
+written whenever an admin action triggers a score update — not through a scheduled process.
 
 This story is the backend foundation required by:
-- #319 Leaderboard Peek Widget (reads materialized ranks)
+- #319 Leaderboard Peek Widget (reads latest snapshot)
 - #320 Migrate FE → Materialized Ranks (replaces frontend rank calculation)
-- #321 Rank Change Notifications (reads previous_rank to detect changes)
+- #321 Rank Change Notifications (compares latest two snapshots to detect changes)
 
 ## Acceptance Criteria
 
-- [ ] New `group_rankings` table exists with columns: `user_id`, `group_id`, `tournament_id`, `current_rank`, `current_score`, `previous_rank`, `previous_score`, `updated_at`
-- [ ] Rank recalculation is triggered after admin saves game results (`calculateGameScores`)
-- [ ] Rank recalculation is triggered after admin confirms awards (`updateTournamentAwards`)
-- [ ] Rank recalculation is triggered after admin confirms honor roll (`updateTournamentHonorRoll`)
-- [ ] Rank recalculation is triggered after admin triggers qualified teams scoring (`calculateAndStoreQualifiedTeamsScores`)
+- [ ] New `group_rankings` table exists with columns: `user_id`, `group_id`, `tournament_id`, `snapshot_date` (YYYYMMDD), `rank`, `score`
+- [ ] Unique constraint on `(user_id, group_id, tournament_id, snapshot_date)` — same-day re-trigger overwrites
+- [ ] Index on `(group_id, tournament_id)` for efficient group queries
+- [ ] Index on `(group_id, tournament_id, snapshot_date)` for rank history chart queries
+- [ ] Snapshot is written after admin saves game results (`calculateGameScores`)
+- [ ] Snapshot is written after admin confirms awards (`updateTournamentAwards`)
+- [ ] Snapshot is written after admin confirms honor roll (`updateTournamentHonorRoll`)
+- [ ] Snapshot is written after admin triggers qualified teams scoring (`calculateAndStoreQualifiedTeamsScores`)
 - [ ] Recalculation is scoped per group (only groups containing affected tournament participants)
-- [ ] `previous_rank` / `previous_score` snapshot the state before each recalculation
-- [ ] Server Action exposing materialized rank data for a given user + group + tournament
+- [ ] Server Action exposing latest materialized rank + rank change for a given user + group + tournament
+- [ ] Rank change computed by comparing the two most recent snapshot dates for the user
 - [ ] Existing frontend rank calculation is NOT removed (coexistence during transition)
 - [ ] Unit tests cover recalculation logic and repository upsert behavior
 
@@ -36,7 +39,7 @@ This story is the backend foundation required by:
 - Rank change notifications (Story #321)
 - Leaderboard widget UI (Story #319)
 - Any API endpoint (pure Server Action approach)
-- Cron-based recalculation (trigger-based only per story requirements)
+- Scheduled/cron-based snapshot generation
 
 ---
 
@@ -44,48 +47,60 @@ This story is the backend foundation required by:
 
 ### Database Schema
 
-New table `group_rankings` — event-driven (not daily snapshots):
+New table `group_rankings` — daily snapshot model, consistent with `tournament_score_history`:
 
 ```sql
 CREATE TABLE group_rankings (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  group_id        UUID NOT NULL REFERENCES prode_groups(id) ON DELETE CASCADE,
-  tournament_id   UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
-  current_rank    INTEGER NOT NULL,
-  current_score   INTEGER NOT NULL DEFAULT 0,
-  previous_rank   INTEGER,           -- NULL on first calculation
-  previous_score  INTEGER,           -- NULL on first calculation
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT group_rankings_unique UNIQUE (user_id, group_id, tournament_id)
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  group_id      UUID NOT NULL REFERENCES prode_groups(id) ON DELETE CASCADE,
+  tournament_id UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  snapshot_date INTEGER NOT NULL,   -- YYYYMMDD (Argentina TZ, via getTodayYYYYMMDD())
+  rank          INTEGER NOT NULL,
+  score         INTEGER NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT group_rankings_unique UNIQUE (user_id, group_id, tournament_id, snapshot_date)
 );
-CREATE INDEX idx_group_rankings_group_tournament ON group_rankings(group_id, tournament_id);
+CREATE INDEX idx_group_rankings_group_tournament
+  ON group_rankings(group_id, tournament_id);
+CREATE INDEX idx_group_rankings_group_tournament_date
+  ON group_rankings(group_id, tournament_id, snapshot_date);
 ```
 
 **Design decisions:**
-- One row per (user, group, tournament) — not daily snapshots
-- `previous_rank` / `previous_score` shift on each upsert (UPSERT shifts current → previous)
+- `snapshot_date` integer (YYYYMMDD) matches the pattern in `tournament_score_history` and uses the same `getTodayYYYYMMDD()` utility
+- `UNIQUE (user_id, group_id, tournament_id, snapshot_date)`: if admin triggers recalculation multiple times in one day, the second call overwrites the first (same-day idempotency)
+- No `previous_rank` / `previous_score` columns — callers derive rank change from the two most recent snapshot dates
 - `tournament_id` included because a user can be in the same group across different tournaments
-- Differs from `tournament_score_history` (daily time-series) — this is a "current state" table
 
 ### Upsert Strategy
 
-On each recalculation, the UPSERT shifts `current → previous` atomically:
-
 ```sql
-INSERT INTO group_rankings (user_id, group_id, tournament_id, current_rank, current_score)
+INSERT INTO group_rankings (user_id, group_id, tournament_id, snapshot_date, rank, score)
 VALUES (...)
-ON CONFLICT (user_id, group_id, tournament_id) DO UPDATE SET
-  previous_rank  = group_rankings.current_rank,
-  previous_score = group_rankings.current_score,
-  current_rank   = EXCLUDED.current_rank,
-  current_score  = EXCLUDED.current_score,
-  updated_at     = NOW()
+ON CONFLICT (user_id, group_id, tournament_id, snapshot_date) DO UPDATE SET
+  rank  = EXCLUDED.rank,
+  score = EXCLUDED.score
 ```
 
-### Finding Groups for a Tournament
+Identical pattern to `writeScoreSnapshot` in `score-history-repository.ts` (last-write-wins within the same day).
 
-To scope recalculation to affected groups only (avoids global recomputation):
+### Rank Change Derivation
+
+To compute the ↑↓ rank change indicator, fetch the two most recent distinct `snapshot_date` values for the user/group/tournament:
+
+```sql
+SELECT rank, score, snapshot_date
+FROM group_rankings
+WHERE user_id = $userId AND group_id = $groupId AND tournament_id = $tournamentId
+ORDER BY snapshot_date DESC
+LIMIT 2
+```
+
+`rows[0]` = current (latest), `rows[1]` = previous.
+`rankChange = rows[1].rank - rows[0].rank` — **positive = improved** (e.g. 3→1 gives rankChange = +2), **negative = dropped**. Returns `null` when only one snapshot exists.
+
+### Finding Groups for a Tournament
 
 ```sql
 SELECT DISTINCT pg.id
@@ -99,11 +114,9 @@ OR pgp.participant_id IN (
 )
 ```
 
-This returns all groups that have at least one member who participated in the tournament.
+Returns all groups with at least one member who has participated in the tournament.
 
 ### Trigger Integration Points
-
-All four trigger points are in admin-only server actions:
 
 | Trigger | File | When |
 |---------|------|------|
@@ -125,7 +138,7 @@ Reuses existing `getUserScoresForTournament(userIds, tournamentId)` from `prode-
 | File | Action | Description |
 |------|--------|-------------|
 | `migrations/20260408000000_create_group_rankings_table.sql` | **CREATE** | New table DDL |
-| `app/db/tables-definition.ts` | **MODIFY** | Add `GroupRankingTable`, `GroupRanking`, `GroupRankingNew` types |
+| `app/db/tables-definition.ts` | **MODIFY** | Add `GroupRankingTable`, `GroupRanking`, `GroupRankingSnapshotNew` types |
 | `app/db/database.ts` | **MODIFY** | Register `group_rankings` in `Database` interface |
 | `app/db/group-ranking-repository.ts` | **CREATE** | Upsert + query functions |
 | `app/actions/group-ranking-actions.ts` | **CREATE** | Recalculation + read Server Action |
@@ -146,17 +159,17 @@ Reuses existing `getUserScoresForTournament(userIds, tournamentId)` from `prode-
 **Modified flows:**
 - **Flow 2 (Game scoring pipeline)** — extend `calculateGameScores` to call `recalculateGroupRankingsForTournament` after score materialization
 - **Flow 15 (Backoffice game result editing)** — `saveGameResults` → `calculateGameScores` → `recalculateGroupRankingsForTournament`
-- **New back-end triggers** — `updateTournamentAwards` and `updateTournamentHonorRoll` call `recalculateGroupRankingsForTournament`
+- **New back-end triggers** — `updateTournamentAwards` and `updateTournamentHonorRoll` each call `recalculateGroupRankingsForTournament`
 
 **New flows:**
-- **Flow 28 (Group rank materialization)** — admin action → `recalculateGroupRankingsForTournament` → `findGroupsForTournament` → per-group: `getUserScoresForTournament` + `calculateRanks` + `upsertGroupRankings`
-- **Flow 29 (Materialized rank read)** — `getGroupRankingForUser(userId, groupId, tournamentId)` → `getGroupRankingByKey` → returns `MaterializedGroupRanking`
+- **Flow 28 (Group rank snapshot)** — admin action → `recalculateGroupRankingsForTournament` → `findGroupsForTournament` → per-group: `getUserScoresForTournament` + `calculateRanks` + `upsertGroupRankingSnapshots`
+- **Flow 29 (Materialized rank read)** — `getGroupRankingForUser(userId, groupId, tournamentId)` → `getLatestTwoGroupRankingSnapshots` → derives `rankChange`, returns `MaterializedGroupRanking`
 
 ---
 
 ### `migrations/20260408000000_create_group_rankings_table.sql` *(new)*
 
-Creates `group_rankings` table with unique constraint on `(user_id, group_id, tournament_id)` and index on `(group_id, tournament_id)`. No application code — SQL only.
+Creates `group_rankings` table with unique constraint on `(user_id, group_id, tournament_id, snapshot_date)`, index on `(group_id, tournament_id)`, and index on `(group_id, tournament_id, snapshot_date)`. SQL only — no application code.
 
 ---
 
@@ -170,17 +183,16 @@ export interface GroupRankingTable {
   user_id: string
   group_id: string
   tournament_id: string
-  current_rank: number
-  current_score: number
-  previous_rank: number | null
-  previous_score: number | null
-  updated_at: Generated<Date>
+  snapshot_date: number   // YYYYMMDD integer (Argentina TZ)
+  rank: number
+  score: number
+  created_at: Generated<Date>
 }
 
 export type GroupRanking = Selectable<GroupRankingTable>
-export type GroupRankingNew = Pick<
+export type GroupRankingSnapshotNew = Pick<
   Insertable<GroupRankingTable>,
-  'user_id' | 'group_id' | 'tournament_id' | 'current_rank' | 'current_score'
+  'user_id' | 'group_id' | 'tournament_id' | 'snapshot_date' | 'rank' | 'score'
 >
 ```
 
@@ -190,31 +202,32 @@ export type GroupRankingNew = Pick<
 
 **New functions:**
 
-- **`upsertGroupRankings(rankings: GroupRankingNew[])`**: `Promise<GroupRanking[]>`
-  Batch upsert rows. On conflict, shifts `current_rank → previous_rank`, `current_score → previous_score`, then writes new current values. Returns all upserted rows.
-  Calls: db (Kysely `insertInto`, `onConflict`)
-  Tests:
-  - inserts new row with null previous_rank when no prior row exists
-  - updates current_rank and shifts old current to previous on second call
-  - handles empty array without error (returns `[]`)
-  - upserts multiple users for the same group in one call
-  - updates updated_at on each upsert
-
-- **`getGroupRankings(groupId: string, tournamentId: string)`**: `Promise<GroupRanking[]>`
-  Returns all ranking rows for a group in a tournament, ordered by `current_rank` ascending.
+- **`upsertGroupRankingSnapshots(snapshots: GroupRankingSnapshotNew[])`**: `Promise<GroupRanking[]>`
+  Batch upserts snapshot rows. On conflict `(user_id, group_id, tournament_id, snapshot_date)`, overwrites `rank` and `score` (last-write-wins within same day). Returns all upserted rows. Mirrors `writeScoreSnapshot` pattern.
   Calls: db
   Tests:
-  - returns empty array when no rows exist
-  - returns rows ordered by current_rank ascending
+  - inserts new row when no prior snapshot exists for that date
+  - overwrites rank and score on same-day re-trigger (idempotent)
+  - handles empty array without error (returns `[]`)
+  - inserts multiple users for the same group in one call
+  - does not overwrite rows from a different snapshot_date
+
+- **`getGroupRankingSnapshots(groupId: string, tournamentId: string)`**: `Promise<GroupRanking[]>`
+  Returns all snapshot rows for a group in a tournament, ordered by `snapshot_date` ascending. Used by the rank history chart.
+  Calls: db
+  Tests:
+  - returns empty array when no snapshots exist
+  - returns rows ordered by snapshot_date ascending
   - does not return rows from a different group or tournament
 
-- **`getGroupRankingByKey(userId: string, groupId: string, tournamentId: string)`**: `Promise<GroupRanking | undefined>`
-  Returns a single ranking row for a specific user/group/tournament combination.
+- **`getLatestTwoGroupRankingSnapshots(userId: string, groupId: string, tournamentId: string)`**: `Promise<GroupRanking[]>`
+  Returns the two most recent snapshot rows for a specific user/group/tournament, ordered by `snapshot_date` descending. Returns 0, 1, or 2 rows depending on history length.
   Calls: db
   Tests:
-  - returns undefined when no row exists
-  - returns correct row for the given user/group/tournament key
-  - does not return rows for other users in the same group
+  - returns empty array when no snapshots exist
+  - returns one row when only one snapshot exists
+  - returns two rows (most recent first) when multiple snapshots exist
+  - does not return rows from other users in the same group
 
 - **`findGroupsForTournament(tournamentId: string)`**: `Promise<{ id: string }[]>`
   Returns distinct group IDs where at least one member (owner or participant) has a `tournament_guesses` row for the given tournament.
@@ -222,41 +235,14 @@ export type GroupRankingNew = Pick<
   Tests:
   - returns empty array when no groups have participants in tournament
   - returns group when owner is the tournament participant
-  - returns group when participant (not owner) is in the tournament
+  - returns group when a non-owner participant is in the tournament
   - does not return duplicate group IDs when multiple members participate
 
 ---
 
 ### `app/actions/group-ranking-actions.ts` *(new)*
 
-**New functions:**
-
-- **`recalculateGroupRankings(groupId: string, tournamentId: string)`**: `Promise<void>`
-  Fetches all group members (owner + participants), computes scores via `getUserScoresForTournament`, ranks with `calculateRanks`, then upserts via `upsertGroupRankings`. No auth check — internal only (called from admin actions).
-  Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, calculateRanks, upsertGroupRankings
-  Tests:
-  - does nothing if group has no tournament participants (scores all 0, but still upserts)
-  - correctly ranks users by totalPoints descending
-  - applies competition ranking (1-2-2-4 style) on tied scores
-  - calls upsertGroupRankings with correct GroupRankingNew objects
-
-- **`recalculateGroupRankingsForTournament(tournamentId: string)`**: `Promise<void>`
-  Finds all groups with participants in the tournament via `findGroupsForTournament`, then calls `recalculateGroupRankings` for each group sequentially. No auth check — internal only. Each group call is wrapped in try/catch so a single failure does not abort others.
-  Calls: findGroupsForTournament, recalculateGroupRankings
-  Tests:
-  - does nothing when no groups are found for the tournament
-  - calls recalculateGroupRankings once per affected group
-  - does not throw and continues processing other groups when one group's upsert fails; logs error
-
-- **`getGroupRankingForUser(userId: string, groupId: string, tournamentId: string)`**: `Promise<MaterializedGroupRanking | null>`
-  Server Action. Returns materialized rank data for a user in a group. Returns `null` if no materialized data exists yet (fallback to FE calculation is handled by the caller).
-  Calls: getGroupRankingByKey
-  Tests:
-  - returns null when no materialized row exists
-  - returns MaterializedGroupRanking with current and previous values when row exists
-  - previous fields are null when it's the first calculation
-
-**New type:**
+**New types:**
 
 ```typescript
 export interface MaterializedGroupRanking {
@@ -265,12 +251,39 @@ export interface MaterializedGroupRanking {
   tournamentId: string
   currentRank: number
   currentScore: number
-  previousRank: number | null
-  previousScore: number | null
-  rankChange: number | null  // currentRank - previousRank (negative = improved)
-  updatedAt: Date
+  snapshotDate: number        // YYYYMMDD of latest snapshot
+  rankChange: number | null   // rows[1].rank - rows[0].rank: positive = improved (e.g. 3→1 = +2), negative = dropped; null when only one snapshot
+  previousRank: number | null // null when only one snapshot exists
 }
 ```
+
+**New functions:**
+
+- **`recalculateGroupRankings(groupId: string, tournamentId: string)`**: `Promise<void>`
+  Fetches all group members (owner + participants), computes scores via `getUserScoresForTournament`, ranks with `calculateRanks`, then writes today's snapshots via `upsertGroupRankingSnapshots`. Date set via `getTodayYYYYMMDD()`. No auth check — internal only.
+  Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, calculateRanks, upsertGroupRankingSnapshots, getTodayYYYYMMDD
+  Tests:
+  - upserts snapshots for all group members with correct rank and score
+  - applies competition ranking (1-2-2-4 style) on tied scores
+  - uses today's YYYYMMDD as snapshot_date
+  - calls upsertGroupRankingSnapshots with correctly shaped GroupRankingSnapshotNew objects
+
+- **`recalculateGroupRankingsForTournament(tournamentId: string)`**: `Promise<void>`
+  Finds all groups with participants in the tournament via `findGroupsForTournament`, then calls `recalculateGroupRankings` for each group. Each group call is wrapped in try/catch so a single failure does not abort others.
+  Calls: findGroupsForTournament, recalculateGroupRankings
+  Tests:
+  - does nothing when no groups are found for the tournament
+  - calls recalculateGroupRankings once per affected group
+  - does not throw and continues processing other groups when one group's upsert fails; logs error
+
+- **`getGroupRankingForUser(userId: string, groupId: string, tournamentId: string)`**: `Promise<MaterializedGroupRanking | null>`
+  Server Action. Fetches the two most recent snapshots via `getLatestTwoGroupRankingSnapshots`, derives `rankChange` from the delta, and returns a `MaterializedGroupRanking`. Returns `null` if no snapshots exist yet.
+  Calls: getLatestTwoGroupRankingSnapshots
+  Tests:
+  - returns null when no snapshots exist
+  - returns MaterializedGroupRanking with rankChange null when only one snapshot exists
+  - correctly computes rankChange as previousRank minus currentRank (positive = improved)
+  - returns latest snapshot values when two snapshots exist
 
 ---
 
@@ -278,8 +291,8 @@ export interface MaterializedGroupRanking {
 
 **Changed functions:**
 
-- **`calculateGameScores(forceDrafts: boolean, forceAllGuesses: boolean, locale: Locale)`** *(existing)*
-  After the existing `recalculateGameScoresForUsers` calls at the end, add:
+- **`calculateGameScores(forceDrafts, forceAllGuesses, locale)`** *(existing)*
+  After the existing `recalculateGameScoresForUsers` block, add:
   ```typescript
   await Promise.all(
     Array.from(usersByTournament.keys()).map(tournamentId =>
@@ -287,16 +300,16 @@ export interface MaterializedGroupRanking {
     )
   );
   ```
-  Tests: (existing tests unchanged; no new unit test needed here since it delegates)
+  Note: `usersByTournament` is already a `Map<string, Set<string>>` built in the function body (confirmed from code reading) — keys are tournament IDs, values are sets of affected user IDs. The call above safely iterates its keys.
 
 - **`updateTournamentAwards(tournamentId, withUpdate, locale)`** *(existing)*
-  After the final `Promise.all(allTournamentGuesses.map(...))` call, add:
+  After the final `Promise.all(allTournamentGuesses.map(...))` resolves, add:
   ```typescript
   await recalculateGroupRankingsForTournament(tournamentId);
   ```
 
 - **`updateTournamentHonorRoll(tournamentId, withUpdate, locale)`** *(existing)*
-  After the final `Promise.all(allTournamentGuesses.map(...))` call, add:
+  After the final `Promise.all(allTournamentGuesses.map(...))` resolves, add:
   ```typescript
   await recalculateGroupRankingsForTournament(tournamentId);
   ```
@@ -322,14 +335,12 @@ export interface MaterializedGroupRanking {
 **`__tests__/group-ranking-repository.test.ts`**
 - Mock `db` Kysely instance using `vi.mock('../app/db/database')` with `createMockSelectQuery()`
 - Use `testFactories.user()`, `testFactories.prodeGroup()`, `testFactories.tournament()` for fixture data — no inline plain objects
-- Test each repository function in isolation
-- Cover: insert behavior, upsert shift logic, empty input handling, query filtering
+- Cover: same-day overwrite behavior, multi-user batch, date ordering, cross-group isolation
 
 **`__tests__/group-ranking-actions.test.ts`**
 - Mock repository functions and `getUserScoresForTournament`, `calculateRanks` with `vi.mock`
 - Use `testFactories.*` for user, group, and tournament fixtures
-- Test: correct rank computation, tied score handling, empty group handling, null previous on first run
-- Test `getGroupRankingForUser`: null return when no data, correct field mapping
+- Cover: correct rank computation, tied score handling, rankChange derivation, null when single snapshot
 - Test error isolation: mock one group's upsert to throw, verify other groups still processed
 
 ### Coverage Target
@@ -343,11 +354,12 @@ export interface MaterializedGroupRanking {
 - **SonarCloud:** 0 new issues; no unused imports; no `any` types
 - **Migration:** Manual execution required — user must approve before running
 - **No FE changes:** Existing `calculateTournamentGroupStats()` remains untouched; both paths coexist
-- **Performance:** `findGroupsForTournament` uses a SQL query (not N+1 in-memory filtering)
-- **Error isolation:** Each group recalculation in `recalculateGroupRankingsForTournament` is wrapped in try/catch so one failure doesn't abort others
+- **Performance:** `findGroupsForTournament` uses a single SQL query (not N+1 in-memory filtering)
+- **Error isolation:** Each group in `recalculateGroupRankingsForTournament` is wrapped in try/catch so one failure doesn't abort others
+- **Same-day idempotency:** Re-triggering admin actions multiple times on the same day safely overwrites the existing snapshot
 
 ---
 
 ## Open Questions
 
-_None — all requirements are clear from the story and codebase exploration._
+_None._
