@@ -116,11 +116,16 @@ export function BackofficeTabs({tabs, tabIdParam = 'tab'} :Props) {
         variant={isNotExtraSmallScreen ? "fullWidth" : 'scrollable'}
         scrollButtons={"auto"}
       >
-        {tabs.map(tab =>
-          tab.type === 'labelledTab'
-            ? <Tab key={tab.label} label={renderTabLabel(tab)} />
-            : tab.action
-        )}
+        {(() => {
+          let labelledIndex = 0
+          return tabs.map(tab => {
+            if (tab.type === 'labelledTab') {
+              const idx = labelledIndex++
+              return <Tab key={tab.label} value={idx} label={renderTabLabel(tab)} />
+            }
+            return tab.action
+          })
+        })()}
       </Tabs>
       {tabs
         .filter((tab): tab is LabelledTab => tab.type === 'labelledTab')
