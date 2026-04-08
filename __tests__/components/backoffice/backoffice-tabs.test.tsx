@@ -306,6 +306,67 @@ describe('BackofficeTabs', () => {
     });
   });
 
+  describe('Action Tab Index Fix', () => {
+    const tabsWithActionInMiddle = [
+      {
+        type: 'labelledTab' as const,
+        label: 'Before Action',
+        component: <div>Before Action Content</div>,
+      },
+      {
+        type: 'actionTab' as const,
+        action: <button key="action">Action Button</button>,
+      },
+      {
+        type: 'labelledTab' as const,
+        label: 'After Action',
+        component: <div>After Action Content</div>,
+      },
+    ];
+
+    it('should display correct content for labelled tab that follows an action tab', async () => {
+      const { useSearchParams } = await import('next/navigation');
+      (useSearchParams as any).mockReturnValue(new URLSearchParams('tab=After+Action'));
+
+      render(<BackofficeTabs tabs={tabsWithActionInMiddle} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('After Action Content')).toBeInTheDocument();
+        expect(screen.queryByText('Before Action Content')).not.toBeInTheDocument();
+      });
+    });
+
+    it('clicking a tab after an action tab should update URL to that tab, not the next one', async () => {
+      const user = userEvent.setup();
+      const { useSearchParams } = await import('next/navigation');
+      (useSearchParams as any).mockReturnValue(new URLSearchParams('tab=Before+Action'));
+
+      render(<BackofficeTabs tabs={tabsWithActionInMiddle} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Before Action Content')).toBeInTheDocument();
+      });
+
+      mockReplace.mockClear();
+
+      const afterActionButton = screen.getByText('After Action').closest('button');
+      if (afterActionButton) {
+        await user.click(afterActionButton);
+      }
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith(
+          expect.stringContaining('tab=After+Action'),
+          expect.objectContaining({ scroll: false })
+        );
+        expect(mockReplace).not.toHaveBeenCalledWith(
+          expect.stringContaining('tab=Before+Action'),
+          expect.anything()
+        );
+      });
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle empty tabs array', () => {
       render(<BackofficeTabs tabs={[]} />);

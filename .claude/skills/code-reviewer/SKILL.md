@@ -414,7 +414,8 @@ COMMIT_LOG=$(git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline)
 LAYER_CONTENTS=$(cat ${WORKTREE_PATH}/docs/code-structure/db.md \
                  ${WORKTREE_PATH}/docs/code-structure/actions.md \
                  ${WORKTREE_PATH}/docs/code-structure/utils.md \
-                 ${WORKTREE_PATH}/docs/code-structure/pages.md)
+                 ${WORKTREE_PATH}/docs/code-structure/pages.md \
+                 ${WORKTREE_PATH}/docs/code-structure/components/*.md)
 
 gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/librarian-agent.md)
 
