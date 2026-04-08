@@ -122,11 +122,14 @@ export function BackofficeTabs({tabs, tabIdParam = 'tab'} :Props) {
             : tab.action
         )}
       </Tabs>
-      {tabs.map((tab, index) => tab.type === 'labelledTab' && (
-        <TabPanel key={tab.label} index={index} value={selectedTabIndex}>
-          {tab.component}
-        </TabPanel>
-      ) || null )}
+      {tabs
+        .filter((tab): tab is LabelledTab => tab.type === 'labelledTab')
+        .map((tab, index) => (
+          <TabPanel key={tab.label} index={index} value={selectedTabIndex}>
+            {tab.component}
+          </TabPanel>
+        ))
+      }
     </>
   )
 }

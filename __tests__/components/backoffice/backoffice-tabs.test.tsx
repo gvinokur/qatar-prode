@@ -306,6 +306,37 @@ describe('BackofficeTabs', () => {
     });
   });
 
+  describe('Action Tab Index Fix', () => {
+    it('should display correct content for labelled tabs that follow an action tab', async () => {
+      const { useSearchParams } = await import('next/navigation');
+      (useSearchParams as any).mockReturnValue(new URLSearchParams('tab=After+Action'));
+
+      const tabsWithActionInMiddle = [
+        {
+          type: 'labelledTab' as const,
+          label: 'Before Action',
+          component: <div>Before Action Content</div>,
+        },
+        {
+          type: 'actionTab' as const,
+          action: <button>Action Button</button>,
+        },
+        {
+          type: 'labelledTab' as const,
+          label: 'After Action',
+          component: <div>After Action Content</div>,
+        },
+      ];
+
+      render(<BackofficeTabs tabs={tabsWithActionInMiddle} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('After Action Content')).toBeInTheDocument();
+        expect(screen.queryByText('Before Action Content')).not.toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle empty tabs array', () => {
       render(<BackofficeTabs tabs={[]} />);
