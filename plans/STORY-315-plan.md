@@ -27,7 +27,7 @@ This story is the backend foundation required by:
 - [ ] Snapshot is written after admin confirms awards (`updateTournamentAwards`)
 - [ ] Snapshot is written after admin confirms honor roll (`updateTournamentHonorRoll`)
 - [ ] Snapshot is written after admin triggers qualified teams scoring (`calculateAndStoreQualifiedTeamsScores`)
-- [ ] Recalculation is scoped per group (only groups containing affected tournament participants)
+- [ ] Recalculation is scoped to groups containing users whose scores actually changed (not all groups in the tournament)
 - [ ] Server Action exposing latest materialized rank + rank change for a given user + group + tournament
 - [ ] Rank change computed by comparing the two most recent snapshot dates for the user
 - [ ] Existing frontend rank calculation is NOT removed (coexistence during transition)
@@ -100,32 +100,32 @@ LIMIT 2
 `rows[0]` = current (latest), `rows[1]` = previous.
 `rankChange = rows[1].rank - rows[0].rank` — **positive = improved** (e.g. 3→1 gives rankChange = +2), **negative = dropped**. Returns `null` when only one snapshot exists.
 
-### Finding Groups for a Tournament
+### Finding Affected Groups
+
+Rather than finding all groups for a tournament (which could be large), we scope recalculation to only the groups that contain at least one user whose score actually changed. Each trigger point already knows exactly which user IDs were affected.
 
 ```sql
 SELECT DISTINCT pg.id
 FROM prode_groups pg
 LEFT JOIN prode_group_participants pgp ON pgp.prode_group_id = pg.id
-WHERE pg.owner_user_id IN (
-  SELECT user_id FROM tournament_guesses WHERE tournament_id = $tournamentId
-)
-OR pgp.participant_id IN (
-  SELECT user_id FROM tournament_guesses WHERE tournament_id = $tournamentId
-)
+WHERE pg.owner_user_id = ANY($changedUserIds)
+   OR pgp.participant_id = ANY($changedUserIds)
 ```
 
-Returns all groups with at least one member who has participated in the tournament.
+This returns all groups containing at least one user from the changed set. The recalculation itself still fetches **all** group members (not just the changed ones) to compute correct relative rankings.
 
 ### Trigger Integration Points
 
-| Trigger | File | When |
-|---------|------|------|
-| Game result saved | `backoffice-actions.ts` → `calculateGameScores()` | Admin publishes match scores |
-| Individual awards | `backoffice-actions.ts` → `updateTournamentAwards()` | Admin sets award winners |
-| Honor roll | `backoffice-actions.ts` → `updateTournamentHonorRoll()` | Admin sets champion/runner-up/3rd |
-| Qualified teams | `qualified-teams-scoring-actions.ts` → `calculateAndStoreQualifiedTeamsScores()` | Admin confirms group positions |
+Each trigger point collects the affected user IDs from its own logic and passes them to the new `recalculateGroupRankingsForUsers(tournamentId, changedUserIds)`:
 
-Each trigger calls `recalculateGroupRankingsForTournament(tournamentId)` after its primary logic completes.
+| Trigger | Changed User IDs Source |
+|---------|------------------------|
+| `calculateGameScores` | `usersByTournament` Map (already built — users with published game guesses) |
+| `updateTournamentAwards` | `allTournamentGuesses.map(g => g.user_id)` (all participants in tournament) |
+| `updateTournamentHonorRoll` | `allTournamentGuesses.map(g => g.user_id)` (all participants in tournament) |
+| `calculateAndStoreQualifiedTeamsScores` | user IDs from the iterated tournament guesses |
+
+For milestone actions (awards, honor roll, qualified teams) all users in the tournament are affected, so recalculation still covers all groups — but the trigger mechanism is now semantically correct and future-proof for partial updates.
 
 ### Score Source
 
@@ -157,12 +157,12 @@ Reuses existing `getUserScoresForTournament(userIds, tournamentId)` from `prode-
 ### Call Graph Changes
 
 **Modified flows:**
-- **Flow 2 (Game scoring pipeline)** — extend `calculateGameScores` to call `recalculateGroupRankingsForTournament` after score materialization
-- **Flow 15 (Backoffice game result editing)** — `saveGameResults` → `calculateGameScores` → `recalculateGroupRankingsForTournament`
-- **New back-end triggers** — `updateTournamentAwards` and `updateTournamentHonorRoll` each call `recalculateGroupRankingsForTournament`
+- **Flow 2 (Game scoring pipeline)** — extend `calculateGameScores` to call `recalculateGroupRankingsForUsers` after score materialization
+- **Flow 15 (Backoffice game result editing)** — `saveGameResults` → `calculateGameScores` → `recalculateGroupRankingsForUsers`
+- **New back-end triggers** — `updateTournamentAwards` and `updateTournamentHonorRoll` each call `recalculateGroupRankingsForUsers`
 
 **New flows:**
-- **Flow 28 (Group rank snapshot)** — admin action → `recalculateGroupRankingsForTournament` → `findGroupsForTournament` → per-group: `getUserScoresForTournament` + `calculateRanks` + `upsertGroupRankingSnapshots`
+- **Flow 28 (Group rank snapshot)** — admin action → `recalculateGroupRankingsForUsers` → `findGroupsForUsers` → per-group: `getUserScoresForTournament` + `calculateRanks` + `upsertGroupRankingSnapshots`
 - **Flow 29 (Materialized rank read)** — `getGroupRankingForUser(userId, groupId, tournamentId)` → `getLatestTwoGroupRankingSnapshots` → derives `rankChange`, returns `MaterializedGroupRanking`
 
 ---
@@ -229,14 +229,15 @@ export type GroupRankingSnapshotNew = Pick<
   - returns two rows (most recent first) when multiple snapshots exist
   - does not return rows from other users in the same group
 
-- **`findGroupsForTournament(tournamentId: string)`**: `Promise<{ id: string }[]>`
-  Returns distinct group IDs where at least one member (owner or participant) has a `tournament_guesses` row for the given tournament.
+- **`findGroupsForUsers(userIds: string[])`**: `Promise<{ id: string }[]>`
+  Returns distinct group IDs where at least one member (owner or participant) is in the given `userIds` list. Used to scope recalculation to only groups containing users whose scores actually changed.
   Calls: db
   Tests:
-  - returns empty array when no groups have participants in tournament
-  - returns group when owner is the tournament participant
-  - returns group when a non-owner participant is in the tournament
-  - does not return duplicate group IDs when multiple members participate
+  - returns empty array when userIds is empty
+  - returns group when the owner's ID is in userIds
+  - returns group when a non-owner participant's ID is in userIds
+  - does not return duplicate group IDs when multiple members match
+  - does not return groups where no member is in userIds
 
 ---
 
@@ -268,11 +269,12 @@ export interface MaterializedGroupRanking {
   - uses today's YYYYMMDD as snapshot_date
   - calls upsertGroupRankingSnapshots with correctly shaped GroupRankingSnapshotNew objects
 
-- **`recalculateGroupRankingsForTournament(tournamentId: string)`**: `Promise<void>`
-  Finds all groups with participants in the tournament via `findGroupsForTournament`, then calls `recalculateGroupRankings` for each group. Each group call is wrapped in try/catch so a single failure does not abort others.
-  Calls: findGroupsForTournament, recalculateGroupRankings
+- **`recalculateGroupRankingsForUsers(tournamentId: string, changedUserIds: string[])`**: `Promise<void>`
+  Finds only the groups that contain at least one user from `changedUserIds` via `findGroupsForUsers`, then calls `recalculateGroupRankings` for each. Each group call is wrapped in try/catch so a single failure does not abort others. Does nothing when `changedUserIds` is empty.
+  Calls: findGroupsForUsers, recalculateGroupRankings
   Tests:
-  - does nothing when no groups are found for the tournament
+  - does nothing when changedUserIds is empty
+  - does nothing when no groups are found for the changed users
   - calls recalculateGroupRankings once per affected group
   - does not throw and continues processing other groups when one group's upsert fails; logs error
 
@@ -295,23 +297,25 @@ export interface MaterializedGroupRanking {
   After the existing `recalculateGameScoresForUsers` block, add:
   ```typescript
   await Promise.all(
-    Array.from(usersByTournament.keys()).map(tournamentId =>
-      recalculateGroupRankingsForTournament(tournamentId)
+    Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
+      recalculateGroupRankingsForUsers(tournamentId, Array.from(userIds))
     )
   );
   ```
-  Note: `usersByTournament` is already a `Map<string, Set<string>>` built in the function body (confirmed from code reading) — keys are tournament IDs, values are sets of affected user IDs. The call above safely iterates its keys.
+  Note: `usersByTournament` is a `Map<string, Set<string>>` (confirmed from code reading) — keys are tournament IDs, values are sets of affected user IDs. Only groups containing those specific users are recalculated.
 
 - **`updateTournamentAwards(tournamentId, withUpdate, locale)`** *(existing)*
-  After the final `Promise.all(allTournamentGuesses.map(...))` resolves, add:
+  Collect affected user IDs from the existing `allTournamentGuesses` array, then after the final `Promise.all` resolves, add:
   ```typescript
-  await recalculateGroupRankingsForTournament(tournamentId);
+  const affectedUserIds = allTournamentGuesses.map(g => g.user_id);
+  await recalculateGroupRankingsForUsers(tournamentId, affectedUserIds);
   ```
 
 - **`updateTournamentHonorRoll(tournamentId, withUpdate, locale)`** *(existing)*
-  After the final `Promise.all(allTournamentGuesses.map(...))` resolves, add:
+  Same pattern as awards — collect user IDs from `allTournamentGuesses`, then add:
   ```typescript
-  await recalculateGroupRankingsForTournament(tournamentId);
+  const affectedUserIds = allTournamentGuesses.map(g => g.user_id);
+  await recalculateGroupRankingsForUsers(tournamentId, affectedUserIds);
   ```
 
 ---
@@ -321,9 +325,9 @@ export interface MaterializedGroupRanking {
 **Changed functions:**
 
 - **`calculateAndStoreQualifiedTeamsScores(tournamentId, locale)`** *(existing)*
-  After all score snapshots are written, add:
+  Collect user IDs from the iterated tournament guesses (already available in the function), then after score snapshots are written, add:
   ```typescript
-  await recalculateGroupRankingsForTournament(tournamentId);
+  await recalculateGroupRankingsForUsers(tournamentId, affectedUserIds);
   ```
 
 ---
@@ -354,8 +358,8 @@ export interface MaterializedGroupRanking {
 - **SonarCloud:** 0 new issues; no unused imports; no `any` types
 - **Migration:** Manual execution required — user must approve before running
 - **No FE changes:** Existing `calculateTournamentGroupStats()` remains untouched; both paths coexist
-- **Performance:** `findGroupsForTournament` uses a single SQL query (not N+1 in-memory filtering)
-- **Error isolation:** Each group in `recalculateGroupRankingsForTournament` is wrapped in try/catch so one failure doesn't abort others
+- **Performance:** `findGroupsForUsers` uses a single SQL query (not N+1 in-memory filtering)
+- **Error isolation:** Each group in `recalculateGroupRankingsForUsers` is wrapped in try/catch so one failure doesn't abort others
 - **Same-day idempotency:** Re-triggering admin actions multiple times on the same day safely overwrites the existing snapshot
 
 ---
