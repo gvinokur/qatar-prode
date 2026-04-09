@@ -28,6 +28,9 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **AdSettingsTable**: Interface with `id`, `modal_min_minutes_between`, `modal_min_pageviews_between`, `created_at`, `updated_at`.
 - **AdSettings**: `Selectable<AdSettingsTable>` — full row shape.
 - **AdSettingsUpdate**: `Updateable<AdSettingsTable>` — update shape.
+- **GroupRankingTable**: Interface for `group_rankings` table with `id` (Generated), `user_id`, `group_id`, `tournament_id`, `snapshot_date` (INTEGER YYYYMMDD), `rank`, `score`, `created_at` (Generated). Unique constraint on `(user_id, group_id, tournament_id, snapshot_date)`.
+- **GroupRanking**: `Selectable<GroupRankingTable>` — full row shape.
+- **GroupRankingSnapshotNew**: `Pick<Insertable<GroupRankingTable>, 'user_id' | 'group_id' | 'tournament_id' | 'snapshot_date' | 'rank' | 'score'>` — insert shape (excludes auto-generated fields).
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
@@ -336,3 +339,15 @@ Repository for users table. Manages user accounts, authentication (password, OAu
 - **generateOTP(email: string)**: `Promise<{ success: boolean; error?: string }>` — Generates OTP with rate limiting (1 min).
 - **verifyOTP(email: string, code: string)**: `Promise<{ success: boolean; user?: User; error?: string }>` — Verifies OTP with max 3 attempts.
 - **clearOTP(userId: string)**: `Promise<User | undefined>` — Clears OTP fields.
+
+### app/db/group-ranking-repository.ts
+Repository for the `group_rankings` table. Stores daily rank snapshots per user/group/tournament. Uses upsert strategy for same-day idempotency (Story #315).
+
+- **upsertGroupRankingSnapshots(snapshots: GroupRankingSnapshotNew[])**: `Promise<GroupRanking[]>` — Batch upserts snapshot rows; on conflict `(user_id, group_id, tournament_id, snapshot_date)` overwrites `rank` and `score` (last-write-wins within same day). Returns empty array for empty input.
+  Calls: db
+- **getGroupRankingSnapshots(groupId: string, tournamentId: string)**: `Promise<GroupRanking[]>` — All snapshots for a group in a tournament, ordered by `snapshot_date` ascending. Used for rank history charts.
+  Calls: db
+- **getLatestTwoGroupRankingSnapshots(userId: string, groupId: string, tournamentId: string)**: `Promise<GroupRanking[]>` — Two most recent snapshots for a user/group/tournament, ordered `snapshot_date` descending, LIMIT 2. Used to derive rank change.
+  Calls: db
+- **findGroupsForUsers(userIds: string[])**: `Promise<{ id: string }[]>` — Distinct group IDs where at least one member (owner or participant) is in `userIds`. Returns empty array for empty input. Uses LEFT JOIN on `prode_group_participants`.
+  Calls: db

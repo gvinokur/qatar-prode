@@ -19,7 +19,7 @@ import {
   ProdeGroupTournamentBetting,
   ProdeGroupTournamentBettingPayment,
   TournamentScoreHistory,
-
+  GroupRanking,
 } from '../../app/db/tables-definition';
 
 /**
@@ -525,6 +525,21 @@ export const testFactories = {
     qualified_teams_score: 0,
     group_position_score: 0,
     total_points: 0,
+    created_at: new Date(),
+    ...overrides,
+  }),
+
+  /**
+   * GroupRanking factory — daily rank snapshot for a user in a group (Story #315).
+   */
+  groupRanking: (overrides?: Partial<GroupRanking>): GroupRanking => ({
+    id: 'ranking-1',
+    user_id: 'user-1',
+    group_id: 'group-1',
+    tournament_id: 'tournament-1',
+    snapshot_date: 20260601,
+    rank: 1,
+    score: 50,
     created_at: new Date(),
     ...overrides,
   }),

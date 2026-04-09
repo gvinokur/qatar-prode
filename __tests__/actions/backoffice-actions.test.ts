@@ -263,6 +263,10 @@ vi.mock('../../app/db/score-history-repository', () => ({
   writeScoreSnapshot: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../../app/actions/group-ranking-actions', () => ({
+  recalculateGroupRankingsForUsers: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Import mocked functions
 import * as tournamentRepository from '../../app/db/tournament-repository';
 import * as teamRepository from '../../app/db/team-repository';

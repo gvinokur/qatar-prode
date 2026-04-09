@@ -525,4 +525,21 @@ Key flows:
       └── findTournamentByIdCached (cache hit — no extra DB call)
             └── buildBreadcrumbListJsonLd(items) (json-ld-utils)
                   └── JsonLd [renders] → <script type="application/ld+json">
+
+27. Group rank snapshot — write path (Story #315)
+    Admin action (calculateGameScores / updateTournamentAwards / updateTournamentHonorRoll / calculateAndStoreQualifiedTeamsScores)
+      └── recalculateGroupRankingsForUsers(tournamentId, changedUserIds)
+            └── findGroupsForUsers(changedUserIds) → [groupId, ...]
+                  └── per group: recalculateGroupRankings(groupId, tournamentId)
+                        ├── findProdeGroupById(groupId)
+                        ├── findParticipantsInGroup(groupId)
+                        ├── getUserScoresForTournament(memberIds, tournamentId)
+                        ├── calculateRanks(scores, 'totalPoints')
+                        └── upsertGroupRankingSnapshots(snapshots) → group_rankings table
+
+28. Group rank snapshot — read path (Story #315)
+    getGroupRankingForUser(userId, groupId, tournamentId) [server action]
+      └── getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) → [current, previous?]
+            → derives rankChange = previous.rank - current.rank (positive = improved)
+            → returns MaterializedGroupRanking | null
 ```
