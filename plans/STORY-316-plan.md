@@ -2,27 +2,31 @@
 
 ## Context
 
-The app currently redirects every user from `/` straight to their last tournament. Epic #314 introduces a Tournament Hub as a social "command center" to increase DAU and prediction completion rates. Story #316 is the shell story: create the hub route (feature-flagged), build 3 placeholder widget slots, and update navigation so Friend Groups is more prominent. Stories #317 and #319 will fill the widget slots.
+The app currently redirects every user from `/` straight to their last tournament's games page. Epic #314 introduces a Tournament Hub as a social "command center" to increase DAU and prediction completion rates. Story #316 is the shell story: create the hub as a proper sub-page inside the tournament context (`/tournaments/[id]/hub`), add it to tournament navigation, and change `TournamentRedirect` to land users there when the feature flag is on. Stories #317 and #319 will fill the widget slots.
 
 ## Objective
 
-Users can navigate to `/` and, when the hub flag is on, see the Tournament Hub shell with three widget placeholders. Friend Groups is repositioned to the top of the tournament sidebar and before Stats in the mobile bottom nav. A user's rank in their primary friend group appears as a badge in the sidebar's Friend Groups header.
+Users land on the Tournament Hub (`/tournaments/[id]/hub`) when `NEXT_PUBLIC_HUB_ENABLED=true`, and on the existing games page otherwise. The hub has three widget placeholder slots and is accessible from the tournament top nav and bottom nav. Friend Groups is repositioned first in the sidebar and before Stats in the mobile bottom nav. A user's rank in their primary group appears as a badge in the sidebar's Friend Groups header.
 
 ## Acceptance Criteria
 
-- `NEXT_PUBLIC_HUB_ENABLED=true` → `/` renders `TournamentHubPage`; flag absent/false → existing `TournamentRedirect` behavior
-- Hub page has 3 labeled `Paper` placeholder sections: "Smart Predictor Carousel", "Prediction Dashboard", "Leaderboard Peek"
+- `NEXT_PUBLIC_HUB_ENABLED=true` → `TournamentRedirect` sends users to `/tournaments/[id]/hub`; flag absent/false → existing `/tournaments/[id]` behavior
+- Hub page at `/tournaments/[id]/hub` has 3 labeled `Paper` placeholder sections: "Smart Predictor Carousel", "Prediction Dashboard", "Leaderboard Peek"
+- Hub appears as a nav item **before** Matches in the tournament top nav (conditional on flag)
+- Mobile bottom nav "Home" tab points to `/tournaments/[id]/hub` when flag is on, `/[locale]` otherwise
 - Tournament sidebar order: 1. Friend Groups, 2. Group Standings, 3. Stats, 4. Rules
-- Mobile bottom nav order: Home, Results, Rules, **Groups** (user), Stats (user)
+- Mobile bottom nav order: Home (or Hub), Results, Rules, **Groups** (user), Stats (user)
 - Rank badge (user's rank in their primary group) shown in the Friend Groups `CardHeader` in the sidebar
 - Hub page renders without errors when user is logged out or has no groups
-- No changes to `/tournaments/[id]` page or `/games` page
+- `app/[locale]/page.tsx` is **untouched** — no changes to the root page
+- No changes to the games page at `/tournaments/[id]`
 
 ## Out of Scope
 
-- Actual widget implementations (Smart Predictor Carousel, Prediction Dashboard Widget, Leaderboard Peek)
+- Actual widget implementations (Smart Predictor Carousel, Prediction Dashboard, Leaderboard Peek)
 - Admin toggle for the feature flag
-- Removal of the old frontend rank calculation (that is Story #6 in the epic)
+- Renaming `/hub` → `/` and `/` → `/games` (future story)
+- Removal of the old frontend rank calculation (future story)
 
 ---
 
@@ -30,85 +34,82 @@ Users can navigate to `/` and, when the hub flag is on, see the Tournament Hub s
 
 ### Feature Flag
 
-Add `isHubEnabled(): boolean` to `app/utils/environment-utils.ts`. Checks `process.env.NEXT_PUBLIC_HUB_ENABLED === 'true'`. `NEXT_PUBLIC_` prefix makes it available client-side too for any future client components.
+Add `isHubEnabled(): boolean` to `app/utils/environment-utils.ts`. Checks `process.env.NEXT_PUBLIC_HUB_ENABLED === 'true'`. `NEXT_PUBLIC_` prefix makes it readable client-side for the bottom nav component.
 
-### Route: Keep `/` — Conditionally Branch in `page.tsx`
+### Route: New sub-page inside tournament context
 
-`app/[locale]/page.tsx` already handles `EmptyTournamentsState` vs `TournamentRedirect`. We add one more branch: if `isHubEnabled()`, render `TournamentHubPage` instead of `TournamentRedirect`. The server component already fetches `tournaments` and `user` — pass both to `TournamentHubPage`.
+New file: `app/[locale]/tournaments/[id]/hub/page.tsx`
 
-### Hub Page Shell
+Server Component. Receives tournament and user data available from the parent tournament layout (already fetched). Renders 3 `Paper` placeholder sections. No new data fetching for this story — widget data arrives in #317–#319.
 
-New file: `app/components/hub/tournament-hub-page.tsx`
+**Why this is better than modifying root `/`:**
+- Hub inherits the full tournament layout (sidebar, bottom nav, tournament AppBar) for free
+- `TournamentRedirect` becomes the single toggle point — one change instead of branching root
+- Future rename story (`/hub` → `/`, `/` → `/games`) is a clean route swap with no logic changes
 
-Server Component ('use server'). Receives `tournaments` and `user` as props (fetched by parent `page.tsx`). Renders a stacked MUI layout with 3 `Paper` sections as widget placeholders. No new data fetching in this component for this story (widget data comes in #317–#319).
+### TournamentRedirect: Single toggle point
+
+`app/components/home/tournament-redirect.tsx` — add `isHubEnabled()` check. When true, redirect to `/[locale]/tournaments/[id]/hub`; otherwise keep current `/[locale]/tournaments/[id]` redirect. This is the **only** change needed to make hub the default landing experience.
+
+### Tournament Top Nav: Add Hub item
+
+The tournament top nav component (renders MATCHES | QUALIFIED TEAMS | AWARDS links — identify exact file during implementation by searching for `topNav.matches` translation key usage) gets a new "HUB" item prepended, conditional on `isHubEnabled()`. Hub tab links to `/[locale]/tournaments/[id]/hub`.
 
 ### Navigation Reordering
 
-**Sidebar** (`app/components/tournament-page/tournament-sidebar.tsx`): Move Friend Groups block from position 3 to position 1 (before Group Standings). Add `primaryGroupRank?: { rank: number; groupName: string } | null` to `TournamentSidebarProps` and thread it through to `FriendGroupsList`.
+**Sidebar** (`app/components/tournament-page/tournament-sidebar.tsx`): Move Friend Groups block from position 3 to position 1. Add `primaryGroupRank?: { rank: number; groupName: string } | null` prop threaded through to `FriendGroupsList`.
 
-**Bottom nav** (`app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`): Swap order of `Groups` and `Stats` `BottomNavigationAction` elements.
+**Bottom nav** (`app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`):
+- Swap order of Groups and Stats tabs (Groups before Stats)
+- When `isHubEnabled()`: "Home" tab navigates to `/[locale]/tournaments/${tournamentId}/hub` instead of `/[locale]`
+- `isHubEnabled()` is `NEXT_PUBLIC_` so it's safe to call in this client component
 
 ### Rank Badge in Sidebar
 
-`FriendGroupsList` (`app/components/tournament-page/friend-groups-list.tsx`) gets a new optional prop `primaryGroupRank?: { rank: number; groupName: string } | null`. When present, render a `<Badge badgeContent={rank} color="secondary">` inside the `CardHeader` title.
+`FriendGroupsList` (`app/components/tournament-page/friend-groups-list.tsx`) gets a new optional prop `primaryGroupRank?: { rank: number; groupName: string } | null`. When present, renders a `<Badge badgeContent={rank} color="secondary">` inside the `CardHeader` title `Box`.
 
-Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUser()`, derive the primary group (first item in `userGroups`), then call `getGroupRankingForUser(user.id, primaryGroup.id, params.id)`. Pass result to `TournamentSidebar` as new `primaryGroupRank` prop.
+Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUser()`, derive the primary group (first item in `userGroups`), call `getGroupRankingForUser(user.id, primaryGroup.id, params.id)` (exists in `app/actions/group-ranking-actions.ts`, returns `MaterializedGroupRanking | null`). Derive `{ rank: snapshot.currentRank, groupName: primaryGroup.name }` and pass to `TournamentSidebar` as `primaryGroupRank`.
 
-**Why sidebar only (not bottom nav or header)**: The story says "nav menu" which in context means the persistent sidebar. Adding rank to the bottom nav's badge would crowd mobile; UserActions is not tournament-specific. The FriendGroupsList card header is the most natural home.
-
-**Prop type derivation**: `getGroupRankingForUser` (already exists in `app/actions/group-ranking-actions.ts`) returns `MaterializedGroupRanking | null` with field `currentRank: number`. The layout derives a simplified `{ rank: number; groupName: string }` object — `rank` from `snapshot.currentRank`, `groupName` from the primary group object — before passing it down. Components receive this simplified type and don't depend on `MaterializedGroupRanking` directly. This keeps component props clean and avoids tight coupling to the ranking action's return type.
+**Prop type note**: Components receive the simplified `{ rank: number; groupName: string }` derived in the layout — not the full `MaterializedGroupRanking` — keeping component props clean and decoupled from the ranking action's return type.
 
 ---
 
 ## Visual Prototype
 
-### Hub Page Shell
+### Hub Page (inside tournament layout)
 
 ```
-┌──────────────────────────────────────────────┐
-│  Header (logo, theme switcher, user menu)    │
-├──────────────────────────────────────────────┤
-│                                              │
-│  ┌────────────────────────────────────────┐  │
-│  │  Smart Predictor Carousel              │  │
-│  │  [Coming soon — Story #317]            │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  ┌────────────────────────────────────────┐  │
-│  │  Prediction Dashboard                  │  │
-│  │  [Coming soon — Story #318]            │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  ┌────────────────────────────────────────┐  │
-│  │  Leaderboard Peek                      │  │
-│  │  [Coming soon — Story #319]            │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-└──────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│  [Logo] FIFA 2026        [Theme] [Lang] [User]          │  ← tournament AppBar
+├─────────────────────────────────────────────────────────┤
+│  [HUB] MATCHES  QUALIFIED TEAMS  AWARDS                 │  ← top nav (Hub first)
+├──────────────────────────────┬──────────────────────────┤
+│                              │  Friend Groups  ④        │
+│  ┌──────────────────────┐    │  ─────────────────────   │
+│  │  Smart Predictor     │    │  Group Standings          │
+│  │  Carousel            │    │  ─────────────────────   │
+│  │  [Coming — #317]     │    │  Stats                   │
+│  └──────────────────────┘    │  ─────────────────────   │
+│                              │  Rules                   │
+│  ┌──────────────────────┐    │                          │
+│  │  Prediction Dashboard│    │                          │
+│  │  [Coming — #318]     │    │                          │
+│  └──────────────────────┘    │                          │
+│                              │                          │
+│  ┌──────────────────────┐    │                          │
+│  │  Leaderboard Peek    │    │                          │
+│  │  [Coming — #319]     │    │                          │
+│  └──────────────────────┘    │                          │
+├──────────────────────────────┴──────────────────────────┤
+│  [Hub/Home] [Results] [Rules] [Groups④] [Stats]         │  ← bottom nav (mobile)
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Sidebar — Friend Groups First (with rank badge)
+### Bottom Nav — Home tab behavior
 
 ```
-┌─────────────────────┐
-│ Friend Groups  ④    │  ← Badge shows rank "#4"
-│ 2 groups · You are here │
-│  > My World Cup Group│
-│  > Work Friends      │
-│  [View All Groups]   │
-├─────────────────────┤
-│ Group Standings      │
-├─────────────────────┤
-│ Stats                │
-├─────────────────────┤
-│ Rules                │
-└─────────────────────┘
-```
-
-### Mobile Bottom Nav — Groups before Stats
-
-```
-[Home] [Results] [Rules] [Groups④] [Stats]
+Flag OFF:  [Home→/]  [Results] [Rules] [Groups④] [Stats]
+Flag ON:   [Hub→/hub] [Results] [Rules] [Groups④] [Stats]
 ```
 
 ---
@@ -117,20 +118,21 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
 
 | File | Notes |
 |------|-------|
-| `app/components/hub/tournament-hub-page.tsx` | Hub shell with 3 placeholder Paper slots |
+| `app/[locale]/tournaments/[id]/hub/page.tsx` | Hub page with 3 placeholder Paper slots |
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
 | `app/utils/environment-utils.ts` | Add `isHubEnabled()` |
-| `app/[locale]/page.tsx` | Branch on `isHubEnabled()` to render hub |
+| `app/components/home/tournament-redirect.tsx` | Check `isHubEnabled()`, redirect to `/hub` or `/` |
 | `app/[locale]/tournaments/[id]/layout.tsx` | Fetch primaryGroupRank, pass to sidebar |
 | `app/components/tournament-page/tournament-sidebar.tsx` | Reorder sections, add `primaryGroupRank` prop |
 | `app/components/tournament-page/friend-groups-list.tsx` | Add `primaryGroupRank` prop + badge in CardHeader |
-| `app/components/tournament-bottom-nav/tournament-bottom-nav.tsx` | Swap Groups/Stats order |
-| `locales/en/navigation.json` | Add `hub.title` key |
-| `locales/es/navigation.json` | Add `hub.title` key (vos conjugation) |
+| `app/components/tournament-bottom-nav/tournament-bottom-nav.tsx` | Swap Groups/Stats order; hub-aware Home tab |
+| Tournament top nav component | Add Hub item before Matches (find file via `topNav.matches` usage) |
+| `locales/en/navigation.json` | Add `topNav.hub` key |
+| `locales/es/navigation.json` | Add `topNav.hub` key (Argentine Spanish) |
 
 ---
 
@@ -138,11 +140,12 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
 
 ### Call Graph Changes
 
-**New flow (Hub page):**
-- Flow 29: `[locale]/page.tsx` → `isHubEnabled()` → `TournamentHubPage` (props only, no new action calls for this story)
-
 **Modified flow:**
+- Flow 1 (Predictions dashboard / home redirect): `TournamentRedirect` now branches on `isHubEnabled()` — redirects to `/tournaments/[id]/hub` or `/tournaments/[id]`
 - Flow 3 (Tournament layout): Add `getGroupRankingForUser` call after `getGroupsForUser`, pass `primaryGroupRank` down to `TournamentSidebar → FriendGroupsList`
+
+**New flow:**
+- Flow 29: `[locale]/tournaments/[id]/hub/page.tsx` renders as a static shell (no new action calls for this story — widget data in future stories)
 
 ### `app/utils/environment-utils.ts` *(modified)*
 
@@ -156,38 +159,37 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
   - returns `false` when env var is `'false'`
   - returns `false` when env var is `undefined`
 
-### `app/components/hub/tournament-hub-page.tsx` *(new)*
+### `app/[locale]/tournaments/[id]/hub/page.tsx` *(new)*
 
 **New components:**
 
-- **`TournamentHubPage({ tournaments, user })`**: `JSX.Element`
-  Server Component. Renders the hub shell with three `Paper` placeholder sections for future widgets. Displays a welcome heading if user is logged in.
-  Props: `tournaments: ReadonlyArray<{ readonly id: string }>`, `user: User | null`
-  Calls: (none — props provided by parent)
+- **`TournamentHubPage()`**: `JSX.Element`
+  Server Component. Renders the hub shell with three `Paper` placeholder sections labeled for future widgets. Uses `getTranslations` for i18n labels.
+  Calls: (none — data from parent layout in future stories)
   Tests:
-  - renders three placeholder sections with correct labels
-  - renders without errors when `user` is null (logged-out state)
-  - renders without errors when `tournaments` array is empty
+  - renders three placeholder sections with correct translated labels
+  - renders without errors for a logged-out user (no user-specific content yet)
+  - page is accessible at the correct route path
 
-### `app/[locale]/page.tsx` *(modified)*
+### `app/components/home/tournament-redirect.tsx` *(modified)*
 
-**Changed functions:**
+**Changed components:**
 
-- **`ServerHome({ searchParams })`**: `Promise<JSX.Element>` *(adds hub branch)*
-  When `isHubEnabled()` returns true and tournaments exist, renders `TournamentHubPage` instead of `TournamentRedirect`.
-  Calls: `isHubEnabled`, `getTournaments`, `getLoggedInUser`, `getOnboardingStatus`
+- **`TournamentRedirect({ tournaments })`**: `JSX.Element` *(adds hub redirect branch)*
+  When `isHubEnabled()` returns true, redirects to `/[locale]/tournaments/[id]/hub`; otherwise keeps current `/[locale]/tournaments/[id]` behavior.
+  Calls: `isHubEnabled` (new)
   Tests:
-  - renders `TournamentHubPage` when hub flag is enabled and tournaments exist
-  - renders `TournamentRedirect` when hub flag is disabled and tournaments exist
-  - renders `EmptyTournamentsState` when no tournaments regardless of flag
+  - redirects to `/tournaments/[id]/hub` when hub flag is enabled
+  - redirects to `/tournaments/[id]` when hub flag is disabled
+  - redirects to first tournament when no last-selected tournament is stored
 
 ### `app/[locale]/tournaments/[id]/layout.tsx` *(modified)*
 
 **Changed functions:**
 
 - **`TournamentLayout(props)`**: `Promise<JSX.Element>` *(adds primaryGroupRank fetch)*
-  After fetching `prodeGroups`, derives the primary group (first `userGroup`). Calls `getGroupRankingForUser(user.id, primaryGroup.id, tournamentId): Promise<MaterializedGroupRanking | null>` (already exists in `app/actions/group-ranking-actions.ts`). Derives `{ rank: snapshot.currentRank, groupName: primaryGroup.name }` and passes to `TournamentSidebar` as `primaryGroupRank`.
-  Calls: `getGroupRankingForUser` (existing in group-ranking-actions.ts), `getGroupsForUser` (existing)
+  After fetching `prodeGroups`, derives the primary group (first `userGroup`). Calls `getGroupRankingForUser(user.id, primaryGroup.id, tournamentId): Promise<MaterializedGroupRanking | null>` (exists in `app/actions/group-ranking-actions.ts`). Derives `{ rank: snapshot.currentRank, groupName: primaryGroup.name }` and passes to `TournamentSidebar` as `primaryGroupRank`.
+  Calls: `getGroupRankingForUser` (existing), `getGroupsForUser` (existing)
   Tests:
   - passes `{ rank: N, groupName: '...' }` when user has a primary group with a ranking snapshot
   - passes `null` when user has no groups
@@ -221,12 +223,24 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
 
 **Changed components:**
 
-- **`TournamentBottomNav(props)`**: `JSX.Element` *(reorder only)*
-  Groups `BottomNavigationAction` rendered before Stats `BottomNavigationAction`. No new props needed.
+- **`TournamentBottomNav(props)`**: `JSX.Element` *(reorder + hub-aware Home tab)*
+  Groups tab rendered before Stats tab. Home tab navigates to `/[locale]/tournaments/${tournamentId}/hub` when `isHubEnabled()`, otherwise to `/[locale]`.
+  Calls: `isHubEnabled` (new)
   Tests:
-  - Groups tab appears at index 3, Stats tab at index 4 in the rendered nav
-  - both Groups and Stats tabs are absent when `user` is undefined
-  - Groups and Stats tabs render with correct icon and label when `user` is defined
+  - Groups tab appears before Stats tab in the rendered nav
+  - Home tab navigates to `/tournaments/[id]/hub` when hub flag is enabled
+  - Home tab navigates to `/[locale]` when hub flag is disabled
+  - Groups and Stats tabs absent when `user` is undefined
+
+### Tournament top nav component *(modified)*
+
+**Changed components:**
+
+- Hub nav item added before Matches, conditional on `isHubEnabled()`. Links to `/[locale]/tournaments/[id]/hub`. Find exact file by searching for `topNav.matches` translation key usage.
+  Tests:
+  - Hub item renders before Matches when flag is enabled
+  - Hub item is absent when flag is disabled
+  - Hub item link resolves to correct tournament-scoped URL
 
 ---
 
@@ -235,14 +249,7 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
 **Test utilities (mandatory per project conventions):**
 - `renderWithTheme(ui)` — wraps all component tests in MUI theme provider
 - `testFactories.tournament()`, `testFactories.user()` — for mock data (never construct raw objects)
-- `vi.mock('../../actions/...')` — for isolating Server Action dependencies in component tests
-
-**Test files to create / extend:**
-- `app/utils/__tests__/environment-utils.test.ts` — `isHubEnabled()` (3 env var cases)
-- `app/components/hub/__tests__/tournament-hub-page.test.tsx` — 3 placeholder sections, logged-out, empty tournaments
-- `app/[locale]/__tests__/page.test.tsx` — hub enabled/disabled/no tournaments branches in `ServerHome`
-- `app/components/tournament-page/__tests__/friend-groups-list.test.tsx` — rank badge present/null/undefined
-- `app/components/tournament-bottom-nav/__tests__/tournament-bottom-nav.test.tsx` — tab order (Groups before Stats), user gating
+- `vi.mock('../../actions/...')` — for isolating Server Action dependencies
 
 **Mock pattern for layout tests** (new `getGroupRankingForUser` dependency):
 ```ts
@@ -250,7 +257,13 @@ vi.mock('@/app/actions/group-ranking-actions', () => ({
   getGroupRankingForUser: vi.fn(),
 }))
 ```
-Follow the same pattern used by other mocked actions in the existing layout test file.
+
+**Test files to create / extend:**
+- `app/utils/__tests__/environment-utils.test.ts` — `isHubEnabled()` (3 env var cases)
+- `app/[locale]/tournaments/[id]/hub/__tests__/page.test.tsx` — 3 placeholder sections, logged-out, route accessibility
+- `app/components/home/__tests__/tournament-redirect.test.tsx` — hub-on/hub-off/no-last-tournament branches
+- `app/components/tournament-page/__tests__/friend-groups-list.test.tsx` — rank badge present/null/undefined
+- `app/components/tournament-bottom-nav/__tests__/tournament-bottom-nav.test.tsx` — tab order, hub-aware Home tab (on/off), user gating
 
 Existing tests for `TournamentSidebar` and layout must not break.
 
@@ -261,7 +274,7 @@ Coverage target: ≥80% on new/changed code.
 ## Validation Considerations
 
 - SonarCloud: 0 new issues — avoid `any` in new prop types
-- No new i18n namespaces needed — `hub.title` goes in existing `navigation.json`
-- `NEXT_PUBLIC_HUB_ENABLED` must be added to `.env.example` and Vercel env vars (non-blocking for dev)
+- `topNav.hub` goes in existing `navigation.json` (no new namespace)
+- `NEXT_PUBLIC_HUB_ENABLED` must be added to `.env.example` and Vercel env vars
 - No database migrations required
-- Verify feature flag off path (existing redirect) still works after changes
+- Verify feature flag OFF path (existing redirect to games) still works after `TournamentRedirect` change
