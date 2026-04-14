@@ -98,6 +98,7 @@ export async function getGroupRankingForUser(
 
   const current = rows[0];
   const previous = rows[1] ?? null;
+  const rankChange = previous ? previous.rank - current.rank : null;
 
   return {
     userId: current.user_id,
@@ -106,7 +107,7 @@ export async function getGroupRankingForUser(
     currentRank: current.rank,
     currentScore: current.score,
     snapshotDate: current.snapshot_date,
-    rankChange: previous === null ? null : previous.rank - current.rank,
+    rankChange,
     previousRank: previous?.rank ?? null,
   };
 }
