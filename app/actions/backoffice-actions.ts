@@ -548,7 +548,7 @@ export async function findDataForAwards(tournamentId: string) {
   const [tournament, players] =
     await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
 
-  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, ...tournamentUpdate} = tournament || {}
+  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, locations: _locations, ...tournamentUpdate} = tournament || {}
 
   // Localize team objects within players
   const localizedPlayers = players.map(player => ({
