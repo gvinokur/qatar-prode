@@ -106,7 +106,7 @@ export async function getGroupRankingForUser(
     currentRank: current.rank,
     currentScore: current.score,
     snapshotDate: current.snapshot_date,
-    rankChange: previous !== null ? previous.rank - current.rank : null,
+    rankChange: previous === null ? null : previous.rank - current.rank,
     previousRank: previous?.rank ?? null,
   };
 }
