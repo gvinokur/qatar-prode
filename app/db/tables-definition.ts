@@ -647,3 +647,20 @@ export interface AdSettingsTable {
 
 export type AdSettings = Selectable<AdSettingsTable>
 export type AdSettingsUpdate = Updateable<AdSettingsTable>
+
+export interface GroupRankingTable {
+  id: Generated<string>
+  user_id: string
+  group_id: string
+  tournament_id: string
+  snapshot_date: number   // YYYYMMDD integer (Argentina TZ)
+  rank: number
+  score: number
+  created_at: Generated<Date>
+}
+
+export type GroupRanking = Selectable<GroupRankingTable>
+export type GroupRankingSnapshotNew = Pick<
+  Insertable<GroupRankingTable>,
+  'user_id' | 'group_id' | 'tournament_id' | 'snapshot_date' | 'rank' | 'score'
+>

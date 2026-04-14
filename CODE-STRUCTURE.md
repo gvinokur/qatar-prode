@@ -159,9 +159,10 @@ Key flows:
      ├── calculateScoreForGame (util)
      ├── updateGameGuessWithBoost
      ├── updateGameGuess
-     └── recalculateGameScoresForUsers
-           ├── (materializes scores → tournament_guesses)
-           └── writeScoreSnapshot (per user, using updated game scores + existing award scores)
+     ├── recalculateGameScoresForUsers
+     │     ├── (materializes scores → tournament_guesses)
+     │     └── writeScoreSnapshot (per user, using updated game scores + existing award scores)
+     └── recalculateGroupRankingsForUsers(tournamentId, changedUserIds) [see flow 27]
 
 3. Friend group join request flow
    PublicGroupsBrowser [Client]
@@ -399,7 +400,9 @@ Key flows:
       ├── getCompleteGroupData [server action]
       ├── saveGamesData [server action]
       ├── calculateAndStoreGroupPosition [server action]
-      ├── calculateAndStoreQualifiedTeamsScores [server action] → writeScoreSnapshot (per user, upsert RETURNING *)
+      ├── calculateAndStoreQualifiedTeamsScores [server action]
+      │     ├── writeScoreSnapshot (per user, upsert RETURNING *)
+      │     └── recalculateGroupRankingsForUsers(tournamentId, affectedUserIds) [see flow 27]
       ├── calculateAndSavePlayoffGamesForTournament [server action]
       └── BackofficeFlippableGameCard [renders]
             └── BackofficeGameResultEditControls [renders]
@@ -414,11 +417,13 @@ Key flows:
       ├── saveGameResults [server action]
       └── updateTournamentHonorRoll [server action]
             ├── updateTournamentGuess
-            └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
+            ├── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
+            └── recalculateGroupRankingsForUsers(tournamentId, affectedUserIds) [see flow 27]
    GroupStageTab [Client] (awards via GroupStageTab)
       └── updateTournamentAwards [server action]
             ├── updateTournamentGuess
-            └── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
+            ├── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
+            └── recalculateGroupRankingsForUsers(tournamentId, affectedUserIds) [see flow 27]
 
 15. Push notifications
     InstallPwa [Client] (first-time prompt)
@@ -525,4 +530,21 @@ Key flows:
       └── findTournamentByIdCached (cache hit — no extra DB call)
             └── buildBreadcrumbListJsonLd(items) (json-ld-utils)
                   └── JsonLd [renders] → <script type="application/ld+json">
+
+27. Group rank snapshot — write path (Story #315)
+    Admin action (calculateGameScores / updateTournamentAwards / updateTournamentHonorRoll / calculateAndStoreQualifiedTeamsScores)
+      └── recalculateGroupRankingsForUsers(tournamentId, changedUserIds)
+            └── findGroupsForUsers(changedUserIds) → [groupId, ...]
+                  └── per group: recalculateGroupRankings(groupId, tournamentId)
+                        ├── findProdeGroupById(groupId)
+                        ├── findParticipantsInGroup(groupId)
+                        ├── getUserScoresForTournament(memberIds, tournamentId)
+                        ├── calculateRanks(scores, 'totalPoints')
+                        └── upsertGroupRankingSnapshots(snapshots) → group_rankings table
+
+28. Group rank snapshot — read path (Story #315)
+    getGroupRankingForUser(userId, groupId, tournamentId) [server action]
+      └── getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) → [current, previous?]
+            → derives rankChange = previous.rank - current.rank (positive = improved)
+            → returns MaterializedGroupRanking | null
 ```

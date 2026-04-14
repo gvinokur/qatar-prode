@@ -5,6 +5,7 @@ import { getLoggedInUser } from './user-actions';
 import { findTournamentById } from '../db/tournament-repository';
 import { writeScoreSnapshot } from '../db/score-history-repository';
 import { getTodayYYYYMMDD } from '../utils/date-utils';
+import { recalculateGroupRankingsForUsers } from './group-ranking-actions';
 import { db } from '../db/database';
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
@@ -169,6 +170,9 @@ export async function calculateAndStoreQualifiedTeamsScores(
         // Continue processing other users
       }
     }
+
+    // Recalculate group rank snapshots for all affected users (Story #315)
+    await recalculateGroupRankingsForUsers(tournamentId, userIds);
 
     // Revalidate relevant paths
     revalidatePath(`/tournaments/${tournamentId}/stats`);

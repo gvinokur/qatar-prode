@@ -27,16 +27,16 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: findGroupsWithGamesAndTeamsInTournament
 - **recalculateAllPlayoffFirstRoundGameGuesses(tournamentId)**: `Promise<void>` — Recalculates all users' playoff guesses.
   Calls: updatePlayoffGameGuesses
-- **calculateGameScores(forceDrafts, forceAllGuesses, locale)**: `Promise<void>` — Recalculates all game guess scores.
-  Calls: findAllGamesWithPublishedResultsAndGameGuesses, findAllGuessesForGamesWithResultsInDraft, findTournamentById, calculateScoreForGame, updateGameGuessWithBoost, updateGameGuess, recalculateGameScoresForUsers
+- **calculateGameScores(forceDrafts, forceAllGuesses, locale)**: `Promise<void>` — Recalculates all game guess scores, then triggers group rank snapshot materialization for all affected users.
+  Calls: findAllGamesWithPublishedResultsAndGameGuesses, findAllGuessesForGamesWithResultsInDraft, findTournamentById, calculateScoreForGame, updateGameGuessWithBoost, updateGameGuess, recalculateGameScoresForUsers, recalculateGroupRankingsForUsers
 - **calculateAndStoreGroupPosition(groupId, teamIds, groupGames, sortByGamesBetweenTeams)**: `Promise<void>` — Updates group standings.
   Calls: calculateGroupPosition, updateTournamentGroupTeams
 - **findDataForAwards(tournamentId)**: `Promise<{ tournament: Tournament; players: ExtendedPlayerData[] }>` — Gets tournament and players for award assignment.
   Calls: findTournamentById, findAllPlayersInTournamentWithTeamData, applyLocalization
-- **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards, recalculates scores, and writes daily score snapshot for each user.
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot
-- **updateTournamentHonorRoll(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates honor roll (champion, runner-up, third place), and writes daily score snapshot for each user.
-  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot
+- **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards, recalculates scores, writes daily score snapshot for each user, then triggers group rank snapshot materialization for all tournament participants.
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot, recalculateGroupRankingsForUsers
+- **updateTournamentHonorRoll(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates honor roll (champion, runner-up, third place), writes daily score snapshot for each user, then triggers group rank snapshot materialization for all tournament participants.
+  Calls: updateTournament, findTournamentById, findTournamentGuessByTournament, updateTournamentGuess, writeScoreSnapshot, recalculateGroupRankingsForUsers
 - **copyTournament(tournamentId, newStartDate, longName, shortName, locale)**: `Promise<Tournament>` — Creates a complete tournament copy with all structure.
   Calls: getLoggedInUser, findTournamentById, createTournament, findTeamInTournament, createTournamentTeam, findAllPlayersInTournamentWithTeamData, createPlayer, findAllTournamentVenues, createTournamentVenue, findPlayoffStagesWithGamesInTournament, createPlayoffRound, findGroupsWithGamesAndTeamsInTournament, createTournamentGroup, createTournamentGroupTeam, findGamesInTournament, createGame, createTournamentGroupGame, createPlayoffRoundGame, findThirdPlaceRulesByTournament, createThirdPlaceRule, applyLocalization
 - **updateGroupTeamConductScores(groupId, conductScores, locale)**: `Promise<void>` — Updates conduct scores (admin only).
@@ -217,8 +217,8 @@ Manages qualified team position predictions for group stages.
 ### app/actions/qualified-teams-scoring-actions.ts
 Calculates and stores scores for qualified team predictions.
 
-- **calculateAndStoreQualifiedTeamsScores(tournamentId, locale)**: `Promise<BatchScoringResult>` — Calculates and persists scores for all tournament users. Uses upsert (INSERT...ON CONFLICT) with RETURNING * to get full row, then writes a score snapshot per user.
-  Calls: findTournamentById, calculateQualifiedTeamsScore, db.insertInto (upsert), writeScoreSnapshot, getTodayYYYYMMDD, revalidatePath
+- **calculateAndStoreQualifiedTeamsScores(tournamentId, locale)**: `Promise<BatchScoringResult>` — Calculates and persists scores for all tournament users. Uses upsert (INSERT...ON CONFLICT) with RETURNING * to get full row, writes a score snapshot per user, then triggers group rank snapshot materialization for all affected users.
+  Calls: findTournamentById, calculateQualifiedTeamsScore, db.insertInto (upsert), writeScoreSnapshot, getTodayYYYYMMDD, recalculateGroupRankingsForUsers, revalidatePath
 - **calculateUserQualifiedTeamsScore(userId, tournamentId, locale)**: `Promise<SingleUserScoringResult>` — Calculates score for a single user.
   Calls: calculateQualifiedTeamsScore
 - **triggerQualifiedTeamsScoringAction(tournamentId, locale)**: `Promise<BatchScoringResult>` — Admin trigger for qualification scoring.
@@ -369,3 +369,13 @@ Authentication and user account management — signup, verification, password, O
   Calls: getLoggedInUser, findUsersPaginated, countUsers
 - **toggleUserAdFreeAction(userId: string, isAdFree: boolean)**: `Promise<void>` — Admin-only. Toggles ad-free status for a user.
   Calls: getLoggedInUser, updateUserAdFreeStatus
+
+### app/actions/group-ranking-actions.ts
+Server Actions for materializing and reading per-group rank snapshots. Snapshots are written after admin score-change triggers; reads derive rank change from the two most recent snapshots (Story #315).
+
+- **recalculateGroupRankings(groupId: string, tournamentId: string)**: `Promise<void>` — Internal. Fetches all group members, computes their scores, applies competition ranking, and upserts today's snapshots. No auth check.
+  Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, calculateRanks, getTodayYYYYMMDD, upsertGroupRankingSnapshots
+- **recalculateGroupRankingsForUsers(tournamentId: string, changedUserIds: string[])**: `Promise<void>` — Internal. Finds all groups containing at least one user from changedUserIds, then calls recalculateGroupRankings per group with error isolation (try/catch per group). Does nothing for empty changedUserIds.
+  Calls: findGroupsForUsers, recalculateGroupRankings
+- **getGroupRankingForUser(userId: string, groupId: string, tournamentId: string)**: `Promise<MaterializedGroupRanking | null>` — Server Action. Fetches two most recent snapshots and derives rankChange (previousRank - currentRank; positive = improved). Returns null when no snapshots exist.
+  Calls: getLatestTwoGroupRankingSnapshots

@@ -98,6 +98,7 @@ import {
 } from '../db/tournament-view-permission-repository';
 import {writeScoreSnapshot} from '../db/score-history-repository';
 import {getTodayYYYYMMDD} from '../utils/date-utils';
+import {recalculateGroupRankingsForUsers} from './group-ranking-actions';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
@@ -516,6 +517,13 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
     )
   );
 
+  // Recalculate group rank snapshots for affected users (Story #315)
+  await Promise.all(
+    Array.from(usersByTournament.entries()).map(([tournamentId, userIds]) =>
+      recalculateGroupRankingsForUsers(tournamentId, Array.from(userIds))
+    )
+  );
+
   return {updatedGameGuesses, cleanedGameGuesses}
 }
 
@@ -540,7 +548,7 @@ export async function findDataForAwards(tournamentId: string) {
   const [tournament, players] =
     await Promise.all([findTournamentById(tournamentId), findAllPlayersInTournamentWithTeamData(tournamentId)])
 
-  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, ...tournamentUpdate} = tournament || {}
+  const {id: _id, theme: _theme, short_name: _short_name, long_name: _long_name, is_active: _is_active, short_name_i18n: _short_name_i18n, long_name_i18n: _long_name_i18n, locations: _locations, ...tournamentUpdate} = tournament || {}
 
   // Localize team objects within players
   const localizedPlayers = players.map(player => ({
@@ -570,7 +578,7 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
   const individual_award_points = tournament.individual_award_points ?? 3;
   const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
 
-  return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+  const results = await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
     const awardsScore = awardsDefinition.reduce((accumScore, awardDefinition) => {
       if (withUpdate[awardDefinition.property]) {
         if (tournamentGuess[awardDefinition.property] === withUpdate[awardDefinition.property]) {
@@ -597,6 +605,12 @@ export async function updateTournamentAwards(tournamentId: string, withUpdate: T
     }
     return updatedGuess
   }))
+
+  // Recalculate group rank snapshots for all tournament participants (Story #315)
+  const affectedUserIds = allTournamentGuesses.map(g => g.user_id);
+  await recalculateGroupRankingsForUsers(tournamentId, affectedUserIds);
+
+  return results
 }
 
 export async function updateTournamentHonorRoll(tournamentId: string, withUpdate: TournamentUpdate, locale: Locale = 'es') {
@@ -616,7 +630,7 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
 
   if(withUpdate.champion_team_id || withUpdate.runner_up_team_id || withUpdate.third_place_team_id) {
     const allTournamentGuesses = await findTournamentGuessByTournament(tournamentId)
-    return await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
+    const results = await Promise.all(allTournamentGuesses.map(async (tournamentGuess) => {
       let honorRollScore = 0
       if(withUpdate.champion_team_id &&
         tournamentGuess.champion_team_id === withUpdate.champion_team_id) {
@@ -648,6 +662,12 @@ export async function updateTournamentHonorRoll(tournamentId: string, withUpdate
       }
       return updatedGuess
     }))
+
+    // Recalculate group rank snapshots for all tournament participants (Story #315)
+    const affectedUserIds = allTournamentGuesses.map(g => g.user_id);
+    await recalculateGroupRankingsForUsers(tournamentId, affectedUserIds);
+
+    return results
   }
 }
 
