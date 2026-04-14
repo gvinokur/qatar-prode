@@ -20,6 +20,8 @@ export interface DraggableTeamCardProps {
   readonly isLocked: boolean;
   /** Whether predictions are currently being saved */
   readonly isSaving: boolean;
+  /** Whether third-place qualification is enabled for this tournament */
+  readonly allowsThirdPlace: boolean;
   /** Maximum allowed third place qualifiers */
   readonly maxThirdPlace: number;
   /** Current count of third place teams selected */
@@ -364,6 +366,7 @@ export default function DraggableTeamCard({
   predictedToQualify,
   isLocked,
   isSaving,
+  allowsThirdPlace,
   maxThirdPlace,
   currentThirdPlaceCount,
   onToggleThirdPlace,
@@ -468,7 +471,7 @@ export default function DraggableTeamCard({
         {!isLocked && <DragHandle disabled={isLocked || isSaving} />}
         <PositionBadge position={position} t={t} />
         <TeamInfo team={team} />
-        {position === 3 && !isLocked && (
+        {position === 3 && !isLocked && allowsThirdPlace && (
           <Box component="span" onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}>
             <ThirdPlaceCheckbox
               checked={predictedToQualify}
