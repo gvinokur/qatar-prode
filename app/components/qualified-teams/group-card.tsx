@@ -194,6 +194,7 @@ export default function GroupCard({
                 predictedToQualify={prediction.predicted_to_qualify}
                 isLocked={isLocked}
                 isSaving={isSaving}
+                allowsThirdPlace={allowsThirdPlace}
                 maxThirdPlace={maxThirdPlace}
                 currentThirdPlaceCount={currentThirdPlaceCount}
                 onToggleThirdPlace={

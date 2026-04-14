@@ -151,6 +151,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={false}
           isLocked={false}
           isSaving={false}
+          allowsThirdPlace={true}
         />
       );
 
@@ -208,6 +209,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={true}
           isLocked={false}
           isSaving={false}
+          allowsThirdPlace={true}
         />
       );
 
@@ -223,6 +225,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={false}
           isLocked={false}
           isSaving={false}
+          allowsThirdPlace={true}
         />
       );
 
@@ -240,6 +243,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={false}
           isLocked={false}
           isSaving={false}
+          allowsThirdPlace={true}
           onToggleThirdPlace={onToggleThirdPlace}
         />
       );
@@ -484,6 +488,7 @@ describe('DraggableTeamCard', () => {
           predictedToQualify={false}
           isLocked={false}
           isSaving={false}
+          allowsThirdPlace={true}
         />
       );
 

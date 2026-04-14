@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-11
+**Last updated:** 2026-04-14
 
 ---
 
@@ -175,7 +175,7 @@ Group card with draggable team cards, expandable on mobile, shows scoring result
 ### app/components/qualified-teams/draggable-team-card.tsx
 Draggable team card with position badge, qualification checkbox (position 3 only), and results overlay.
 
-- **DraggableTeamCard(props: DraggableTeamCardProps)**: `JSX.Element` — [Client] Uses dnd-kit useSortable for drag-and-drop (disabled when locked/saving). Displays position badge (1°, 2°, 3°, 4°), team name, and optional third-place checkbox (position 3, disabled if limit reached). BorderColor logic: green for qualified, red for non-qualified, blue for pending, transparent for position 4+. Results overlay shows chip + explanation (pending, points awarded 0-2, or did-not-qualify).
+- **DraggableTeamCard(props: DraggableTeamCardProps)**: `JSX.Element` — [Client] Uses dnd-kit useSortable for drag-and-drop (disabled when locked/saving). Displays position badge (1°, 2°, 3°, 4°), team name, and optional third-place checkbox (position 3 only, hidden when `allowsThirdPlace` is false or tournament is locked; disabled if limit reached). BorderColor logic: green for qualified, red for non-qualified, blue for pending, transparent for position 4+. Results overlay shows chip + explanation (pending, points awarded 0-2, or did-not-qualify).
   Uses: useTheme, useTranslations('qualified-teams'), useSortable, CSS.Transform
   Renders: DragHandle, PositionBadge, TeamInfo, ThirdPlaceCheckbox, ResultsOverlay
 

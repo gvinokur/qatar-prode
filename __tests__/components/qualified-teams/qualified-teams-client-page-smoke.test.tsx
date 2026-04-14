@@ -114,16 +114,45 @@ describe('QualifiedTeamsClientPage - Smoke Tests', () => {
   });
 
   it('should render with third place disabled', () => {
+    const mockPrediction3 = testFactories.qualifiedTeamPrediction({
+      id: 'pred-3pos',
+      user_id: 'user-1',
+      tournament_id: 'tournament-1',
+      team_id: 'team-2',
+      group_id: 'group-1',
+      predicted_position: 3,
+      predicted_to_qualify: false,
+    });
     const noThirdPlaceProps = {
       ...mockProps,
-      tournament: testFactories.tournament({
-        id: 'tournament-2',
-        allows_third_place_qualification: false,
-        max_third_place_qualifiers: 0,
-      }),
+      allowsThirdPlace: false,
+      maxThirdPlace: 0,
+      initialPredictions: [mockPrediction1, mockPrediction3],
     };
-    const { container } = renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
-    expect(container).toBeInTheDocument();
+    renderWithI18n(<QualifiedTeamsClientPage {...noThirdPlaceProps} />);
+    // Checkbox must not appear even though a team is in position 3
+    expect(screen.queryByText('Clasifica')).not.toBeInTheDocument();
+  });
+
+  it('should show third place checkbox when allowsThirdPlace is true and team is at position 3', () => {
+    const mockPrediction3 = testFactories.qualifiedTeamPrediction({
+      id: 'pred-3pos',
+      user_id: 'user-1',
+      tournament_id: 'tournament-1',
+      team_id: 'team-2',
+      group_id: 'group-1',
+      predicted_position: 3,
+      predicted_to_qualify: false,
+    });
+    const withThirdPlaceProps = {
+      ...mockProps,
+      allowsThirdPlace: true,
+      maxThirdPlace: 4,
+      initialPredictions: [mockPrediction1, mockPrediction3],
+    };
+    renderWithI18n(<QualifiedTeamsClientPage {...withThirdPlaceProps} />);
+    // Checkbox must appear for position-3 team when allowsThirdPlace is true
+    expect(screen.queryByText('Clasifica')).toBeInTheDocument();
   });
 
   it('should render when third place limit is reached', () => {
