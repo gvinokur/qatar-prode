@@ -367,3 +367,17 @@ export interface MaterializedGroupRanking {
 ## Open Questions
 
 _None._
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: JSONB serialization fix in findDataForAwards
+**Date:** 2026-04-14
+**Reason:** Discovered during implementation that `findDataForAwards` was not excluding the `locations` field when building `tournamentUpdate`. PostgreSQL's `pg` driver serializes JS `string[]` as PostgreSQL text array literals (e.g. `{"Test Location"}`), which PostgreSQL cannot parse as JSONB. This caused "invalid input syntax for type json" when saving tournament awards.
+**Change:** Added `locations: _locations` to the destructuring in `findDataForAwards` so the field is excluded from the update payload passed to `updateTournamentAwards`. Awards saving has no reason to modify tournament locations, making this semantically correct.
+
+### Amendment 2: Test file path structure
+**Date:** 2026-04-14
+**Reason:** Plan listed test files at `__tests__/group-ranking-repository.test.ts` and `__tests__/group-ranking-actions.test.ts`. During implementation, existing test structure uses nested directories.
+**Change:** Tests placed at `__tests__/db/group-ranking-repository.test.ts` and `__tests__/actions/group-ranking-actions.test.ts` to follow existing `__tests__/db/` and `__tests__/actions/` conventions.
