@@ -16,7 +16,7 @@ Users land on the Tournament Hub (`/tournaments/[id]/hub`) when `NEXT_PUBLIC_HUB
 - Mobile bottom nav "Home" tab points to `/tournaments/[id]/hub` when flag is on, `/[locale]` otherwise
 - Tournament sidebar order: 1. Friend Groups, 2. Group Standings, 3. Stats, 4. Rules
 - Mobile bottom nav order: Home (or Hub), Results, Rules, **Groups** (user), Stats (user)
-- Rank badge (user's rank in their primary group) shown in the Friend Groups `CardHeader` in the sidebar
+- Rank badge shown in Friend Groups `CardHeader` (primary group rank with tooltip) and per-row badge next to each group in the list
 - Hub page renders without errors when user is logged out or has no groups
 - `app/[locale]/page.tsx` is **untouched** — no changes to the root page
 - No changes to the games page at `/tournaments/[id]`
@@ -57,20 +57,33 @@ The tournament top nav component (renders MATCHES | QUALIFIED TEAMS | AWARDS lin
 
 ### Navigation Reordering
 
-**Sidebar** (`app/components/tournament-page/tournament-sidebar.tsx`): Move Friend Groups block from position 3 to position 1. Add `primaryGroupRank?: { rank: number; groupName: string } | null` prop threaded through to `FriendGroupsList`.
+**Sidebar** (`app/components/tournament-page/tournament-sidebar.tsx`): Move Friend Groups block from position 3 to position 1. Add `groupRanks?: Record<string, number>` prop (groupId → rank) threaded through to `FriendGroupsList`.
 
 **Bottom nav** (`app/components/tournament-bottom-nav/tournament-bottom-nav.tsx`):
 - Swap order of Groups and Stats tabs (Groups before Stats)
 - When `isHubEnabled()`: "Home" tab navigates to `/[locale]/tournaments/${tournamentId}/hub` instead of `/[locale]`
 - `isHubEnabled()` is `NEXT_PUBLIC_` so it's safe to call in this client component
 
-### Rank Badge in Sidebar
+### Rank Badges in Sidebar
 
-`FriendGroupsList` (`app/components/tournament-page/friend-groups-list.tsx`) gets a new optional prop `primaryGroupRank?: { rank: number; groupName: string } | null`. When present, renders a `<Badge badgeContent={rank} color="secondary">` inside the `CardHeader` title `Box`.
+`FriendGroupsList` (`app/components/tournament-page/friend-groups-list.tsx`) gets two rank display behaviours:
 
-Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUser()`, derive the primary group (first item in `userGroups`), call `getGroupRankingForUser(user.id, primaryGroup.id, params.id)` (exists in `app/actions/group-ranking-actions.ts`, returns `MaterializedGroupRanking | null`). Derive `{ rank: snapshot.currentRank, groupName: primaryGroup.name }` and pass to `TournamentSidebar` as `primaryGroupRank`.
+1. **Header badge** — small `<Badge badgeContent={rank}>` in the `CardHeader` title showing the user's rank in their primary group (first `userGroup`). Wrapped in a `<Tooltip title="You are ranked #N in [group name]">` for context.
+2. **Per-row badge** — small chip/badge next to each group name in the list showing the user's rank in that group.
 
-**Prop type note**: Components receive the simplified `{ rank: number; groupName: string }` derived in the layout — not the full `MaterializedGroupRanking` — keeping component props clean and decoupled from the ranking action's return type.
+Both are driven by a new `groupRanks?: Record<string, number>` prop (groupId → `currentRank`). The component looks up `groupRanks?.[group.id]` for each row. If `groupRanks` is absent or a group has no entry, no badge is shown — this naturally handles pre-results state since snapshots don't exist until an admin saves match results.
+
+**No explicit tournament-started guard needed**: `getGroupRankingForUser` returns `null` before any results are saved (no snapshots exist), so `groupRanks` entries simply won't be present.
+
+Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUser()`, fetch ranks for **all** groups in parallel:
+```
+allGroups = [...userGroups, ...participantGroups]
+results   = await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))
+groupRanks = Record built from allGroups[i].id → results[i].currentRank (skip nulls)
+```
+Pass `groupRanks` to `TournamentSidebar`, which threads it through to `FriendGroupsList`.
+
+**Prop type note**: Components receive `Record<string, number>` — rank by groupId — derived in the layout, not the full `MaterializedGroupRanking`, keeping components decoupled from the ranking action's return type.
 
 ---
 
@@ -84,8 +97,12 @@ Data fetch: in `app/[locale]/tournaments/[id]/layout.tsx`, after `getGroupsForUs
 ├─────────────────────────────────────────────────────────┤
 │  [HUB] MATCHES  QUALIFIED TEAMS  AWARDS                 │  ← top nav (Hub first)
 ├──────────────────────────────┬──────────────────────────┤
-│                              │  Friend Groups  ④        │
-│  ┌──────────────────────┐    │  ─────────────────────   │
+│                              │  Friend Groups  ④        │  ← header badge (primary group)
+│                              │  [tooltip: "Ranked #4    │     tooltip on hover
+│                              │   in My World Cup Group"]│
+│  ┌──────────────────────┐    │  > My World Cup Group ④  │  ← per-row badge
+│  │  Smart Predictor     │    │  > Work Friends       ②  │  ← per-row badge
+│  │  Carousel            │    │  ─────────────────────   │
 │  │  Smart Predictor     │    │  Group Standings          │
 │  │  Carousel            │    │  ─────────────────────   │
 │  │  [Coming — #317]     │    │  Stats                   │
@@ -126,9 +143,9 @@ Flag ON:   [Hub→/hub] [Results] [Rules] [Groups④] [Stats]
 |------|--------|
 | `app/utils/environment-utils.ts` | Add `isHubEnabled()` |
 | `app/components/home/tournament-redirect.tsx` | Check `isHubEnabled()`, redirect to `/hub` or `/` |
-| `app/[locale]/tournaments/[id]/layout.tsx` | Fetch primaryGroupRank, pass to sidebar |
-| `app/components/tournament-page/tournament-sidebar.tsx` | Reorder sections, add `primaryGroupRank` prop |
-| `app/components/tournament-page/friend-groups-list.tsx` | Add `primaryGroupRank` prop + badge in CardHeader |
+| `app/[locale]/tournaments/[id]/layout.tsx` | Fetch ranks for all groups in parallel, pass `groupRanks` to sidebar |
+| `app/components/tournament-page/tournament-sidebar.tsx` | Reorder sections, add `groupRanks` prop |
+| `app/components/tournament-page/friend-groups-list.tsx` | Add `groupRanks` prop, header badge + tooltip, per-row badges |
 | `app/components/tournament-bottom-nav/tournament-bottom-nav.tsx` | Swap Groups/Stats order; hub-aware Home tab |
 | Tournament top nav component | Add Hub item before Matches (find file via `topNav.matches` usage) |
 | `locales/en/navigation.json` | Add `topNav.hub` key |
@@ -142,7 +159,7 @@ Flag ON:   [Hub→/hub] [Results] [Rules] [Groups④] [Stats]
 
 **Modified flow:**
 - Flow 1 (Predictions dashboard / home redirect): `TournamentRedirect` now branches on `isHubEnabled()` — redirects to `/tournaments/[id]/hub` or `/tournaments/[id]`
-- Flow 3 (Tournament layout): Add `getGroupRankingForUser` call after `getGroupsForUser`, pass `primaryGroupRank` down to `TournamentSidebar → FriendGroupsList`
+- Flow 3 (Tournament layout): After `getGroupsForUser`, parallel-fetch ranks for all groups via `getGroupRankingForUser`, derive `groupRanks: Record<string, number>`, pass down to `TournamentSidebar → FriendGroupsList`
 
 **New flow:**
 - Flow 29: `[locale]/tournaments/[id]/hub/page.tsx` renders as a static shell (no new action calls for this story — widget data in future stories)
@@ -187,37 +204,41 @@ Flag ON:   [Hub→/hub] [Results] [Rules] [Groups④] [Stats]
 
 **Changed functions:**
 
-- **`TournamentLayout(props)`**: `Promise<JSX.Element>` *(adds primaryGroupRank fetch)*
-  After fetching `prodeGroups`, derives the primary group (first `userGroup`). Calls `getGroupRankingForUser(user.id, primaryGroup.id, tournamentId): Promise<MaterializedGroupRanking | null>` (exists in `app/actions/group-ranking-actions.ts`). Derives `{ rank: snapshot.currentRank, groupName: primaryGroup.name }` and passes to `TournamentSidebar` as `primaryGroupRank`.
-  Calls: `getGroupRankingForUser` (existing), `getGroupsForUser` (existing)
+- **`TournamentLayout(props)`**: `Promise<JSX.Element>` *(adds parallel groupRanks fetch)*
+  After fetching groups via `getGroupsForUser`, builds `allGroups = [...userGroups, ...participantGroups]` and fetches ranks in parallel: `await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))`. Derives `groupRanks: Record<string, number>` by mapping `allGroups[i].id → results[i].currentRank` (skipping nulls). Passes `groupRanks` to `TournamentSidebar`.
+  Calls: `getGroupRankingForUser` (existing, called N times in parallel), `getGroupsForUser` (existing)
   Tests:
-  - passes `{ rank: N, groupName: '...' }` when user has a primary group with a ranking snapshot
-  - passes `null` when user has no groups
-  - passes `null` when user has groups but `getGroupRankingForUser` returns null (no snapshot yet)
+  - passes `groupRanks` with entry for each group that has a ranking snapshot
+  - passes empty `{}` when user has no groups
+  - passes empty `{}` when user has groups but all `getGroupRankingForUser` calls return null (no snapshots yet)
+  - skips null entries — groups with no snapshot are absent from `groupRanks`
 
 ### `app/components/tournament-page/tournament-sidebar.tsx` *(modified)*
 
 **Changed components:**
 
 - **`TournamentSidebar(props)`**: `JSX.Element` *(reorder + new prop)*
-  Friend Groups section rendered first. Accepts and threads `primaryGroupRank` to `FriendGroupsList`.
-  New prop: `primaryGroupRank?: { rank: number; groupName: string } | null`
+  Friend Groups section rendered first. Accepts and threads `groupRanks` to `FriendGroupsList`.
+  New prop: `groupRanks?: Record<string, number>`
   Tests:
   - Friend Groups section renders before Group Standings in the DOM
-  - passes `primaryGroupRank` value through to `FriendGroupsList`
-  - renders correctly when `primaryGroupRank` is undefined
+  - passes `groupRanks` value through to `FriendGroupsList`
+  - renders correctly when `groupRanks` is undefined
 
 ### `app/components/tournament-page/friend-groups-list.tsx` *(modified)*
 
 **Changed components:**
 
-- **`FriendGroupsList(props)`**: `JSX.Element` *(adds rank badge)*
-  New optional `primaryGroupRank` prop. When provided, renders a `<Badge badgeContent={rank}>` inside the `CardHeader` title `Box`.
-  New prop: `primaryGroupRank?: { rank: number; groupName: string } | null`
+- **`FriendGroupsList(props)`**: `JSX.Element` *(adds rank badges + tooltip)*
+  New optional `groupRanks` prop. When provided: (1) renders a `<Tooltip title="You are ranked #N in [group name]"><Badge badgeContent={rank}>` in the `CardHeader` title using the first `userGroup`'s rank; (2) renders a small `<Chip>` or `<Badge>` next to each group row in the list showing that group's rank from `groupRanks[group.id]`.
+  New prop: `groupRanks?: Record<string, number>`
   Tests:
-  - renders badge with correct rank number when `primaryGroupRank` is provided
-  - does not render badge when `primaryGroupRank` is null
-  - does not render badge when `primaryGroupRank` is undefined (backward compat)
+  - header badge shows primary group rank when `groupRanks` has entry for first `userGroup`
+  - header badge tooltip text reads "You are ranked #N in [group name]"
+  - per-row badge appears next to each group that has an entry in `groupRanks`
+  - no header badge or per-row badges when `groupRanks` is undefined (backward compat)
+  - no header badge or per-row badges when `groupRanks` is empty `{}` (pre-results state)
+  - groups with no entry in `groupRanks` render without a badge
 
 ### `app/components/tournament-bottom-nav/tournament-bottom-nav.tsx` *(modified)*
 
@@ -262,7 +283,7 @@ vi.mock('@/app/actions/group-ranking-actions', () => ({
 - `app/utils/__tests__/environment-utils.test.ts` — `isHubEnabled()` (3 env var cases)
 - `app/[locale]/tournaments/[id]/hub/__tests__/page.test.tsx` — 3 placeholder sections, logged-out, route accessibility
 - `app/components/home/__tests__/tournament-redirect.test.tsx` — hub-on/hub-off/no-last-tournament branches
-- `app/components/tournament-page/__tests__/friend-groups-list.test.tsx` — rank badge present/null/undefined
+- `app/components/tournament-page/__tests__/friend-groups-list.test.tsx` — header badge + tooltip, per-row badges, missing/empty groupRanks
 - `app/components/tournament-bottom-nav/__tests__/tournament-bottom-nav.test.tsx` — tab order, hub-aware Home tab (on/off), user gating
 
 Existing tests for `TournamentSidebar` and layout must not break.
