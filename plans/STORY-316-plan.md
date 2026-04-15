@@ -292,6 +292,17 @@ Coverage target: ≥80% on new/changed code.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: FriendGroupsList rank display — subtitle instead of header badge
+**Date:** 2026-04-15
+**Reason:** User feedback after seeing the initial Badge/Tooltip implementation: the header badge felt visually cluttered and the tooltip was not discoverable enough.
+**Change:**
+- Removed `<Badge>` + `<Tooltip>` from the `CardHeader` title. Title is now always plain text (`t('title')`).
+- The `subheader` is extended to include rank inline: `"N groups - #R in [Group Name]"` when `primaryGroupRank` is available. New i18n key `header.groupCountWithRank` added to `locales/en/groups.json` and `locales/es/groups.json`. Key `header.rankBadgeTooltip` removed.
+- Per-row rank `<Chip>` moved **before** the group name link (was after it) — user preference for scanability.
+- Tests updated accordingly: "header badge" assertions replaced with subtitle text assertions via regex.
+
 ## Validation Considerations
 
 - SonarCloud: 0 new issues — avoid `any` in new prop types
