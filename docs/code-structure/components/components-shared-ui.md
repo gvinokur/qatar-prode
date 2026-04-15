@@ -174,8 +174,8 @@ PWA install prompt with iOS manual install guide and exponential backoff for re-
 - `InstallPwa` - [Client] - Uses: `useTranslations` - Renders: Snackbar, Alert, List, NotificationsSubscriptionPrompt
 
 **app/components/invite-friends-dialog.tsx**
-Dialog for sharing friend group invitations via short URL with copy-to-clipboard and WhatsApp share.
-- `InviteFriendsDialog` - [Client] - Calls: `generateShortUrlForGroup`, `buildShortUrl`, `updateUserLocale` - Uses: `useTranslations`, `useLocale` - Renders: Dialog, TextField, Button, Snackbar
+Three-tab dialog (Enlace / Email / Folleto) for sharing group invitations with a live flier preview and PNG capture.
+- `InviteFriendsDialog({ trigger, groupId, groupName, tournamentId?, groupLogoUrl?, themeColor? })` - [Client] - Tab 0 (Enlace): link copy + WhatsApp share. Tab 1 (Email): coming-soon placeholder. Tab 2 (Folleto): customMessage TextField + live InviteFlierTemplate preview + download/share buttons backed by captureElement/downloadBlob/shareImage. - Calls: `generateShortUrlForGroup`, `buildShortUrl`, `captureElement`, `downloadBlob`, `shareImage` - Uses: `useTranslations`, `useLocale` - Renders: Tabs, InviteFlierTemplate, Dialog, TextField, Button, Snackbar
 
 **app/components/notifications-subscription-prompt.tsx**
 Prompt for enabling web push notifications with "not now" and "never ask" options.

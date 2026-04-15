@@ -237,8 +237,8 @@ Tournament-scoped group leaderboard with admin management interface.
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns title `"{group.name} | {tournament.short_name} | {appName}"` (tournament suffix omitted if not found); falls back to appName on error.
   Calls: findProdeGroupById, findTournamentById, getTranslations, getLocale
 - **TournamentScopedFriendGroup(props)**: `JSX.Element` — [Server] Fetches group, participants, user scores for tournament; checks admin status; fetches score history for History tab; calls computeSnapshotScores [utils] to patch latestSnapshotPoints/penultimateSnapshotPoints onto user scores before passing to ProdeGroupTable; renders leaderboard with optional admin tabs and betting config.
-  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, findQualifiedTeams, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getScoreHistoryForGroup, computeSnapshotScores [utils], getTranslations
-  Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton
+  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, findQualifiedTeams, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getScoreHistoryForGroup, computeSnapshotScores [utils], getTranslations, getThemeLogoUrl
+  Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton (passes groupLogoUrl via getThemeLogoUrl, themeColor via theme.primary_color)
 
 ### app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx
 Public friend groups discovery page with search and pagination.
@@ -261,7 +261,7 @@ Global friend group leaderboard showing scores across all active tournaments.
   Calls: findProdeGroupById, getTranslations, getLocale
 - **FriendsGroup(props)**: `JSX.Element` — [Server] Fetches all active tournaments, group participants, user scores and qualified teams for each tournament; builds TournamentBadgeConfig per tournament; fetches score history per tournament for History tab; calls computeSnapshotScores [utils] per tournament to patch latestSnapshotPoints/penultimateSnapshotPoints onto user scores before passing to ProdeGroupTable.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findUsersByIds, findAllActiveTournaments, getUserScoresForTournament, findQualifiedTeams, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, generateShortUrlForGroup, getScoreHistoryForGroup, computeSnapshotScores [utils], getThemeLogoUrl, toMap
-  Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton, LeaveGroupButton
+  Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton (passes groupLogoUrl via getThemeLogoUrl, themeColor via theme.primary_color), LeaveGroupButton
 
 ### app/[locale]/friend-groups/join/[id]/page.tsx
 Global join request form for groups.
