@@ -52,6 +52,11 @@ export default function FriendGroupsList({
   const primaryGroup = userGroups[0] ?? participantGroups[0];
   const primaryGroupRank = primaryGroup ? (groupRanks?.[primaryGroup.id] ?? null) : null;
   const groupCount = userGroups.length + participantGroups.length;
+  const groupCountText = groupCount > 0
+    ? (primaryGroupRank !== null && primaryGroup
+        ? t('header.groupCountWithRank', { count: groupCount, rank: primaryGroupRank, groupName: primaryGroup.name })
+        : t('header.groupCount', { count: groupCount }))
+    : t('header.noGroups');
   const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
@@ -102,11 +107,7 @@ export default function FriendGroupsList({
           slotProps={{ title: { variant: 'h6' } }}
           subheader={[
             isActive ? t('status.youAreHere') : null,
-            groupCount > 0
-              ? (primaryGroupRank !== null && primaryGroup
-                  ? t('header.groupCountWithRank', { count: groupCount, rank: primaryGroupRank, groupName: primaryGroup.name })
-                  : t('header.groupCount', { count: groupCount }))
-              : t('header.noGroups'),
+            groupCountText,
           ].filter(Boolean).join(' · ')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
