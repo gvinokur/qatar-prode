@@ -5,7 +5,8 @@
   "actionCenter": {
     "title": "Centro de Acción",
     "subtitle": "Envía tus predicciones",
-    "emptyState": "No hay partidos próximos para predecir",
+    "emptyState": "No hay partidos para predecir ahora",
+    "emptyStateHint": "Las predicciones abren 48 horas antes de cada partido — volvé pronto",
     "fallbackSubtitle": "Todo al día — esto viene próximamente"
   }
 }

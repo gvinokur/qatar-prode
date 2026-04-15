@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Box, Typography } from '@mui/material'
+import { CalendarToday as CalendarTodayIcon } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider'
 import { ScrollShadowContainer } from '../common/scroll-shadow-container'
@@ -56,7 +57,8 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
       tournamentMaxGolden={data.tournamentMaxGolden}
     >
       <Box>
-        <Box sx={{ mb: 1 }}>
+        {/* Header — centered */}
+        <Box sx={{ mb: 1, textAlign: 'center' }}>
           <Typography variant="h6">{t('actionCenter.title')}</Typography>
           <Typography variant="body2" color="text.secondary">
             {subtitle}
@@ -64,9 +66,32 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
         </Box>
 
         {data.mode === 'empty' ? (
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-            {t('actionCenter.emptyState')}
-          </Typography>
+          /* Empty state — full width placeholder */
+          <Box
+            sx={{
+              width: '100%',
+              py: 5,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+              border: '1px dashed',
+              borderColor: 'divider',
+              borderRadius: 1,
+            }}
+          >
+            <CalendarTodayIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 0.5 }} />
+            <Typography variant="body1" color="text.secondary" fontWeight={500}>
+              {t('actionCenter.emptyState')}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ textAlign: 'center', maxWidth: 300 }}
+            >
+              {t('actionCenter.emptyStateHint')}
+            </Typography>
+          </Box>
         ) : (
           <ScrollShadowContainer
             direction="horizontal"
@@ -76,7 +101,10 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
             {data.games.map((game) => {
               const guess = data.gameGuesses[game.id]
               return (
-                <Box key={game.id} sx={{ minWidth: 280, maxWidth: 340, flexShrink: 0 }}>
+                <Box
+                  key={game.id}
+                  sx={{ minWidth: { xs: 280, sm: 440 }, flexShrink: 0 }}
+                >
                   <FlippableGameCard
                     game={game}
                     teamsMap={data.teamsMap}

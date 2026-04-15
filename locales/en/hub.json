@@ -5,7 +5,8 @@
   "actionCenter": {
     "title": "Action Center",
     "subtitle": "Submit your predictions",
-    "emptyState": "No upcoming games to predict",
+    "emptyState": "No games to predict right now",
+    "emptyStateHint": "Predictions open 48 hours before each game kicks off — check back soon",
     "fallbackSubtitle": "All caught up — here's what's coming"
   }
 }

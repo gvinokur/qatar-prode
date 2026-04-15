@@ -253,6 +253,18 @@ describe('ActionCenterCarousel', () => {
       expect(screen.getByText('actionCenter.emptyState')).toBeInTheDocument()
     })
 
+    it('renders the hint text in empty mode', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'empty', games: [] })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByText('actionCenter.emptyStateHint')).toBeInTheDocument()
+    })
+
     it('does not render the scroll container in empty mode', () => {
       render(
         <ActionCenterCarousel
