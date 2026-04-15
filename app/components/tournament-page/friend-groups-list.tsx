@@ -1,14 +1,14 @@
 'use client'
 
 import {
-  Box, Button, Card,
+  Badge, Box, Button, Card,
   CardActions,
   CardContent,
   CardHeader, Chip, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   IconButton,
   List,
   ListItem,
-  ListItemText, TextField, useTheme
+  ListItemText, TextField, Tooltip, useTheme
 } from "@mui/material";
 import {Add as AddIcon, Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
 import {useState} from "react";
@@ -28,6 +28,7 @@ type Props = {
   tournamentId?: string
   isActive?: boolean
   pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
+  groupRanks?: Record<string, number>
 }
 
 type GroupForm = {
@@ -40,6 +41,7 @@ export default function FriendGroupsList({
   tournamentId,
   isActive = false,
   pendingRequests = [],
+  groupRanks,
 } : Props) {
   const t = useTranslations('groups');
   const theme = useTheme();
@@ -47,6 +49,8 @@ export default function FriendGroupsList({
   const router = useRouter();
   const [userGroups, setUserGroups] = useState(initialUserGroups);
   const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
+  const primaryGroup = userGroups[0] ?? participantGroups[0];
+  const primaryGroupRank = primaryGroup ? (groupRanks?.[primaryGroup.id] ?? null) : null;
   const groupCount = userGroups.length + participantGroups.length;
   const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -94,7 +98,17 @@ export default function FriendGroupsList({
         })
       }}>
         <CardHeader
-          title={t('title')}
+          title={
+            primaryGroupRank !== null ? (
+              <Tooltip title={t('header.rankBadgeTooltip', { rank: primaryGroupRank, groupName: primaryGroup.name })}>
+                <Badge badgeContent={`#${primaryGroupRank}`} color="primary" sx={{ '.MuiBadge-badge': { fontSize: '0.6rem', right: -18, top: 8 } }}>
+                  <Box component="span" sx={{ variant: 'h6' }}>{t('title')}</Box>
+                </Badge>
+              </Tooltip>
+            ) : (
+              t('title')
+            )
+          }
           slotProps={{ title: { variant: 'h6' } }}
           subheader={[
             isActive ? t('status.youAreHere') : null,
@@ -134,42 +148,58 @@ export default function FriendGroupsList({
             </>
           ) : (
             <List sx={{ width: '100%'}} disablePadding >
-            {userGroups.map(userGroup => (
-              <ListItem key={userGroup.id}
-                        alignItems='flex-start'
-                        disableGutters
-                        secondaryAction={
-                          <>
-                            <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
-                              <DeleteIcon/>
-                            </IconButton>
-                            <InviteFriendsDialog
-                              trigger={
-                                <IconButton title={t('actions.invite')} color="primary">
-                                  <ShareIcon/>
-                                </IconButton>}
-                              groupId={userGroup.id}
-                              groupName={userGroup.name}
-                              tournamentId={tournamentId} />
-                          </>
-                        }>
-                <ListItemText>
-                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
-                    {userGroup.name}
-                  </Link>
-                </ListItemText>
-              </ListItem>
-            ))}
+            {userGroups.map(userGroup => {
+              const rank = groupRanks?.[userGroup.id];
+              return (
+                <ListItem key={userGroup.id}
+                          alignItems='flex-start'
+                          disableGutters
+                          secondaryAction={
+                            <>
+                              <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                                <DeleteIcon/>
+                              </IconButton>
+                              <InviteFriendsDialog
+                                trigger={
+                                  <IconButton title={t('actions.invite')} color="primary">
+                                    <ShareIcon/>
+                                  </IconButton>}
+                                groupId={userGroup.id}
+                                groupName={userGroup.name}
+                                tournamentId={tournamentId} />
+                            </>
+                          }>
+                  <ListItemText>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
+                        {userGroup.name}
+                      </Link>
+                      {rank !== undefined && (
+                        <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                      )}
+                    </Box>
+                  </ListItemText>
+                </ListItem>
+              );
+            })}
             {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
-            {participantGroups.map(participantGroup => (
-              <ListItem key={participantGroup.id} disableGutters>
-                <ListItemText>
-                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
-                    {participantGroup.name}
-                  </Link>
-                </ListItemText>
-              </ListItem>
-            ))}
+            {participantGroups.map(participantGroup => {
+              const rank = groupRanks?.[participantGroup.id];
+              return (
+                <ListItem key={participantGroup.id} disableGutters>
+                  <ListItemText>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
+                        {participantGroup.name}
+                      </Link>
+                      {rank !== undefined && (
+                        <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                      )}
+                    </Box>
+                  </ListItemText>
+                </ListItem>
+              );
+            })}
             {pendingRequests.length > 0 && (userGroups.length > 0 || participantGroups.length > 0) && <ListItem divider/>}
             {pendingRequests.map(request => (
               <ListItem key={request.id} disableGutters sx={{ gap: 1 }}>

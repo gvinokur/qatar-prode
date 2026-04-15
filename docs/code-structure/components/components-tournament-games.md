@@ -179,8 +179,8 @@ Home page with tournament list and sidebar (rules, friend groups). Uses ScrollSh
 - **Home** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useLocale, useTranslations` - Renders: `Box, Grid, ScrollShadowContainer, Card, Link, Rules, FriendGroupsList, DevTournamentBadge`
 
 **File:** `app/components/home/tournament-redirect.tsx`
-Loading component that redirects to last selected or first tournament while preserving query parameters.
-- **TournamentRedirect** (FC) - `[Client]` - Calls: `getLastSelectedTournamentId, setLastSelectedTournamentId` - Uses: `useRouter, useSearchParams, useLocale, useTranslations` - Renders: `Box, CircularProgress, Typography`
+Loading component that redirects to last selected or first tournament while preserving query parameters. When `isHubEnabled()` is true, redirects to `/tournaments/[id]/hub` instead of `/tournaments/[id]`.
+- **TournamentRedirect** (FC) - `[Client]` - Calls: `getLastSelectedTournamentId, setLastSelectedTournamentId, isHubEnabled` - Uses: `useRouter, useSearchParams, useLocale, useTranslations` - Renders: `Box, CircularProgress, Typography`
 
 **File:** `app/components/home/footer.tsx`
 Fixed footer with teasing message about standings. Fetches user ranking for specific tournament if configured.
@@ -199,10 +199,10 @@ Dropdown menu to switch between tournaments while preserving current page path.
 - **TournamentSwitcher** (FC) - `[Client]` - Calls: `setLastSelectedTournamentId` - Uses: `useRouter, usePathname, useLocale, useState` - Renders: `IconButton, Menu, MenuItem, ListItemIcon, CheckIcon`
 
 **File:** `app/components/groups-page/group-selector.tsx`
-Tab navigation for tournament pages: Matches, Qualified Teams, Individual Awards. Disables tabs for non-authenticated users.
-- **GroupSelector** (FC) - `[Client]` - Calls: none - Uses: `useLocale, useTranslations, usePathname, useTheme` - Renders: `Tabs, Tab, Link, EmojiEventsIcon`
+Tab navigation for tournament pages: Hub (conditional), Matches, Qualified Teams, Individual Awards. Disables tabs for non-authenticated users.
+- **GroupSelector** (FC) - `[Client]` - Calls: `isHubEnabled` - Uses: `useLocale, useTranslations, usePathname, useTheme` - Renders: `Tabs, Tab, Link, EmojiEventsIcon`. Hub tab rendered before Matches when `isHubEnabled()` is true.
 - **getTabSx** (fn) - Helper for tab styling
-- **getSelectedTab** (fn) - Helper to determine active tab from pathname
+- **getSelectedTab** (fn) - Helper to determine active tab from pathname (recognizes `/hub` path)
 
 **File:** `app/components/groups-page/group-table.tsx`
 Paper displaying "Tabla de Posiciones" (standings table) using TeamStandingsCards component.

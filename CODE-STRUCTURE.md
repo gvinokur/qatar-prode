@@ -547,4 +547,26 @@ Key flows:
       └── getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) → [current, previous?]
             → derives rankChange = previous.rank - current.rank (positive = improved)
             → returns MaterializedGroupRanking | null
+
+29. Tournament Hub shell (Story #316 — static, no new action calls)
+    TournamentHubPage (Server) — /tournaments/[id]/hub
+      → renders 3 Paper placeholders (Smart Predictor Carousel, Prediction Dashboard, Leaderboard Peek)
+      → no data fetching — widget data arrives in Stories #317–#319
+
+    Modified flows (Story #316):
+    - TournamentRedirect [Client] now calls isHubEnabled():
+        when true  → redirects to /${locale}/tournaments/${id}/hub
+        when false → redirects to /${locale}/tournaments/${id}  (existing behavior)
+    - TournamentLayout (Server, Flow 25 context) — after getGroupsForUser():
+        allGroups = [...userGroups, ...participantGroups]
+        → await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))
+        → derives groupRanks: Record<string, number> (skips null results)
+        → passes groupRanks to TournamentSidebar → FriendGroupsList
+          FriendGroupsList renders header Badge+Tooltip (primary group rank) and per-row Chips
+    - GroupSelector [Client] (top nav) now calls isHubEnabled():
+        when true  → Hub tab rendered before Matches, links to /tournaments/${id}/hub
+        when false → Hub tab absent
+    - TournamentBottomNav [Client] Home tab calls isHubEnabled():
+        when true  → navigates to /tournaments/${id}/hub
+        when false → navigates to /${locale}
 ```

@@ -5,7 +5,8 @@
   },
   "header": {
     "groupCount": "{count, plural, =1 {1 group} other {# groups}}",
-    "noGroups": "No groups"
+    "noGroups": "No groups",
+    "rankBadgeTooltip": "You are ranked #{rank} in {groupName}"
   },
   "actions": {
     "create": "Create Group",

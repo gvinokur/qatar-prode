@@ -28,6 +28,7 @@ interface TournamentSidebarProps {
     pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
   }
   readonly user?: User
+  readonly groupRanks?: Record<string, number>
 }
 
 // Helper to determine current section from pathname
@@ -51,6 +52,7 @@ export default function TournamentSidebar({
   groupStandings,
   prodeGroups,
   user,
+  groupRanks,
 }: TournamentSidebarProps) {
   const pathname = usePathname()
   const currentSection = getCurrentSection(pathname, tournamentId)
@@ -82,7 +84,19 @@ export default function TournamentSidebar({
           flexDirection: 'column',
           gap: 1
         }}>
-          {/* 1. Tables */}
+          {/* 1. Friend Groups */}
+          {prodeGroups && (
+            <FriendGroupsList
+              userGroups={prodeGroups.userGroups}
+              participantGroups={prodeGroups.participantGroups}
+              pendingRequests={prodeGroups.pendingRequests}
+              tournamentId={tournamentId}
+              isActive={currentSection === 'friend-groups'}
+              groupRanks={groupRanks}
+            />
+          )}
+
+          {/* 2. Group Standings */}
           {groupStandings && groupStandings.groups.length > 0 && (
             <GroupStandingsSidebar
               groups={groupStandings.groups}
@@ -93,24 +107,13 @@ export default function TournamentSidebar({
             />
           )}
 
-          {/* 2. Stats */}
+          {/* 3. Stats */}
           {user && (
             <UserTournamentStatistics
               userGameStatistics={userGameStatistics}
               tournamentGuess={tournamentGuess}
               tournamentId={tournamentId}
               isActive={currentSection === 'stats'}
-            />
-          )}
-
-          {/* 3. Friend Groups */}
-          {prodeGroups && (
-            <FriendGroupsList
-              userGroups={prodeGroups.userGroups}
-              participantGroups={prodeGroups.participantGroups}
-              pendingRequests={prodeGroups.pendingRequests}
-              tournamentId={tournamentId}
-              isActive={currentSection === 'friend-groups'}
             />
           )}
 

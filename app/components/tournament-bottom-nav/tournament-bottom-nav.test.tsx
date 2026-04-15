@@ -26,6 +26,12 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn()
 }))
 
+// Mock environment-utils with controllable hub flag
+let mockHubEnabled = false;
+vi.mock('@/app/utils/environment-utils', () => ({
+  isHubEnabled: () => mockHubEnabled,
+}));
+
 const mockUser: User = {
   id: 'user1',
   email: 'test@example.com',
@@ -41,6 +47,7 @@ describe('TournamentBottomNav', () => {
 
   beforeEach(() => {
     mockPush = vi.fn()
+    mockHubEnabled = false;
     vi.mocked(useRouter).mockReturnValue({
       push: mockPush,
       replace: vi.fn(),
@@ -211,6 +218,62 @@ describe('TournamentBottomNav', () => {
     const icons = container.querySelectorAll('svg')
     icons.forEach(icon => {
       expect(icon).toHaveStyle({ fontSize: '24px' })
+    })
+  })
+
+  describe('tab order', () => {
+    it('renders Groups tab before Stats tab', () => {
+      const { getAllByRole } = renderWithTheme(
+        <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
+      )
+      const tabs = getAllByRole('button')
+      const groupsIndex = tabs.findIndex(t => t.textContent?.includes('Grupos'))
+      const statsIndex = tabs.findIndex(t => t.textContent?.includes('Stats'))
+      expect(groupsIndex).toBeLessThan(statsIndex)
+    })
+  })
+
+  describe('hub-aware Home tab', () => {
+    it('navigates to /[locale] when hub flag is disabled', () => {
+      mockHubEnabled = false;
+      renderWithTheme(
+        <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
+      )
+      const homeTab = screen.getByText('Home').closest('button')
+      if (homeTab) {
+        fireEvent.click(homeTab)
+        expect(mockPush).toHaveBeenCalledWith('/es')
+      }
+    })
+
+    it('navigates to /tournaments/[id]/hub when hub flag is enabled', () => {
+      mockHubEnabled = true;
+      renderWithTheme(
+        <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
+      )
+      const homeTab = screen.getByText('Home').closest('button')
+      if (homeTab) {
+        fireEvent.click(homeTab)
+        expect(mockPush).toHaveBeenCalledWith(`/es/tournaments/${tournamentId}/hub`)
+      }
+    })
+
+    it('activates Home tab when on hub path', () => {
+      renderWithTheme(
+        <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/hub`} user={mockUser} />
+      )
+      const homeButton = screen.getByText('Home').closest('button')
+      expect(homeButton).toHaveClass('Mui-selected')
+    })
+  })
+
+  describe('user-gated tabs', () => {
+    it('does not render Groups and Stats tabs when user is undefined', () => {
+      renderWithTheme(
+        <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" />
+      )
+      expect(screen.queryByText('Grupos')).not.toBeInTheDocument()
+      expect(screen.queryByText('Stats')).not.toBeInTheDocument()
     })
   })
 })
