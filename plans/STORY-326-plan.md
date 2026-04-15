@@ -300,6 +300,18 @@ Target ≥80% coverage on new/changed files.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Pre-load group logo as data URL to avoid CORS errors
+**Date:** 2026-04-15
+**Reason:** Discovered during implementation that `html-to-image`'s internal re-fetch of the group logo URL (hosted on S3/CDN) failed with cross-origin errors at capture time.
+**Change:** Added a `useEffect` in `InviteFriendsDialog` that pre-fetches the logo URL and converts it to a data URL before capture. The data URL is passed to `InviteFlierTemplate` instead of the raw external URL.
+
+### Amendment 2: Server-side image proxy to reliably bypass S3 CORS restrictions
+**Date:** 2026-04-15
+**Reason:** The data-URL pre-loading approach (Amendment 1) silently fell back to `undefined` when the S3 bucket blocked `fetch()` with CORS headers, causing initials to appear instead of the logo in the preview. The same CORS block also prevented `html-to-image` from inlining the image during PNG capture.
+**Change:** Added `app/api/proxy-image/route.ts` — a simple same-origin image proxy that fetches the external URL server-side (no CORS restrictions) and returns it with `Cache-Control: public, max-age=86400`. `InviteFriendsDialog` rewrites `groupLogoUrl` to `/api/proxy-image?url=<encoded>` before passing it to `InviteFlierTemplate`. Only `https://` URLs are proxied to limit SSRF surface.
+
 ## Open Questions
 
 - _(none — all requirements are well-defined by the mockup and acceptance criteria)_

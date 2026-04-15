@@ -444,8 +444,15 @@ Key flows:
       └── incrementClickCount
     InviteFriendsDialogButton [Client]
       └── InviteFriendsDialog [renders]
-            └── generateShortUrlForGroup [server action]
-                  └── getOrCreateShortUrl
+            ├── generateShortUrlForGroup [server action]
+            │     └── getOrCreateShortUrl
+            └── Folleto tab (Tab 2)
+                  ├── rewrites groupLogoUrl → /api/proxy-image?url=<encoded> (same-origin proxy)
+                  │     └── app/api/proxy-image/route.ts [API route] → upstream fetch (server-side, no CORS)
+                  ├── InviteFlierTemplate [renders] (360×480px card; Avatar/img + QRCodeSVG + shortUrl)
+                  ├── captureElement [util] → toPng (html-to-image; logo inlines via proxy URL)
+                  ├── downloadBlob [util] → browser download
+                  └── shareImage [util] → navigator.share or WhatsApp fallback
 
 17. Backoffice Users tab
     UsersTab [Client] (self-fetching, no server props)

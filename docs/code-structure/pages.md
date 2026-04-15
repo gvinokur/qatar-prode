@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-06
+**Last updated:** 2026-04-15
 
 ---
 
@@ -275,6 +275,11 @@ PWA manifest endpoint that generates locale-specific app manifest.
 
 - **GET(_request, { params })**: `NextResponse` — [Server] Returns PWA manifest JSON with localized app name/description, icons, and theme colors.
   Calls: getTranslations
+
+### app/api/proxy-image/route.ts
+Same-origin image proxy for bypassing S3/CDN CORS restrictions in html-to-image capture.
+
+- **GET(request: NextRequest)**: `NextResponse` — [Server] Proxies an external image URL (passed as `?url=` query param) server-side and returns it same-origin with `Cache-Control: public, max-age=86400, stale-while-revalidate=3600`. Accepts only `https://` URLs to limit SSRF surface. Returns 400 on missing/non-https URL, 502 on upstream fetch failure.
 
 ### app/j/[code]/page.tsx
 Short URL redirect handler for group join links.
