@@ -102,7 +102,7 @@ describe('FriendGroupsList — rank badges', () => {
       expect(screen.queryByText('#7')).not.toBeInTheDocument();
     });
 
-    it('renders header badge for primary group when groupRanks has entry', () => {
+    it('renders subtitle with rank for primary group when groupRanks has entry', () => {
       renderWithTheme(
         <FriendGroupsList
           userGroups={userGroups}
@@ -112,12 +112,12 @@ describe('FriendGroupsList — rank badges', () => {
         />
       );
 
-      // Header badge shows primary group rank (#4)
-      const rankFour = screen.getAllByText('#4');
-      expect(rankFour.length).toBeGreaterThanOrEqual(1);
+      // Subtitle includes primary group rank and group name
+      // "2 groups - #4 in My World Cup Group"
+      expect(screen.getByText(/My World Cup Group/)).toBeInTheDocument();
     });
 
-    it('does not render header badge when groupRanks is undefined', () => {
+    it('does not render rank in subtitle when groupRanks is undefined', () => {
       renderWithTheme(
         <FriendGroupsList
           userGroups={userGroups}
@@ -126,8 +126,8 @@ describe('FriendGroupsList — rank badges', () => {
         />
       );
 
-      // No badge content in header
-      expect(screen.queryByText('#4')).not.toBeInTheDocument();
+      // Subtitle shows only group count, no rank text
+      expect(screen.queryByText(/My World Cup Group/)).not.toBeInTheDocument();
     });
   });
 
@@ -143,7 +143,7 @@ describe('FriendGroupsList — rank badges', () => {
       );
       expandList();
 
-      // Multiple #7 elements: header badge (primary group = first participant) + per-row chip
+      // Per-row chip shows #7 for the participant group
       const rankElements = screen.getAllByText('#7');
       expect(rankElements.length).toBeGreaterThanOrEqual(1);
     });

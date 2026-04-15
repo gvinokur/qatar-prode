@@ -1,14 +1,14 @@
 'use client'
 
 import {
-  Badge, Box, Button, Card,
+  Box, Button, Card,
   CardActions,
   CardContent,
   CardHeader, Chip, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   IconButton,
   List,
   ListItem,
-  ListItemText, TextField, Tooltip, useTheme
+  ListItemText, TextField, useTheme
 } from "@mui/material";
 import {Add as AddIcon, Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
 import {useState} from "react";
@@ -98,21 +98,15 @@ export default function FriendGroupsList({
         })
       }}>
         <CardHeader
-          title={
-            primaryGroupRank !== null ? (
-              <Tooltip title={t('header.rankBadgeTooltip', { rank: primaryGroupRank, groupName: primaryGroup.name })}>
-                <Badge badgeContent={`#${primaryGroupRank}`} color="primary" sx={{ '.MuiBadge-badge': { fontSize: '0.6rem', right: -18, top: 8 } }}>
-                  <Box component="span" sx={{ variant: 'h6' }}>{t('title')}</Box>
-                </Badge>
-              </Tooltip>
-            ) : (
-              t('title')
-            )
-          }
+          title={t('title')}
           slotProps={{ title: { variant: 'h6' } }}
           subheader={[
             isActive ? t('status.youAreHere') : null,
-            groupCount > 0 ? t('header.groupCount', { count: groupCount }) : t('header.noGroups'),
+            groupCount > 0
+              ? (primaryGroupRank !== null && primaryGroup
+                  ? t('header.groupCountWithRank', { count: groupCount, rank: primaryGroupRank, groupName: primaryGroup.name })
+                  : t('header.groupCount', { count: groupCount }))
+              : t('header.noGroups'),
           ].filter(Boolean).join(' · ')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
@@ -171,12 +165,12 @@ export default function FriendGroupsList({
                           }>
                   <ListItemText>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
-                        {userGroup.name}
-                      </Link>
                       {rank !== undefined && (
                         <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
+                        {userGroup.name}
+                      </Link>
                     </Box>
                   </ListItemText>
                 </ListItem>
@@ -189,12 +183,12 @@ export default function FriendGroupsList({
                 <ListItem key={participantGroup.id} disableGutters>
                   <ListItemText>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
-                        {participantGroup.name}
-                      </Link>
                       {rank !== undefined && (
                         <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
+                        {participantGroup.name}
+                      </Link>
                     </Box>
                   </ListItemText>
                 </ListItem>
