@@ -63,6 +63,8 @@ const game1 = testFactories.game({ id: 'game-1', home_team: 'team-1', away_team:
 const game2 = testFactories.game({ id: 'game-2', home_team: 'team-1', away_team: 'team-2' })
 const game3 = testFactories.game({ id: 'game-3', home_team: 'team-1', away_team: 'team-2' })
 
+const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000
+
 const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData => ({
   games: [game1, game2, game3] as any,
   gameGuesses: {},
@@ -70,6 +72,8 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   tournamentMaxSilver: 5,
   tournamentMaxGolden: 3,
   mode: 'urgent',
+  qtAndAwardsOpen: true,
+  msUntilPredictionLock: TEN_DAYS_MS,
   ...overrides,
 })
 
@@ -307,16 +311,24 @@ describe('ActionCenterCarousel', () => {
   })
 
   describe('quick-action cards', () => {
-    it('renders qualified teams and awards cards in urgent mode', () => {
-      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+    it('renders qualified teams and awards cards when qtAndAwardsOpen is true', () => {
+      render(<ActionCenterCarousel data={buildData({ qtAndAwardsOpen: true })} tournamentId="t-1" locale="en" />)
 
       expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
       expect(screen.getByText('actionCenter.awardsHint')).toBeInTheDocument()
     })
 
-    it('renders quick-action cards in fallback mode', () => {
+    it('does not render quick-action section when qtAndAwardsOpen is false', () => {
+      render(<ActionCenterCarousel data={buildData({ qtAndAwardsOpen: false })} tournamentId="t-1" locale="en" />)
+
+      expect(screen.queryByText('actionCenter.qualifiedTeamsHint')).not.toBeInTheDocument()
+      expect(screen.queryByText('actionCenter.awardsHint')).not.toBeInTheDocument()
+      expect(screen.queryByText('actionCenter.quickActions')).not.toBeInTheDocument()
+    })
+
+    it('renders quick-action cards in fallback mode when qtAndAwardsOpen is true', () => {
       render(
-        <ActionCenterCarousel data={buildData({ mode: 'fallback' })} tournamentId="t-1" locale="en" />
+        <ActionCenterCarousel data={buildData({ mode: 'fallback', qtAndAwardsOpen: true })} tournamentId="t-1" locale="en" />
       )
 
       expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
@@ -330,6 +342,62 @@ describe('ActionCenterCarousel', () => {
       const hrefs = links.map((l) => l.getAttribute('href'))
       expect(hrefs).toContain('/en/tournaments/tour-42/qualified-teams')
       expect(hrefs).toContain('/en/tournaments/tour-42/awards')
+    })
+  })
+
+  describe('urgency chip', () => {
+    it('does not show urgency chips when msUntilPredictionLock is safe (>48h)', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: TEN_DAYS_MS })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByTestId('urgency-chip-qt')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('urgency-chip-awards')).not.toBeInTheDocument()
+    })
+
+    it('shows urgency chips when msUntilPredictionLock is in notice range (24-48h)', () => {
+      const THIRTY_HOURS_MS = 30 * 60 * 60 * 1000
+      render(
+        <ActionCenterCarousel
+          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: THIRTY_HOURS_MS })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('urgency-chip-qt')).toBeInTheDocument()
+      expect(screen.getByTestId('urgency-chip-awards')).toBeInTheDocument()
+    })
+
+    it('shows urgency chips when msUntilPredictionLock is in warning range (<24h)', () => {
+      const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
+      render(
+        <ActionCenterCarousel
+          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: TWELVE_HOURS_MS })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('urgency-chip-qt')).toBeInTheDocument()
+      expect(screen.getByTestId('urgency-chip-awards')).toBeInTheDocument()
+    })
+
+    it('does not show urgency chips when qtAndAwardsOpen is false even if ms is low', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ qtAndAwardsOpen: false, msUntilPredictionLock: 1000 })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByTestId('urgency-chip-qt')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('urgency-chip-awards')).not.toBeInTheDocument()
     })
   })
 })

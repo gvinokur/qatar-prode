@@ -1,6 +1,6 @@
 'use server'
 
-import { findGamesForDashboard } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
@@ -18,16 +18,38 @@ export interface ActionCenterData {
   tournamentMaxSilver: number
   tournamentMaxGolden: number
   mode: 'urgent' | 'fallback' | 'empty'
+  /** True when the 5-day tournament prediction window has not yet closed */
+  qtAndAwardsOpen: boolean
+  /** Milliseconds until QT/awards predictions lock (negative = already locked) */
+  msUntilPredictionLock: number
 }
 
 const MAX_URGENT_CARDS = 4
 const FALLBACK_CARD_COUNT = 3
+const PREDICTION_LOCK_OFFSET_MS = 5 * 24 * 60 * 60 * 1000 // 5 days after tournament start
+
+/**
+ * Computes whether QT/awards predictions are still open and how many ms remain.
+ * Both lock 5 days after the first game of the tournament.
+ */
+function computePredictionLockState(
+  tournament: { is_active?: boolean } | undefined | null,
+  firstGameDate: Date | undefined | null
+): { qtAndAwardsOpen: boolean; msUntilPredictionLock: number } {
+  if (!tournament?.is_active || !firstGameDate) {
+    return { qtAndAwardsOpen: false, msUntilPredictionLock: 0 }
+  }
+  const lockTime = firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS
+  const msRemaining = lockTime - Date.now()
+  return { qtAndAwardsOpen: msRemaining > 0, msUntilPredictionLock: msRemaining }
+}
 
 /**
  * Fetches and ranks upcoming games for the Tournament Hub Action Center.
  * Returns up to 4 unpredicted open games (urgent mode), or 3 upcoming games
  * when all open-deadline games have been predicted (fallback mode), or empty
  * when no games exist in the window.
+ * Also computes whether QT/awards predictions are still open.
  */
 export async function getActionCenterGames(
   tournamentId: string,
@@ -38,12 +60,18 @@ export async function getActionCenterGames(
     throw new Error('Unauthorized')
   }
 
-  const [games, guessesArray, teams, tournament] = await Promise.all([
+  const [games, guessesArray, teams, tournament, firstGame] = await Promise.all([
     findGamesForDashboard(tournamentId),
     findGameGuessesByUserId(user.id, tournamentId),
     findTeamInTournament(tournamentId),
     findTournamentById(tournamentId),
+    findFirstGameInTournament(tournamentId),
   ])
+
+  const { qtAndAwardsOpen, msUntilPredictionLock } = computePredictionLockState(
+    tournament,
+    firstGame?.game_date
+  )
 
   if (games.length === 0) {
     const localizedTeams = applyLocalizationBatch(teams, locale, [
@@ -57,6 +85,8 @@ export async function getActionCenterGames(
       tournamentMaxSilver: tournament?.max_silver_games ?? 0,
       tournamentMaxGolden: tournament?.max_golden_games ?? 0,
       mode: 'empty',
+      qtAndAwardsOpen,
+      msUntilPredictionLock,
     }
   }
 
@@ -115,5 +145,7 @@ export async function getActionCenterGames(
     tournamentMaxSilver: tournament?.max_silver_games ?? 0,
     tournamentMaxGolden: tournament?.max_golden_games ?? 0,
     mode,
+    qtAndAwardsOpen,
+    msUntilPredictionLock,
   }
 }

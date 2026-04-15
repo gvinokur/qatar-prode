@@ -9,11 +9,13 @@ import {
   CardActions,
   Button,
   Grid,
+  Chip,
 } from '@mui/material'
 import {
   CalendarToday as CalendarTodayIcon,
   EmojiEvents as EmojiEventsIcon,
   Groups as GroupsIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -21,6 +23,7 @@ import { GuessesContextProvider } from '../context-providers/guesses-context-pro
 import { ScrollShadowContainer } from '../common/scroll-shadow-container'
 import FlippableGameCard from '../flippable-game-card'
 import { ActionCenterData } from '../../actions/hub-actions'
+import { getUrgencyLevel, formatCountdown } from '../../utils/countdown-utils'
 import type { Locale } from '../../../i18n.config'
 
 interface ActionCenterCarouselProps {
@@ -54,6 +57,12 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
     const index = data.games.findIndex((g) => g.id === gameId)
     setEditingGameId(index > 0 ? data.games[index - 1].id : null)
   }
+
+  const urgency = getUrgencyLevel(data.msUntilPredictionLock)
+  const showUrgencyChip = data.qtAndAwardsOpen && urgency !== 'safe'
+  const urgencyChipColor =
+    urgency === 'urgent' ? 'error' : urgency === 'warning' ? 'warning' : 'info'
+  const countdownText = showUrgencyChip ? formatCountdown(data.msUntilPredictionLock) : ''
 
   return (
     <GuessesContextProvider
@@ -90,17 +99,9 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             <Typography variant="body1" color="text.secondary" fontWeight={500}>
               {t('actionCenter.noGamesInWindow')}
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
-              <Button component={Link} href={gamesUrl} variant="outlined" size="small">
-                {t('actionCenter.predictGames')}
-              </Button>
-              <Button component={Link} href={qualifiedTeamsUrl} variant="outlined" size="small">
-                {t('actionCenter.qualifiedTeamsTitle')}
-              </Button>
-              <Button component={Link} href={awardsUrl} variant="outlined" size="small">
-                {t('actionCenter.awardsTitle')}
-              </Button>
-            </Box>
+            <Button component={Link} href={gamesUrl} variant="outlined" size="small">
+              {t('actionCenter.predictGames')}
+            </Button>
           </Box>
         ) : (
           <ScrollShadowContainer
@@ -135,58 +136,80 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </ScrollShadowContainer>
         )}
 
-        {/* Quick-action cards — always shown */}
-        <Box sx={{ mt: 2 }}>
-          <Typography
-            variant="overline"
-            color="text.secondary"
-            sx={{ display: 'block', textAlign: 'center', mb: 1 }}
-          >
-            {t('actionCenter.quickActions')}
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Card variant="outlined" sx={{ height: '100%' }}>
-                <CardContent sx={{ pb: 0 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-                    <GroupsIcon color="primary" fontSize="small" />
-                    <Typography variant="subtitle2">
-                      {t('actionCenter.qualifiedTeamsTitle')}
+        {/* Quick-action cards — only shown when QT/Awards predictions are still open */}
+        {data.qtAndAwardsOpen && (
+          <Box sx={{ mt: 2 }}>
+            <Typography
+              variant="overline"
+              color="text.secondary"
+              sx={{ display: 'block', textAlign: 'center', mb: 1 }}
+            >
+              {t('actionCenter.quickActions')}
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent sx={{ pb: 0 }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                      <GroupsIcon color="primary" fontSize="small" />
+                      <Typography variant="subtitle2">
+                        {t('actionCenter.qualifiedTeamsTitle')}
+                      </Typography>
+                      {showUrgencyChip && (
+                        <Chip
+                          label={countdownText}
+                          color={urgencyChipColor}
+                          size="small"
+                          icon={<ScheduleIcon />}
+                          sx={{ ml: 'auto' }}
+                          data-testid="urgency-chip-qt"
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('actionCenter.qualifiedTeamsHint')}
                     </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('actionCenter.qualifiedTeamsHint')}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button component={Link} href={qualifiedTeamsUrl} size="small">
-                    {t('actionCenter.goToPage')}
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Card variant="outlined" sx={{ height: '100%' }}>
-                <CardContent sx={{ pb: 0 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-                    <EmojiEventsIcon color="primary" fontSize="small" />
-                    <Typography variant="subtitle2">
-                      {t('actionCenter.awardsTitle')}
+                  </CardContent>
+                  <CardActions>
+                    <Button component={Link} href={qualifiedTeamsUrl} size="small">
+                      {t('actionCenter.goToPage')}
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent sx={{ pb: 0 }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                      <EmojiEventsIcon color="primary" fontSize="small" />
+                      <Typography variant="subtitle2">
+                        {t('actionCenter.awardsTitle')}
+                      </Typography>
+                      {showUrgencyChip && (
+                        <Chip
+                          label={countdownText}
+                          color={urgencyChipColor}
+                          size="small"
+                          icon={<ScheduleIcon />}
+                          sx={{ ml: 'auto' }}
+                          data-testid="urgency-chip-awards"
+                        />
+                      )}
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('actionCenter.awardsHint')}
                     </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('actionCenter.awardsHint')}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button component={Link} href={awardsUrl} size="small">
-                    {t('actionCenter.goToPage')}
-                  </Button>
-                </CardActions>
-              </Card>
+                  </CardContent>
+                  <CardActions>
+                    <Button component={Link} href={awardsUrl} size="small">
+                      {t('actionCenter.goToPage')}
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
             </Grid>
-          </Grid>
-        </Box>
+          </Box>
+        )}
       </Box>
     </GuessesContextProvider>
   )

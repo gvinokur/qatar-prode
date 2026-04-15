@@ -7,8 +7,12 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as userActions from '../user-actions'
 import { testFactories } from '../../../__tests__/db/test-factories'
 
+const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000
+const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000
+
 vi.mock('@/app/db/game-repository', () => ({
   findGamesForDashboard: vi.fn(),
+  findFirstGameInTournament: vi.fn(),
 }))
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -48,6 +52,12 @@ const defaultTournament = testFactories.tournament({
   max_golden_games: 3,
 })
 
+// A first-game date far in the past so the 5-day lock window has already passed by default
+const pastFirstGame = testFactories.game({
+  id: 'first-game',
+  game_date: new Date(Date.now() - SIX_DAYS_MS),
+})
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(userActions.getLoggedInUser).mockResolvedValue(
@@ -56,6 +66,7 @@ beforeEach(() => {
   vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([defaultTeam1, defaultTeam2])
   vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(defaultTournament)
   vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
+  vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(pastFirstGame as any)
 })
 
 describe('getActionCenterGames', () => {
@@ -211,6 +222,59 @@ describe('getActionCenterGames', () => {
       vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined as any)
 
       await expect(getActionCenterGames(TOURNAMENT_ID, 'en')).rejects.toThrow('Unauthorized')
+    })
+  })
+
+  describe('qtAndAwardsOpen', () => {
+    it('returns qtAndAwardsOpen=true when first game was less than 5 days ago', async () => {
+      const recentFirstGame = testFactories.game({
+        id: 'first-game',
+        game_date: new Date(Date.now() - FOUR_DAYS_MS),
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(recentFirstGame as any)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.qtAndAwardsOpen).toBe(true)
+      expect(result.msUntilPredictionLock).toBeGreaterThan(0)
+    })
+
+    it('returns qtAndAwardsOpen=false when first game was more than 5 days ago', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      // pastFirstGame is already set in beforeEach (6 days ago)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.qtAndAwardsOpen).toBe(false)
+      expect(result.msUntilPredictionLock).toBeLessThanOrEqual(0)
+    })
+
+    it('returns qtAndAwardsOpen=false when tournament is not active', async () => {
+      const inactiveTournament = testFactories.tournament({
+        id: TOURNAMENT_ID,
+        is_active: false,
+      })
+      const recentFirstGame = testFactories.game({
+        id: 'first-game',
+        game_date: new Date(Date.now() - FOUR_DAYS_MS),
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(inactiveTournament)
+      vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(recentFirstGame as any)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.qtAndAwardsOpen).toBe(false)
+    })
+
+    it('returns qtAndAwardsOpen=false when firstGame is null', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(null as any)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.qtAndAwardsOpen).toBe(false)
     })
   })
 })
