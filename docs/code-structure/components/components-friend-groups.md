@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-11
+**Last updated:** 2026-04-15
 
 ---
 
@@ -145,7 +145,7 @@ Form to customize group name, colors, and logo. [Client]
 ### app/components/friend-groups/invite-friends-dialog-button.tsx
 Button triggering invite friends dialog. [Client]
 
-- **InviteFriendsDialogButton(props)**: `JSX.Element` — [Client] Wrapper button that opens invite friends dialog.
+- **InviteFriendsDialogButton({ groupId, groupName, tournamentId?, groupLogoUrl?, themeColor? })**: `JSX.Element` — [Client] Wrapper button that opens invite friends dialog; passes groupLogoUrl and themeColor through to InviteFriendsDialog.
   Uses: useTranslations
   Renders: InviteFriendsDialog
 
@@ -190,6 +190,13 @@ Multi-tournament leaderboard with sharing, notification, and betting display. [C
 - **ProdeGroupTable(props: Props)**: `JSX.Element` — [Client] Tabbed tournament standings (one tab per tournament), share button, notification dialog, and read-only betting summary. Accepts `tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>` and passes per-tournament badge config to LeaderboardView. Accepts `historyByTournament?: Record<string, ScoreHistoryResult>` and passes per-tournament history data to LeaderboardView for time-dimension badge derivation (Story #274).
   Uses: useTranslations, useTheme
   Renders: LeaderboardView, NotificationDialog
+
+### app/components/friend-groups/sharing/InviteFlierTemplate.tsx
+Branded invite flier card (360×480px) for PNG capture and sharing. [Client]
+
+- **InviteFlierTemplate(props: InviteFlierTemplateProps, ref)**: `JSX.Element` — [Client] Fixed-size portrait card with gradient background (themeColor → black), group avatar (logo image or initials fallback), group name, custom italic message, QR code for shortUrl, short URL text, and "PRODE MUNDIAL" footer. Uses inline styles (no MUI theming) to avoid html-to-image class name issues. Shows Skeleton blocks when loading=true.
+  Props: `{ groupName, groupLogoUrl?, customMessage, shortUrl, themeColor?, loading? }`
+  Renders: Avatar (initials fallback), QRCodeSVG
 
 ### app/components/friend-groups/sharing/HeadToHeadTemplate.tsx
 Head-to-head comparison card showing stats between two users. [Client]

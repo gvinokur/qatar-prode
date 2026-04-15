@@ -41,6 +41,21 @@
     "directShare": "Or share directly via:",
     "message": "Hey! I'm inviting you to join our group \"{groupName}\" to play Prode for current and future tournaments. Use this link to join: {link}",
     "emailSubject": "Invitation to Prode group \"{groupName}\"",
+    "tabs": {
+      "link": "Link",
+      "email": "Email",
+      "flier": "Flier"
+    },
+    "flier": {
+      "customMessageLabel": "Custom message",
+      "defaultMessage": "Join our prode and show how much you know about football!",
+      "download": "Download",
+      "share": "Share",
+      "emailComingSoon": "Email invitations coming soon.",
+      "footer": "PRODE MUNDIAL",
+      "captureError": "Could not generate the image",
+      "shareText": "Join our prode! {groupName}"
+    },
     "buttons": {
       "email": "Email",
       "whatsapp": "WhatsApp"

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extended Invitations — Mockup</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- React 18 (Stable UMD) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Emotion (Required for MUI) - Reliable UMD paths -->
+  <script src="https://unpkg.com/@emotion/react@11/dist/emotion-react.umd.min.js"></script>
+  <script src="https://unpkg.com/@emotion/styled@11/dist/emotion-styled.umd.min.js"></script>
+  
+  <!-- Material UI v5 (Last stable UMD distribution) -->
+  <!-- Note: MUI v6/v7 removed UMD support, but v5 is visually identical for these components -->
+  <script src="https://unpkg.com/@mui/material@5.16.0/umd/material-ui.development.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    /**
+     * Material UI v5 uses 'MaterialUI' global.
+     */
+    const {
+      ThemeProvider, createTheme, CssBaseline,
+      Container, Box, Stack, Grid,
+      Card, CardContent, CardHeader, CardActions,
+      Typography, Button, IconButton, Chip,
+      TextField, Divider, Avatar, List, ListItem,
+      ListItemText, ListItemAvatar, ListItemSecondaryAction,
+      Skeleton, Alert, Badge, Tooltip, Tabs, Tab,
+      Dialog, DialogTitle, DialogContent, DialogActions,
+      Paper
+    } = MaterialUI;
+
+    // Icons (Mocked)
+    const ContentCopyIcon = () => <span>📋</span>;
+    const WhatsAppIcon = () => <span style={{ marginRight: 8 }}>💬</span>;
+    const EmailIcon = () => <span>📧</span>;
+    const ImageIcon = () => <span>🖼️</span>;
+    const LinkIcon = () => <span>🔗</span>;
+    const UploadFileIcon = () => <span style={{ marginRight: 8 }}>📁</span>;
+    const DownloadIcon = () => <span style={{ marginRight: 8 }}>📥</span>;
+    const DeleteIcon = () => <span>🗑️</span>;
+    const AddIcon = () => <span style={{ marginRight: 8 }}>➕</span>;
+    const ShareIcon = () => <span style={{ marginRight: 8 }}>📤</span>;
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper:   '#1a1a1a',
+        },
+        primary:  { main: '#a78bfa' },
+        secondary: { main: '#f87171' },
+        error:    { main: '#f44336' },
+        success:  { main: '#4caf50' },
+        warning:  { main: '#ff9800' },
+        divider:  'rgba(255,255,255,0.08)',
+        text: {
+          primary:   '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    function TabPanel({ children, value, index }) {
+      return (
+        <Box sx={{ py: 3, display: value === index ? 'block' : 'none' }}>
+          {children}
+        </Box>
+      );
+    }
+
+    function FlierPreview({ message, accentColor }) {
+      return (
+        <Paper 
+          sx={{ 
+            width: '100%', 
+            aspectRatio: '3/4', 
+            background: `linear-gradient(135deg, ${accentColor} 0%, #000 100%)`,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 4,
+            position: 'relative',
+            overflow: 'hidden',
+            border: '4px solid rgba(255,255,255,0.1)'
+          }}
+        >
+          <Box sx={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+          
+          <Stack alignItems="center" spacing={1}>
+            <Avatar sx={{ width: 60, height: 60, bgcolor: 'background.paper', border: '2px solid white' }}>🍷</Avatar>
+            <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 700 }}>El grupo de Vino</Typography>
+          </Stack>
+
+          <Typography variant="body2" sx={{ color: 'white', textAlign: 'center', fontStyle: 'italic', px: 1 }}>
+            "{message || '¡Súmate a nuestro prode y demostrá cuánto sabés de fútbol!'}"
+          </Typography>
+
+          <Stack alignItems="center" spacing={1}>
+            <Box sx={{ p: 1, bgcolor: 'white', borderRadius: 1, display: 'flex' }}>
+              <Box sx={{ fontSize: 50, color: 'black' }}>🔳</Box>
+            </Box>
+            <Typography variant="caption" sx={{ color: 'white', fontWeight: 700 }}>prodemundial.app/j/k8Wa5q</Typography>
+          </Stack>
+
+          <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.5)' }}>PRODE MUNDIAL</Typography>
+        </Paper>
+      );
+    }
+
+    function MockupApp() {
+      const [tab, setTab] = React.useState(0);
+      const [flierMessage, setFlierMessage] = React.useState('');
+      const [emails, setEmails] = React.useState([{ name: '', email: '' }]);
+
+      const handleAddEmail = () => setEmails([...emails, { name: '', email: '' }]);
+
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Container maxWidth="md" sx={{ py: 4 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>Extended Invitation Dialog</Typography>
+              <Typography variant="caption" color="text.secondary">Mockup using Material UI components.</Typography>
+            </Box>
+
+            <Dialog open={true} maxWidth="sm" fullWidth>
+              <DialogTitle>Invitar amigos a El grupo de Vino</DialogTitle>
+              
+              <DialogContent>
+                <Tabs value={tab} onChange={(e, v) => setTab(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                  <Tab label="Enlace" icon={<LinkIcon />} iconPosition="start" />
+                  <Tab label="Email" icon={<EmailIcon />} iconPosition="start" />
+                  <Tab label="Folleto" icon={<ImageIcon />} iconPosition="start" />
+                </Tabs>
+
+                <TabPanel value={tab} index={0}>
+                  <Stack spacing={3}>
+                    <Typography variant="body2" color="text.secondary">Comparte este enlace con tus amigos para que se unan al grupo.</Typography>
+                    <Stack direction="row" spacing={1}>
+                      <TextField fullWidth value="https://prodemundial.app/j/k8Wa5q" InputProps={{ readOnly: true }} size="small" />
+                      <Button variant="contained">Copiar</Button>
+                    </Stack>
+                    <Divider>O comparte por WhatsApp</Divider>
+                    <Box display="flex" justifyContent="center">
+                      <Button variant="outlined" color="success" startIcon={<WhatsAppIcon />}>WhatsApp</Button>
+                    </Box>
+                  </Stack>
+                </TabPanel>
+
+                <TabPanel value={tab} index={1}>
+                  <Stack spacing={2}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography variant="subtitle2">Invitaciones por Email</Typography>
+                      <Stack direction="row" spacing={1}>
+                         <Button size="small" variant="text" startIcon={<DownloadIcon />}>Plantilla</Button>
+                         <Button size="small" variant="outlined" startIcon={<UploadFileIcon />}>Importar CSV</Button>
+                      </Stack>
+                    </Box>
+                    {emails.map((_, i) => (
+                      <Grid container spacing={1} key={i}>
+                        <Grid item xs={5}><TextField placeholder="Nombre" fullWidth size="small" /></Grid>
+                        <Grid item xs={6}><TextField placeholder="Email" fullWidth size="small" /></Grid>
+                        <Grid item xs={1}><IconButton size="small" color="error">🗑️</IconButton></Grid>
+                      </Grid>
+                    ))}
+                    <Button startIcon={<AddIcon />} onClick={handleAddEmail} size="small" sx={{ alignSelf: 'flex-start' }}>Agregar otro</Button>
+                    <TextField label="Mensaje personalizado" multiline rows={2} fullWidth placeholder="¡Sumate al prode del grupo!" />
+                    <Button variant="contained" fullWidth>Enviar Invitaciones</Button>
+                  </Stack>
+                </TabPanel>
+
+                <TabPanel value={tab} index={2}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={2}>
+                        <Typography variant="body2" color="text.secondary">Generá una imagen personalizada con el QR de tu grupo.</Typography>
+                        <TextField label="Personalizar mensaje" multiline rows={3} fullWidth value={flierMessage} onChange={(e) => setFlierMessage(e.target.value)} placeholder="¡Súmate a nuestro prode y demostrá cuánto sabés de fútbol!" />
+                        <Button variant="contained" fullWidth startIcon={<DownloadIcon />}>Descargar</Button>
+                        <Button variant="outlined" fullWidth startIcon={<ShareIcon />}>Compartir</Button>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ scale: '0.9', transformOrigin: 'top center' }}>
+                        <FlierPreview message={flierMessage} accentColor={theme.palette.primary.main} />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </TabPanel>
+              </DialogContent>
+
+              <DialogActions><Button color="inherit">Cerrar</Button></DialogActions>
+            </Dialog>
+          </Container>
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<MockupApp />);
+  </script>
+</body>
+</html>

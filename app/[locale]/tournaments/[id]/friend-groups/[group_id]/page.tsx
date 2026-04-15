@@ -263,6 +263,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
               groupName={prodeGroup.name}
               groupId={prodeGroup.id}
               tournamentId={tournament.id}
+              groupLogoUrl={logoUrl ?? undefined}
+              themeColor={prodeGroup.theme?.primary_color ?? undefined}
             />
           )}
         </Box>

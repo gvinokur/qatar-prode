@@ -215,7 +215,9 @@ export default async function FriendsGroup(props : Props){
                   action={prodeGroup.owner_user_id === user.id ? (
                     <InviteFriendsDialogButton
                       groupName={prodeGroup.name}
-                      groupId={prodeGroup.id}/>
+                      groupId={prodeGroup.id}
+                      groupLogoUrl={logoUrl ?? undefined}
+                      themeColor={prodeGroup.theme?.primary_color ?? undefined}/>
                   ) : (
                     <LeaveGroupButton groupId={prodeGroup.id} />
                   )}

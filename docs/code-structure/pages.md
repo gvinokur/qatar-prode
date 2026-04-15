@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-06
+**Last updated:** 2026-04-15
 
 ---
 
@@ -237,8 +237,8 @@ Tournament-scoped group leaderboard with admin management interface.
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns title `"{group.name} | {tournament.short_name} | {appName}"` (tournament suffix omitted if not found); falls back to appName on error.
   Calls: findProdeGroupById, findTournamentById, getTranslations, getLocale
 - **TournamentScopedFriendGroup(props)**: `JSX.Element` — [Server] Fetches group, participants, user scores for tournament; checks admin status; fetches score history for History tab; calls computeSnapshotScores [utils] to patch latestSnapshotPoints/penultimateSnapshotPoints onto user scores before passing to ProdeGroupTable; renders leaderboard with optional admin tabs and betting config.
-  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, findQualifiedTeams, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getScoreHistoryForGroup, computeSnapshotScores [utils], getTranslations
-  Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton
+  Calls: getLoggedInUser, findProdeGroupById, findTournamentById, findParticipantsInGroup, findUsersByIds, getUserScoresForTournament, findQualifiedTeams, generateShortUrlForGroup, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, getPendingRequestCount, getGroupJoinRequests, getScoreHistoryForGroup, computeSnapshotScores [utils], getTranslations, getThemeLogoUrl
+  Renders: ProdeGroupTable, AdminTabs, LeaveGroupButton, InviteFriendsDialogButton (passes groupLogoUrl via getThemeLogoUrl, themeColor via theme.primary_color)
 
 ### app/[locale]/tournaments/[id]/friend-groups/discover/page.tsx
 Public friend groups discovery page with search and pagination.
@@ -261,7 +261,7 @@ Global friend group leaderboard showing scores across all active tournaments.
   Calls: findProdeGroupById, getTranslations, getLocale
 - **FriendsGroup(props)**: `JSX.Element` — [Server] Fetches all active tournaments, group participants, user scores and qualified teams for each tournament; builds TournamentBadgeConfig per tournament; fetches score history per tournament for History tab; calls computeSnapshotScores [utils] per tournament to patch latestSnapshotPoints/penultimateSnapshotPoints onto user scores before passing to ProdeGroupTable.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findUsersByIds, findAllActiveTournaments, getUserScoresForTournament, findQualifiedTeams, getGroupTournamentBettingConfigAction, getGroupTournamentBettingPaymentsAction, generateShortUrlForGroup, getScoreHistoryForGroup, computeSnapshotScores [utils], getThemeLogoUrl, toMap
-  Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton, LeaveGroupButton
+  Renders: ProdeGroupTable, ProdeGroupThemer, InviteFriendsDialogButton (passes groupLogoUrl via getThemeLogoUrl, themeColor via theme.primary_color), LeaveGroupButton
 
 ### app/[locale]/friend-groups/join/[id]/page.tsx
 Global join request form for groups.
@@ -275,6 +275,11 @@ PWA manifest endpoint that generates locale-specific app manifest.
 
 - **GET(_request, { params })**: `NextResponse` — [Server] Returns PWA manifest JSON with localized app name/description, icons, and theme colors.
   Calls: getTranslations
+
+### app/api/proxy-image/route.ts
+Same-origin image proxy for bypassing S3/CDN CORS restrictions in html-to-image capture.
+
+- **GET(request: NextRequest)**: `NextResponse` — [Server] Proxies an external image URL (passed as `?url=` query param) server-side and returns it same-origin with `Cache-Control: public, max-age=86400, stale-while-revalidate=3600`. Accepts only `https://` URLs to limit SSRF surface. Returns 400 on missing/non-https URL, 502 on upstream fetch failure.
 
 ### app/j/[code]/page.tsx
 Short URL redirect handler for group join links.
