@@ -50,6 +50,8 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
   const [activeTab, setActiveTab] = useState(0);
   const [customMessage, setCustomMessage] = useState('');
   const [isCapturing, setIsCapturing] = useState(false);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>(undefined);
+  const [logoLoading, setLogoLoading] = useState(false);
 
   const flierRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +64,39 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
   useEffect(() => {
     setCustomMessage(t('flier.defaultMessage'));
   }, [t]);
+
+  // Pre-load group logo as data URL so html-to-image can inline it without CORS issues
+  useEffect(() => {
+    if (!groupLogoUrl) {
+      setLogoDataUrl(undefined);
+      return;
+    }
+    let cancelled = false;
+    setLogoLoading(true);
+    fetch(groupLogoUrl)
+      .then((r) => r.blob())
+      .then(
+        (blob) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          })
+      )
+      .then((dataUrl) => {
+        if (!cancelled) setLogoDataUrl(dataUrl);
+      })
+      .catch(() => {
+        // Fall back to no logo — flier shows initials instead
+        if (!cancelled) setLogoDataUrl(undefined);
+      })
+      .finally(() => {
+        if (!cancelled) setLogoLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [groupLogoUrl]);
 
   // Fetch short URL when dialog opens
   useEffect(() => {
@@ -252,7 +287,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
                   variant="contained"
                   startIcon={<DownloadIcon />}
                   onClick={handleDownload}
-                  disabled={isCapturing || loading}
+                  disabled={isCapturing || loading || logoLoading}
                   fullWidth
                 >
                   {t('flier.download')}
@@ -261,7 +296,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
                   variant="outlined"
                   startIcon={<ShareIcon />}
                   onClick={handleShare}
-                  disabled={isCapturing || loading}
+                  disabled={isCapturing || loading || logoLoading}
                   fullWidth
                 >
                   {t('flier.share')}
@@ -287,11 +322,11 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
                   <InviteFlierTemplate
                     ref={flierRef}
                     groupName={groupName}
-                    groupLogoUrl={groupLogoUrl}
+                    groupLogoUrl={logoDataUrl}
                     customMessage={customMessage}
                     shortUrl={shortUrl}
                     themeColor={themeColor}
-                    loading={loading}
+                    loading={loading || logoLoading}
                   />
                 </Box>
               </Box>

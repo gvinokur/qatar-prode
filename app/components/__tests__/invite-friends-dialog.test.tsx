@@ -35,6 +35,11 @@ vi.mock('next-intl', () => ({
 
 // Browser APIs
 vi.stubGlobal('open', vi.fn())
+// Stub fetch for logo URL pre-loading (returns a tiny blob so FileReader resolves fast)
+vi.stubGlobal(
+  'fetch',
+  vi.fn().mockResolvedValue({ blob: () => Promise.resolve(new Blob(['img'], { type: 'image/png' })) })
+)
 Object.assign(navigator, {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
   canShare: vi.fn().mockReturnValue(true),
@@ -103,8 +108,8 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
 
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
-    // InviteFlierTemplate renders group name
-    expect(screen.getByText('Test Group')).toBeInTheDocument()
+    // Wait for short URL + logo to load, then flier shows group name
+    await waitFor(() => expect(screen.getByText('Test Group')).toBeInTheDocument())
   })
 
   it('customMessage textarea change updates the controlled input value', async () => {
@@ -133,8 +138,8 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    // Wait for short URL to load so buttons are enabled
-    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
+    // Wait for both shortUrl and logo data URL to load (button becomes enabled)
+    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /flier.download/i }))
@@ -151,7 +156,7 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /flier.share/i }))
@@ -173,7 +178,7 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /flier.download/i }))
@@ -193,7 +198,7 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
 
     // Click download to trigger isCapturing=true
     act(() => {
@@ -227,9 +232,7 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
-
-    // Flier still renders group name with the default violet theme
-    expect(screen.getByText('Test Group')).toBeInTheDocument()
+    // Wait for short URL + logo to load, then flier shows group name with default violet theme
+    await waitFor(() => expect(screen.getByText('Test Group')).toBeInTheDocument())
   })
 })
