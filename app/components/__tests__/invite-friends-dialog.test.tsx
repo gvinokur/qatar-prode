@@ -35,11 +35,6 @@ vi.mock('next-intl', () => ({
 
 // Browser APIs
 vi.stubGlobal('open', vi.fn())
-// Stub fetch for logo URL pre-loading (returns a tiny blob so FileReader resolves fast)
-vi.stubGlobal(
-  'fetch',
-  vi.fn().mockResolvedValue({ blob: () => Promise.resolve(new Blob(['img'], { type: 'image/png' })) })
-)
 Object.assign(navigator, {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
   canShare: vi.fn().mockReturnValue(true),
@@ -138,8 +133,8 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    // Wait for both shortUrl and logo data URL to load (button becomes enabled)
-    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
+    // Wait for short URL to load so buttons are enabled
+    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /flier.download/i }))
@@ -156,7 +151,7 @@ describe('InviteFriendsDialog', () => {
     await openDialog()
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /flier.download/i })).not.toBeDisabled())
+    await waitFor(() => expect(screen.queryByText('generatingLink')).not.toBeInTheDocument())
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /flier.share/i }))
