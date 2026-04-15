@@ -5,8 +5,14 @@
   "actionCenter": {
     "title": "Centro de Acción",
     "subtitle": "Envía tus predicciones",
-    "emptyState": "No hay partidos para predecir ahora",
-    "emptyStateHint": "Las predicciones abren 48 horas antes de cada partido — volvé pronto",
-    "fallbackSubtitle": "Todo al día — esto viene próximamente"
+    "noGamesInWindow": "No hay partidos en las próximas 48hs",
+    "fallbackSubtitle": "Todo al día — esto viene próximamente",
+    "predictGames": "Predecir todos los partidos",
+    "quickActions": "Más para predecir",
+    "qualifiedTeamsTitle": "Equipos clasificados",
+    "qualifiedTeamsHint": "Predicí qué equipos avanzan de cada grupo",
+    "awardsTitle": "Premios individuales",
+    "awardsHint": "Bota de Oro, Mejor Arquero y más",
+    "goToPage": "Ir a la página"
   }
 }

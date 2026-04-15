@@ -241,7 +241,7 @@ describe('ActionCenterCarousel', () => {
   })
 
   describe('empty state', () => {
-    it('renders empty-state message when mode is empty', () => {
+    it('renders no-games-in-window message when mode is empty', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'empty', games: [] })}
@@ -250,10 +250,10 @@ describe('ActionCenterCarousel', () => {
         />
       )
 
-      expect(screen.getByText('actionCenter.emptyState')).toBeInTheDocument()
+      expect(screen.getByText('actionCenter.noGamesInWindow')).toBeInTheDocument()
     })
 
-    it('renders the hint text in empty mode', () => {
+    it('renders predict-games and quick-action links in empty mode', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'empty', games: [] })}
@@ -262,7 +262,9 @@ describe('ActionCenterCarousel', () => {
         />
       )
 
-      expect(screen.getByText('actionCenter.emptyStateHint')).toBeInTheDocument()
+      expect(screen.getByText('actionCenter.predictGames')).toBeInTheDocument()
+      expect(screen.getAllByText('actionCenter.qualifiedTeamsTitle').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('actionCenter.awardsTitle').length).toBeGreaterThanOrEqual(1)
     })
 
     it('does not render the scroll container in empty mode', () => {
@@ -301,6 +303,33 @@ describe('ActionCenterCarousel', () => {
       )
 
       expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+    })
+  })
+
+  describe('quick-action cards', () => {
+    it('renders qualified teams and awards cards in urgent mode', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
+      expect(screen.getByText('actionCenter.awardsHint')).toBeInTheDocument()
+    })
+
+    it('renders quick-action cards in fallback mode', () => {
+      render(
+        <ActionCenterCarousel data={buildData({ mode: 'fallback' })} tournamentId="t-1" locale="en" />
+      )
+
+      expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
+      expect(screen.getByText('actionCenter.awardsHint')).toBeInTheDocument()
+    })
+
+    it('links to the correct URLs', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="tour-42" locale="en" />)
+
+      const links = screen.getAllByRole('link')
+      const hrefs = links.map((l) => l.getAttribute('href'))
+      expect(hrefs).toContain('/en/tournaments/tour-42/qualified-teams')
+      expect(hrefs).toContain('/en/tournaments/tour-42/awards')
     })
   })
 })

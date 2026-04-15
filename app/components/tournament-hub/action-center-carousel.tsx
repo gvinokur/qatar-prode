@@ -1,9 +1,22 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, Typography } from '@mui/material'
-import { CalendarToday as CalendarTodayIcon } from '@mui/icons-material'
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  Grid,
+} from '@mui/material'
+import {
+  CalendarToday as CalendarTodayIcon,
+  EmojiEvents as EmojiEventsIcon,
+  Groups as GroupsIcon,
+} from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider'
 import { ScrollShadowContainer } from '../common/scroll-shadow-container'
 import FlippableGameCard from '../flippable-game-card'
@@ -16,37 +29,30 @@ interface ActionCenterCarouselProps {
   readonly locale: Locale
 }
 
-export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouselProps) {
+export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCenterCarouselProps) {
   const t = useTranslations('hub')
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
 
   const subtitle =
     data.mode === 'fallback' ? t('actionCenter.fallbackSubtitle') : t('actionCenter.subtitle')
 
-  const handleEditStart = (gameId: string) => {
-    setEditingGameId(gameId)
-  }
+  const gamesUrl = `/${locale}/tournaments/${tournamentId}`
+  const qualifiedTeamsUrl = `/${locale}/tournaments/${tournamentId}/qualified-teams`
+  const awardsUrl = `/${locale}/tournaments/${tournamentId}/awards`
 
-  const handleEditEnd = () => {
-    setEditingGameId(null)
-  }
+  const handleEditStart = (gameId: string) => setEditingGameId(gameId)
+  const handleEditEnd = () => setEditingGameId(null)
 
   const handleAutoAdvanceNext = (gameId: string) => {
     const index = data.games.findIndex((g) => g.id === gameId)
-    if (index !== -1 && index < data.games.length - 1) {
-      setEditingGameId(data.games[index + 1].id)
-    } else {
-      setEditingGameId(null)
-    }
+    setEditingGameId(
+      index !== -1 && index < data.games.length - 1 ? data.games[index + 1].id : null
+    )
   }
 
   const handleAutoGoPrevious = (gameId: string) => {
     const index = data.games.findIndex((g) => g.id === gameId)
-    if (index > 0) {
-      setEditingGameId(data.games[index - 1].id)
-    } else {
-      setEditingGameId(null)
-    }
+    setEditingGameId(index > 0 ? data.games[index - 1].id : null)
   }
 
   return (
@@ -65,32 +71,36 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
           </Typography>
         </Box>
 
+        {/* Game carousel or empty state */}
         {data.mode === 'empty' ? (
-          /* Empty state — full width placeholder */
           <Box
             sx={{
               width: '100%',
-              py: 5,
+              py: 4,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 1,
+              gap: 2,
               border: '1px dashed',
               borderColor: 'divider',
               borderRadius: 1,
             }}
           >
-            <CalendarTodayIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 0.5 }} />
+            <CalendarTodayIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
             <Typography variant="body1" color="text.secondary" fontWeight={500}>
-              {t('actionCenter.emptyState')}
+              {t('actionCenter.noGamesInWindow')}
             </Typography>
-            <Typography
-              variant="caption"
-              color="text.disabled"
-              sx={{ textAlign: 'center', maxWidth: 300 }}
-            >
-              {t('actionCenter.emptyStateHint')}
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
+              <Button component={Link} href={gamesUrl} variant="outlined" size="small">
+                {t('actionCenter.predictGames')}
+              </Button>
+              <Button component={Link} href={qualifiedTeamsUrl} variant="outlined" size="small">
+                {t('actionCenter.qualifiedTeamsTitle')}
+              </Button>
+              <Button component={Link} href={awardsUrl} variant="outlined" size="small">
+                {t('actionCenter.awardsTitle')}
+              </Button>
+            </Box>
           </Box>
         ) : (
           <ScrollShadowContainer
@@ -101,10 +111,7 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
             {data.games.map((game) => {
               const guess = data.gameGuesses[game.id]
               return (
-                <Box
-                  key={game.id}
-                  sx={{ minWidth: { xs: 280, sm: 440 }, flexShrink: 0 }}
-                >
+                <Box key={game.id} sx={{ minWidth: { xs: 280, sm: 440 }, flexShrink: 0 }}>
                   <FlippableGameCard
                     game={game}
                     teamsMap={data.teamsMap}
@@ -127,6 +134,59 @@ export function ActionCenterCarousel({ data, tournamentId }: ActionCenterCarouse
             })}
           </ScrollShadowContainer>
         )}
+
+        {/* Quick-action cards — always shown */}
+        <Box sx={{ mt: 2 }}>
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ display: 'block', textAlign: 'center', mb: 1 }}
+          >
+            {t('actionCenter.quickActions')}
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Card variant="outlined" sx={{ height: '100%' }}>
+                <CardContent sx={{ pb: 0 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                    <GroupsIcon color="primary" fontSize="small" />
+                    <Typography variant="subtitle2">
+                      {t('actionCenter.qualifiedTeamsTitle')}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('actionCenter.qualifiedTeamsHint')}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button component={Link} href={qualifiedTeamsUrl} size="small">
+                    {t('actionCenter.goToPage')}
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Card variant="outlined" sx={{ height: '100%' }}>
+                <CardContent sx={{ pb: 0 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
+                    <EmojiEventsIcon color="primary" fontSize="small" />
+                    <Typography variant="subtitle2">
+                      {t('actionCenter.awardsTitle')}
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('actionCenter.awardsHint')}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button component={Link} href={awardsUrl} size="small">
+                    {t('actionCenter.goToPage')}
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </GuessesContextProvider>
   )

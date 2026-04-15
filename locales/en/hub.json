@@ -5,8 +5,14 @@
   "actionCenter": {
     "title": "Action Center",
     "subtitle": "Submit your predictions",
-    "emptyState": "No games to predict right now",
-    "emptyStateHint": "Predictions open 48 hours before each game kicks off — check back soon",
-    "fallbackSubtitle": "All caught up — here's what's coming"
+    "noGamesInWindow": "No games in the next 48hrs",
+    "fallbackSubtitle": "All caught up — here's what's coming",
+    "predictGames": "Predict all games",
+    "quickActions": "More to predict",
+    "qualifiedTeamsTitle": "Qualified Teams",
+    "qualifiedTeamsHint": "Predict which teams qualify from each group",
+    "awardsTitle": "Individual Awards",
+    "awardsHint": "Golden Boot, Best Goalkeeper and more",
+    "goToPage": "Go to page"
   }
 }
