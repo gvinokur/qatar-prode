@@ -1,5 +1,11 @@
 {
   "smartPredictorCarousel": "Carrusel de Predicciones",
   "predictionDashboard": "Panel de Predicciones",
-  "leaderboardPeek": "Vista de Tabla de Posiciones"
+  "leaderboardPeek": "Vista de Tabla de Posiciones",
+  "actionCenter": {
+    "title": "Centro de Acción",
+    "subtitle": "Envía tus predicciones",
+    "emptyState": "No hay partidos próximos para predecir",
+    "fallbackSubtitle": "Todo al día — esto viene próximamente"
+  }
 }

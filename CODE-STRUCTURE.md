@@ -37,6 +37,9 @@ All Next.js page components, layouts, route handlers, and API routes (`app/[loca
 which client components it renders as children, and how authentication state affects what
 gets shown. Also covers middleware and short-URL redirect routes.
 
+### [docs/code-structure/components/components-tournament-hub.md](docs/code-structure/components/components-tournament-hub.md)
+Components for the Tournament Hub — the Action Center widget that surfaces urgent pending predictions. Covers `TournamentHubActionCenter` (Server wrapper) and `ActionCenterCarousel` (Client component with flip card edit state). Read this for any story touching the hub's Action Center (Story #317 and onwards).
+
 ### [docs/code-structure/components/components-tournament-games.md](docs/code-structure/components/components-tournament-games.md)
 Components for the core game prediction experience: flippable game cards, urgency-based
 accordion grouping, score input (stepper), boost selector (silver/golden), game filters,
@@ -548,10 +551,24 @@ Key flows:
             → derives rankChange = previous.rank - current.rank (positive = improved)
             → returns MaterializedGroupRanking | null
 
-29. Tournament Hub shell (Story #316 — static, no new action calls)
+29. Tournament Hub shell (Story #316; updated Story #317)
     TournamentHubPage (Server) — /tournaments/[id]/hub
-      → renders 3 Paper placeholders (Smart Predictor Carousel, Prediction Dashboard, Leaderboard Peek)
-      → no data fetching — widget data arrives in Stories #317–#319
+      → renders TournamentHubActionCenter (Story #317 — replaces smartPredictorCarousel Paper)
+      → renders 2 Paper placeholders (Prediction Dashboard, Leaderboard Peek)
+
+30. Action Center data flow (Story #317)
+    TournamentHubActionCenter (Server) → getActionCenterGames(tournamentId, locale)
+      → getLoggedInUser
+      → findGamesForDashboard(tournamentId)
+      → findGameGuessesByUserId(userId, tournamentId)
+      → findTeamInTournament(tournamentId)
+      → findTournamentById(tournamentId)
+      → applyLocalizationBatch (teams + games)
+      → returns ActionCenterData { games, gameGuesses, teamsMap, boostLimits, mode }
+    → ActionCenterCarousel [Client]
+        → GuessesContextProvider (gameGuesses, autoSave=true, boost limits)
+        → ScrollShadowContainer (direction="horizontal")
+          → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
 
     Modified flows (Story #316):
     - TournamentRedirect [Client] now calls isHubEnabled():

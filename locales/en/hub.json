@@ -1,5 +1,11 @@
 {
   "smartPredictorCarousel": "Smart Predictor Carousel",
   "predictionDashboard": "Prediction Dashboard",
-  "leaderboardPeek": "Leaderboard Peek"
+  "leaderboardPeek": "Leaderboard Peek",
+  "actionCenter": {
+    "title": "Action Center",
+    "subtitle": "Submit your predictions",
+    "emptyState": "No upcoming games to predict",
+    "fallbackSubtitle": "All caught up — here's what's coming"
+  }
 }

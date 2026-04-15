@@ -164,10 +164,11 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
 ### app/[locale]/tournaments/[id]/hub/page.tsx
-Tournament Hub shell page with three placeholder sections for future widgets.
+Tournament Hub page. Renders the Action Center widget (TournamentHubActionCenter) and two placeholder Paper sections for Prediction Dashboard and Leaderboard Peek.
 
-- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Static hub shell rendering three Paper placeholder sections labeled "Smart Predictor Carousel", "Prediction Dashboard", and "Leaderboard Peek". Uses `getTranslations` for i18n labels from the `hub` namespace. No data fetching — widget data arrives in future stories.
-  Calls: getTranslations, getLocale
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub page that resolves `id` from params, derives locale via `toLocale`, then renders `TournamentHubActionCenter` (Story #317) followed by two placeholder Paper sections for future widgets.
+  Calls: getTranslations, getLocale, toLocale, TournamentHubActionCenter
+  Renders: TournamentHubActionCenter, Paper (×2 placeholders)
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.
