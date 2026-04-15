@@ -562,7 +562,7 @@ Key flows:
         → await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))
         → derives groupRanks: Record<string, number> (skips null results)
         → passes groupRanks to TournamentSidebar → FriendGroupsList
-          FriendGroupsList renders header Badge+Tooltip (primary group rank) and per-row Chips
+          FriendGroupsList shows primary group rank in CardHeader subheader text and per-row Chips before group name links
     - GroupSelector [Client] (top nav) now calls isHubEnabled():
         when true  → Hub tab rendered before Matches, links to /tournaments/${id}/hub
         when false → Hub tab absent
