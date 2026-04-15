@@ -29,6 +29,36 @@ const InviteFlierTemplate = React.forwardRef<HTMLDivElement, InviteFlierTemplate
       .join('')
       .toUpperCase()
 
+    const avatarElement = loading ? (
+      <Skeleton variant="circular" width={72} height={72} />
+    ) : groupLogoUrl ? (
+      <img
+        src={groupLogoUrl}
+        alt={groupName}
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: '50%',
+          border: '3px solid #fff',
+          objectFit: 'cover',
+        }}
+      />
+    ) : (
+      <Avatar
+        sx={{
+          width: 72,
+          height: 72,
+          fontSize: 28,
+          fontWeight: 700,
+          bgcolor: 'rgba(255,255,255,0.2)',
+          color: '#fff',
+          border: '3px solid #fff',
+        }}
+      >
+        {initials}
+      </Avatar>
+    )
+
     return (
       <div
         ref={ref}
@@ -48,35 +78,7 @@ const InviteFlierTemplate = React.forwardRef<HTMLDivElement, InviteFlierTemplate
       >
         {/* Avatar */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          {loading ? (
-            <Skeleton variant="circular" width={72} height={72} />
-          ) : groupLogoUrl ? (
-            <img
-              src={groupLogoUrl}
-              alt={groupName}
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: '50%',
-                border: '3px solid #fff',
-                objectFit: 'cover',
-              }}
-            />
-          ) : (
-            <Avatar
-              sx={{
-                width: 72,
-                height: 72,
-                fontSize: 28,
-                fontWeight: 700,
-                bgcolor: 'rgba(255,255,255,0.2)',
-                color: '#fff',
-                border: '3px solid #fff',
-              }}
-            >
-              {initials}
-            </Avatar>
-          )}
+          {avatarElement}
 
           {/* Group name */}
           {loading ? (
