@@ -5,6 +5,7 @@
   },
   "header": {
     "groupCount": "{count, plural, =1 {1 grupo} other {# grupos}}",
+    "groupCountWithRank": "{count, plural, =1 {1 grupo} other {# grupos}} - #{rank} en {groupName}",
     "noGroups": "Sin grupos"
   },
   "actions": {

@@ -17,6 +17,7 @@ import {Typography, Avatar} from "@mui/material";
 import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { isDevelopmentMode } from '../../../utils/environment-utils';
+import { getGroupRankingForUser } from '../../../actions/group-ranking-actions';
 import { hasUserPermission } from '../../../db/tournament-view-permission-repository';
 import { redirect, notFound } from 'next/navigation';
 import { DevTournamentBadge } from '../../../components/common/dev-tournament-badge';
@@ -129,6 +130,21 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const prodeGroups = user ? await getGroupsForUser() : undefined
   const groupStandings = await getGroupStandingsForTournament(params.id)
   const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
+
+  // Fetch rank for each group the user belongs to (parallel)
+  let groupRanks: Record<string, number> = {}
+  if (user && prodeGroups) {
+    const allGroups = [...prodeGroups.userGroups, ...prodeGroups.participantGroups]
+    const rankResults = await Promise.all(
+      allGroups.map((g) => getGroupRankingForUser(user.id, g.id, params.id))
+    )
+    allGroups.forEach((g, i) => {
+      const result = rankResults[i]
+      if (result !== null) {
+        groupRanks[g.id] = result.currentRank
+      }
+    })
+  }
 
   // Extract scoring config
   const scoringConfig = extractScoringConfig(tournament)
@@ -320,6 +336,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               groupStandings={groupStandings}
               prodeGroups={prodeGroups}
               user={user ?? undefined}
+              groupRanks={groupRanks}
             />
           </Grid>
         </Box>

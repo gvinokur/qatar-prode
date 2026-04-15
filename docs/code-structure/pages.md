@@ -159,9 +159,15 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
 - **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
-- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, and SportsEvent JSON-LD structured data.
-  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd
+- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. After `getGroupsForUser`, fetches ranks for all user groups in parallel via `getGroupRankingForUser`, derives `groupRanks: Record<string, number>`, and passes to `TournamentSidebar`.
+  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd, getGroupRankingForUser
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
+
+### app/[locale]/tournaments/[id]/hub/page.tsx
+Tournament Hub shell page with three placeholder sections for future widgets.
+
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Static hub shell rendering three Paper placeholder sections labeled "Smart Predictor Carousel", "Prediction Dashboard", and "Leaderboard Peek". Uses `getTranslations` for i18n labels from the `hub` namespace. No data fetching — widget data arrives in future stories.
+  Calls: getTranslations, getLocale
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.

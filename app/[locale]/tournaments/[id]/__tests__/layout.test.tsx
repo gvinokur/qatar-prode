@@ -24,6 +24,10 @@ vi.mock('@/app/actions/prode-group-actions', () => ({
   getGroupsForUser: vi.fn()
 }));
 
+vi.mock('@/app/actions/group-ranking-actions', () => ({
+  getGroupRankingForUser: vi.fn().mockResolvedValue(null)
+}));
+
 vi.mock('@/app/actions/user-actions', () => ({
   getLoggedInUser: vi.fn()
 }));
@@ -64,7 +68,8 @@ vi.mock('next/navigation', () => ({
 
 // Mock environment utils
 vi.mock('@/app/utils/environment-utils', () => ({
-  isDevelopmentMode: vi.fn(() => false)
+  isDevelopmentMode: vi.fn(() => false),
+  isHubEnabled: vi.fn(() => false)
 }));
 
 // Mock notification utils to avoid VAPID setup issues

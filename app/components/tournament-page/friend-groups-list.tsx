@@ -28,6 +28,7 @@ type Props = {
   tournamentId?: string
   isActive?: boolean
   pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
+  groupRanks?: Record<string, number>
 }
 
 type GroupForm = {
@@ -40,6 +41,7 @@ export default function FriendGroupsList({
   tournamentId,
   isActive = false,
   pendingRequests = [],
+  groupRanks,
 } : Props) {
   const t = useTranslations('groups');
   const theme = useTheme();
@@ -47,7 +49,13 @@ export default function FriendGroupsList({
   const router = useRouter();
   const [userGroups, setUserGroups] = useState(initialUserGroups);
   const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
+  const primaryGroup = userGroups[0] ?? participantGroups[0];
+  const primaryGroupRank = primaryGroup ? (groupRanks?.[primaryGroup.id] ?? null) : null;
   const groupCount = userGroups.length + participantGroups.length;
+  const groupCountWithOptionalRank = primaryGroupRank !== null && primaryGroup
+    ? t('header.groupCountWithRank', { count: groupCount, rank: primaryGroupRank, groupName: primaryGroup.name })
+    : t('header.groupCount', { count: groupCount });
+  const groupCountText = groupCount > 0 ? groupCountWithOptionalRank : t('header.noGroups');
   const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
@@ -98,7 +106,7 @@ export default function FriendGroupsList({
           slotProps={{ title: { variant: 'h6' } }}
           subheader={[
             isActive ? t('status.youAreHere') : null,
-            groupCount > 0 ? t('header.groupCount', { count: groupCount }) : t('header.noGroups'),
+            groupCountText,
           ].filter(Boolean).join(' · ')}
           sx={{ color: theme.palette.primary.main, borderBottom: `${theme.palette.primary.light} solid 1px`}}
           action={
@@ -134,42 +142,58 @@ export default function FriendGroupsList({
             </>
           ) : (
             <List sx={{ width: '100%'}} disablePadding >
-            {userGroups.map(userGroup => (
-              <ListItem key={userGroup.id}
-                        alignItems='flex-start'
-                        disableGutters
-                        secondaryAction={
-                          <>
-                            <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
-                              <DeleteIcon/>
-                            </IconButton>
-                            <InviteFriendsDialog
-                              trigger={
-                                <IconButton title={t('actions.invite')} color="primary">
-                                  <ShareIcon/>
-                                </IconButton>}
-                              groupId={userGroup.id}
-                              groupName={userGroup.name}
-                              tournamentId={tournamentId} />
-                          </>
-                        }>
-                <ListItemText>
-                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
-                    {userGroup.name}
-                  </Link>
-                </ListItemText>
-              </ListItem>
-            ))}
+            {userGroups.map(userGroup => {
+              const rank = groupRanks?.[userGroup.id];
+              return (
+                <ListItem key={userGroup.id}
+                          alignItems='flex-start'
+                          disableGutters
+                          secondaryAction={
+                            <>
+                              <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
+                                <DeleteIcon/>
+                              </IconButton>
+                              <InviteFriendsDialog
+                                trigger={
+                                  <IconButton title={t('actions.invite')} color="primary">
+                                    <ShareIcon/>
+                                  </IconButton>}
+                                groupId={userGroup.id}
+                                groupName={userGroup.name}
+                                tournamentId={tournamentId} />
+                            </>
+                          }>
+                  <ListItemText>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {rank !== undefined && (
+                        <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                      )}
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
+                        {userGroup.name}
+                      </Link>
+                    </Box>
+                  </ListItemText>
+                </ListItem>
+              );
+            })}
             {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
-            {participantGroups.map(participantGroup => (
-              <ListItem key={participantGroup.id} disableGutters>
-                <ListItemText>
-                  <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
-                    {participantGroup.name}
-                  </Link>
-                </ListItemText>
-              </ListItem>
-            ))}
+            {participantGroups.map(participantGroup => {
+              const rank = groupRanks?.[participantGroup.id];
+              return (
+                <ListItem key={participantGroup.id} disableGutters>
+                  <ListItemText>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {rank !== undefined && (
+                        <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                      )}
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
+                        {participantGroup.name}
+                      </Link>
+                    </Box>
+                  </ListItemText>
+                </ListItem>
+              );
+            })}
             {pendingRequests.length > 0 && (userGroups.length > 0 || participantGroups.length > 0) && <ListItem divider/>}
             {pendingRequests.map(request => (
               <ListItem key={request.id} disableGutters sx={{ gap: 1 }}>

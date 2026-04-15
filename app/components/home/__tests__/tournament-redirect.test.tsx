@@ -36,11 +36,18 @@ vi.mock('@/app/utils/dismissal-storage', () => ({
   setLastSelectedTournamentId: vi.fn(),
 }));
 
+// Mock environment-utils with controllable hub flag
+let mockHubEnabled = false;
+vi.mock('@/app/utils/environment-utils', () => ({
+  isHubEnabled: () => mockHubEnabled,
+}));
+
 describe('TournamentRedirect', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocale = 'en';
     mockPathname = '/en';
+    mockHubEnabled = false;
   });
 
   afterEach(() => {
@@ -255,6 +262,41 @@ describe('TournamentRedirect', () => {
       expect(mockPush).toHaveBeenCalledWith(
         '/en/tournaments/tournament-2024-world-cup'
       );
+    });
+  });
+
+  describe('Hub flag behavior', () => {
+    it('redirects to /hub when hub flag is enabled', () => {
+      mockHubEnabled = true;
+      const tournaments = [{ id: 'tournament-1' }];
+
+      vi.mocked(dismissalStorage.getLastSelectedTournamentId).mockReturnValue(null);
+
+      renderWithTheme(<TournamentRedirect tournaments={tournaments} />);
+
+      expect(mockPush).toHaveBeenCalledWith('/en/tournaments/tournament-1/hub');
+    });
+
+    it('redirects to /tournaments/[id] when hub flag is disabled', () => {
+      mockHubEnabled = false;
+      const tournaments = [{ id: 'tournament-1' }];
+
+      vi.mocked(dismissalStorage.getLastSelectedTournamentId).mockReturnValue(null);
+
+      renderWithTheme(<TournamentRedirect tournaments={tournaments} />);
+
+      expect(mockPush).toHaveBeenCalledWith('/en/tournaments/tournament-1');
+    });
+
+    it('redirects to first tournament hub when no last-selected and hub flag is on', () => {
+      mockHubEnabled = true;
+      const tournaments = [{ id: 'tournament-1' }, { id: 'tournament-2' }];
+
+      vi.mocked(dismissalStorage.getLastSelectedTournamentId).mockReturnValue(null);
+
+      renderWithTheme(<TournamentRedirect tournaments={tournaments} />);
+
+      expect(mockPush).toHaveBeenCalledWith('/en/tournaments/tournament-1/hub');
     });
   });
 });

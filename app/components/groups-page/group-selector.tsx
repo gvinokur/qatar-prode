@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from 'next-intl';
 import { User } from 'next-auth';
+import { isHubEnabled } from '@/app/utils/environment-utils';
 
 type Props = {
   readonly groups: { group_letter: string, id: string }[];
@@ -29,6 +30,9 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
 
 /** Get selected tab value from pathname */
 const getSelectedTab = (pathname: string): string => {
+  if (pathname.includes('/hub')) {
+    return 'hub';
+  }
   if (pathname.includes('/qualified-teams')) {
     return 'qualified-teams';
   }
@@ -44,6 +48,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
   const theme = useTheme();
+  const hubEnabled = isHubEnabled();
   const selected = getSelectedTab(pathname);
   const tabSx = getTabSx(backgroundColor, textColor, theme);
 
@@ -68,6 +73,15 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         },
       }}
     >
+      {hubEnabled && (
+        <Tab
+          label={t('hub')}
+          value="hub"
+          component={Link}
+          href={`/${locale}/tournaments/${tournamentId}/hub`}
+          sx={tabSx}
+        />
+      )}
       <Tab
         label={t('matches')}
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}

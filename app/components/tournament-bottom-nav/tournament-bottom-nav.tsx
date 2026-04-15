@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { User } from 'next-auth';
+import { isHubEnabled } from '@/app/utils/environment-utils';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
@@ -25,6 +26,8 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
     const pathWithoutLocale = currentPath.replace(/^\/[^/]+/, '');
 
     if (pathWithoutLocale === '' || pathWithoutLocale === '/') {
+      setValue('main-home');
+    } else if (pathWithoutLocale === `/tournaments/${tournamentId}/hub`) {
       setValue('main-home');
     } else if (pathWithoutLocale === `/tournaments/${tournamentId}`) {
       setValue(''); // PARTIDOS is in top nav, no bottom nav tab selected
@@ -47,7 +50,11 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
     // Navigate based on selected tab
     switch (newValue) {
       case 'main-home':
-        router.push(`/${locale}`);
+        router.push(
+          isHubEnabled()
+            ? `/${locale}/tournaments/${tournamentId}/hub`
+            : `/${locale}`
+        );
         break;
       case 'results':
         router.push(`/${locale}/tournaments/${tournamentId}/results`);
@@ -82,8 +89,8 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
       <BottomNavigationAction label={t('bottomNav.home')} value="main-home" icon={<Home sx={{ fontSize: 24 }} />} />
       <BottomNavigationAction label={t('bottomNav.results')} value="results" icon={<Assessment sx={{ fontSize: 24 }} />} />
       <BottomNavigationAction label={t('bottomNav.rules')} value="rules" icon={<Gavel sx={{ fontSize: 24 }} />} />
-      {user && <BottomNavigationAction label={t('bottomNav.stats')} value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />}
       {user && <BottomNavigationAction label={t('bottomNav.groups')} value="friend-groups" icon={<Groups sx={{ fontSize: 24 }} />} />}
+      {user && <BottomNavigationAction label={t('bottomNav.stats')} value="stats" icon={<BarChart sx={{ fontSize: 24 }} />} />}
     </BottomNavigation>
   );
 }

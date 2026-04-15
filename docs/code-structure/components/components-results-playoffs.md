@@ -184,11 +184,11 @@ Server component fetching and passing game data to PublicGamesPageClient.
   Renders: PublicGamesPageClient
 
 ### app/components/tournament-page/tournament-sidebar.tsx
-Multi-section sidebar (Groups, Stats, Friend Groups, Rules) with navigation awareness.
+Multi-section sidebar (Friend Groups, Group Standings, Stats, Rules) with navigation awareness.
 
-- **TournamentSidebar(props: TournamentSidebarProps)**: `JSX.Element` — [Client] Renders conditional sections based on props and highlights active section.
-  Uses: usePathname, useTheme, useMediaQuery
-  Renders: GroupStandingsSidebar, UserTournamentStatistics, FriendGroupsList, Rules
+- **TournamentSidebar(props: TournamentSidebarProps)**: `JSX.Element` — [Client] Renders conditional sections based on props and highlights active section. Props: `tournamentId`, `scoringConfig?`, `userGameStatistics?`, `tournamentGuess?`, `groupStandings?`, `prodeGroups?`, `user?`, `groupRanks?: Record<string, number>`. Sections rendered in order: Friend Groups (first), Group Standings, Stats, Rules.
+  Uses: usePathname
+  Renders: FriendGroupsList, GroupStandingsSidebar, UserTournamentStatistics, Rules
 
 ### app/components/tournament-page/empty-groups-state.tsx
 Deprecated empty state component for groups (replaced by FriendGroupsLandingEmptyState).
@@ -197,12 +197,12 @@ Deprecated empty state component for groups (replaced by FriendGroupsLandingEmpt
   Uses: useTranslations
 
 ### app/components/tournament-page/friend-groups-list.tsx
-Card showing user groups, participant groups, and pending requests with create/delete dialogs.
+Card showing user groups, participant groups, and pending requests with create/delete dialogs and optional rank badges.
 
-- **FriendGroupsList(props: Props)**: `JSX.Element` — [Client] Collapsible card with group lists, create/delete dialogs, invite functionality, and empty state.
+- **FriendGroupsList(props: Props)**: `JSX.Element` — [Client] Collapsible card with group lists, create/delete dialogs, invite functionality, and empty state. Optional `groupRanks?: Record<string, number>` prop: when provided, shows the primary group rank inline in the CardHeader subheader text (via i18n key `header.groupCountWithRank`) and a per-row Chip before the group name link for each group with an available rank.
   Calls: createDbGroup, deleteGroup
   Uses: useState, useTheme, useLocale, useRouter, useForm, useTranslations
-  Renders: FriendGroupsSidebarEmptyState, InviteFriendsDialog, ExpandMore
+  Renders: FriendGroupsSidebarEmptyState, InviteFriendsDialog, ExpandMore, Chip
 
 ### app/components/tournament-page/group-standings-sidebar.tsx
 Accordion card displaying group standings with carousel navigation (arrow buttons and keyboard/swipe support).
@@ -257,7 +257,8 @@ Conditional wrapper that renders TournamentBottomNav only on mobile breakpoints.
   Uses: usePathname, useTheme, useMediaQuery
 
 ### app/components/tournament-bottom-nav/tournament-bottom-nav.tsx
-Fixed bottom navigation for tournament pages with 5 action tabs (home, results, rules, stats, groups).
+Fixed bottom navigation for tournament pages with 5 action tabs (home, results, rules, groups, stats).
 
-- **TournamentBottomNav({ tournamentId, currentPath, user }: TournamentBottomNavProps)**: `JSX.Element` — [Client] BottomNavigation with conditional tabs (stats/groups hidden if not logged in), auto-selects tab based on pathname.
+- **TournamentBottomNav({ tournamentId, currentPath, user }: TournamentBottomNavProps)**: `JSX.Element` — [Client] BottomNavigation with conditional tabs (groups/stats hidden if not logged in), auto-selects tab based on pathname. Tab order: Home, Results, Rules, Groups, Stats. Home tab navigates to `/tournaments/[id]/hub` when `isHubEnabled()` is true, otherwise to `/[locale]`.
+  Calls: isHubEnabled
   Uses: useState, useEffect, useRouter, useLocale, useTranslations
