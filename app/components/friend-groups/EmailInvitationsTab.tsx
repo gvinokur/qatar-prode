@@ -49,7 +49,7 @@ function parseCsvColumns(
   if (hasHeader) {
     const emailIdx = headers.indexOf('email');
     if (emailIdx === -1) return null;
-    const nIdx = headers.indexOf('name') !== -1
+    const nIdx = headers.includes('name')
       ? headers.indexOf('name')
       : headers.indexOf('nombre');
     let nameIdx: number;
@@ -61,11 +61,11 @@ function parseCsvColumns(
     return { nameIdx, emailIdx };
   }
 
-  // No header: auto-detect columns from first data row
-  if (firstDataCols.length >= 2 && firstDataCols[1].includes('@')) return { nameIdx: 0, emailIdx: 1 };
-  if (firstDataCols.length >= 2 && firstDataCols[0].includes('@')) return { nameIdx: 1, emailIdx: 0 };
-  if (!firstDataCols.some(c => c.includes('@'))) return null;
-  return { nameIdx: 0, emailIdx: 1 };
+  // No header: auto-detect columns from first data row (need at least two columns)
+  if (firstDataCols.length < 2) return null;
+  if (firstDataCols[1].includes('@')) return { nameIdx: 0, emailIdx: 1 };
+  if (firstDataCols[0].includes('@')) return { nameIdx: 1, emailIdx: 0 };
+  return null;
 }
 
 export default function EmailInvitationsTab({
@@ -173,7 +173,7 @@ export default function EmailInvitationsTab({
 
     setIsSending(true);
     try {
-      const locale = typeof globalThis.window === 'undefined'
+      const locale = globalThis.window === undefined
         ? 'es'
         : document.documentElement.lang || 'es';
       const result = await sendGroupEmailInvitations(
