@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { renderWithProviders } from '@/__tests__/utils/test-utils';
 import EmailInvitationsTab from '../EmailInvitationsTab';
 
@@ -180,6 +180,61 @@ describe('EmailInvitationsTab', () => {
       const sendButton = screen.getByRole('button', { name: /enviar/i });
       expect(sendButton).not.toBeDisabled();
     }, 30000);
+  });
+
+  describe('CSV import', () => {
+    async function triggerCsvImport(content: string) {
+      const file = new File([content], 'test.csv', { type: 'text/csv' });
+      // jsdom's File does not implement Blob#text(); add it to this instance
+      Object.defineProperty(file, 'text', {
+        value: () => Promise.resolve(content),
+        configurable: true,
+      });
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      await act(async () => {
+        fireEvent.change(input);
+      });
+    }
+
+    it('populates rows from valid CSV with header row', async () => {
+      renderTab();
+      await triggerCsvImport('name,email\nAlice,alice@example.com\nBob,bob@example.com');
+
+      await waitFor(() => {
+        expect(screen.getAllByPlaceholderText(/nombre/i)).toHaveLength(2);
+      });
+      const emailInputs = screen.getAllByPlaceholderText(/email/i);
+      expect(emailInputs[0]).toHaveValue('alice@example.com');
+      expect(emailInputs[1]).toHaveValue('bob@example.com');
+    });
+
+    it('shows empty error for header-only CSV', async () => {
+      renderTab();
+      await triggerCsvImport('name,email\n');
+
+      await waitFor(() => {
+        expect(screen.getByText(/vacío/i)).toBeInTheDocument();
+      });
+    });
+
+    it('shows format error when CSV has no email column', async () => {
+      renderTab();
+      await triggerCsvImport('nombre,telefono\nAlice,555-1234');
+
+      await waitFor(() => {
+        expect(screen.getByText(/columna/i)).toBeInTheDocument();
+      });
+    });
+
+    it('deduplicates rows by email during CSV import', async () => {
+      renderTab();
+      await triggerCsvImport('name,email\nAlice,alice@example.com\nAlice2,alice@example.com\nBob,bob@example.com');
+
+      await waitFor(() => {
+        expect(screen.getAllByPlaceholderText(/email/i)).toHaveLength(2);
+      });
+    });
   });
 
   describe('CSV template download', () => {
