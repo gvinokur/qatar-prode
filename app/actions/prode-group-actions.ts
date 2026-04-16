@@ -17,6 +17,9 @@ import {
 } from "../db/prode-group-repository";
 import {getLoggedInUser} from "./user-actions";
 import { findJoinRequestsByUser } from "../db/prode-group-join-request-repository";
+import { generateShortUrlForGroup, buildShortUrl } from "./short-url-actions";
+import { generateGroupInvitationEmail } from "../utils/email-templates";
+import { sendEmail } from "../utils/email";
 import {z} from "zod";
 import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import { getGameGuessStatisticsForUsers, getBoostStatsForUsersInTournament } from '../db/game-guess-repository';
@@ -344,4 +347,70 @@ export async function calculateTournamentGroupStats(
     themeColor: group.theme?.primary_color || null,
     bettingEnabled: bettingConfig?.betting_enabled ?? false
   };
+}
+
+export async function sendGroupEmailInvitations(
+  groupId: string,
+  recipients: Array<{name: string; email: string}>,
+  customMessage: string | undefined,
+  locale: string,
+  groupLogoUrl?: string,
+  themeColor?: string
+): Promise<{sent: number; failed: string[]}> {
+  const user = await getLoggedInUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const group = await findProdeGroupById(groupId);
+  if (!group) throw new Error('Group not found');
+
+  const participants = await findParticipantsInGroup(groupId);
+  const isOwner = group.owner_user_id === user.id;
+  const participantRecord = participants.find(p => p.user_id === user.id);
+  const isAdmin = isOwner || !!participantRecord?.is_admin;
+  if (!isAdmin) throw new Error('Forbidden');
+
+  if (recipients.length > 50) throw new Error('Too many recipients');
+
+  // Deduplicate by email (case-insensitive)
+  const seen = new Set<string>();
+  const uniqueRecipients = recipients.filter(r => {
+    const key = r.email.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  const shortUrlResult = await generateShortUrlForGroup(groupId);
+  const inviteLink = await buildShortUrl(shortUrlResult.code);
+  const senderDisplayName = user.nickname ?? user.name ?? user.email ?? 'Someone';
+
+  const results = await Promise.allSettled(
+    uniqueRecipients.map(async (recipient) => {
+      const emailContent = await generateGroupInvitationEmail({
+        recipientEmail: recipient.email,
+        recipientName: recipient.name,
+        senderDisplayName,
+        groupName: group.name,
+        inviteLink,
+        customMessage,
+        locale: locale as 'es' | 'en',
+        groupLogoUrl,
+        themeColor,
+      });
+      await sendEmail(emailContent);
+      return recipient.email;
+    })
+  );
+
+  const failed: string[] = [];
+  let sent = 0;
+  for (let i = 0; i < results.length; i++) {
+    if (results[i].status === 'fulfilled') {
+      sent++;
+    } else {
+      failed.push(uniqueRecipients[i].email);
+    }
+  }
+
+  return { sent, failed };
 }

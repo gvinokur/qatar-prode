@@ -449,6 +449,18 @@ Key flows:
       └── InviteFriendsDialog [renders]
             ├── generateShortUrlForGroup [server action]
             │     └── getOrCreateShortUrl
+            ├── Email tab (Tab 1)
+            │     └── EmailInvitationsTab [Client]
+            │           └── sendGroupEmailInvitations [server action]
+            │                 ├── getLoggedInUser
+            │                 ├── findProdeGroupById
+            │                 ├── findParticipantsInGroup (admin check)
+            │                 ├── generateShortUrlForGroup + buildShortUrl (invite link)
+            │                 ├── generateGroupInvitationEmail [util] (per recipient)
+            │                 │     → colored header (themeColor + groupLogoUrl img)
+            │                 │     → personalized greeting (recipientName)
+            │                 │     → sender attribution (senderDisplayName)
+            │                 └── sendEmail [util] (parallel Promise.allSettled)
             └── Folleto tab (Tab 2)
                   ├── rewrites groupLogoUrl → /api/proxy-image?url=<encoded> (same-origin proxy)
                   │     └── app/api/proxy-image/route.ts [API route] → upstream fetch (server-side, no CORS)

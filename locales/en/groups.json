@@ -56,6 +56,23 @@
       "captureError": "Could not generate the image",
       "shareText": "Join our prode! {groupName}"
     },
+    "email": {
+      "title": "Email Invitations",
+      "templateBtn": "Template",
+      "importCsvBtn": "Import CSV",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "addRow": "+ Add another",
+      "customMessageLabel": "Custom message (optional)",
+      "sendBtn": "Send Invitations",
+      "recipientCount": "{count} {count, plural, =1 {recipient} other {recipients}} — Limit: 50",
+      "overLimit": "50 recipient limit reached",
+      "csvFormatError": "The CSV file does not have an 'Email' column",
+      "csvEmptyError": "The CSV file is empty or contains only headers",
+      "sendSuccess": "{sent} {sent, plural, =1 {invitation sent} other {invitations sent}}",
+      "sendPartialError": "Error sending to: {emails}",
+      "sendError": "Error sending invitations"
+    },
     "buttons": {
       "email": "Email",
       "whatsapp": "WhatsApp"

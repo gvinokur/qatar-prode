@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-06
+**Last updated:** 2026-04-16
 
 ---
 
@@ -181,6 +181,8 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: getGameGuessStatisticsForUsers, findTournamentGuessByUserIdsTournament, getBoostStatsForUsersInTournament
 - **calculateTournamentGroupStats(groupId, tournamentId, userId)**: `Promise<TournamentGroupStats>` — Gets aggregated group stats for a tournament.
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, getGroupTournamentBettingConfig, findUsersByIds
+- **sendGroupEmailInvitations(groupId, recipients, customMessage, locale, groupLogoUrl?, themeColor?)**: `Promise<{sent: number; failed: string[]}>` — Sends localized group invitation emails to up to 50 recipients. Validates user is owner or admin, deduplicates by email, sends in parallel via Promise.allSettled, returns counts of sent/failed.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, generateShortUrlForGroup, buildShortUrl, generateGroupInvitationEmail, sendEmail
 
 ### app/actions/prode-group-discovery-actions.ts
 Public group discovery and search for group browsing.

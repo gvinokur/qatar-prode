@@ -56,6 +56,23 @@
       "captureError": "No se pudo generar la imagen",
       "shareText": "¡Unite a nuestro prode! {groupName}"
     },
+    "email": {
+      "title": "Invitaciones por Email",
+      "templateBtn": "Plantilla",
+      "importCsvBtn": "Importar CSV",
+      "nameLabel": "Nombre",
+      "emailLabel": "Email",
+      "addRow": "+ Agregar otro",
+      "customMessageLabel": "Mensaje personalizado (opcional)",
+      "sendBtn": "Enviar Invitaciones",
+      "recipientCount": "{count} {count, plural, =1 {destinatario} other {destinatarios}} — Límite: 50",
+      "overLimit": "Límite de 50 destinatarios alcanzado",
+      "csvFormatError": "El archivo CSV no tiene una columna 'Email'",
+      "csvEmptyError": "El archivo CSV está vacío o solo tiene encabezados",
+      "sendSuccess": "{sent} {sent, plural, =1 {invitación enviada} other {invitaciones enviadas}}",
+      "sendPartialError": "Error al enviar a: {emails}",
+      "sendError": "Error al enviar las invitaciones"
+    },
     "buttons": {
       "email": "Email",
       "whatsapp": "WhatsApp"
