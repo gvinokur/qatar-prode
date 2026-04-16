@@ -246,24 +246,25 @@ export async function getLeaderboardPeekData(
       rankChange = snapshots[1].rank - snapshots[0].rank
     }
 
-    // Build 3-row window around the user
+    // Build 3-row window around the user using array index (not rank value)
+    // to guarantee exactly 3 rows even when ties exist at adjacent ranks
     const total = rankings.length
     const userRank = userRankEntry.rank
-    let windowStart: number
+    const userIndex = rankings.findIndex((r) => r.userId === user.id)
 
+    let sliceStart: number
     if (total <= 3) {
-      windowStart = 1
-    } else if (userRank === 1) {
-      windowStart = 1
-    } else if (userRank >= total) {
-      windowStart = total - 2
+      sliceStart = 0
+    } else if (userIndex <= 0) {
+      sliceStart = 0
+    } else if (userIndex >= total - 1) {
+      sliceStart = total - 3
     } else {
-      windowStart = userRank - 1
+      sliceStart = userIndex - 1
     }
 
-    const windowEnd = Math.min(windowStart + 2, total)
     const rows: RankNeighborEntry[] = rankings
-      .filter((r) => r.rank >= windowStart && r.rank <= windowEnd)
+      .slice(sliceStart, sliceStart + 3)
       .map((r) => ({
         userId: r.userId,
         userName: r.userName,

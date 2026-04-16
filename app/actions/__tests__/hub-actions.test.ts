@@ -459,6 +459,27 @@ describe('getLeaderboardPeekData', () => {
     expect(result[0].rows[2].rank).toBe(4)
   })
 
+  it('returns exactly 3 rows when multiple users share the same rank as the user (ties)', async () => {
+    // 5 people at rank 3 — naive rank-number filter would return all 5; index-based returns exactly 3
+    const rankings = [
+      { userId: 'u1', userName: 'User 1', rank: 1, score: 100 },
+      { userId: 'u2', userName: 'User 2', rank: 2, score: 90 },
+      { userId: 'u3', userName: 'User 3', rank: 3, score: 80 },
+      { userId: USER_ID, userName: 'Me', rank: 3, score: 80 },
+      { userId: 'u5', userName: 'User 5', rank: 3, score: 80 },
+      { userId: 'u6', userName: 'User 6', rank: 3, score: 80 },
+      { userId: 'u7', userName: 'User 7', rank: 7, score: 50 },
+    ]
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(rankings)
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    // Must always be exactly 3 rows regardless of ties
+    expect(result[0].rows).toHaveLength(3)
+    // The current user must appear in the window
+    expect(result[0].rows.some((r) => r.isCurrentUser)).toBe(true)
+  })
+
   it('sets rankChange to null when only one snapshot exists', async () => {
     vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots).mockResolvedValue([
       testFactories.groupRanking({ rank: 2 }),
