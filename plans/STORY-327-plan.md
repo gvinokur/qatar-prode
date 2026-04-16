@@ -145,6 +145,7 @@ EmailInvitationsTab [Client]
   - Tests:
     - subject includes groupName
     - html includes inviteLink
+    - html includes personalized greeting using recipient name
     - html includes customMessage block when provided
     - html omits customMessage block when undefined
     - uses provided locale for translations (defaults to 'es')
