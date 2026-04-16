@@ -242,6 +242,28 @@ interface ActionCenterCarouselProps {
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Extended game window (48h → 7 days)
+**Date:** 2026-04-16
+**Reason:** Inter-round gaps in knockout stage (QF→SF, SF→Final) are 3-4 days, so the 48h window left the Action Center empty between rounds. Also provides pre-tournament anticipation.
+**Change:** `findGamesForDashboard` forward window changed from 48h to 7 days. Variable renamed from `future48Hours` to `future7Days`. Empty state copy updated to "No games in the next 7 days". `getTournamentGameCounts` "closing soon" badge intentionally kept at 48h.
+
+### Amendment 2: QT & Awards quick-action cards
+**Date:** 2026-04-16
+**Reason:** Action Center is the hub's primary action zone — it should surface all open prediction types, not just game scores. QT and Awards predictions are open for the first 5 days after the tournament starts.
+**Change:** Added a "More to predict" section below the carousel with Qualified Teams and Awards cards (MUI `Card` + `CardActions` with Next.js `Link`). Section is conditionally rendered only when `data.qtAndAwardsOpen` is true. Cards show urgency `Chip` (info/warning/error color + countdown text) when the prediction lock is approaching (`notice` 24-48h, `warning` <24h, `urgent` <1h). Translation keys added: `quickActions`, `qualifiedTeamsTitle`, `qualifiedTeamsHint`, `awardsTitle`, `awardsHint`, `goToPage`, `predictGames`, `noGamesInWindow`.
+
+### Amendment 3: Prediction lock state (`qtAndAwardsOpen`, `msUntilPredictionLock`)
+**Date:** 2026-04-16
+**Reason:** Required to drive Amendment 2 — need to know whether QT/Awards predictions are still open and how much time remains.
+**Change:** Added `computePredictionLockState` helper (private) to `hub-actions.ts`. Lock fires 5 days after the first game of the tournament (`firstGame.game_date + 5 * 24h`), or immediately if `tournament.is_active` is false or no first game exists. Added `findFirstGameInTournament` fetch to the `Promise.all` in `getActionCenterGames`. Added `qtAndAwardsOpen: boolean` and `msUntilPredictionLock: number` to `ActionCenterData`. Both fields returned in all three code paths (urgent/fallback/empty).
+
+### Amendment 4: Tournament finished detection (`tournamentFinished`)
+**Date:** 2026-04-16
+**Reason:** After the last game has kicked off, the Action Center has nothing useful to show. The hub will eventually show a post-tournament leaderboard/results section instead (separate story).
+**Change:** Added `findLastGameInTournament` fetch to the `Promise.all`. Added `tournamentFinished: boolean` field to `ActionCenterData` (true when `lastGame.game_date < Date.now()`). `TournamentHubActionCenter` returns `null` when `data.tournamentFinished`, hiding the entire widget. Both new fields tested in `hub-actions.test.ts`.
+
 ## Testing Strategy
 
 - **Unit tests** (Vitest + renderWithTheme) for:
