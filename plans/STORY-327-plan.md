@@ -42,7 +42,7 @@ Added to `app/actions/prode-group-actions.ts`.
 Added to `app/utils/email-templates.ts`.
 - Inputs: recipientEmail, recipientName, senderDisplayName, groupName, inviteLink, customMessage, locale
 - Localized via `getTranslations({ locale, namespace: 'emails' })`
-- Includes: group invite CTA button, invite link text, optional custom message block
+- Includes: **personalized greeting using `recipientName`** (e.g. "Hola, Juan!"), group invite CTA button, invite link text, sender attribution (e.g. "`senderDisplayName` te invitó"), optional custom message block
 
 ### CSV Parsing
 Client-side using `FileReader` API (browser native, no additional dependency).
@@ -69,8 +69,8 @@ Generate a simple CSV string client-side and trigger a browser download (`Blob +
 | `app/utils/email-templates.ts` | **Modify** — add `generateGroupInvitationEmail` |
 | `locales/es/groups.json` | **Modify** — add `invite.email.*` keys |
 | `locales/en/groups.json` | **Modify** — add `invite.email.*` keys |
-| `locales/es/emails.json` | **Modify** — add `groupInvitation.*` keys |
-| `locales/en/emails.json` | **Modify** — add `groupInvitation.*` keys |
+| `locales/es/emails.json` | **Modify** — add `groupInvitation.*` keys (greeting, senderAttribution, subject, button, signature) |
+| `locales/en/emails.json` | **Modify** — add `groupInvitation.*` keys (greeting, senderAttribution, subject, button, signature) |
 | `docs/code-structure/actions.md` | **Update** — document new server action |
 | `docs/code-structure/utils.md` | **Update** — document new email template function |
 | `docs/code-structure/components/components-friend-groups.md` | **Update** — document new component |
@@ -124,11 +124,13 @@ Generate a simple CSV string client-side and trigger a browser download (`Blob +
 ```
 EmailInvitationsTab [Client]
   └── sendGroupEmailInvitations [server action]
-        ├── getLoggedInUser
+        ├── getLoggedInUser → user.nickname ?? user.name (senderDisplayName)
         ├── findProdeGroupById
         ├── findParticipantsInGroup (admin check)
         ├── generateShortUrlForGroup + buildShortUrl (for invite link)
         ├── generateGroupInvitationEmail (util, per recipient)
+        │     → personalized greeting: "Hola, {recipientName}!"
+        │     → sender attribution: "{senderDisplayName} te invitó a {groupName}"
         └── sendEmail (per recipient, parallel Promise.allSettled)
 ```
 
@@ -140,7 +142,7 @@ EmailInvitationsTab [Client]
 
 - **generateGroupInvitationEmail(params)**: `Promise<{to: string, subject: string, html: string, locale: Locale}>`
   - `params: { recipientEmail: string; recipientName: string; senderDisplayName: string; groupName: string; inviteLink: string; customMessage?: string; locale?: Locale }` (locale defaults to `'es'` via `locale = 'es'` parameter default)
-  - Generates localized HTML email for a group invitation with invite button, link, and optional custom message block.
+  - Generates localized HTML email with: personalized greeting (`"Hola, {recipientName}!"`), sender attribution (`"{senderDisplayName} te invitó a unirse a {groupName}"`), invite CTA button, plain-text invite link, and optional custom message block.
   - Calls: `getTranslations` (next-intl/server)
   - Tests:
     - subject includes groupName
@@ -163,6 +165,7 @@ EmailInvitationsTab [Client]
   - `locale: string`
   - Validates auth (throws Unauthorized), admin status (throws Forbidden), recipient count (throws if > 50).
   - Generates invite link via `generateShortUrlForGroup` + `buildShortUrl`.
+  - Uses `user.nickname ?? user.name` as `senderDisplayName` passed to `generateGroupInvitationEmail` (already fetched via `getLoggedInUser`).
   - Sends emails in parallel via `Promise.allSettled`.
   - Returns `{ sent: number, failed: string[] }` where `failed` lists email addresses that errored.
   - Calls: `getLoggedInUser`, `findProdeGroupById`, `findParticipantsInGroup`, `generateShortUrlForGroup`, `buildShortUrl`, `generateGroupInvitationEmail`, `sendEmail`
