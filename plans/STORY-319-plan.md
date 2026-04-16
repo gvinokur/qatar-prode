@@ -297,3 +297,31 @@ Verify these keys exist, add if missing:
 - `docs/code-structure/components/components-leaderboard-stats.md` — update `LeaderboardCard` entry (add `compact` prop)
 - `docs/code-structure/pages.md` — update hub page entry (no longer renders placeholder Paper for leaderboardPeek)
 - `CODE-STRUCTURE.md` call graph — add new Leaderboard Peek flow
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: 3-row window uses array index instead of rank value
+**Date:** 2026-04-16
+**Reason:** The original rank-value filter (`r.rank >= windowStart && r.rank <= windowEnd`) returns more than 3 rows when multiple users share the same rank (ties). Discovered during post-implementation review.
+**Change:** The 3-row window in `getLeaderboardPeekData` now uses array index slicing. `rankings.findIndex(r => r.userId === user.id)` locates the user's position in the already-sorted array; then `slice(sliceStart, sliceStart + 3)` guarantees exactly 3 rows regardless of tie counts. Edge cases (rank #1, last rank, <3 total) handled by clamping `sliceStart` to valid range. The `Technical Approach` section's "3-row Window Logic" description (which used rank values) reflects the original design; the index-slice approach is the actual implementation.
+
+### Amendment 2: LeaderboardPeekCard locale prop removed
+**Date:** 2026-04-16
+**Reason:** During implementation it became clear the `locale` prop was not used anywhere inside `LeaderboardPeekCard` — `LeaderboardCard` and `RankChangeIndicator` handle their own translations via `useTranslations`. Passing locale through was unnecessary prop-drilling.
+**Change:** `LeaderboardPeekCard` signature is `{ data: GroupPeekData; groupLeaderboardHref: string }` — no `locale` prop.
+
+### Amendment 3: UI polish — centered title, subtitle, see-all-groups link
+**Date:** 2026-04-16
+**Reason:** Post-implementation user feedback: title should be centered to match Action Center style; a subtitle explaining "Your 3 most active groups" adds clarity; a "See all your groups" link at the bottom aids navigation.
+**Change:**
+- `tournament-hub-leaderboard-peek.tsx` header block uses `textAlign: 'center'` matching `action-center-carousel.tsx` pattern
+- Added `yourStandingsSubtitle` i18n key ("Your 3 most active groups" / "Tus 3 grupos más activos") rendered as `body2` below the title
+- Added `seeAllGroups` i18n key with a `<Button component={Link}>` pointing to `/[locale]/tournaments/[id]/friend-groups`
+- Spanish title corrected from "Tu posición" to "Tus Posiciones" (plural, since multiple groups are shown)
+
+### Amendment 4: Empty state shown for all unauthenticated/no-data cases (no null return)
+**Date:** 2026-04-16
+**Reason:** The plan stated the component should return `null` when unauthenticated. However, `getLeaderboardPeekData` returns `[]` for both the unauthenticated case and the no-ranking-data case — the component cannot distinguish between them without changing the action signature.
+**Change:** `TournamentHubLeaderboardPeek` always renders the section title. When `groups.length === 0` (for any reason), it renders an empty-state `<Paper>` with `noRankingData` text. This is preferable over a completely missing section, which would be confusing to authenticated users who simply have no data yet.
