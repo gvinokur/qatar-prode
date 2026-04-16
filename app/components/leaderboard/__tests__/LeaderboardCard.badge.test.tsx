@@ -173,7 +173,7 @@ describe('LeaderboardCard compact mode', () => {
   })
 
   it('still applies primary background highlight for current user when compact=true', () => {
-    const { container } = renderWithTheme(
+    renderWithTheme(
       <LeaderboardCard
         user={mockUser}
         rank={1}
