@@ -142,6 +142,13 @@ Form to customize group name, colors, and logo. [Client]
   Uses: useTranslations, useRouter, useTheme
   Renders: ImagePicker
 
+### app/components/friend-groups/EmailInvitationsTab.tsx
+Email invitation tab with manual entry, CSV import, and batch send. [Client]
+
+- **EmailInvitationsTab({ groupId, groupLogoUrl?, themeColor?, onSnackbar })**: `JSX.Element` — [Client] Renders recipient name/email rows, CSV import/template download buttons, optional custom message field, recipient count chip, and send button (disabled when empty or >50 recipients). Deduplicates by email before calling server action.
+  Calls: sendGroupEmailInvitations
+  Uses: useTranslations, useState, useRef
+
 ### app/components/friend-groups/invite-friends-dialog-button.tsx
 Button triggering invite friends dialog. [Client]
 

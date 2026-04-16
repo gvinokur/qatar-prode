@@ -1,6 +1,71 @@
 import { getTranslations } from 'next-intl/server';
 import { Locale } from '@/i18n.config';
 
+export interface GroupInvitationEmailParams {
+  recipientEmail: string;
+  recipientName: string;
+  senderDisplayName: string;
+  groupName: string;
+  inviteLink: string;
+  customMessage?: string;
+  locale?: Locale;
+  groupLogoUrl?: string;
+  themeColor?: string;
+}
+
+export async function generateGroupInvitationEmail(params: GroupInvitationEmailParams): Promise<{to: string, subject: string, html: string, locale: Locale}> {
+  const {
+    recipientEmail,
+    recipientName,
+    senderDisplayName,
+    groupName,
+    inviteLink,
+    customMessage,
+    locale = 'es',
+    groupLogoUrl,
+    themeColor,
+  } = params;
+
+  const t = await getTranslations({ locale, namespace: 'emails' });
+
+  const headerColor = themeColor ?? '#1976d2';
+  const subject = t('groupInvitation.subject', { groupName });
+
+  const logoBlock = groupLogoUrl
+    ? `<img src="${groupLogoUrl}" alt="${groupName}" style="max-height: 64px; max-width: 200px; object-fit: contain; display: block; margin: 0 auto 8px;" />`
+    : '';
+
+  const customMessageBlock = customMessage
+    ? `<p style="color: #444; font-size: 14px; font-style: italic; border-left: 3px solid ${headerColor}; padding-left: 12px; margin: 16px 0;">
+        <strong>${t('groupInvitation.customMessageIntro')}</strong><br/>&ldquo;${customMessage}&rdquo;
+      </p>`
+    : '';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: ${headerColor}; padding: 24px 16px; text-align: center; border-radius: 4px 4px 0 0;">
+        ${logoBlock}
+        <h2 style="color: white; margin: 0; font-size: 20px;">${groupName}</h2>
+      </div>
+      <div style="padding: 24px 16px;">
+        <p style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">${t('groupInvitation.greeting', { recipientName })}</p>
+        <p style="margin-bottom: 16px;">${t('groupInvitation.senderAttribution', { senderDisplayName, groupName })}</p>
+        ${customMessageBlock}
+        <p style="margin: 24px 0;">
+          <a href="${inviteLink}"
+            style="display: inline-block; padding: 12px 24px; background-color: ${headerColor}; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            ${t('groupInvitation.button')}
+          </a>
+        </p>
+        <p style="color: #666; font-size: 12px; word-break: break-all;">${inviteLink}</p>
+        <p style="margin-top: 24px;">${t('groupInvitation.signature')}</p>
+      </div>
+    </div>
+  `;
+
+  return { to: recipientEmail, subject, html, locale };
+}
+
 export async function generateVerificationEmail(
   email: string,
   verificationLink: string,

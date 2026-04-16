@@ -224,8 +224,10 @@ localStorage persistence for dismissible UI overlays and tournament selection.
 - **setLastSelectedTournamentId(tournamentId)**: `void` — Saves tournament ID to localStorage and cookie for persistence across sessions.
 
 ### app/utils/email-templates.ts
-Email template generators for verification, password reset, and join request notifications.
+Email template generators for verification, password reset, join request notifications, and group invitations.
 
+- **generateGroupInvitationEmail(params: GroupInvitationEmailParams)**: `Promise<{to: string, subject: string, html: string, locale: Locale}>` — Generates a localized group invitation email with branded header (themeColor background, groupLogoUrl img when provided), personalized greeting using recipientName, sender attribution, invite CTA button, and optional custom message block. Falls back to #1976d2 when themeColor absent; omits logo img when groupLogoUrl absent.
+  Calls: getTranslations
 - **generateVerificationEmail(email, verificationLink, locale)**: `Promise<{to, subject, html, locale}>` — Generates email verification email with localized content.
 - **generatePasswordResetEmail(email, resetLink, locale)**: `Promise<{to, subject, html, locale}>` — Generates password reset email with localized content.
 - **generateJoinRequestNotificationEmail(adminEmail, adminName, requesterName, groupName, requestedDate, groupUrl, options)**: `Promise<{to, subject, html}>` — Generates admin notification for group join requests with optional personal message.

@@ -30,6 +30,14 @@
     "requestedFor": "Este código fue solicitado para:",
     "support": "Si tienes problemas para iniciar sesión, contacta a soporte."
   },
+  "groupInvitation": {
+    "subject": "Te invitaron a unirte al grupo {groupName}",
+    "greeting": "¡Hola, {recipientName}!",
+    "senderAttribution": "{senderDisplayName} te invitó a unirse a {groupName}",
+    "button": "Unirte al grupo",
+    "customMessageIntro": "Mensaje personal:",
+    "signature": "El equipo de La Maquina Prode"
+  },
   "joinRequest": {
     "adminNotification": {
       "subject": "Nueva solicitud para unirse a {groupName}",

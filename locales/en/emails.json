@@ -30,6 +30,14 @@
     "requestedFor": "This code was requested for:",
     "support": "If you have trouble signing in, contact support."
   },
+  "groupInvitation": {
+    "subject": "You've been invited to join {groupName}",
+    "greeting": "Hi, {recipientName}!",
+    "senderAttribution": "{senderDisplayName} invited you to join {groupName}",
+    "button": "Join the group",
+    "customMessageIntro": "Personal message:",
+    "signature": "The La Maquina Prode Team"
+  },
   "joinRequest": {
     "adminNotification": {
       "subject": "New join request for {groupName}",

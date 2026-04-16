@@ -6,6 +6,9 @@ import * as gameGuessRepository from '../../app/db/game-guess-repository';
 import * as tournamentGuessRepository from '../../app/db/tournament-guess-repository';
 import * as objectUtils from '../../app/utils/ObjectUtils';
 import * as joinRequestRepository from '../../app/db/prode-group-join-request-repository';
+import * as shortUrlActions from '../../app/actions/short-url-actions';
+import * as emailTemplates from '../../app/utils/email-templates';
+import * as emailUtils from '../../app/utils/email';
 import {
   createDbGroup,
   getGroupsForUser,
@@ -17,6 +20,7 @@ import {
   leaveGroupAction,
   getUsersForGroup,
   getUserScoresForTournament,
+  sendGroupEmailInvitations,
 } from '../../app/actions/prode-group-actions';
 import { GameStatisticForUser } from '../../types/definitions';
 
@@ -32,6 +36,9 @@ vi.mock('../../app/db/game-guess-repository');
 vi.mock('../../app/db/tournament-guess-repository');
 vi.mock('../../app/utils/ObjectUtils');
 vi.mock('../../app/db/prode-group-join-request-repository');
+vi.mock('../../app/actions/short-url-actions');
+vi.mock('../../app/utils/email-templates');
+vi.mock('../../app/utils/email');
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateProdeGroup = vi.mocked(prodeGroupRepository.createProdeGroup);
@@ -52,6 +59,10 @@ const mockCustomToMap = vi.mocked(objectUtils.customToMap);
 const mockCreateS3Client = vi.mocked(s3.createS3Client);
 const mockDeleteThemeLogoFromS3 = vi.mocked(s3.deleteThemeLogoFromS3);
 const mockFindJoinRequestsByUser = vi.mocked(joinRequestRepository.findJoinRequestsByUser);
+const mockGenerateShortUrlForGroup = vi.mocked(shortUrlActions.generateShortUrlForGroup);
+const mockBuildShortUrl = vi.mocked(shortUrlActions.buildShortUrl);
+const mockGenerateGroupInvitationEmail = vi.mocked(emailTemplates.generateGroupInvitationEmail);
+const mockSendEmail = vi.mocked(emailUtils.sendEmail);
 
 describe('Prode Group Actions', () => {
   const mockUser = { id: 'user1', email: 'test@example.com', emailVerified: new Date() };
@@ -410,6 +421,121 @@ describe('Prode Group Actions', () => {
       expect(result[0].playoffBoostBonus).toBe(0);
       expect(result[0].totalBoostBonus).toBe(0);
       expect(result[0].totalPoints).toBe(25);  // Without bonuses: 15 + 2 + 3 + 4 + 1
+    });
+  });
+
+  describe('sendGroupEmailInvitations', () => {
+    const adminUser = { id: 'admin1', email: 'admin@example.com', nickname: 'AdminNick', name: 'Admin Name' } as any;
+    const ownerUser = { id: 'owner1', email: 'owner@example.com', nickname: null, name: 'Owner Name' } as any;
+    const group = { id: 'group1', name: 'Test Group', owner_user_id: 'owner1' } as any;
+    const recipients = [
+      { name: 'Alice', email: 'alice@example.com' },
+      { name: 'Bob', email: 'bob@example.com' },
+    ];
+    const mockEmailContent = { to: 'alice@example.com', subject: 'You are invited', html: '<p>Hi</p>', locale: 'es' as const };
+
+    beforeEach(() => {
+      mockFindProdeGroupById.mockResolvedValue(group);
+      mockGenerateShortUrlForGroup.mockResolvedValue({ code: 'k8Wa5q' } as any);
+      mockBuildShortUrl.mockResolvedValue('https://prodemundial.app/j/k8Wa5q');
+      mockGenerateGroupInvitationEmail.mockResolvedValue(mockEmailContent);
+      mockSendEmail.mockResolvedValue({ success: true, messageId: 'msg1' });
+    });
+
+    it('throws Unauthorized when no session', async () => {
+      mockGetLoggedInUser.mockResolvedValue(null);
+
+      await expect(sendGroupEmailInvitations('group1', recipients, undefined, 'es'))
+        .rejects.toThrow('Unauthorized');
+    });
+
+    it('throws Forbidden when user is neither owner nor admin participant', async () => {
+      const nonAdminUser = { id: 'other1', email: 'other@example.com' } as any;
+      mockGetLoggedInUser.mockResolvedValue(nonAdminUser);
+      mockFindParticipantsInGroup.mockResolvedValue([
+        { user_id: 'other1', is_admin: false } as any,
+      ]);
+
+      await expect(sendGroupEmailInvitations('group1', recipients, undefined, 'es'))
+        .rejects.toThrow('Forbidden');
+    });
+
+    it('throws Too many recipients when recipients.length > 50', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+      const tooMany = Array.from({ length: 51 }, (_, i) => ({ name: `User${i}`, email: `user${i}@example.com` }));
+
+      await expect(sendGroupEmailInvitations('group1', tooMany, undefined, 'es'))
+        .rejects.toThrow('Too many recipients');
+    });
+
+    it('accepts exactly 50 recipients without throwing', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+      const exactly50 = Array.from({ length: 50 }, (_, i) => ({ name: `User${i}`, email: `user${i}@example.com` }));
+
+      await expect(sendGroupEmailInvitations('group1', exactly50, undefined, 'es'))
+        .resolves.not.toThrow();
+    });
+
+    it('returns { sent: N, failed: [] } for N valid recipients when owner', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+
+      const result = await sendGroupEmailInvitations('group1', recipients, undefined, 'es');
+
+      expect(result.sent).toBe(2);
+      expect(result.failed).toEqual([]);
+    });
+
+    it('returns { sent: N, failed: [] } for N valid recipients when admin participant', async () => {
+      mockGetLoggedInUser.mockResolvedValue(adminUser);
+      mockFindParticipantsInGroup.mockResolvedValue([
+        { user_id: 'admin1', is_admin: true } as any,
+      ]);
+
+      const result = await sendGroupEmailInvitations('group1', recipients, undefined, 'es');
+
+      expect(result.sent).toBe(2);
+      expect(result.failed).toEqual([]);
+    });
+
+    it('collects failed email addresses when sendEmail throws', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+      mockSendEmail
+        .mockResolvedValueOnce({ success: true, messageId: 'msg1' })
+        .mockRejectedValueOnce(new Error('SMTP error'));
+
+      const result = await sendGroupEmailInvitations('group1', recipients, undefined, 'es');
+
+      expect(result.sent).toBe(1);
+      expect(result.failed).toEqual(['bob@example.com']);
+    });
+
+    it('passes locale to generateGroupInvitationEmail', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+
+      await sendGroupEmailInvitations('group1', [recipients[0]], undefined, 'en');
+
+      expect(mockGenerateGroupInvitationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ locale: 'en' })
+      );
+    });
+
+    it('deduplicates recipients by email before sending', async () => {
+      mockGetLoggedInUser.mockResolvedValue(ownerUser);
+      mockFindParticipantsInGroup.mockResolvedValue([]);
+      const duplicates = [
+        { name: 'Alice', email: 'alice@example.com' },
+        { name: 'Alice Duplicate', email: 'ALICE@EXAMPLE.COM' },
+      ];
+
+      const result = await sendGroupEmailInvitations('group1', duplicates, undefined, 'es');
+
+      expect(result.sent).toBe(1);
+      expect(mockSendEmail).toHaveBeenCalledTimes(1);
     });
   });
 }); 

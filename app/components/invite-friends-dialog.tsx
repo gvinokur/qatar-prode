@@ -5,6 +5,7 @@ import {useTranslations, useLocale} from 'next-intl';
 import {generateShortUrlForGroup, buildShortUrl} from '@/app/actions/short-url-actions';
 import {captureElement, downloadBlob, shareImage} from '@/app/utils/share-utils';
 import InviteFlierTemplate from '@/app/components/friend-groups/sharing/InviteFlierTemplate';
+import EmailInvitationsTab from '@/app/components/friend-groups/EmailInvitationsTab';
 import {
   Dialog,
   DialogTitle,
@@ -228,11 +229,12 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
 
           {/* Tab 1 — Email */}
           {activeTab === 1 && (
-            <Box sx={{ py: 4, textAlign: 'center' }}>
-              <Typography variant="body1" color="text.secondary">
-                {t('flier.emailComingSoon')}
-              </Typography>
-            </Box>
+            <EmailInvitationsTab
+              groupId={groupId}
+              groupLogoUrl={groupLogoUrl}
+              themeColor={themeColor}
+              onSnackbar={showSnackbar}
+            />
           )}
 
           {/* Tab 2 — Folleto */}

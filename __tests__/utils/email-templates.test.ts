@@ -5,6 +5,7 @@ import {
   generateJoinRequestNotificationEmail,
   generateJoinRequestApprovedEmail,
   generateJoinRequestRejectedEmail,
+  generateGroupInvitationEmail,
 } from '../../app/utils/email-templates';
 
 // Mock translations
@@ -41,6 +42,12 @@ const mockTranslations = {
     'joinRequest.userRejected.message': 'Your request to join {groupName} was not approved.',
     'joinRequest.userRejected.cooldown': 'You can request to join again in 7 days.',
     'joinRequest.userRejected.signature': 'Thanks for your interest!',
+    'groupInvitation.subject': "You've been invited to join {groupName}",
+    'groupInvitation.greeting': 'Hi, {recipientName}!',
+    'groupInvitation.senderAttribution': '{senderDisplayName} invited you to join {groupName}',
+    'groupInvitation.button': 'Join the group',
+    'groupInvitation.customMessageIntro': 'Personal message:',
+    'groupInvitation.signature': 'The La Maquina Prode Team',
   },
   es: {
     'verification.subject': 'Verificación de Cuenta - La Maquina Prode',
@@ -74,6 +81,12 @@ const mockTranslations = {
     'joinRequest.userRejected.message': 'Tu solicitud para unirte a {groupName} no fue aprobada.',
     'joinRequest.userRejected.cooldown': 'Puedes volver a solicitar en 7 días.',
     'joinRequest.userRejected.signature': '¡Gracias por tu interés!',
+    'groupInvitation.subject': 'Te invitaron a unirte al grupo {groupName}',
+    'groupInvitation.greeting': '¡Hola, {recipientName}!',
+    'groupInvitation.senderAttribution': '{senderDisplayName} te invitó a unirse a {groupName}',
+    'groupInvitation.button': 'Unirte al grupo',
+    'groupInvitation.customMessageIntro': 'Mensaje personal:',
+    'groupInvitation.signature': 'El equipo de La Maquina Prode',
   },
 };
 
@@ -435,6 +448,110 @@ describe('email-templates', () => {
       );
 
       expect(result.html).toContain('Solicitud No Aprobada');
+    });
+  });
+
+  describe('generateGroupInvitationEmail', () => {
+    const baseParams = {
+      recipientEmail: 'invited@example.com',
+      recipientName: 'Juan',
+      senderDisplayName: 'Carlos',
+      groupName: 'El Grupo de Vino',
+      inviteLink: 'https://prodemundial.app/j/k8Wa5q',
+    };
+
+    it('should send to recipientEmail', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      expect(result.to).toBe('invited@example.com');
+    });
+
+    it('subject includes groupName via translation key', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      // groupName is interpolated directly into the HTML header (not only through t()),
+      // so the HTML always contains the literal groupName value
+      expect(result.html).toContain('El Grupo de Vino');
+    });
+
+    it('html includes inviteLink', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      expect(result.html).toContain('https://prodemundial.app/j/k8Wa5q');
+    });
+
+    it('html includes personalized greeting using recipientName translation key', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      // The greeting translation key includes the {recipientName} placeholder
+      expect(result.html).toContain('{recipientName}');
+    });
+
+    it('html includes group logo img tag when groupLogoUrl provided', async () => {
+      const result = await generateGroupInvitationEmail({
+        ...baseParams,
+        groupLogoUrl: 'https://s3.example.com/logo.png',
+      });
+
+      expect(result.html).toContain('<img src="https://s3.example.com/logo.png"');
+    });
+
+    it('html omits logo img when groupLogoUrl not provided', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      expect(result.html).not.toContain('<img');
+    });
+
+    it('html uses themeColor as header background when provided', async () => {
+      const result = await generateGroupInvitationEmail({
+        ...baseParams,
+        themeColor: '#a78bfa',
+      });
+
+      expect(result.html).toContain('background-color: #a78bfa');
+    });
+
+    it('html uses fallback #1976d2 as header background when themeColor absent', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      expect(result.html).toContain('background-color: #1976d2');
+    });
+
+    it('html includes customMessage block when provided', async () => {
+      const result = await generateGroupInvitationEmail({
+        ...baseParams,
+        customMessage: '¡Animate a jugar!',
+      });
+
+      expect(result.html).toContain('¡Animate a jugar!');
+    });
+
+    it('html omits customMessage block when undefined', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      // No customMessage → no personal message block
+      expect(result.html).not.toContain('Mensaje personal:');
+    });
+
+    it('uses provided locale for translations (defaults to es)', async () => {
+      const esResult = await generateGroupInvitationEmail(baseParams);
+      const enResult = await generateGroupInvitationEmail({ ...baseParams, locale: 'en' });
+
+      expect(esResult.locale).toBe('es');
+      expect(enResult.locale).toBe('en');
+      // ES has the Spanish button text
+      expect(esResult.html).toContain('Unirte al grupo');
+      // EN has the English button text
+      expect(enResult.html).toContain('Join the group');
+    });
+
+    it('returns correct shape with to, subject, html, locale', async () => {
+      const result = await generateGroupInvitationEmail(baseParams);
+
+      expect(result).toHaveProperty('to');
+      expect(result).toHaveProperty('subject');
+      expect(result).toHaveProperty('html');
+      expect(result).toHaveProperty('locale', 'es');
     });
   });
 });
