@@ -74,6 +74,7 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   mode: 'urgent',
   qtAndAwardsOpen: true,
   msUntilPredictionLock: TEN_DAYS_MS,
+  tournamentFinished: false,
   ...overrides,
 })
 

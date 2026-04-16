@@ -1,6 +1,6 @@
 'use server'
 
-import { findGamesForDashboard, findFirstGameInTournament } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
@@ -22,6 +22,8 @@ export interface ActionCenterData {
   qtAndAwardsOpen: boolean
   /** Milliseconds until QT/awards predictions lock (negative = already locked) */
   msUntilPredictionLock: number
+  /** True when the last scheduled game has already kicked off — tournament is over */
+  tournamentFinished: boolean
 }
 
 const MAX_URGENT_CARDS = 4
@@ -60,13 +62,16 @@ export async function getActionCenterGames(
     throw new Error('Unauthorized')
   }
 
-  const [games, guessesArray, teams, tournament, firstGame] = await Promise.all([
+  const [games, guessesArray, teams, tournament, firstGame, lastGame] = await Promise.all([
     findGamesForDashboard(tournamentId),
     findGameGuessesByUserId(user.id, tournamentId),
     findTeamInTournament(tournamentId),
     findTournamentById(tournamentId),
     findFirstGameInTournament(tournamentId),
+    findLastGameInTournament(tournamentId),
   ])
+
+  const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < Date.now()
 
   const { qtAndAwardsOpen, msUntilPredictionLock } = computePredictionLockState(
     tournament,
@@ -87,6 +92,7 @@ export async function getActionCenterGames(
       mode: 'empty',
       qtAndAwardsOpen,
       msUntilPredictionLock,
+      tournamentFinished,
     }
   }
 
@@ -147,5 +153,6 @@ export async function getActionCenterGames(
     mode,
     qtAndAwardsOpen,
     msUntilPredictionLock,
+    tournamentFinished,
   }
 }

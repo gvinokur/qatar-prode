@@ -12,5 +12,6 @@ export async function TournamentHubActionCenter({
   locale,
 }: TournamentHubActionCenterProps) {
   const data = await getActionCenterGames(tournamentId, locale)
+  if (data.tournamentFinished) return null
   return <ActionCenterCarousel data={data} tournamentId={tournamentId} locale={locale} />
 }

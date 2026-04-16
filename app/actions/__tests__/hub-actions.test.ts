@@ -13,6 +13,7 @@ const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000
 vi.mock('@/app/db/game-repository', () => ({
   findGamesForDashboard: vi.fn(),
   findFirstGameInTournament: vi.fn(),
+  findLastGameInTournament: vi.fn(),
 }))
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -67,6 +68,10 @@ beforeEach(() => {
   vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(defaultTournament)
   vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
   vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(pastFirstGame as any)
+  // Default: last game is in the future (tournament ongoing)
+  vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
+    testFactories.game({ id: 'last-game', game_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }) as any
+  )
 })
 
 describe('getActionCenterGames', () => {
@@ -275,6 +280,40 @@ describe('getActionCenterGames', () => {
       const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
 
       expect(result.qtAndAwardsOpen).toBe(false)
+    })
+  })
+
+  describe('tournamentFinished', () => {
+    it('returns tournamentFinished=false when last game is in the future', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      // Default beforeEach sets last game 7 days in the future
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.tournamentFinished).toBe(false)
+    })
+
+    it('returns tournamentFinished=true when last game date has passed', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
+        testFactories.game({
+          id: 'last-game',
+          game_date: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
+        }) as any
+      )
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.tournamentFinished).toBe(true)
+    })
+
+    it('returns tournamentFinished=false when lastGame is null', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+      vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(null as any)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.tournamentFinished).toBe(false)
     })
   })
 })
