@@ -370,6 +370,12 @@ Authentication and user account management — signup, verification, password, O
 - **toggleUserAdFreeAction(userId: string, isAdFree: boolean)**: `Promise<void>` — Admin-only. Toggles ad-free status for a user.
   Calls: getLoggedInUser, updateUserAdFreeStatus
 
+### app/actions/hub-actions.ts
+Tournament Hub Action Center data fetching. Fetches and ranks upcoming games for the hub's Action Center widget, returning the most urgent pending predictions or fallback content.
+
+- **getActionCenterGames(tournamentId: string, locale: Locale)**: `Promise<ActionCenterData>` — Server Action. Fetches games in the 7-day dashboard window, user guesses, teams, tournament boost limits, and first/last game dates. Returns up to 4 unpredicted open-deadline games (urgent mode), next 3 games when all open games are predicted (fallback mode), or empty mode when no games exist. Also computes `qtAndAwardsOpen`/`msUntilPredictionLock` (lock fires 5 days after first game) and `tournamentFinished` (last game has kicked off). Throws Unauthorized if user is not logged in.
+  Calls: getLoggedInUser, findGamesForDashboard, findGameGuessesByUserId, findTeamInTournament, findTournamentById, findFirstGameInTournament, findLastGameInTournament, calculateDeadline, applyLocalizationBatch
+
 ### app/actions/group-ranking-actions.ts
 Server Actions for materializing and reading per-group rank snapshots. Snapshots are written after admin score-change triggers; reads derive rank change from the two most recent snapshots (Story #315).
 

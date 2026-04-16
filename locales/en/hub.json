@@ -1,5 +1,18 @@
 {
   "smartPredictorCarousel": "Smart Predictor Carousel",
   "predictionDashboard": "Prediction Dashboard",
-  "leaderboardPeek": "Leaderboard Peek"
+  "leaderboardPeek": "Leaderboard Peek",
+  "actionCenter": {
+    "title": "Action Center",
+    "subtitle": "Submit your predictions",
+    "noGamesInWindow": "No games in the next 7 days",
+    "fallbackSubtitle": "All caught up — here's what's coming",
+    "predictGames": "Predict all games",
+    "quickActions": "More to predict",
+    "qualifiedTeamsTitle": "Qualified Teams",
+    "qualifiedTeamsHint": "Predict which teams qualify from each group",
+    "awardsTitle": "Individual Awards",
+    "awardsHint": "Golden Boot, Best Goalkeeper and more",
+    "goToPage": "Go to page"
+  }
 }

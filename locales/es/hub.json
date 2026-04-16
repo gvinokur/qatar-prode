@@ -1,5 +1,18 @@
 {
   "smartPredictorCarousel": "Carrusel de Predicciones",
   "predictionDashboard": "Panel de Predicciones",
-  "leaderboardPeek": "Vista de Tabla de Posiciones"
+  "leaderboardPeek": "Vista de Tabla de Posiciones",
+  "actionCenter": {
+    "title": "Centro de Acción",
+    "subtitle": "Envía tus predicciones",
+    "noGamesInWindow": "No hay partidos en los próximos 7 días",
+    "fallbackSubtitle": "Todo al día — esto viene próximamente",
+    "predictGames": "Predecir todos los partidos",
+    "quickActions": "Más para predecir",
+    "qualifiedTeamsTitle": "Equipos clasificados",
+    "qualifiedTeamsHint": "Predicí qué equipos avanzan de cada grupo",
+    "awardsTitle": "Premios individuales",
+    "awardsHint": "Bota de Oro, Mejor Arquero y más",
+    "goToPage": "Ir a la página"
+  }
 }
