@@ -3,7 +3,9 @@
   "predictionDashboard": "Prediction Dashboard",
   "leaderboardPeek": "Leaderboard Peek",
   "yourStandings": "Your Standings",
+  "yourStandingsSubtitle": "Your 3 most active groups",
   "noRankingData": "Rankings will appear once the tournament is underway.",
+  "seeAllGroups": "See all your groups",
   "actionCenter": {
     "title": "Action Center",
     "subtitle": "Submit your predictions",

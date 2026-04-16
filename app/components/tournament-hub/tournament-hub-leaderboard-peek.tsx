@@ -1,4 +1,5 @@
-import { Box, Paper, Typography } from '@mui/material'
+import { Box, Button, Paper, Typography } from '@mui/material'
+import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { getLeaderboardPeekData } from '../../actions/hub-actions'
 import { LeaderboardPeekCard } from './leaderboard-peek-card'
@@ -22,11 +23,17 @@ export async function TournamentHubLeaderboardPeek({
   // we can't distinguish without changing the action signature, so we show empty state.
   // The empty state is preferable over returning null (user sees the section, not nothing).
 
+  const allGroupsHref = `/${locale}/tournaments/${tournamentId}/friend-groups`
+
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
-        {t('yourStandings')}
-      </Typography>
+      {/* Header — centered, matching Action Center style */}
+      <Box sx={{ mb: 1, textAlign: 'center' }}>
+        <Typography variant="h6">{t('yourStandings')}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('yourStandingsSubtitle')}
+        </Typography>
+      </Box>
 
       {groups.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -45,6 +52,19 @@ export async function TournamentHubLeaderboardPeek({
           ))}
         </Box>
       )}
+
+      {/* See all groups link */}
+      <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+        <Button
+          component={Link}
+          href={allGroupsHref}
+          variant="text"
+          size="small"
+          color="primary"
+        >
+          {t('seeAllGroups')}
+        </Button>
+      </Box>
     </Box>
   )
 }
