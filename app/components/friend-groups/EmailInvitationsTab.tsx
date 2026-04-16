@@ -19,6 +19,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { sendGroupEmailInvitations } from '@/app/actions/prode-group-actions';
 
 interface Recipient {
+  id: string;
   name: string;
   email: string;
 }
@@ -32,6 +33,41 @@ interface EmailInvitationsTabProps {
 
 const MAX_RECIPIENTS = 50;
 
+function newRecipient(): Recipient {
+  return { id: crypto.randomUUID(), name: '', email: '' };
+}
+
+/**
+ * Determine name/email column indices from a parsed CSV.
+ * Returns null when the Email column is missing (hard error).
+ */
+function parseCsvColumns(
+  hasHeader: boolean,
+  headers: string[],
+  firstDataCols: string[],
+): { nameIdx: number; emailIdx: number } | null {
+  if (hasHeader) {
+    const emailIdx = headers.indexOf('email');
+    if (emailIdx === -1) return null;
+    const nIdx = headers.indexOf('name') !== -1
+      ? headers.indexOf('name')
+      : headers.indexOf('nombre');
+    let nameIdx: number;
+    if (nIdx >= 0) {
+      nameIdx = nIdx;
+    } else {
+      nameIdx = emailIdx === 0 ? 1 : 0;
+    }
+    return { nameIdx, emailIdx };
+  }
+
+  // No header: auto-detect columns from first data row
+  if (firstDataCols.length >= 2 && firstDataCols[1].includes('@')) return { nameIdx: 0, emailIdx: 1 };
+  if (firstDataCols.length >= 2 && firstDataCols[0].includes('@')) return { nameIdx: 1, emailIdx: 0 };
+  if (!firstDataCols.some(c => c.includes('@'))) return null;
+  return { nameIdx: 0, emailIdx: 1 };
+}
+
 export default function EmailInvitationsTab({
   groupId,
   groupLogoUrl,
@@ -39,14 +75,14 @@ export default function EmailInvitationsTab({
   onSnackbar,
 }: EmailInvitationsTabProps) {
   const t = useTranslations('groups.invite.email');
-  const [recipients, setRecipients] = useState<Recipient[]>([{ name: '', email: '' }]);
+  const [recipients, setRecipients] = useState<Recipient[]>([newRecipient()]);
   const [customMessage, setCustomMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [csvError, setCsvError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addRow = () => {
-    setRecipients(prev => [...prev, { name: '', email: '' }]);
+    setRecipients(prev => [...prev, newRecipient()]);
   };
 
   const removeRow = (index: number) => {
@@ -54,7 +90,7 @@ export default function EmailInvitationsTab({
     setRecipients(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateRow = (index: number, field: keyof Recipient, value: string) => {
+  const updateRow = (index: number, field: keyof Omit<Recipient, 'id'>, value: string) => {
     setRecipients(prev => prev.map((r, i) => i === index ? { ...r, [field]: value } : r));
   };
 
@@ -69,80 +105,57 @@ export default function EmailInvitationsTab({
     URL.revokeObjectURL(url);
   };
 
-  const handleCsvImport = (file: File) => {
+  const handleCsvImport = async (file: File) => {
     setCsvError(null);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      if (!text) {
-        setCsvError(t('csvEmptyError'));
-        return;
-      }
-      const lines = text.split(/\r?\n/).filter(l => l.trim());
-      if (lines.length === 0) {
-        setCsvError(t('csvEmptyError'));
-        return;
-      }
+    const text = await file.text();
+    if (!text) {
+      setCsvError(t('csvEmptyError'));
+      return;
+    }
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length === 0) {
+      setCsvError(t('csvEmptyError'));
+      return;
+    }
 
-      // Detect and skip header row
-      const firstLine = lines[0].toLowerCase();
-      const hasHeader = firstLine.includes('email') && firstLine.includes('name');
-      const dataLines = hasHeader ? lines.slice(1) : lines;
+    const firstLine = lines[0].toLowerCase();
+    const hasHeader = firstLine.includes('email') && firstLine.includes('name');
+    const dataLines = hasHeader ? lines.slice(1) : lines;
 
-      if (dataLines.length === 0) {
-        setCsvError(t('csvEmptyError'));
-        return;
-      }
+    if (dataLines.length === 0) {
+      setCsvError(t('csvEmptyError'));
+      return;
+    }
 
-      // Determine column indices from header (or default 0=name, 1=email)
-      let nameIdx = 0;
-      let emailIdx = 1;
-      if (hasHeader) {
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        const eIdx = headers.findIndex(h => h === 'email');
-        if (eIdx === -1) {
-          setCsvError(t('csvFormatError'));
-          return;
-        }
-        const nIdx = headers.findIndex(h => h === 'name' || h === 'nombre');
-        emailIdx = eIdx;
-        nameIdx = nIdx >= 0 ? nIdx : (eIdx === 0 ? 1 : 0);
-      } else {
-        // No header: check if second column looks like emails
-        const firstData = lines[0].split(',');
-        if (firstData.length >= 2 && firstData[1].includes('@')) {
-          nameIdx = 0;
-          emailIdx = 1;
-        } else if (firstData.length >= 2 && firstData[0].includes('@')) {
-          nameIdx = 1;
-          emailIdx = 0;
-        } else if (!firstData.some(c => c.includes('@'))) {
-          setCsvError(t('csvFormatError'));
-          return;
-        }
-      }
+    const headerCols = hasHeader ? lines[0].split(',').map(h => h.trim().toLowerCase()) : [];
+    const firstDataCols = dataLines[0].split(',').map(c => c.trim());
+    const columns = parseCsvColumns(hasHeader, headerCols, firstDataCols);
 
-      const parsed: Recipient[] = [];
-      const seenEmails = new Set<string>();
-      for (const line of dataLines) {
-        const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-        const email = cols[emailIdx] ?? '';
-        const name = cols[nameIdx] ?? '';
-        if (!email) continue;
-        const emailLower = email.toLowerCase();
-        if (seenEmails.has(emailLower)) continue;
-        seenEmails.add(emailLower);
-        parsed.push({ name, email });
-      }
+    if (!columns) {
+      setCsvError(t('csvFormatError'));
+      return;
+    }
 
-      if (parsed.length === 0) {
-        setCsvError(t('csvEmptyError'));
-        return;
-      }
+    const { nameIdx, emailIdx } = columns;
+    const parsed: Recipient[] = [];
+    const seenEmails = new Set<string>();
+    for (const line of dataLines) {
+      const cols = line.split(',').map(c => c.trim().replaceAll(/^"|"$/g, ''));
+      const email = cols[emailIdx] ?? '';
+      const name = cols[nameIdx] ?? '';
+      if (!email) continue;
+      const emailLower = email.toLowerCase();
+      if (seenEmails.has(emailLower)) continue;
+      seenEmails.add(emailLower);
+      parsed.push({ id: crypto.randomUUID(), name, email });
+    }
 
-      setRecipients(parsed);
-    };
-    reader.readAsText(file);
+    if (parsed.length === 0) {
+      setCsvError(t('csvEmptyError'));
+      return;
+    }
+
+    setRecipients(parsed);
   };
 
   const handleSend = async () => {
@@ -160,11 +173,14 @@ export default function EmailInvitationsTab({
 
     setIsSending(true);
     try {
+      const locale = typeof globalThis.window === 'undefined'
+        ? 'es'
+        : document.documentElement.lang || 'es';
       const result = await sendGroupEmailInvitations(
         groupId,
-        unique,
+        unique.map(({ name, email }) => ({ name, email })),
         customMessage || undefined,
-        typeof window !== 'undefined' ? document.documentElement.lang || 'es' : 'es',
+        locale,
         groupLogoUrl,
         themeColor,
       );
@@ -209,8 +225,8 @@ export default function EmailInvitationsTab({
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) handleCsvImport(file);
               e.target.value = '';
+              if (file) void handleCsvImport(file);
             }}
           />
         </Box>
@@ -224,7 +240,7 @@ export default function EmailInvitationsTab({
 
       {/* Recipient rows */}
       {recipients.map((recipient, index) => (
-        <Grid container spacing={1} key={index} alignItems="center">
+        <Grid container spacing={1} key={recipient.id} alignItems="center">
           <Grid size={{ xs: 5 }}>
             <TextField
               placeholder={t('nameLabel')}
