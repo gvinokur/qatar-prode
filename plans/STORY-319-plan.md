@@ -63,17 +63,23 @@ Add `getLeaderboardPeekData(tournamentId, locale)` — orchestrates the data fet
 ### 3. `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` *(new)*
 Server component. Calls `getLeaderboardPeekData`, renders `LeaderboardPeekCard` per group or empty state. Returns `null` if user is not logged in.
 
-### 4. `app/components/tournament-hub/leaderboard-peek-card.tsx` *(new)*
-Client component. Renders a single group's mini-card: group name, user rank with `RankChangeIndicator` reused from `app/components/leaderboard/RankChangeIndicator`, 3-row table, tappable to navigate to group leaderboard.
+### 4. `app/components/leaderboard/LeaderboardCard.tsx` *(modified)*
+Add a `compact?: boolean` prop. When `compact=true`: hide the expand/collapse toggle, hide the Compare and Share Highlight action buttons, hide the `BadgeRow`, hide the per-row `RankChangeIndicator`. This strips the card to its core visual row (rank + avatar + name + points) while preserving the exact same layout, colors, elevation and "You" highlighting. The expandable `Collapse` section is also omitted in compact mode.
 
-### 5. `app/[locale]/tournaments/[id]/hub/page.tsx` *(modified)*
+### 5. `app/components/tournament-hub/leaderboard-peek-card.tsx` *(new)*
+Client component. Renders a single group card: a tappable `CardActionArea` wrapping a header row (group name, `#rank`, `RankChangeIndicator`) and 3 `LeaderboardCard compact` components (converts `RankNeighborEntry` rows to minimal `LeaderboardUser` objects, setting all point-breakdown fields to `0`). Navigates to `groupLeaderboardHref` on click.
+
+### 6. `app/[locale]/tournaments/[id]/hub/page.tsx` *(modified)*
 Remove `leaderboardPeek` from the `placeholders` array. Add `<TournamentHubLeaderboardPeek tournamentId={id} locale={locale} />` in place of the placeholder Paper.
 
-### 6. i18n namespace files *(modified if needed)*
+### 7. i18n namespace files *(modified if needed)*
 Add keys to `hub` namespace: `you` ("You"), `noRankingData` ("Rankings coming soon"). Verify existing keys cover other strings.
 
-### 7. `app/components/tournament-hub/__tests__/leaderboard-peek-card.test.tsx` *(new)*
+### 8. `app/components/tournament-hub/__tests__/leaderboard-peek-card.test.tsx` *(new)*
 Unit tests for `LeaderboardPeekCard` and the 3-row window logic.
+
+### 9. `app/components/leaderboard/__tests__/LeaderboardCard.test.tsx` *(modified)*
+Add tests for `compact` prop behavior.
 
 ---
 
@@ -157,19 +163,35 @@ export interface GroupPeekData {
 
 ---
 
+### `app/components/leaderboard/LeaderboardCard.tsx` *(modified)*
+
+**Changed functions:**
+
+- **LeaderboardCard(props: LeaderboardCardProps & { compact?: boolean })**: `JSX.Element` *(was: no compact prop)*
+  When `compact=true`: omits the expand/collapse toggle button, omits the Compare and Share Highlight icon buttons, omits `BadgeRow`, omits the per-row `RankChangeIndicator` chip, omits the `Collapse` detail section. All other visual styling (bg color, elevation, padding, "You" bold text) unchanged.
+  Tests:
+  - (existing tests unchanged)
+  - new: does not render expand toggle when compact=true
+  - new: does not render action buttons when compact=true
+  - new: does not render Collapse detail section when compact=true
+  - new: still applies primary background highlight for current user when compact=true
+
+---
+
 ### `app/components/tournament-hub/leaderboard-peek-card.tsx` *(new)*
 
 **New functions:**
 
 - **LeaderboardPeekCard(props: { data: GroupPeekData; groupLeaderboardHref: string; locale: Locale })**: `JSX.Element`
-  Client Component. Renders a tappable MUI Card with: group name header, user's rank + `RankChangeIndicator`, 3-row mini-table (each row: rank number, name, score; current user row highlighted with theme background color). Navigates to `groupLeaderboardHref` on click via `useRouter`.
-  Calls: RankChangeIndicator (reused from leaderboard/)
+  Client Component. Renders a tappable MUI `CardActionArea` wrapping: a header row (group name, `#N` rank chip, `RankChangeIndicator`), then 3 `LeaderboardCard compact` components. Each `RankNeighborEntry` row is converted to a minimal `LeaderboardUser` (all point-breakdown fields = 0) for `LeaderboardCard`. Navigates to `groupLeaderboardHref` on click via `useRouter`.
+  Calls: LeaderboardCard (compact mode), RankChangeIndicator
   Tests:
   - renders group name in card header
-  - highlights current user row distinctly
-  - renders RankChangeIndicator with correct change value
+  - renders 3 LeaderboardCard rows for a normal 3-row window
+  - the current user's LeaderboardCard receives isCurrentUser=true (triggers highlighting)
+  - renders RankChangeIndicator with correct change value in header
   - navigates to groupLeaderboardHref when card is clicked
-  - renders "No change" indicator when rankChange is null
+  - renders null/no-change indicator when rankChange is null
 
 ---
 
@@ -215,12 +237,13 @@ export interface GroupPeekData {
 └─────────────────────────────────────────┘
 ```
 
-**MUI Components:**
-- `Card` / `CardActionArea` — tappable group card
-- `Typography` — group name, rank, scores
+**MUI Components / reuse:**
+- `Card` / `CardActionArea` — tappable group card wrapper
+- `Typography` — group name, rank label in header
 - `Box` / `Stack` — layout
 - `Divider` — between header and rows
-- `RankChangeIndicator` (reused from `leaderboard/`) — momentum chip
+- `RankChangeIndicator` (reused from `leaderboard/`) — momentum chip in header
+- **`LeaderboardCard compact=true`** (reused) — each of the 3 rows; preserves exact same bg-highlight, elevation, padding, "You" text as full leaderboard
 
 ---
 
@@ -271,5 +294,6 @@ Verify these keys exist, add if missing:
 - `docs/code-structure/db.md` — add `getLatestRankingsForGroup` to group-ranking-repository section
 - `docs/code-structure/actions.md` — add `getLeaderboardPeekData` + exported types to hub-actions section
 - `docs/code-structure/components/components-tournament-hub.md` — add `TournamentHubLeaderboardPeek` and `LeaderboardPeekCard`
+- `docs/code-structure/components/components-leaderboard-stats.md` — update `LeaderboardCard` entry (add `compact` prop)
 - `docs/code-structure/pages.md` — update hub page entry (no longer renders placeholder Paper for leaderboardPeek)
 - `CODE-STRUCTURE.md` call graph — add new Leaderboard Peek flow
