@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recent Results Widget — Mockup v3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@emotion/react@11/dist/emotion-react.umd.min.js"></script>
+  <script src="https://unpkg.com/@emotion/styled@11/dist/emotion-styled.umd.min.js"></script>
+  <script src="https://unpkg.com/@mui/material@5.16.0/umd/material-ui.development.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const {
+      ThemeProvider, createTheme, CssBaseline,
+      Container, Box, Stack, Grid,
+      Card, CardContent, CardHeader, CardActions,
+      Typography, Chip, Divider, Avatar, 
+      List, ListItem, ListItemText, ListItemAvatar,
+      Skeleton, Tooltip, Button
+    } = MaterialUI;
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper:   '#1a1a1a',
+        },
+        primary:  { main: '#a78bfa' },
+        success:  { main: '#4caf50' },
+        warning:  { main: '#ff9800' },
+        error:    { main: '#f44336' },
+        divider:  'rgba(255,255,255,0.08)',
+        text: {
+          primary:   '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    // Project-standard icons
+    const CheckIcon = () => <span>✅</span>;
+    const CloseIcon = () => <span>❌</span>;
+    const FlashOnIcon = () => <span>⚡</span>;
+    const EmojiEventsIcon = () => <span>🏆</span>;
+    const GroupsIcon = () => <span>👥</span>;
+
+    function ResultItem({ title, subtitle, points, bonus, time, failed, type }) {
+      const isAward = type === 'award';
+      
+      return (
+        <ListItem disablePadding sx={{ py: 1.5, opacity: failed ? 0.7 : 1 }}>
+          <ListItemAvatar>
+            <Avatar sx={{ 
+              bgcolor: failed ? 'rgba(244, 67, 54, 0.1)' : 'rgba(76, 175, 80, 0.1)', 
+              color: failed ? 'error.main' : 'success.main', 
+              border: '1px solid',
+              borderColor: failed ? 'rgba(244, 67, 54, 0.2)' : 'rgba(76, 175, 80, 0.2)',
+              width: 36,
+              height: 36,
+              fontSize: '1.1rem'
+            }}>
+              {failed ? <CloseIcon /> : <CheckIcon />}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText 
+            primary={
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="body2" sx={{ fontWeight: 600, color: failed ? 'text.secondary' : 'text.primary' }}>
+                  {title}
+                </Typography>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <Typography variant="body2" sx={{ color: failed ? 'error.main' : 'success.main', fontWeight: 700 }}>
+                    {failed ? '0 pts' : `+${points}`}
+                  </Typography>
+                  {bonus > 0 && !failed && (
+                    <Tooltip title="Boost Bonus">
+                      <Chip 
+                        size="small" 
+                        label={`+${bonus}`} 
+                        icon={<FlashOnIcon />} 
+                        sx={{ height: 18, fontSize: '0.6rem', bgcolor: 'warning.dark', color: 'white', '& .MuiChip-icon': { fontSize: '0.7rem', color: 'white' } }} 
+                      />
+                    </Tooltip>
+                  )}
+                </Stack>
+              </Box>
+            }
+            secondary={
+              <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 0.5 }}>
+                <Typography variant="caption" color="text.secondary">{subtitle}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>{time}</Typography>
+              </Box>
+            }
+          />
+        </ListItem>
+      );
+    }
+
+    function StateToggle({ states, current, onChange }) {
+      return (
+        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+          {states.map(s => (
+            <Chip
+              key={s}
+              label={s}
+              size="small"
+              onClick={() => onChange(s)}
+              variant={current === s ? 'filled' : 'outlined'}
+              color={current === s ? 'primary' : 'default'}
+            />
+          ))}
+        </Stack>
+      );
+    }
+
+    function MockupApp() {
+      const [state, setState] = React.useState('populated');
+
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Container maxWidth="sm" sx={{ py: 4 }}>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>Recent Prediction Results — v3</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Using project-standard Check/Close icons. Categorized results with failed awards.
+              </Typography>
+            </Box>
+
+            <StateToggle
+              states={['loading', 'empty', 'populated']}
+              current={state}
+              onChange={setState}
+            />
+
+            <Card variant="outlined">
+              <CardHeader 
+                title={
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                      Últimos Resultados
+                    </Typography>
+                  </Stack>
+                }
+                sx={{ pb: 0 }}
+              />
+              <CardContent sx={{ pb: 1 }}>
+                {state === 'loading' && (
+                  <Stack spacing={2}>
+                    {[1, 2, 3].map(i => (
+                      <Box key={i} display="flex" gap={2}>
+                        <Skeleton variant="circular" width={40} height={40} />
+                        <Box flex={1}>
+                          <Skeleton variant="text" width="60%" />
+                          <Skeleton variant="text" width="40%" />
+                        </Box>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+
+                {state === 'empty' && (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="h4" sx={{ opacity: 0.2, mb: 1 }}>⚽</Typography>
+                    <Typography variant="body2" color="text.secondary">Aún no tienes resultados recientes.</Typography>
+                    <Typography variant="caption" color="text.secondary">¡Las novedades de tus predicciones aparecerán aquí!</Typography>
+                  </Box>
+                )}
+
+                {state === 'populated' && (
+                  <List sx={{ pt: 0 }}>
+                    {/* Recent Games */}
+                    <Box sx={{ mt: 1, mb: 0.5, px: 1 }}>
+                      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, fontSize: '0.65rem' }}>Partidos Recientes</Typography>
+                    </Box>
+                    <ResultItem 
+                      title="Argentina 2 - 1 Francia"
+                      subtitle="Resultado exacto"
+                      points={3}
+                      bonus={1}
+                      time="hace 4 horas"
+                    />
+                    <Divider variant="inset" component="li" />
+                    
+                    <ResultItem 
+                      failed
+                      title="Brasil 0 - 2 Croacia"
+                      subtitle="Predicción: 1 - 0"
+                      points={0}
+                      time="ayer"
+                    />
+                    <Divider variant="inset" component="li" />
+
+                    {/* Recently Qualified Teams */}
+                    <Box sx={{ mt: 2, mb: 0.5, px: 1 }}>
+                      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, fontSize: '0.65rem' }}>Recientemente Clasificados</Typography>
+                    </Box>
+                    <ResultItem 
+                      title="Grupo C: Clasificados"
+                      subtitle="Polonia y México avanzaron"
+                      points={4}
+                      time="hace 2 días"
+                    />
+                    <Divider variant="inset" component="li" />
+
+                    <ResultItem 
+                      failed
+                      title="Grupo D: Clasificados"
+                      subtitle="Dinamarca no clasificó"
+                      points={2}
+                      time="hace 2 días"
+                    />
+                    <Divider variant="inset" component="li" />
+                    
+                    {/* Tournament Awards */}
+                    <Box sx={{ mt: 2, mb: 0.5, px: 1 }}>
+                      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, fontSize: '0.65rem' }}>Premios del Torneo</Typography>
+                    </Box>
+
+                    <ResultItem 
+                      type="award"
+                      title="Bota de Oro: Mbappé"
+                      subtitle="Tu elección fue correcta"
+                      points={5}
+                      time="hace 1 semana"
+                    />
+                    <Divider variant="inset" component="li" />
+
+                    <ResultItem 
+                      failed
+                      type="award"
+                      title="Mejor Arquero: Courtois"
+                      subtitle="Tu elección: Alisson"
+                      points={0}
+                      time="hace 1 semana"
+                    />
+                  </List>
+                )}
+              </CardContent>
+              {state === 'populated' && (
+                <CardActions sx={{ justifyContent: 'center', pt: 0, pb: 2 }}>
+                  <Button size="small" color="primary" sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+                    Ver estadísticas completas
+                  </Button>
+                </CardActions>
+              )}
+            </Card>
+
+          </Container>
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<MockupApp />);
+  </script>
+</body>
+</html>
