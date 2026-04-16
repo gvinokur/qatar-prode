@@ -558,10 +558,11 @@ Key flows:
             → derives rankChange = previous.rank - current.rank (positive = improved)
             → returns MaterializedGroupRanking | null
 
-29. Tournament Hub shell (Story #316; updated Story #317)
+29. Tournament Hub shell (Story #316; updated Story #317, #319)
     TournamentHubPage (Server) — /tournaments/[id]/hub
       → renders TournamentHubActionCenter (Story #317 — replaces smartPredictorCarousel Paper)
-      → renders 2 Paper placeholders (Prediction Dashboard, Leaderboard Peek)
+      → renders Paper placeholder (Prediction Dashboard)
+      → renders TournamentHubLeaderboardPeek (Story #319 — replaces leaderboardPeek Paper)
 
 30. Action Center data flow (Story #317)
     TournamentHubActionCenter (Server) → getActionCenterGames(tournamentId, locale)
@@ -576,6 +577,17 @@ Key flows:
         → GuessesContextProvider (gameGuesses, autoSave=true, boost limits)
         → ScrollShadowContainer (direction="horizontal")
           → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
+
+31. Leaderboard Peek data flow (Story #319)
+    TournamentHubLeaderboardPeek (Server) → getLeaderboardPeekData(tournamentId, locale)
+      → getLoggedInUser
+      → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId)
+      → getLatestRankingsForGroup(groupId, tournamentId) ×N groups (concurrent)
+      → getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3 groups (concurrent)
+      → returns GroupPeekData[] (up to 3, sorted by member count desc)
+    → LeaderboardPeekCard [Client] ×N
+        → LeaderboardCard (compact=true) ×3
+        → RankChangeIndicator (header momentum chip)
 
     Modified flows (Story #316):
     - TournamentRedirect [Client] now calls isHubEnabled():

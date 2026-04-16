@@ -1,5 +1,6 @@
 import { db } from './database';
 import { GroupRanking, GroupRankingSnapshotNew } from './tables-definition';
+import { sql } from 'kysely';
 
 /**
  * Batch upsert daily rank snapshots for multiple users in a group.
@@ -62,6 +63,41 @@ export async function getLatestTwoGroupRankingSnapshots(
     .orderBy('snapshot_date', 'desc')
     .limit(2)
     .execute();
+}
+
+/**
+ * Returns all users' latest-snapshot ranks with their display names for a group+tournament,
+ * ordered by rank ascending. Uses a two-step query: first get the max snapshot_date,
+ * then JOIN group_rankings with users at that date.
+ * Returns empty array if no snapshots exist.
+ */
+export async function getLatestRankingsForGroup(
+  groupId: string,
+  tournamentId: string
+): Promise<{ userId: string; userName: string; rank: number; score: number }[]> {
+  const latestDateRow = await db
+    .selectFrom('group_rankings')
+    .select(db.fn.max('snapshot_date').as('maxDate'))
+    .where('group_id', '=', groupId)
+    .where('tournament_id', '=', tournamentId)
+    .executeTakeFirst()
+
+  if (latestDateRow?.maxDate == null) return []
+
+  return db
+    .selectFrom('group_rankings')
+    .innerJoin('users', 'users.id', 'group_rankings.user_id')
+    .select([
+      'group_rankings.user_id as userId',
+      sql<string>`COALESCE(users.nickname, users.email)`.as('userName'),
+      'group_rankings.rank',
+      'group_rankings.score',
+    ])
+    .where('group_rankings.group_id', '=', groupId)
+    .where('group_rankings.tournament_id', '=', tournamentId)
+    .where('group_rankings.snapshot_date', '=', latestDateRow.maxDate)
+    .orderBy('group_rankings.rank', 'asc')
+    .execute()
 }
 
 /**

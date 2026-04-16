@@ -25,6 +25,11 @@ vi.mock('@/app/components/tournament-hub/tournament-hub-action-center', () => ({
   TournamentHubActionCenter: () => <div data-testid="action-center">Action Center</div>,
 }));
 
+// Mock TournamentHubLeaderboardPeek (server component — renders a test placeholder)
+vi.mock('@/app/components/tournament-hub/tournament-hub-leaderboard-peek', () => ({
+  TournamentHubLeaderboardPeek: () => <div data-testid="leaderboard-peek">Leaderboard Peek Widget</div>,
+}));
+
 describe('TournamentHubPage', () => {
   const mockParams = Promise.resolve({ id: 'tournament-1' });
 
@@ -49,16 +54,17 @@ describe('TournamentHubPage', () => {
     expect(screen.getByTestId('action-center')).toBeInTheDocument();
   });
 
-  it('renders two placeholder sections for Prediction Dashboard and Leaderboard Peek', async () => {
+  it('renders Prediction Dashboard placeholder and Leaderboard Peek widget', async () => {
     const React = (await import('react')).default;
     const page = await TournamentHubPage({ params: mockParams });
     const { container } = render(page as React.ReactElement);
 
+    // Only 1 Paper now (leaderboardPeek is a real component, not a placeholder)
     const papers = container.querySelectorAll('.MuiPaper-root');
-    expect(papers.length).toBe(2);
+    expect(papers.length).toBe(1);
 
     expect(screen.getByText('Prediction Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Leaderboard Peek')).toBeInTheDocument();
+    expect(screen.getByTestId('leaderboard-peek')).toBeInTheDocument();
   });
 
   it('does not render the Smart Predictor Carousel placeholder', async () => {

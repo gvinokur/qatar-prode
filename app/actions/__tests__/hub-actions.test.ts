@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData } from '../hub-actions'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
 import * as teamRepository from '@/app/db/team-repository'
 import * as tournamentRepository from '@/app/db/tournament-repository'
+import * as prodeGroupRepository from '@/app/db/prode-group-repository'
+import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as userActions from '../user-actions'
 import { testFactories } from '../../../__tests__/db/test-factories'
 
@@ -30,6 +32,16 @@ vi.mock('@/app/db/tournament-repository', () => ({
 
 vi.mock('../user-actions', () => ({
   getLoggedInUser: vi.fn(),
+}))
+
+vi.mock('@/app/db/prode-group-repository', () => ({
+  findProdeGroupsByOwner: vi.fn(),
+  findProdeGroupsByParticipant: vi.fn(),
+}))
+
+vi.mock('@/app/db/group-ranking-repository', () => ({
+  getLatestRankingsForGroup: vi.fn(),
+  getLatestTwoGroupRankingSnapshots: vi.fn(),
 }))
 
 vi.mock('next-intl/server', () => ({
@@ -315,5 +327,158 @@ describe('getActionCenterGames', () => {
 
       expect(result.tournamentFinished).toBe(false)
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getLeaderboardPeekData
+// ---------------------------------------------------------------------------
+
+const group1 = testFactories.prodeGroup({ id: 'group-1', name: 'Group Alpha' })
+const group2 = testFactories.prodeGroup({ id: 'group-2', name: 'Los Amigos' })
+const group3 = testFactories.prodeGroup({ id: 'group-3', name: 'Familia' })
+
+const makeRankings = (groupId: string, userIds: string[], currentUserId: string) =>
+  userIds.map((uid, i) => ({
+    userId: uid,
+    userName: uid === currentUserId ? 'Me' : `User ${i + 1}`,
+    rank: i + 1,
+    score: 100 - i * 10,
+  }))
+
+describe('getLeaderboardPeekData', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(
+      testFactories.user({ id: USER_ID }) as any
+    )
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1])
+    vi.mocked(prodeGroupRepository.findProdeGroupsByParticipant).mockResolvedValue([])
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(
+      makeRankings(group1.id, [USER_ID, 'user-2', 'user-3'], USER_ID)
+    )
+    vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots).mockResolvedValue([])
+  })
+
+  it('returns empty array when user is not authenticated', async () => {
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null as any)
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result).toEqual([])
+  })
+
+  it('returns empty array when user has no groups', async () => {
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([])
+    vi.mocked(prodeGroupRepository.findProdeGroupsByParticipant).mockResolvedValue([])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result).toEqual([])
+  })
+
+  it('returns up to 3 groups sorted by member count descending', async () => {
+    // group1: 5 members, group2: 3 members, group3: 1 member → order: group1, group2, group3
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([
+      group1, group2, group3,
+    ])
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
+      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group2.id, [USER_ID, 'u2', 'u3'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group3.id, [USER_ID], USER_ID))
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result).toHaveLength(3)
+    expect(result[0].groupId).toBe(group1.id)
+    expect(result[1].groupId).toBe(group2.id)
+    expect(result[2].groupId).toBe(group3.id)
+  })
+
+  it('filters out groups where user has no ranking entry', async () => {
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1, group2])
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
+      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2'], USER_ID))
+      // group2: user is not in the rankings
+      .mockResolvedValueOnce([{ userId: 'u2', userName: 'Other', rank: 1, score: 100 }])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].groupId).toBe(group1.id)
+  })
+
+  it('builds correct 3-row window when user is rank 1 (shows top 3)', async () => {
+    const rankings = makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID)
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(rankings)
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result[0].userRank).toBe(1)
+    expect(result[0].rows).toHaveLength(3)
+    expect(result[0].rows[0].rank).toBe(1)
+    expect(result[0].rows[2].rank).toBe(3)
+    expect(result[0].rows[0].isCurrentUser).toBe(true)
+  })
+
+  it('builds correct 3-row window when user is last rank (shows last 3)', async () => {
+    const rankings = [
+      { userId: 'u1', userName: 'User 1', rank: 1, score: 100 },
+      { userId: 'u2', userName: 'User 2', rank: 2, score: 90 },
+      { userId: 'u3', userName: 'User 3', rank: 3, score: 80 },
+      { userId: USER_ID, userName: 'Me', rank: 4, score: 70 },
+    ]
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(rankings)
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result[0].userRank).toBe(4)
+    expect(result[0].rows).toHaveLength(3)
+    expect(result[0].rows[0].rank).toBe(2)
+    expect(result[0].rows[2].rank).toBe(4)
+    expect(result[0].rows[2].isCurrentUser).toBe(true)
+  })
+
+  it('builds correct 3-row window for middle ranks (shows above/user/below)', async () => {
+    const rankings = [
+      { userId: 'u1', userName: 'User 1', rank: 1, score: 100 },
+      { userId: 'u2', userName: 'User 2', rank: 2, score: 90 },
+      { userId: USER_ID, userName: 'Me', rank: 3, score: 80 },
+      { userId: 'u4', userName: 'User 4', rank: 4, score: 70 },
+      { userId: 'u5', userName: 'User 5', rank: 5, score: 60 },
+    ]
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(rankings)
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result[0].userRank).toBe(3)
+    expect(result[0].rows).toHaveLength(3)
+    expect(result[0].rows[0].rank).toBe(2)
+    expect(result[0].rows[1].rank).toBe(3)
+    expect(result[0].rows[1].isCurrentUser).toBe(true)
+    expect(result[0].rows[2].rank).toBe(4)
+  })
+
+  it('sets rankChange to null when only one snapshot exists', async () => {
+    vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots).mockResolvedValue([
+      testFactories.groupRanking({ rank: 2 }),
+    ])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result[0].rankChange).toBeNull()
+  })
+
+  it('returns positive rankChange when user moved up in rank', async () => {
+    // snapshots[0] = latest (rank 2), snapshots[1] = previous (rank 4)
+    // rankChange = previous - current = 4 - 2 = +2 (moved up)
+    vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots).mockResolvedValue([
+      testFactories.groupRanking({ rank: 2 }),
+      testFactories.groupRanking({ rank: 4 }),
+    ])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result[0].rankChange).toBe(2)
   })
 })

@@ -2,6 +2,8 @@
   "smartPredictorCarousel": "Smart Predictor Carousel",
   "predictionDashboard": "Prediction Dashboard",
   "leaderboardPeek": "Leaderboard Peek",
+  "yourStandings": "Your Standings",
+  "noRankingData": "Rankings will appear once the tournament is underway.",
   "actionCenter": {
     "title": "Action Center",
     "subtitle": "Submit your predictions",

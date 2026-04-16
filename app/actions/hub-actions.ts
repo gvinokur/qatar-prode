@@ -4,12 +4,31 @@ import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournam
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
+import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
+import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
 import { ExtendedGameData } from '../definitions'
 import { GameGuessNew, Team } from '../db/tables-definition'
 import type { Locale } from '../../i18n.config'
+
+export interface RankNeighborEntry {
+  userId: string
+  userName: string
+  rank: number
+  score: number
+  isCurrentUser: boolean
+}
+
+export interface GroupPeekData {
+  groupId: string
+  groupName: string
+  totalMembers: number
+  userRank: number
+  rankChange: number | null
+  rows: RankNeighborEntry[]
+}
 
 export interface ActionCenterData {
   games: ExtendedGameData[]
@@ -155,4 +174,111 @@ export async function getActionCenterGames(
     msUntilPredictionLock,
     tournamentFinished,
   }
+}
+
+const MAX_PEEK_GROUPS = 3
+
+/**
+ * Fetches the current user's leaderboard standing in their top friend groups for a tournament.
+ * Returns up to 3 groups sorted by ranked member count descending, each with a 3-row
+ * neighbor window (person above, user, person below) and a momentum indicator (rank change).
+ * Returns empty array if user is unauthenticated or has no groups with ranking data.
+ */
+export async function getLeaderboardPeekData(
+  tournamentId: string,
+  _locale: Locale
+): Promise<GroupPeekData[]> {
+  const user = await getLoggedInUser()
+  if (!user?.id) return []
+
+  const [ownedGroups, participantGroups] = await Promise.all([
+    findProdeGroupsByOwner(user.id),
+    findProdeGroupsByParticipant(user.id),
+  ])
+
+  // Deduplicate: owner may also appear in participant list
+  const allGroupsMap = new Map([
+    ...ownedGroups.map((g) => [g.id, g] as const),
+    ...participantGroups.map((g) => [g.id, g] as const),
+  ])
+  const allGroups = Array.from(allGroupsMap.values())
+
+  if (allGroups.length === 0) return []
+
+  // Fetch latest rankings for all groups concurrently
+  const rankingsPerGroup = await Promise.all(
+    allGroups.map((g) => getLatestRankingsForGroup(g.id, tournamentId))
+  )
+
+  // Build group candidates: only groups where the current user has a ranking entry
+  const candidates: Array<{
+    group: (typeof allGroups)[number]
+    rankings: Awaited<ReturnType<typeof getLatestRankingsForGroup>>
+    userRankEntry: { userId: string; userName: string; rank: number; score: number }
+  }> = []
+
+  for (let i = 0; i < allGroups.length; i++) {
+    const rankings = rankingsPerGroup[i]
+    const userEntry = rankings.find((r) => r.userId === user.id)
+    if (userEntry) {
+      candidates.push({ group: allGroups[i], rankings, userRankEntry: userEntry })
+    }
+  }
+
+  // Sort by member count descending (most active groups first), take top 3
+  candidates.sort((a, b) => b.rankings.length - a.rankings.length)
+  const topCandidates = candidates.slice(0, MAX_PEEK_GROUPS)
+
+  if (topCandidates.length === 0) return []
+
+  // Fetch rank change snapshots for top 3 groups concurrently
+  const snapshotResults = await Promise.all(
+    topCandidates.map((c) => getLatestTwoGroupRankingSnapshots(user.id, c.group.id, tournamentId))
+  )
+
+  return topCandidates.map((candidate, idx) => {
+    const { group, rankings, userRankEntry } = candidate
+    const snapshots = snapshotResults[idx]
+
+    // Compute rank change: previous rank minus current rank (positive = moved up)
+    let rankChange: number | null = null
+    if (snapshots.length === 2) {
+      rankChange = snapshots[1].rank - snapshots[0].rank
+    }
+
+    // Build 3-row window around the user
+    const total = rankings.length
+    const userRank = userRankEntry.rank
+    let windowStart: number
+
+    if (total <= 3) {
+      windowStart = 1
+    } else if (userRank === 1) {
+      windowStart = 1
+    } else if (userRank >= total) {
+      windowStart = total - 2
+    } else {
+      windowStart = userRank - 1
+    }
+
+    const windowEnd = Math.min(windowStart + 2, total)
+    const rows: RankNeighborEntry[] = rankings
+      .filter((r) => r.rank >= windowStart && r.rank <= windowEnd)
+      .map((r) => ({
+        userId: r.userId,
+        userName: r.userName,
+        rank: r.rank,
+        score: r.score,
+        isCurrentUser: r.userId === user.id,
+      }))
+
+    return {
+      groupId: group.id,
+      groupName: group.name,
+      totalMembers: total,
+      userRank,
+      rankChange,
+      rows,
+    }
+  })
 }

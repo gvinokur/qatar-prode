@@ -71,6 +71,7 @@ export interface LeaderboardCardProps {
   readonly onCompare?: () => void  // Opens H2H dialog (non-self cards only)
   readonly onShareHighlight?: () => void  // Share rank improvement (current user with positive rankChange)
   readonly badges?: Badge[]
+  readonly compact?: boolean       // When true: hides expand toggle, action buttons, badges, rank change chip and Collapse detail section
 }
 
 export interface RankChangeIndicatorProps {

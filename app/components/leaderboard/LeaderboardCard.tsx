@@ -33,6 +33,7 @@ export default function LeaderboardCard({
   onCompare,
   onShareHighlight,
   badges = [],
+  compact = false,
 }: LeaderboardCardProps) {
   const theme = useTheme()
   const t = useTranslations('groups.leaderboard')
@@ -54,17 +55,17 @@ export default function LeaderboardCard({
       }}
     >
       <Card
-        onClick={onToggle}
-      onKeyDown={(e) => {
+        onClick={compact ? undefined : onToggle}
+      onKeyDown={compact ? undefined : (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           onToggle()
         }
       }}
-      tabIndex={0}
-      role="button"
-      aria-label={`${isCurrentUser ? 'Your' : displayName + "'s"} leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
-      aria-expanded={isExpanded}
+      tabIndex={compact ? undefined : 0}
+      role={compact ? undefined : 'button'}
+      aria-label={compact ? undefined : `${isCurrentUser ? 'Your' : displayName + "'s"} leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
+      aria-expanded={compact ? undefined : isExpanded}
       sx={{
         py: 1.5,
         px: 2,
@@ -101,7 +102,7 @@ export default function LeaderboardCard({
             >
               #{rank}
             </Typography>
-            <RankChangeIndicator rankChange={rankChange} size="small" />
+            {!compact && <RankChangeIndicator rankChange={rankChange} size="small" />}
           </Box>
 
           {/* Avatar */}
@@ -142,7 +143,7 @@ export default function LeaderboardCard({
             >
               {user.totalPoints.toLocaleString()} pts
             </Typography>
-            {badges.length > 0 && (
+            {!compact && badges.length > 0 && (
               <Box sx={{ mt: '5px' }}>
                 <BadgeRow badges={badges} sizePx={16} justify="flex-end" />
               </Box>
@@ -150,7 +151,7 @@ export default function LeaderboardCard({
           </Box>
 
           {/* Compare button (non-self cards only) */}
-          {!isCurrentUser && onCompare && (
+          {!compact && !isCurrentUser && onCompare && (
             <Tooltip title={t('tapToCompare')}>
               <IconButton
                 size="small"
@@ -167,7 +168,7 @@ export default function LeaderboardCard({
           )}
 
           {/* Share highlight button (current user with positive rank change) */}
-          {isCurrentUser && onShareHighlight && rankChange > 0 && (
+          {!compact && isCurrentUser && onShareHighlight && rankChange > 0 && (
             <Tooltip title="Share Highlight">
               <IconButton
                 size="small"
@@ -184,8 +185,8 @@ export default function LeaderboardCard({
           )}
         </Box>
 
-        {/* Expand hint (all cards when collapsed) */}
-        {!isExpanded && (
+        {/* Expand hint (all cards when collapsed, non-compact only) */}
+        {!compact && !isExpanded && (
           <Typography
             variant="caption"
             color="text.secondary"
@@ -195,8 +196,8 @@ export default function LeaderboardCard({
           </Typography>
         )}
 
-        {/* Expandable Detailed Stats Section */}
-        <Collapse in={isExpanded} timeout={300} aria-live="polite">
+        {/* Expandable Detailed Stats Section (non-compact only) */}
+        {!compact && <Collapse in={isExpanded} timeout={300} aria-live="polite">
           <Divider sx={{ my: 1.5 }} />
           <Box sx={{ mt: 1.5 }}>
             <Typography
@@ -358,7 +359,7 @@ export default function LeaderboardCard({
           >
             {t('tapToCollapse')}
           </Typography>
-        </Collapse>
+        </Collapse>}
       </CardContent>
     </Card>
     </motion.div>

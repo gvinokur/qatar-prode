@@ -2,6 +2,8 @@
   "smartPredictorCarousel": "Carrusel de Predicciones",
   "predictionDashboard": "Panel de Predicciones",
   "leaderboardPeek": "Vista de Tabla de Posiciones",
+  "yourStandings": "Tu posición",
+  "noRankingData": "Las posiciones aparecerán cuando el torneo esté en marcha.",
   "actionCenter": {
     "title": "Centro de Acción",
     "subtitle": "Envía tus predicciones",

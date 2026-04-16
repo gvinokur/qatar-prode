@@ -29,9 +29,9 @@ Simple passthrough component — wraps LeaderboardCards with no tab logic. [Clie
 ### app/components/leaderboard/LeaderboardCard.tsx
 Expandable leaderboard card for individual user with collapsible detailed stats breakdown.
 
-- **LeaderboardCard(props: LeaderboardCardProps)**: `JSX.Element` — [Client] Displays user rank, name, avatar, total points, and toggle for detailed breakdown (group/knockout/tournament stats with boost bonuses). Includes compare and share highlight buttons. Collapsed view shows badges below points (16px, flex-end). Expanded view shows "Insignias" section with badges (20px).
+- **LeaderboardCard(props: LeaderboardCardProps)**: `JSX.Element` — [Client] Displays user rank, name, avatar, total points, and toggle for detailed breakdown (group/knockout/tournament stats with boost bonuses). Includes compare and share highlight buttons. Collapsed view shows badges below points (16px, flex-end). Expanded view shows "Insignias" section with badges (20px). When `compact=true` (Story #319): hides expand/collapse toggle, Compare and Share Highlight buttons, BadgeRow, per-row RankChangeIndicator, and Collapse detail section — preserves bg highlight, elevation, padding, and "You" bold text.
   Uses: useTheme, useTranslations('groups.leaderboard'), useTranslations('groups.badges'), RankChangeIndicator
-  Renders: RankChangeIndicator, BadgeRow
+  Renders: RankChangeIndicator (when not compact), BadgeRow (when not compact)
 
 ### app/components/leaderboard/LeaderboardCards.tsx
 Cards layout wrapper managing leaderboard state (expanded cards, comparisons, ranking animations). Implements sharing modal for leaderboard and personal highlights.
