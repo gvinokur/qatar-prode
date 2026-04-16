@@ -109,7 +109,7 @@ export async function getActionCenterGames(
       return deadline > now && !guessedGameIds.has(g.id)
     })
     .sort((a, b) => calculateDeadline(a.game_date) - calculateDeadline(b.game_date))
-    .slice(0, MAX_URGENT_CARDS) as ExtendedGameData[]
+    .slice(0, MAX_URGENT_CARDS)
 
   let selectedGames: ExtendedGameData[]
   let mode: ActionCenterData['mode']
@@ -121,7 +121,7 @@ export async function getActionCenterGames(
     // Fallback: next 3 games by game_date asc (open or already predicted)
     const upcomingGames = [...games]
       .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
-      .slice(0, FALLBACK_CARD_COUNT) as ExtendedGameData[]
+      .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
     mode = 'fallback'
   }

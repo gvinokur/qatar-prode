@@ -60,8 +60,14 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
 
   const urgency = getUrgencyLevel(data.msUntilPredictionLock)
   const showUrgencyChip = data.qtAndAwardsOpen && urgency !== 'safe'
-  const urgencyChipColor =
-    urgency === 'urgent' ? 'error' : urgency === 'warning' ? 'warning' : 'info'
+  let urgencyChipColor: 'error' | 'warning' | 'info'
+  if (urgency === 'urgent') {
+    urgencyChipColor = 'error'
+  } else if (urgency === 'warning') {
+    urgencyChipColor = 'warning'
+  } else {
+    urgencyChipColor = 'info'
+  }
   const countdownText = showUrgencyChip ? formatCountdown(data.msUntilPredictionLock) : ''
 
   return (
