@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Group email invitations and CSV import
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-327
 - **Branch:** feature/story-327
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 330
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/330
 
 ## State
 - **Current Phase:** planning
