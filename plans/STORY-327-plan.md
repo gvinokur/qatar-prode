@@ -243,3 +243,17 @@ EmailInvitationsTab [Client]
 
 ## Open Questions
 - None — requirements are clear from mockup and acceptance criteria.
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: EmailInvitationsTab props simplified
+**Date:** 2026-04-16
+**Reason:** `groupName` and `shortUrl` were unnecessary — the server action fetches the group name from DB and generates its own invite URL. Removing them keeps the component interface honest and avoids prop drilling unused data.
+**Change:** Final props are `{ groupId, groupLogoUrl?, themeColor?, onSnackbar }`. `groupName` and `shortUrl` removed from both the component and the dialog call site.
+
+### Amendment 2: senderDisplayName fallback extended
+**Date:** 2026-04-16
+**Reason:** User may have neither nickname nor name set — a graceful fallback prevents an empty "undefined invited you" message.
+**Change:** `senderDisplayName` derivation is `user.nickname ?? user.name ?? user.email ?? 'Someone'` (plan had `user.nickname ?? user.name`).
