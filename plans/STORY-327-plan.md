@@ -40,9 +40,10 @@ Added to `app/actions/prode-group-actions.ts`.
 
 ### New Email Template: `generateGroupInvitationEmail`
 Added to `app/utils/email-templates.ts`.
-- Inputs: recipientEmail, recipientName, senderDisplayName, groupName, inviteLink, customMessage, locale
+- Inputs: recipientEmail, recipientName, senderDisplayName, groupName, inviteLink, customMessage, locale, groupLogoUrl, themeColor
 - Localized via `getTranslations({ locale, namespace: 'emails' })`
-- Includes: **personalized greeting using `recipientName`** (e.g. "Hola, Juan!"), group invite CTA button, invite link text, sender attribution (e.g. "`senderDisplayName` te invitó"), optional custom message block
+- Includes: **colored header banner** (`themeColor` as background) with group logo `<img>` (S3 URL used directly — no proxy needed for email) and group name as `alt` text, **personalized greeting using `recipientName`** (e.g. "Hola, Juan!"), sender attribution (e.g. "`senderDisplayName` te invitó"), group invite CTA button styled with `themeColor`, invite link text, optional custom message block
+- Both `groupLogoUrl` and `themeColor` are optional; falls back to a neutral header when absent
 
 ### CSV Parsing
 Client-side using `FileReader` API (browser native, no additional dependency).
@@ -64,7 +65,7 @@ Generate a simple CSV string client-side and trigger a browser download (`Blob +
 | File | Action |
 |------|--------|
 | `app/components/friend-groups/EmailInvitationsTab.tsx` | **Create** — new Client Component for Email tab |
-| `app/components/invite-friends-dialog.tsx` | **Modify** — replace "Coming Soon" with `<EmailInvitationsTab>` |
+| `app/components/invite-friends-dialog.tsx` | **Modify** — replace "Coming Soon" with `<EmailInvitationsTab>`, forwarding existing `groupLogoUrl` and `themeColor` props |
 | `app/actions/prode-group-actions.ts` | **Modify** — add `sendGroupEmailInvitations` |
 | `app/utils/email-templates.ts` | **Modify** — add `generateGroupInvitationEmail` |
 | `locales/es/groups.json` | **Modify** — add `invite.email.*` keys |
@@ -129,8 +130,10 @@ EmailInvitationsTab [Client]
         ├── findParticipantsInGroup (admin check)
         ├── generateShortUrlForGroup + buildShortUrl (for invite link)
         ├── generateGroupInvitationEmail (util, per recipient)
+        │     → colored header: themeColor bg + groupLogoUrl img + groupName
         │     → personalized greeting: "Hola, {recipientName}!"
         │     → sender attribution: "{senderDisplayName} te invitó a {groupName}"
+        │     → CTA button styled with themeColor
         └── sendEmail (per recipient, parallel Promise.allSettled)
 ```
 
@@ -141,13 +144,16 @@ EmailInvitationsTab [Client]
 **New functions:**
 
 - **generateGroupInvitationEmail(params)**: `Promise<{to: string, subject: string, html: string, locale: Locale}>`
-  - `params: { recipientEmail: string; recipientName: string; senderDisplayName: string; groupName: string; inviteLink: string; customMessage?: string; locale?: Locale }` (locale defaults to `'es'` via `locale = 'es'` parameter default)
-  - Generates localized HTML email with: personalized greeting (`"Hola, {recipientName}!"`), sender attribution (`"{senderDisplayName} te invitó a unirse a {groupName}"`), invite CTA button, plain-text invite link, and optional custom message block.
+  - `params: { recipientEmail: string; recipientName: string; senderDisplayName: string; groupName: string; inviteLink: string; customMessage?: string; locale?: Locale; groupLogoUrl?: string; themeColor?: string }` (locale defaults to `'es'`)
+  - Generates localized HTML email with: colored header banner (`themeColor` background, group logo `<img>` with `alt={groupName}`, group name text), personalized greeting (`"Hola, {recipientName}!"`), sender attribution (`"{senderDisplayName} te invitó a unirse a {groupName}"`), invite CTA button (styled with `themeColor`), plain-text invite link, and optional custom message block. Falls back to a neutral (`#1976d2`) header when `themeColor`/`groupLogoUrl` absent.
   - Calls: `getTranslations` (next-intl/server)
   - Tests:
     - subject includes groupName
     - html includes inviteLink
     - html includes personalized greeting using recipient name
+    - html includes group logo img tag when groupLogoUrl provided
+    - html omits logo img when groupLogoUrl not provided
+    - html uses themeColor as header background when provided
     - html includes customMessage block when provided
     - html omits customMessage block when undefined
     - uses provided locale for translations (defaults to 'es')
@@ -158,14 +164,17 @@ EmailInvitationsTab [Client]
 
 **New functions:**
 
-- **sendGroupEmailInvitations(groupId, recipients, customMessage, locale)**: `Promise<{sent: number, failed: string[]}>`
+- **sendGroupEmailInvitations(groupId, recipients, customMessage, locale, groupLogoUrl?, themeColor?)**: `Promise<{sent: number, failed: string[]}>`
   - `groupId: string`
   - `recipients: Array<{name: string, email: string}>` — max 50 entries
   - `customMessage?: string`
   - `locale: string`
+  - `groupLogoUrl?: string`
+  - `themeColor?: string`
   - Validates auth (throws Unauthorized), admin status (throws Forbidden), recipient count (throws if > 50).
   - Generates invite link via `generateShortUrlForGroup` + `buildShortUrl`.
   - Uses `user.nickname ?? user.name` as `senderDisplayName` passed to `generateGroupInvitationEmail` (already fetched via `getLoggedInUser`).
+  - Passes `groupLogoUrl` and `themeColor` through to `generateGroupInvitationEmail`.
   - Sends emails in parallel via `Promise.allSettled`.
   - Returns `{ sent: number, failed: string[] }` where `failed` lists email addresses that errored.
   - Calls: `getLoggedInUser`, `findProdeGroupById`, `findParticipantsInGroup`, `generateShortUrlForGroup`, `buildShortUrl`, `generateGroupInvitationEmail`, `sendEmail`
@@ -187,7 +196,7 @@ EmailInvitationsTab [Client]
 **New component:**
 
 - **EmailInvitationsTab(props)**: `JSX.Element`
-  - `props: { groupId: string; groupName: string; shortUrl: string; onSnackbar: (message: string, severity: 'success' | 'error') => void }`
+  - `props: { groupId: string; groupName: string; shortUrl: string; groupLogoUrl?: string; themeColor?: string; onSnackbar: (message: string, severity: 'success' | 'error') => void }`
   - Client Component (`'use client'`).
   - State: `recipients: Array<{name: string, email: string}>` (starts with 1 blank row), `customMessage: string`, `isSending: boolean`.
   - Handlers: `addRow`, `removeRow`, `updateRow`, `handleCsvImport`, `handleTemplateDownload`, `handleSend`.
