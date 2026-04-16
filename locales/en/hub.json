@@ -5,7 +5,7 @@
   "actionCenter": {
     "title": "Action Center",
     "subtitle": "Submit your predictions",
-    "noGamesInWindow": "No games in the next 48hrs",
+    "noGamesInWindow": "No games in the next 7 days",
     "fallbackSubtitle": "All caught up — here's what's coming",
     "predictGames": "Predict all games",
     "quickActions": "More to predict",

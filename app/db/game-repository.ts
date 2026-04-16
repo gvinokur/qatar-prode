@@ -361,7 +361,7 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
 export const findGamesForDashboard = cache(async (tournamentId: string) => {
   const now = new Date();
   const past24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const future48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  const future7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   return await db.selectFrom(tableName)
     .selectAll()
@@ -397,8 +397,8 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
     .where('tournament_id', '=', tournamentId)
     // Include games from last 24h (for recent results display)
     .where('game_date', '>=', past24Hours)
-    // Include games until 48h in future (for fixtures and accordion)
-    .where('game_date', '<=', future48Hours)
+    // Include games up to 7 days in future (covers inter-round gaps in knockout stage)
+    .where('game_date', '<=', future7Days)
     .orderBy('game_date', 'asc')
     .execute() as ExtendedGameData[];
 });

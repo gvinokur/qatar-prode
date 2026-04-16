@@ -5,7 +5,7 @@
   "actionCenter": {
     "title": "Centro de Acción",
     "subtitle": "Envía tus predicciones",
-    "noGamesInWindow": "No hay partidos en las próximas 48hs",
+    "noGamesInWindow": "No hay partidos en los próximos 7 días",
     "fallbackSubtitle": "Todo al día — esto viene próximamente",
     "predictGames": "Predecir todos los partidos",
     "quickActions": "Más para predecir",
