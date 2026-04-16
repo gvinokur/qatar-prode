@@ -10,6 +10,10 @@ vi.mock('@/app/actions/short-url-actions', () => ({
   buildShortUrl: vi.fn().mockResolvedValue('https://prodemundial.app/j/abc123'),
 }))
 
+vi.mock('@/app/actions/prode-group-actions', () => ({
+  sendGroupEmailInvitations: vi.fn(),
+}))
+
 // Share utilities
 vi.mock('@/app/utils/share-utils', () => ({
   captureElement: vi.fn().mockResolvedValue(new Blob(['img'], { type: 'image/png' })),
@@ -90,12 +94,14 @@ describe('InviteFriendsDialog', () => {
     expect(screen.getByRole('button', { name: 'copy' })).toBeInTheDocument()
   })
 
-  it('Email tab shows coming-soon placeholder', async () => {
+  it('Email tab shows email invitations form', async () => {
     renderWithTheme(<InviteFriendsDialog {...defaultProps} />)
     await openDialog()
 
     fireEvent.click(screen.getByRole('tab', { name: 'tabs.email' }))
-    expect(screen.getByText('flier.emailComingSoon')).toBeInTheDocument()
+    // EmailInvitationsTab renders name/email inputs and a send button
+    expect(screen.getByPlaceholderText('nameLabel')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('emailLabel')).toBeInTheDocument()
   })
 
   it('Folleto tab renders InviteFlierTemplate', async () => {

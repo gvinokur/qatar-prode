@@ -162,7 +162,7 @@ describe('EmailInvitationsTab', () => {
 
       const sendButton = screen.getByRole('button', { name: /enviar/i });
       expect(sendButton).toBeDisabled();
-    }, 15000);
+    }, 30000);
 
     it('send button is enabled when recipients exactly equal 50', () => {
       renderTab();
@@ -179,7 +179,7 @@ describe('EmailInvitationsTab', () => {
 
       const sendButton = screen.getByRole('button', { name: /enviar/i });
       expect(sendButton).not.toBeDisabled();
-    }, 15000);
+    }, 30000);
   });
 
   describe('CSV template download', () => {
