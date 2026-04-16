@@ -23,6 +23,18 @@ import { BadgeRow } from './BadgeRow'
 import { useTranslations } from 'next-intl'
 import { getAvatarColor, getUserInitials } from '../../utils/avatar-utils'
 
+function buildAriaLabel(
+  isCurrentUser: boolean,
+  displayName: string,
+  rank: number,
+  isExpanded: boolean
+): string {
+  const ownership = isCurrentUser ? 'Your' : `${displayName}'s`
+  const expandState = isExpanded ? 'Expanded' : 'Collapsed'
+  const expandAction = isExpanded ? 'collapse' : 'expand'
+  return `${ownership} leaderboard card, rank ${rank}. ${expandState}. Press Enter or Space to ${expandAction}.`
+}
+
 export default function LeaderboardCard({
   user,
   rank,
@@ -44,6 +56,12 @@ export default function LeaderboardCard({
     ? `${user.name.substring(0, 25)}...`
     : user.name
 
+  // Pre-compute compact-dependent props to avoid nested ternaries inside JSX
+  const ariaLabel = compact ? undefined : buildAriaLabel(isCurrentUser, displayName, rank, isExpanded)
+  const cardTabIndex = compact ? undefined : 0
+  const cardRole: string | undefined = compact ? undefined : 'button'
+  const cardAriaExpanded = compact ? undefined : isExpanded
+
   return (
     <motion.div
       layout
@@ -62,10 +80,10 @@ export default function LeaderboardCard({
           onToggle()
         }
       }}
-      tabIndex={compact ? undefined : 0}
-      role={compact ? undefined : 'button'}
-      aria-label={compact ? undefined : `${isCurrentUser ? 'Your' : displayName + "'s"} leaderboard card, rank ${rank}. ${isExpanded ? 'Expanded' : 'Collapsed'}. Press Enter or Space to ${isExpanded ? 'collapse' : 'expand'}.`}
-      aria-expanded={compact ? undefined : isExpanded}
+      tabIndex={cardTabIndex}
+      role={cardRole}
+      aria-label={ariaLabel}
+      aria-expanded={cardAriaExpanded}
       sx={{
         py: 1.5,
         px: 2,
