@@ -4,15 +4,17 @@ import { Box, Card, CardContent, Typography } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import type { ScoreHistoryResult } from '../../actions/score-history-actions';
+import type { UserRankHistoryEntry } from '../../actions/group-ranking-actions';
 import ScoreHistoryChart from './ScoreHistoryChart';
 import RankHistoryChart from './RankHistoryChart';
 
 interface HistoryTabProps {
   readonly historyData?: ScoreHistoryResult
   readonly themeColor?: string
+  readonly preStoredRankHistories?: UserRankHistoryEntry[] | null
 }
 
-export default function HistoryTab({ historyData, themeColor }: HistoryTabProps) {
+export default function HistoryTab({ historyData, themeColor, preStoredRankHistories }: HistoryTabProps) {
   const t = useTranslations('groups.history');
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ?? '';
@@ -69,12 +71,17 @@ export default function HistoryTab({ historyData, themeColor }: HistoryTabProps)
   const endDate = historyData.tournamentEndDate ?? historyData.tournamentStartDate;
   const totalUsers = historyData.userHistories.length;
 
-  // Derive rank-only histories for RankHistoryChart
-  const rankHistories = historyData.userHistories.map((u) => ({
-    userId: u.userId,
-    displayName: u.displayName,
-    data: u.data.map((d) => ({ date: d.date, rank: d.rank })),
-  }));
+  // Derive rank-only histories for RankHistoryChart — prefer pre-stored when available
+  const displayNameById = new Map(historyData.userHistories.map((u) => [u.userId, u.displayName]));
+  const rankHistories = preStoredRankHistories == null
+    ? historyData.userHistories.map((u) => ({
+        userId: u.userId,
+        displayName: u.displayName,
+        data: u.data.map((d) => ({ date: d.date, rank: d.rank })),
+      }))
+    : preStoredRankHistories
+        .filter((e) => displayNameById.has(e.userId))
+        .map((e) => ({ userId: e.userId, displayName: displayNameById.get(e.userId)!, data: e.data }));
 
   // Derive score-only histories for ScoreHistoryChart
   const scoreHistories = historyData.userHistories.map((u) => ({

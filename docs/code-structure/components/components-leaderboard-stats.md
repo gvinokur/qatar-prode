@@ -79,7 +79,7 @@ Advanced animation utilities for rank transitions and celebration effects.
 ### app/components/leaderboard/HistoryTab.tsx
 Wrapper component for the History tab content — renders score and rank charts from pre-loaded server data (Story #272). [Client]
 
-- **HistoryTab(props: HistoryTabProps)**: `JSX.Element` — [Client] Displays empty state when historyData is undefined/isEmpty or tournamentStartDate is null. Otherwise renders ScoreHistoryChart and RankHistoryChart using pre-loaded historyData prop. Reads currentUserId from next-auth session.
+- **HistoryTab({ historyData?, themeColor?, preStoredRankHistories? })**: `JSX.Element` — [Client] Displays empty state when historyData is undefined/isEmpty or tournamentStartDate is null. Otherwise renders ScoreHistoryChart and RankHistoryChart. When `preStoredRankHistories` is non-null, passes those pre-stored ranks to RankHistoryChart (merged with display names from historyData); falls back to computed ranks from historyData when null/undefined. Reads currentUserId from next-auth session.
   Uses: useSession, useTranslations('groups.history')
   Renders: ScoreHistoryChart, RankHistoryChart
 
