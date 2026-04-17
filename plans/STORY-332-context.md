@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Favorite friend groups and navigation improvements
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-332
 - **Branch:** feature/story-332
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 337
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/337
 
 ## State
 - **Current Phase:** planning
