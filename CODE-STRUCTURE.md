@@ -576,10 +576,10 @@ Key flows:
             → derives rankChange = previous.rank - current.rank (positive = improved)
             → returns MaterializedGroupRanking | null
 
-29. Tournament Hub shell (Story #316; updated Story #317, #319)
+29. Tournament Hub shell (Story #316; updated Story #317, #318, #319)
     TournamentHubPage (Server) — /tournaments/[id]/hub
       → renders TournamentHubActionCenter (Story #317 — replaces smartPredictorCarousel Paper)
-      → renders Paper placeholder (Prediction Dashboard)
+      → renders TournamentHubRecentResults (Story #318 — replaces predictionDashboard Paper)
       → renders TournamentHubLeaderboardPeek (Story #319 — replaces leaderboardPeek Paper)
 
 30. Action Center data flow (Story #317)
@@ -596,7 +596,20 @@ Key flows:
         → ScrollShadowContainer (direction="horizontal")
           → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
 
-31. Leaderboard Peek data flow (Story #319)
+31. Recent Results data flow (Story #318)
+    TournamentHubRecentResults (Server) → getRecentResultsData(tournamentId, locale)
+      → getLoggedInUser
+      → findRecentGamesWithUserGuesses(userId, tournamentId, 5) (last 5 scored games)
+      → getTournamentGuessStatsForUsers([userId], tournamentId)
+      → getAllUserGroupPositionsPredictions(userId, tournamentId)
+      → findTeamInTournament(tournamentId)
+      → applyLocalizationBatch (teams)
+      → returns RecentResultsData { recentGames, qualifiedTeamsScore, qualifiedTeamsCorrect, qualifiedTeamsTotalPredicted, individualAwardsScore, honorRollScore }
+    → RecentResultsWidget [Client]
+        → renders up to 3 sections (games, QT, awards) based on null checks
+        → "View full statistics" button → /${locale}/tournaments/${tournamentId}/stats
+
+32. Leaderboard Peek data flow (Story #319)
     TournamentHubLeaderboardPeek (Server) → getLeaderboardPeekData(tournamentId, locale)
       → getLoggedInUser
       → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId)

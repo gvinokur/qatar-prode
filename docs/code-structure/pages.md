@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-17
 
 ---
 
@@ -164,11 +164,11 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
 ### app/[locale]/tournaments/[id]/hub/page.tsx
-Tournament Hub page. Renders the Action Center widget, a Prediction Dashboard placeholder, and the Leaderboard Peek widget.
+Tournament Hub page. Renders the Action Center widget, Recent Results widget, and Leaderboard Peek widget.
 
-- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub page that resolves `id` from params, derives locale via `toLocale`, then renders `TournamentHubActionCenter`, a single Paper placeholder for Prediction Dashboard, and `TournamentHubLeaderboardPeek` (Story #319 — replaces leaderboardPeek placeholder Paper).
-  Calls: getTranslations, getLocale, toLocale, TournamentHubActionCenter, TournamentHubLeaderboardPeek
-  Renders: TournamentHubActionCenter, Paper (×1 placeholder), TournamentHubLeaderboardPeek
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub page that resolves `id` from params, derives locale via `toLocale`, then renders `TournamentHubActionCenter`, `TournamentHubRecentResults` (Story #318 — replaces predictionDashboard Paper), and `TournamentHubLeaderboardPeek`.
+  Calls: getLocale, toLocale, TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
+  Renders: TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.

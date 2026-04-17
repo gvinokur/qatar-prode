@@ -92,6 +92,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **findGamesForDashboard(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Unified dashboard query: last 24h + next 48h games (cached).
 - **getAllTournamentGames(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Fetches ALL games for unified games page (cached).
 - **getTournamentGameCounts(userId: string | null, tournamentId: string)**: `Promise<TournamentGameCounts>` — Counts for filter badges (total, groups, playoffs, unpredicted, closing soon) (cached).
+- **findRecentGamesWithUserGuesses(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameWithGuess[]>` — Returns games with published (non-draft) results where the user has a guess, ordered by game_date desc, up to `limit` rows. Returns empty array when limit is 0.
 
 ### app/db/game-result-repository.ts
 Repository for game_results table. Manages actual game outcomes (scores, penalties).

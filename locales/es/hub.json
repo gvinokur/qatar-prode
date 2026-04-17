@@ -18,5 +18,37 @@
     "awardsTitle": "Premios individuales",
     "awardsHint": "Bota de Oro, Mejor Arquero y más",
     "goToPage": "Ir a la página"
+  },
+  "recentResults": {
+    "title": "Últimos Resultados",
+    "recentGames": "Partidos Recientes",
+    "qualifiedTeams": "Equipos Clasificados",
+    "tournamentAwards": "Premios del Torneo",
+    "exactResult": "Resultado exacto",
+    "correctResult": "Resultado correcto",
+    "incorrectResult": "Resultado incorrecto",
+    "yourGuess": "Tu predicción: {home}–{away}",
+    "qualifiedSummary": "Acertaste {correct} de {total} equipos",
+    "awardsSummary": "{correct} de {total} premios correctos",
+    "emptyTitle": "Aún no tienes resultados recientes.",
+    "emptySubtitle": "¡Las novedades aparecerán aquí!",
+    "seeStats": "Ver estadísticas completas",
+    "boostBonus": "+{bonus} boost",
+    "individualAwardsLabel": "Premios individuales",
+    "qualifiedTeamsLabel": "Equipos clasificados",
+    "honorRollLabel": "Podio",
+    "noCorrectPredictions": "Sin predicciones correctas",
+    "correctItems": "Acertaste: {items}",
+    "honorRollPosition": {
+      "champion": "Campeón",
+      "runnerUp": "Subcampeón",
+      "thirdPlace": "Tercer puesto"
+    },
+    "individualAward": {
+      "bestPlayer": "Mejor Jugador",
+      "topGoalscorer": "Goleador",
+      "bestGoalkeeper": "Mejor Arquero",
+      "bestYoungPlayer": "Mejor Joven"
+    }
   }
 }
