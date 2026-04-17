@@ -646,4 +646,14 @@ Key flows:
     - TournamentBottomNav [Client] Home tab calls isHubEnabled():
         when true  → navigates to /tournaments/${id}/hub
         when false → navigates to /${locale}
+
+33. Rank history read path — History tab (Story #335)
+    FriendGroupPage / TournamentScopedFriendGroup (Server):
+      └── getGroupRankHistory(groupId, tournamentId) [server action]
+            └── getGroupRankingSnapshots(groupId, tournamentId) → group_rankings rows ordered by date ASC
+                  → groups by userId → returns UserRankHistoryEntry[] | null (null when no snapshots)
+      → preStoredRankHistories passed as prop to HistoryTab [Client]
+          when non-null → HistoryTab merges with displayNames from historyData.userHistories
+                          → passes merged data to RankHistoryChart (replaces computed ranks)
+          when null     → HistoryTab falls back to computed ranks from getScoreHistoryForGroup (existing behavior)
 ```

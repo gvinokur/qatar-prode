@@ -7,6 +7,7 @@ import { getTodayYYYYMMDD } from '../utils/date-utils';
 import {
   upsertGroupRankingSnapshots,
   getLatestTwoGroupRankingSnapshots,
+  getGroupRankingSnapshots,
   findGroupsForUsers,
   getLatestRankingsForGroupWithChange,
 } from '../db/group-ranking-repository';
@@ -106,6 +107,32 @@ export async function getMaterializedLeaderboardRanks(
     console.error('[getMaterializedLeaderboardRanks] Failed to fetch materialized ranks:', err)
     return new Map()
   }
+}
+
+export interface UserRankHistoryEntry {
+  userId: string
+  data: Array<{ date: number; rank: number }>
+}
+
+/**
+ * Server Action — reads pre-stored daily rank snapshots from group_rankings for all
+ * users in a group/tournament. Returns null when no snapshots exist (caller falls back
+ * to computed ranks).
+ */
+export async function getGroupRankHistory(
+  groupId: string,
+  tournamentId: number
+): Promise<UserRankHistoryEntry[] | null> {
+  const rows = await getGroupRankingSnapshots(groupId, String(tournamentId));
+  if (rows.length === 0) return null;
+
+  const byUser = new Map<string, Array<{ date: number; rank: number }>>();
+  for (const row of rows) {
+    if (!byUser.has(row.user_id)) byUser.set(row.user_id, []);
+    byUser.get(row.user_id)!.push({ date: row.snapshot_date, rank: row.rank });
+  }
+
+  return Array.from(byUser.entries()).map(([userId, data]) => ({ userId, data }));
 }
 
 /**

@@ -33,7 +33,7 @@ import { generateShortUrlForGroup } from '../../../../../actions/short-url-actio
 import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
 import { computeSnapshotScores } from '../../../../../utils/score-history-utils'
 import { buildPageMetadata } from '../../../../../utils/metadata-utils';
-import { getMaterializedLeaderboardRanks } from '../../../../../actions/group-ranking-actions';
+import { getMaterializedLeaderboardRanks, getGroupRankHistory } from '../../../../../actions/group-ranking-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -165,8 +165,11 @@ export default async function TournamentScopedFriendGroup(props : Props){
     [tournament.id]: { config, payments }
   };
 
-  // Fetch score history for this tournament's History tab
-  const historyData = await getScoreHistoryForGroup(allParticipants, tournament.id);
+  // Fetch score history and pre-stored rank history for this tournament's History tab
+  const [historyData, preStoredRankHistories] = await Promise.all([
+    getScoreHistoryForGroup(allParticipants, tournament.id),
+    getGroupRankHistory(prodeGroup.id, Number(tournament.id)),
+  ]);
   const historyByTournament = { [tournament.id]: historyData };
 
   // Patch snapshot scores onto user scores for rank-change tracking
@@ -300,6 +303,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
               <HistoryTab
                 historyData={historyData}
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                preStoredRankHistories={preStoredRankHistories}
               />
             }
             adminContent={

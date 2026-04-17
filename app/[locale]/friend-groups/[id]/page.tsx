@@ -27,7 +27,7 @@ import type { TournamentBadgeConfig } from "../../../components/leaderboard/type
 import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
 import { computeSnapshotScores } from '../../../utils/score-history-utils'
 import { buildPageMetadata } from '../../../utils/metadata-utils';
-import { getMaterializedLeaderboardRanks } from '../../../actions/group-ranking-actions';
+import { getMaterializedLeaderboardRanks, getGroupRankHistory } from '../../../actions/group-ranking-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -129,15 +129,21 @@ export default async function FriendsGroup(props : Props){
     bettingData[tournament.id] = { config, payments };
   }
 
-  // Fetch score history per tournament for the History tab
-  const historyByTournament = Object.fromEntries(
-    await Promise.all(
+  // Fetch score history and pre-stored rank history per tournament for the History tab
+  const [historyByTournament, rankHistoryByTournament] = await Promise.all([
+    Promise.all(
       tournaments.map(async (tournament) => [
         tournament.id,
         await getScoreHistoryForGroup(allParticipants, tournament.id),
       ])
-    )
-  );
+    ).then(Object.fromEntries),
+    Promise.all(
+      tournaments.map(async (tournament) => [
+        tournament.id,
+        await getGroupRankHistory(prodeGroup.id, Number(tournament.id)),
+      ])
+    ).then(Object.fromEntries),
+  ]);
 
   // Patch snapshot scores onto user scores for rank-change tracking
   const patchedUserScoresByTournament = Object.fromEntries(
@@ -250,6 +256,7 @@ export default async function FriendsGroup(props : Props){
                       <HistoryTab
                         historyData={historyByTournament[tournament.id]}
                         themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                        preStoredRankHistories={rankHistoryByTournament[tournament.id]}
                       />
                     </Box>
                   ))}
