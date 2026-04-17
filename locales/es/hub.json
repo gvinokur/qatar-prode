@@ -2,6 +2,10 @@
   "smartPredictorCarousel": "Carrusel de Predicciones",
   "predictionDashboard": "Panel de Predicciones",
   "leaderboardPeek": "Vista de Tabla de Posiciones",
+  "yourStandings": "Tus Posiciones",
+  "yourStandingsSubtitle": "Tus 3 grupos más activos",
+  "noRankingData": "Las posiciones aparecerán cuando el torneo esté en marcha.",
+  "seeAllGroups": "Ver todos tus grupos",
   "actionCenter": {
     "title": "Centro de Acción",
     "subtitle": "Envía tus predicciones",

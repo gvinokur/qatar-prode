@@ -123,3 +123,69 @@ describe('LeaderboardCard badge integration', () => {
     expect(screen.getByText(`${mockUser.totalPoints.toLocaleString()} pts`)).toBeInTheDocument()
   })
 })
+
+describe('LeaderboardCard compact mode', () => {
+  it('does not render expand toggle hint when compact=true', () => {
+    renderWithTheme(
+      <LeaderboardCard
+        user={mockUser}
+        rank={1}
+        isCurrentUser={false}
+        isExpanded={false}
+        onToggle={() => {}}
+        compact
+      />
+    )
+
+    expect(screen.queryByText('tapToViewDetails')).not.toBeInTheDocument()
+  })
+
+  it('does not render action buttons (Compare, Share) when compact=true', () => {
+    renderWithTheme(
+      <LeaderboardCard
+        user={mockUser}
+        rank={2}
+        isCurrentUser={false}
+        isExpanded={false}
+        onToggle={() => {}}
+        onCompare={() => {}}
+        compact
+      />
+    )
+
+    expect(screen.queryByLabelText(/Compare with/)).not.toBeInTheDocument()
+  })
+
+  it('does not render Collapse detail section when compact=true', () => {
+    renderWithTheme(
+      <LeaderboardCard
+        user={mockUser}
+        rank={1}
+        isCurrentUser={false}
+        isExpanded={true}
+        onToggle={() => {}}
+        compact
+      />
+    )
+
+    // pointBreakdown key is only rendered inside the Collapse
+    expect(screen.queryByText('pointBreakdown')).not.toBeInTheDocument()
+  })
+
+  it('still applies primary background highlight for current user when compact=true', () => {
+    renderWithTheme(
+      <LeaderboardCard
+        user={mockUser}
+        rank={1}
+        isCurrentUser={true}
+        isExpanded={false}
+        onToggle={() => {}}
+        compact
+      />
+    )
+
+    // The "You" text indicates the current user highlight path was taken
+    expect(screen.getByText('You')).toBeInTheDocument()
+    expect(screen.getByText(`${mockUser.totalPoints.toLocaleString()} pts`)).toBeInTheDocument()
+  })
+})

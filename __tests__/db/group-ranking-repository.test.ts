@@ -4,13 +4,20 @@ import {
   getGroupRankingSnapshots,
   getLatestTwoGroupRankingSnapshots,
   findGroupsForUsers,
+  getLatestRankingsForGroup,
 } from '../../app/db/group-ranking-repository';
 import { db } from '../../app/db/database';
 import { createMockSelectQuery, createMockInsertQuery } from './mock-helpers';
 import { testFactories } from './test-factories';
 
+const mockFnMax = vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue('maxDate_expr') });
+
 vi.mock('../../app/db/database', () => ({
-  db: { selectFrom: vi.fn(), insertInto: vi.fn() },
+  db: {
+    selectFrom: vi.fn(),
+    insertInto: vi.fn(),
+    fn: { max: vi.fn() },
+  },
 }));
 
 describe('Group Ranking Repository', () => {
@@ -36,6 +43,8 @@ describe('Group Ranking Repository', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset db.fn.max mock so it returns an object with .as()
+    vi.mocked(mockDb.fn.max).mockReturnValue({ as: vi.fn().mockReturnValue('maxDate_expr') } as any);
   });
 
   // ---------------------------------------------------------------------------
@@ -250,6 +259,73 @@ describe('Group Ranking Repository', () => {
       const result = await findGroupsForUsers(['unrelated-user-id']);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getLatestRankingsForGroup
+  // ---------------------------------------------------------------------------
+  describe('getLatestRankingsForGroup', () => {
+    it('returns empty array when no snapshots exist for the group', async () => {
+      const emptyQuery = createMockSelectQuery(null);
+      emptyQuery.executeTakeFirst.mockResolvedValue({ maxDate: null } as any);
+      mockDb.selectFrom.mockReturnValue(emptyQuery as any);
+
+      const result = await getLatestRankingsForGroup(group.id, tournament.id);
+
+      expect(result).toEqual([]);
+      expect(emptyQuery.execute).not.toHaveBeenCalled();
+    });
+
+    it('returns all users ordered by rank ascending at the latest snapshot date', async () => {
+      const dateQuery = createMockSelectQuery({ maxDate: 20260601 });
+      const rankingsQuery = createMockSelectQuery([
+        { userId: 'user-1', userName: 'Alice', rank: 1, score: 100 },
+        { userId: 'user-2', userName: 'Bob', rank: 2, score: 80 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(rankingsQuery as any);
+
+      const result = await getLatestRankingsForGroup(group.id, tournament.id);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].rank).toBe(1);
+      expect(result[1].rank).toBe(2);
+      expect(rankingsQuery.orderBy).toHaveBeenCalledWith('group_rankings.rank', 'asc');
+    });
+
+    it('returns correct user names via JOIN with users table', async () => {
+      const dateQuery = createMockSelectQuery({ maxDate: 20260601 });
+      const rankingsQuery = createMockSelectQuery([
+        { userId: 'user-1', userName: 'Alice Nickname', rank: 1, score: 100 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(rankingsQuery as any);
+
+      const result = await getLatestRankingsForGroup(group.id, tournament.id);
+
+      expect(result[0].userName).toBe('Alice Nickname');
+      expect(rankingsQuery.innerJoin).toHaveBeenCalledWith('users', 'users.id', 'group_rankings.user_id');
+    });
+
+    it('ignores older snapshots when a newer one exists', async () => {
+      const dateQuery = createMockSelectQuery({ maxDate: 20260602 });
+      const rankingsQuery = createMockSelectQuery([
+        { userId: 'user-1', userName: 'Alice', rank: 1, score: 110 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(rankingsQuery as any);
+
+      await getLatestRankingsForGroup(group.id, tournament.id);
+
+      expect(rankingsQuery.where).toHaveBeenCalledWith(
+        'group_rankings.snapshot_date',
+        '=',
+        20260602
+      );
     });
   });
 });

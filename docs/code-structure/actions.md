@@ -373,10 +373,14 @@ Authentication and user account management — signup, verification, password, O
   Calls: getLoggedInUser, updateUserAdFreeStatus
 
 ### app/actions/hub-actions.ts
-Tournament Hub Action Center data fetching. Fetches and ranks upcoming games for the hub's Action Center widget, returning the most urgent pending predictions or fallback content.
+Tournament Hub data fetching: Action Center game cards and Leaderboard Peek widget.
+
+**Exported types:** `ActionCenterData`, `RankNeighborEntry { userId, userName, rank, score, isCurrentUser }`, `GroupPeekData { groupId, groupName, totalMembers, userRank, rankChange: number|null, rows: RankNeighborEntry[] }`
 
 - **getActionCenterGames(tournamentId: string, locale: Locale)**: `Promise<ActionCenterData>` — Server Action. Fetches games in the 7-day dashboard window, user guesses, teams, tournament boost limits, and first/last game dates. Returns up to 4 unpredicted open-deadline games (urgent mode), next 3 games when all open games are predicted (fallback mode), or empty mode when no games exist. Also computes `qtAndAwardsOpen`/`msUntilPredictionLock` (lock fires 5 days after first game) and `tournamentFinished` (last game has kicked off). Throws Unauthorized if user is not logged in.
   Calls: getLoggedInUser, findGamesForDashboard, findGameGuessesByUserId, findTeamInTournament, findTournamentById, findFirstGameInTournament, findLastGameInTournament, calculateDeadline, applyLocalizationBatch
+- **getLeaderboardPeekData(tournamentId: string, _locale: Locale)**: `Promise<GroupPeekData[]>` — Server Action. Returns up to 3 friend groups where the current user has ranking data, sorted by ranked member count descending. Per group: builds a 3-row neighbor window (rank-1, user, rank+1; edge-clamped for rank 1 and last rank) and computes rank change from the two most recent snapshots. Returns empty array if unauthenticated or user has no groups with ranking data.
+  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots
 
 ### app/actions/group-ranking-actions.ts
 Server Actions for materializing and reading per-group rank snapshots. Snapshots are written after admin score-change triggers; reads derive rank change from the two most recent snapshots (Story #315).
