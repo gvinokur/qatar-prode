@@ -73,7 +73,7 @@ No new flows.
 
 **New functions:**
 
-- **getGroupRankHistory(groupId: string, tournamentId: number)**: `Promise<UserRankHistoryEntry[] | null>`
+- **getGroupRankHistory(groupId: string, tournamentId: string)**: `Promise<UserRankHistoryEntry[] | null>`
   Reads pre-stored daily rank snapshots from `group_rankings` for all users in a group/tournament.
   Returns null when no snapshots exist (caller should fall back to computed ranks).
   Groups snapshot rows by userId and maps to `{userId, data: [{date, rank}]}`.
@@ -136,6 +136,13 @@ Same change: call `getGroupRankHistory(group.id, tournament.id)` and pass to `Hi
 - `getGroupRankHistory` must not throw — if the DB call fails it should propagate (consistent with other actions)
 - No new translations needed
 - No migrations needed (reads existing `group_rankings` table)
+
+## Implementation Amendments
+
+### Amendment 1: tournamentId type changed from number to string
+**Date:** 2026-04-17
+**Reason:** All tournament IDs in this codebase are UUID strings. The plan incorrectly specified `number`. `Number(uuid)` → `NaN` → DB error "invalid input syntax for type uuid: NaN".
+**Change:** `getGroupRankHistory` signature changed to `tournamentId: string`. Removed `Number()` conversions in both calling pages. `String(tournamentId)` conversion inside the action also removed.
 
 ## Open Questions
 
