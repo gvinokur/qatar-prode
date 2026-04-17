@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData } from '../hub-actions'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
 import * as teamRepository from '@/app/db/team-repository'
 import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
+import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
+import * as qualifiedTeamsRepository from '@/app/db/qualified-teams-repository'
 import * as userActions from '../user-actions'
+import { applyLocalizationBatch } from '@/app/utils/localization-helper'
 import { testFactories } from '../../../__tests__/db/test-factories'
 
 const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000
@@ -16,6 +19,7 @@ vi.mock('@/app/db/game-repository', () => ({
   findGamesForDashboard: vi.fn(),
   findFirstGameInTournament: vi.fn(),
   findLastGameInTournament: vi.fn(),
+  findRecentGamesWithUserGuesses: vi.fn(),
 }))
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -44,9 +48,21 @@ vi.mock('@/app/db/group-ranking-repository', () => ({
   getLatestTwoGroupRankingSnapshots: vi.fn(),
 }))
 
+vi.mock('@/app/db/tournament-guess-repository', () => ({
+  getTournamentGuessStatsForUsers: vi.fn(),
+}))
+
+vi.mock('@/app/db/qualified-teams-repository', () => ({
+  getAllUserGroupPositionsPredictions: vi.fn(),
+}))
+
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
   getLocale: vi.fn().mockResolvedValue('en'),
+}))
+
+vi.mock('@/app/utils/localization-helper', () => ({
+  applyLocalizationBatch: vi.fn((items: any[]) => items),
 }))
 
 const TOURNAMENT_ID = 'tournament-1'
@@ -501,5 +517,277 @@ describe('getLeaderboardPeekData', () => {
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
     expect(result[0].rankChange).toBe(2)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getRecentResultsData
+// ---------------------------------------------------------------------------
+
+const makeRawGame = (overrides?: Partial<any>) => ({
+  gameId: 'game-1',
+  homeTeamId: 'team-1',
+  awayTeamId: 'team-2',
+  homeScore: 2,
+  awayScore: 1,
+  userHomeGuess: 2,
+  userAwayGuess: 1,
+  guessScore: 3,
+  boostType: null,
+  boostMultiplier: null,
+  finalScore: null,
+  gameDate: new Date('2022-12-18'),
+  ...overrides,
+})
+
+describe('getRecentResultsData', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(
+      testFactories.user({ id: USER_ID }) as any
+    )
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
+    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
+    vi.mocked(qualifiedTeamsRepository.getAllUserGroupPositionsPredictions).mockResolvedValue([])
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([])
+    vi.mocked(applyLocalizationBatch).mockImplementation((teams) => teams)
+  })
+
+  it('throws Unauthorized when no active session', async () => {
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null as any)
+
+    await expect(getRecentResultsData(TOURNAMENT_ID, 'en')).rejects.toThrow(
+      'Unauthorized'
+    )
+  })
+
+  it('returns empty recentGames when findRecentGamesWithUserGuesses returns []', async () => {
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames).toEqual([])
+  })
+
+  it('returns null for qualifiedTeamsScore when stats array is empty', async () => {
+    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue(
+      []
+    )
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.qualifiedTeamsScore).toBeNull()
+    expect(result.qualifiedTeamsCorrect).toBeNull()
+    expect(result.individualAwardsScore).toBeNull()
+    expect(result.honorRollScore).toBeNull()
+  })
+
+  it('returns populated scores when stats array has entries', async () => {
+    const stats = {
+      qualified_teams_score: 10,
+      qualified_teams_correct: 8,
+      individual_awards_score: 5,
+      honor_roll_score: 2,
+    }
+    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue(
+      [stats] as any
+    )
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.qualifiedTeamsScore).toBe(10)
+    expect(result.qualifiedTeamsCorrect).toBe(8)
+    expect(result.individualAwardsScore).toBe(5)
+    expect(result.honorRollScore).toBe(2)
+  })
+
+  it('computes qualifiedTeamsTotalPredicted by counting predicted_to_qualify=true entries', async () => {
+    const groupPredictions = [
+      {
+        team_predicted_positions: [
+          { predicted_to_qualify: true },
+          { predicted_to_qualify: false },
+          { predicted_to_qualify: true },
+        ],
+      },
+      {
+        team_predicted_positions: [
+          { predicted_to_qualify: true },
+        ],
+      },
+    ] as any
+
+    vi.mocked(
+      qualifiedTeamsRepository.getAllUserGroupPositionsPredictions
+    ).mockResolvedValue(groupPredictions)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.qualifiedTeamsTotalPredicted).toBe(3) // 2 from group 1 + 1 from group 2
+  })
+
+  it('returns null for qualifiedTeamsTotalPredicted when groupPredictions is empty', async () => {
+    vi.mocked(
+      qualifiedTeamsRepository.getAllUserGroupPositionsPredictions
+    ).mockResolvedValue([])
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.qualifiedTeamsTotalPredicted).toBeNull()
+  })
+
+  it('correctly computes boostBonus as finalPoints minus basePoints', async () => {
+    const rawGame = makeRawGame({
+      guessScore: 3,
+      finalScore: 8, // 8 - 3 = 5 boost
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+    const team1 = testFactories.team({ id: 'team-1' })
+    const team2 = testFactories.team({ id: 'team-2' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].boostBonus).toBe(5)
+    expect(result.recentGames[0].finalPoints).toBe(8)
+    expect(result.recentGames[0].basePoints).toBe(3)
+  })
+
+  it('includes localized team names when teamsMap has team', async () => {
+    const rawGame = makeRawGame({
+      homeTeamId: 'team-1',
+      awayTeamId: 'team-2',
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+
+    const team1 = testFactories.team({ id: 'team-1', name: 'Argentina' })
+    const team2 = testFactories.team({ id: 'team-2', name: 'France' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].homeTeamName).toBe('Argentina')
+    expect(result.recentGames[0].awayTeamName).toBe('France')
+  })
+
+  it('falls back to teamId when team not found in teamsMap', async () => {
+    const rawGame = makeRawGame({
+      homeTeamId: 'unknown-team',
+      awayTeamId: 'team-2',
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+
+    const team2 = testFactories.team({ id: 'team-2', name: 'France' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].homeTeamName).toBe('unknown-team')
+    expect(result.recentGames[0].awayTeamName).toBe('France')
+  })
+
+  it('uses basePoints when finalScore is null', async () => {
+    const rawGame = makeRawGame({
+      guessScore: 3,
+      finalScore: null,
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+    const team1 = testFactories.team({ id: 'team-1' })
+    const team2 = testFactories.team({ id: 'team-2' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].finalPoints).toBe(3)
+    expect(result.recentGames[0].boostBonus).toBe(0)
+  })
+
+  it('handles game with no guessScore (null)', async () => {
+    const rawGame = makeRawGame({
+      guessScore: null,
+      finalScore: null,
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+    const team1 = testFactories.team({ id: 'team-1' })
+    const team2 = testFactories.team({ id: 'team-2' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].finalPoints).toBe(0)
+    expect(result.recentGames[0].basePoints).toBe(0)
+  })
+
+  it('preserves boostType in game item', async () => {
+    const rawGame = makeRawGame({
+      boostType: 'golden',
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+    const team1 = testFactories.team({ id: 'team-1' })
+    const team2 = testFactories.team({ id: 'team-2' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].boostType).toBe('golden')
+  })
+
+  it('maps game data correctly including scores and guesses', async () => {
+    const rawGame = makeRawGame({
+      gameId: 'game-xyz',
+      homeScore: 3,
+      awayScore: 2,
+      userHomeGuess: 2,
+      userAwayGuess: 2,
+    })
+    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
+      rawGame,
+    ] as any)
+    const team1 = testFactories.team({ id: 'team-1', name: 'Brazil' })
+    const team2 = testFactories.team({ id: 'team-2', name: 'Germany' })
+    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
+      team1,
+      team2,
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    const game = result.recentGames[0]
+    expect(game.gameId).toBe('game-xyz')
+    expect(game.homeTeamName).toBe('Brazil')
+    expect(game.awayTeamName).toBe('Germany')
+    expect(game.homeScore).toBe(3)
+    expect(game.awayScore).toBe(2)
+    expect(game.userHomeGuess).toBe(2)
+    expect(game.userAwayGuess).toBe(2)
   })
 })

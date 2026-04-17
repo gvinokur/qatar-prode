@@ -509,3 +509,70 @@ export const getTournamentGameCounts = cache(async (
     closingSoon: Number(result.closingSoon)
   };
 });
+
+export interface RecentGameWithGuess {
+  gameId: string
+  homeTeamId: string
+  awayTeamId: string
+  homeScore: number
+  awayScore: number
+  userHomeGuess: number | null
+  userAwayGuess: number | null
+  guessScore: number | null
+  boostType: 'silver' | 'golden' | null
+  boostMultiplier: number | null
+  finalScore: number | null
+  gameDate: Date
+}
+
+/**
+ * Returns the most recent scored games where the user has a guess, ordered by game_date desc.
+ * Only includes games with published (non-draft) results.
+ */
+export async function findRecentGamesWithUserGuesses(
+  userId: string,
+  tournamentId: string,
+  limit: number
+): Promise<RecentGameWithGuess[]> {
+  if (limit <= 0) return []
+
+  const rows = await db
+    .selectFrom('games')
+    .innerJoin('game_results', 'game_results.game_id', 'games.id')
+    .innerJoin('game_guesses', 'game_guesses.game_id', 'games.id')
+    .where('games.tournament_id', '=', tournamentId)
+    .where('game_results.is_draft', '=', false)
+    .where('game_guesses.user_id', '=', userId)
+    .select([
+      'games.id as gameId',
+      'games.home_team as homeTeamId',
+      'games.away_team as awayTeamId',
+      'game_results.home_score as homeScore',
+      'game_results.away_score as awayScore',
+      'game_guesses.home_score as userHomeGuess',
+      'game_guesses.away_score as userAwayGuess',
+      'game_guesses.score as guessScore',
+      'game_guesses.boost_type as boostType',
+      'game_guesses.boost_multiplier as boostMultiplier',
+      'game_guesses.final_score as finalScore',
+      'games.game_date as gameDate',
+    ])
+    .orderBy('games.game_date', 'desc')
+    .limit(limit)
+    .execute()
+
+  return rows.map((r) => ({
+    gameId: r.gameId,
+    homeTeamId: r.homeTeamId ?? '',
+    awayTeamId: r.awayTeamId ?? '',
+    homeScore: r.homeScore ?? 0,
+    awayScore: r.awayScore ?? 0,
+    userHomeGuess: r.userHomeGuess ?? null,
+    userAwayGuess: r.userAwayGuess ?? null,
+    guessScore: r.guessScore ?? null,
+    boostType: (r.boostType as 'silver' | 'golden' | null) ?? null,
+    boostMultiplier: r.boostMultiplier ?? null,
+    finalScore: r.finalScore ?? null,
+    gameDate: r.gameDate,
+  }))
+}

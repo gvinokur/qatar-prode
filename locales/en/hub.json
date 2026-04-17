@@ -18,5 +18,23 @@
     "awardsTitle": "Individual Awards",
     "awardsHint": "Golden Boot, Best Goalkeeper and more",
     "goToPage": "Go to page"
+  },
+  "recentResults": {
+    "title": "Latest Results",
+    "recentGames": "Recent Games",
+    "qualifiedTeams": "Qualified Teams",
+    "tournamentAwards": "Tournament Awards",
+    "exactResult": "Exact result",
+    "correctResult": "Correct result",
+    "incorrectResult": "Incorrect result",
+    "yourGuess": "Your guess: {home}–{away}",
+    "qualifiedSummary": "You got {correct} of {total} teams right",
+    "awardsSummary": "{correct} of {total} awards correct",
+    "emptyTitle": "No recent results yet.",
+    "emptySubtitle": "Your prediction outcomes will appear here!",
+    "seeStats": "View full statistics",
+    "boostBonus": "+{bonus} boost",
+    "individualAwardsLabel": "Individual Awards",
+    "qualifiedTeamsLabel": "Qualified Teams"
   }
 }

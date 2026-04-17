@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ---
 
@@ -34,3 +34,17 @@ Client Component for a single group card in the Leaderboard Peek widget. Tappabl
 - **LeaderboardPeekCard({ data, groupLeaderboardHref })**: `JSX.Element` — [Client] Renders a tappable MUI `CardActionArea` that navigates to `groupLeaderboardHref` on click. Header row shows group name (with Groups icon), `#N` rank chip, and `RankChangeIndicator`. Below a divider, renders up to 3 `LeaderboardCard compact=true` rows converted from `GroupPeekData.rows` (all point-breakdown fields set to 0).
   Uses: useRouter, useTheme, RankChangeIndicator
   Renders: LeaderboardCard (compact=true)
+
+### app/components/tournament-hub/tournament-hub-recent-results.tsx
+Async Server Component for the Recent Results widget. Fetches recent prediction outcome data and delegates rendering to the client widget.
+
+- **TournamentHubRecentResults({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getRecentResultsData`; computes `statsHref` as `/${locale}/tournaments/${tournamentId}/stats`; passes result to `RecentResultsWidget`.
+  Calls: getRecentResultsData
+  Renders: RecentResultsWidget
+
+### app/components/tournament-hub/recent-results-widget.tsx
+Client Component for the Recent Results widget. Renders 3-section card (recent games, qualified teams, tournament awards) with empty state when no data is available.
+
+- **RecentResultsWidget({ data, statsHref })**: `JSX.Element` — [Client] Renders section title and a MUI `Paper` card. Shows empty state (soccer icon + message) when all data is absent. Otherwise renders up to 3 sections: PARTIDOS RECIENTES (game items with ✅/❌, points, boost chip), EQUIPOS CLASIFICADOS (only when `qualifiedTeamsScore !== null`), PREMIOS DEL TORNEO (only when `individualAwardsScore !== null` or `honorRollScore !== null`). Footer has "View full statistics" button linking to `statsHref`.
+  Uses: useTranslations('hub.recentResults')
+  Renders: GameItem (inline sub-component)

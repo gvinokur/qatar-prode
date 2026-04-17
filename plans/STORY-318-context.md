@@ -9,7 +9,7 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/333
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** implementing
 - **Plan File:** plans/STORY-318-plan.md
 - **Task File:** (fill when implementation starts)
 

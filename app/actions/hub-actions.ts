@@ -1,11 +1,13 @@
 'use server'
 
-import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
+import { getTournamentGuessStatsForUsers } from '../db/tournament-guess-repository'
+import { getAllUserGroupPositionsPredictions } from '../db/qualified-teams-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
@@ -282,4 +284,92 @@ export async function getLeaderboardPeekData(
       rows,
     }
   })
+}
+
+export interface RecentGameResultItem {
+  gameId: string
+  homeTeamName: string
+  awayTeamName: string
+  homeScore: number
+  awayScore: number
+  userHomeGuess: number | null
+  userAwayGuess: number | null
+  basePoints: number
+  boostType: 'silver' | 'golden' | null
+  boostBonus: number
+  finalPoints: number
+  gameDate: Date
+}
+
+export interface RecentResultsData {
+  recentGames: RecentGameResultItem[]
+  qualifiedTeamsScore: number | null
+  qualifiedTeamsCorrect: number | null
+  qualifiedTeamsTotalPredicted: number | null
+  individualAwardsScore: number | null
+  honorRollScore: number | null
+}
+
+const RECENT_GAMES_LIMIT = 5
+
+/**
+ * Fetches recent game results with user guesses plus aggregated QT/award scores
+ * for the authenticated user on the Tournament Hub.
+ */
+export async function getRecentResultsData(
+  tournamentId: string,
+  locale: Locale
+): Promise<RecentResultsData> {
+  const user = await getLoggedInUser()
+  if (!user?.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const [recentGames, statsArray, groupPredictions, teams] = await Promise.all([
+    findRecentGamesWithUserGuesses(user.id, tournamentId, RECENT_GAMES_LIMIT),
+    getTournamentGuessStatsForUsers([user.id], tournamentId),
+    getAllUserGroupPositionsPredictions(user.id, tournamentId),
+    findTeamInTournament(tournamentId),
+  ])
+
+  const localizedTeams = applyLocalizationBatch(teams, locale, [
+    { field: 'name', i18nField: 'name_i18n' },
+  ])
+  const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
+
+  const gameItems: RecentGameResultItem[] = recentGames.map((g) => {
+    const basePoints = g.guessScore ?? 0
+    const finalPoints = g.finalScore ?? g.guessScore ?? 0
+    const boostBonus = finalPoints - basePoints
+    return {
+      gameId: g.gameId,
+      homeTeamName: (teamsMap[g.homeTeamId] as Team | undefined)?.name ?? g.homeTeamId,
+      awayTeamName: (teamsMap[g.awayTeamId] as Team | undefined)?.name ?? g.awayTeamId,
+      homeScore: g.homeScore,
+      awayScore: g.awayScore,
+      userHomeGuess: g.userHomeGuess,
+      userAwayGuess: g.userAwayGuess,
+      basePoints,
+      boostType: g.boostType,
+      boostBonus,
+      finalPoints,
+      gameDate: g.gameDate,
+    }
+  })
+
+  const stats = statsArray[0] ?? null
+
+  const qualifiedTeamsTotalPredicted = groupPredictions.reduce((sum, gp) => {
+    const positions = gp.team_predicted_positions ?? []
+    return sum + positions.filter((p) => p.predicted_to_qualify === true).length
+  }, 0)
+
+  return {
+    recentGames: gameItems,
+    qualifiedTeamsScore: stats?.qualified_teams_score ?? null,
+    qualifiedTeamsCorrect: stats?.qualified_teams_correct ?? null,
+    qualifiedTeamsTotalPredicted: groupPredictions.length > 0 ? qualifiedTeamsTotalPredicted : null,
+    individualAwardsScore: stats?.individual_awards_score ?? null,
+    honorRollScore: stats?.honor_roll_score ?? null,
+  }
 }
