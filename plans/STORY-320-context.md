@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Migrate FE Rank Calculation to Materialized Ranks
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-320
 - **Branch:** feature/story-320
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 334
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/334
 
 ## State
 - **Current Phase:** planning
