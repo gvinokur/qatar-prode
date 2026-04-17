@@ -9,7 +9,6 @@ import { useTranslations } from 'next-intl'
 import type { LeaderboardCardsProps, LeaderboardUser, Badge } from './types'
 import LeaderboardCard from './LeaderboardCard'
 import HeadToHeadDialog from './HeadToHeadDialog'
-import { calculateRanks, calculateRanksWithChange } from '../../utils/rank-calculator'
 import { calculateBadges, UserBadgeInput } from '../../utils/badge-calculator'
 import SharePreviewModal from '../friend-groups/sharing/SharePreviewModal'
 import LeaderboardTemplate, { type LeaderboardTemplateUser } from '../friend-groups/sharing/LeaderboardTemplate'
@@ -39,7 +38,6 @@ function transformToLeaderboardUser(score: any): LeaderboardUser {
 export default function LeaderboardCards({
   scores,
   currentUserId,
-  previousScores,
   tournamentId,
   groupName,
   joinUrl,
@@ -47,6 +45,7 @@ export default function LeaderboardCards({
   shareRef,
   tournamentBadgeConfig,
   historyData,
+  materializedRanks,
 }: LeaderboardCardsProps) {
   const t = useTranslations('groups.sharing')
 
@@ -88,7 +87,7 @@ export default function LeaderboardCards({
     }
   }, [hasSnapshotHistory])
 
-  // Transform, sort, and calculate ranks with changes
+  // Transform, sort, and assign ranks from materialized data
   const leaderboardUsers = useMemo(() => {
     const transformed = scores.map(score => transformToLeaderboardUser(score))
 
@@ -112,17 +111,18 @@ export default function LeaderboardCards({
       return a.id.localeCompare(b.id)
     })
 
-    // Calculate ranks based on current sort field
-    const usersWithCurrentRank = calculateRanks(sorted, scoreField as keyof LeaderboardUser)
+    // Use materialized ranks when available; fall back to positional rank for new groups
+    const hasMaterialized = materializedRanks && materializedRanks.size > 0
 
-    // Calculate rank changes only when showing today's scores
-    if (sortBy === 'today' && hasSnapshotHistory) {
-      return calculateRanksWithChange(usersWithCurrentRank, 'penultimateSnapshotPoints')
-    }
-
-    // When showing penultimate scores or no snapshot history, no rank change indicators
-    return usersWithCurrentRank.map(u => ({ ...u, rankChange: 0 }))
-  }, [scores, sortBy, hasSnapshotHistory])
+    return sorted.map((user, index) => {
+      const mat = hasMaterialized ? materializedRanks.get(user.id) : undefined
+      return {
+        ...user,
+        currentRank: mat?.currentRank ?? index + 1,
+        rankChange: sortBy === 'today' && hasSnapshotHistory ? (mat?.rankChange ?? 0) : 0,
+      }
+    })
+  }, [scores, sortBy, hasSnapshotHistory, materializedRanks])
 
   // Build badge map using pre-computed ranks + original score badge fields
   const badgeMap = useMemo(() => {

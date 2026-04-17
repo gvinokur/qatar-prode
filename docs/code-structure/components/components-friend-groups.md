@@ -194,7 +194,7 @@ Dialog preview of how group appears in public discovery. [Client]
 ### app/components/friend-groups/friends-group-table.tsx
 Multi-tournament leaderboard with sharing, notification, and betting display. [Client]
 
-- **ProdeGroupTable(props: Props)**: `JSX.Element` — [Client] Tabbed tournament standings (one tab per tournament), share button, notification dialog, and read-only betting summary. Accepts `tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>` and passes per-tournament badge config to LeaderboardView. Accepts `historyByTournament?: Record<string, ScoreHistoryResult>` and passes per-tournament history data to LeaderboardView for time-dimension badge derivation (Story #274).
+- **ProdeGroupTable(props: Props)**: `JSX.Element` — [Client] Tabbed tournament standings (one tab per tournament), share button, notification dialog, and read-only betting summary. Accepts `tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>` and passes per-tournament badge config to LeaderboardView. Accepts `historyByTournament?: Record<string, ScoreHistoryResult>` and passes per-tournament history data to LeaderboardView. Accepts `materializedRanksByTournament?: Record<string, Map<string, { currentRank: number; rankChange: number }>>` (added Story #320) and passes per-tournament materialized ranks to LeaderboardView.
   Uses: useTranslations, useTheme
   Renders: LeaderboardView, NotificationDialog
 

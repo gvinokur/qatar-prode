@@ -33,6 +33,7 @@ import { generateShortUrlForGroup } from '../../../../../actions/short-url-actio
 import { getScoreHistoryForGroup } from '../../../../../actions/score-history-actions';
 import { computeSnapshotScores } from '../../../../../utils/score-history-utils'
 import { buildPageMetadata } from '../../../../../utils/metadata-utils';
+import { getMaterializedLeaderboardRanks } from '../../../../../actions/group-ranking-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -122,11 +123,12 @@ export default async function TournamentScopedFriendGroup(props : Props){
   const users = await findUsersByIds(allParticipants)
   const usersMap = toMap(users)
 
-  // Get scores, qualified teams, and tournament start date in parallel for badge config
-  const [userScores, qualifiedTeamsResult, tournamentStartDate] = await Promise.all([
+  // Get scores, qualified teams, tournament start date, and materialized ranks in parallel
+  const [userScores, qualifiedTeamsResult, tournamentStartDate, materializedRanks] = await Promise.all([
     getUserScoresForTournament(allParticipants, tournament.id),
     findQualifiedTeams(tournament.id),
     getTournamentStartDate(tournament.id),
+    getMaterializedLeaderboardRanks(prodeGroup.id, tournament.id),
   ])
 
   // Build badge config from tournament settings + qualified teams count
@@ -291,6 +293,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 themeColor={prodeGroup.theme?.primary_color ?? undefined}
                 tournamentBadgeConfigs={tournamentBadgeConfigs}
                 historyByTournament={historyByTournament}
+                materializedRanksByTournament={{ [tournament.id]: materializedRanks }}
               />
             }
             historyContent={

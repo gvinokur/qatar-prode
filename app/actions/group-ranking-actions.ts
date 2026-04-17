@@ -8,6 +8,7 @@ import {
   upsertGroupRankingSnapshots,
   getLatestTwoGroupRankingSnapshots,
   findGroupsForUsers,
+  getLatestRankingsForGroupWithChange,
 } from '../db/group-ranking-repository';
 import { GroupRankingSnapshotNew } from '../db/tables-definition';
 
@@ -80,6 +81,31 @@ export async function recalculateGroupRankingsForUsers(
       }
     })
   );
+}
+
+/**
+ * Server Action — returns materialized ranks for all users in a group as a Map
+ * keyed by userId. rankChange is positive when rank improved (moved up).
+ * Returns an empty Map when no snapshots exist or if the repository throws.
+ */
+export async function getMaterializedLeaderboardRanks(
+  groupId: string,
+  tournamentId: string
+): Promise<Map<string, { currentRank: number; rankChange: number }>> {
+  try {
+    const rows = await getLatestRankingsForGroupWithChange(groupId, tournamentId)
+    const result = new Map<string, { currentRank: number; rankChange: number }>()
+    for (const row of rows) {
+      result.set(row.userId, {
+        currentRank: row.currentRank,
+        rankChange: row.previousRank !== null ? row.previousRank - row.currentRank : 0,
+      })
+    }
+    return result
+  } catch (err) {
+    console.error('[getMaterializedLeaderboardRanks] Failed to fetch materialized ranks:', err)
+    return new Map()
+  }
 }
 
 /**

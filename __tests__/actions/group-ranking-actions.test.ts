@@ -8,6 +8,7 @@ import {
   recalculateGroupRankings,
   recalculateGroupRankingsForUsers,
   getGroupRankingForUser,
+  getMaterializedLeaderboardRanks,
 } from '../../app/actions/group-ranking-actions';
 import { testFactories } from '../db/test-factories';
 
@@ -25,6 +26,7 @@ vi.mock('../../app/utils/date-utils');
 const mockUpsertGroupRankingSnapshots = vi.mocked(groupRankingRepository.upsertGroupRankingSnapshots);
 const mockGetLatestTwoGroupRankingSnapshots = vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots);
 const mockFindGroupsForUsers = vi.mocked(groupRankingRepository.findGroupsForUsers);
+const mockGetLatestRankingsForGroupWithChange = vi.mocked(groupRankingRepository.getLatestRankingsForGroupWithChange);
 
 const mockFindProdeGroupById = vi.mocked(prodeGroupRepository.findProdeGroupById);
 const mockFindParticipantsInGroup = vi.mocked(prodeGroupRepository.findParticipantsInGroup);
@@ -258,7 +260,7 @@ describe('Group Ranking Actions', () => {
       expect(result!.previousRank).toBe(3);
     });
 
-    it('returns latest snapshot values and correct shape when two snapshots exist', async () => {
+    it('returns full MaterializedGroupRanking shape when two snapshots exist', async () => {
       const current = testFactories.groupRanking({
         user_id: user.id,
         group_id: group.id,
@@ -290,6 +292,61 @@ describe('Group Ranking Actions', () => {
         rankChange: 1, // 2 - 1 = 1
         previousRank: 2,
       });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getMaterializedLeaderboardRanks
+  // ---------------------------------------------------------------------------
+  describe('getMaterializedLeaderboardRanks', () => {
+    it('returns empty Map when repository returns empty array', async () => {
+      mockGetLatestRankingsForGroupWithChange.mockResolvedValue([]);
+
+      const result = await getMaterializedLeaderboardRanks(group.id, tournament.id);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
+    });
+
+    it('sets rankChange to 0 for users with no previous snapshot (previousRank: null)', async () => {
+      mockGetLatestRankingsForGroupWithChange.mockResolvedValue([
+        { userId: user.id, currentRank: 2, previousRank: null, currentScore: 80 },
+      ]);
+
+      const result = await getMaterializedLeaderboardRanks(group.id, tournament.id);
+
+      expect(result.get(user.id)).toEqual({ currentRank: 2, rankChange: 0 });
+    });
+
+    it('computes rankChange correctly when rank improved (positive)', async () => {
+      mockGetLatestRankingsForGroupWithChange.mockResolvedValue([
+        { userId: user.id, currentRank: 1, previousRank: 3, currentScore: 100 },
+      ]);
+
+      const result = await getMaterializedLeaderboardRanks(group.id, tournament.id);
+
+      // previousRank - currentRank = 3 - 1 = +2 (moved up)
+      expect(result.get(user.id)?.rankChange).toBe(2);
+    });
+
+    it('computes rankChange correctly when rank dropped (negative)', async () => {
+      mockGetLatestRankingsForGroupWithChange.mockResolvedValue([
+        { userId: user.id, currentRank: 3, previousRank: 1, currentScore: 70 },
+      ]);
+
+      const result = await getMaterializedLeaderboardRanks(group.id, tournament.id);
+
+      // previousRank - currentRank = 1 - 3 = -2 (dropped)
+      expect(result.get(user.id)?.rankChange).toBe(-2);
+    });
+
+    it('returns empty Map when repository throws (error isolation — leaderboard must not break)', async () => {
+      mockGetLatestRankingsForGroupWithChange.mockRejectedValue(new Error('DB failure'));
+
+      const result = await getMaterializedLeaderboardRanks(group.id, tournament.id);
+
+      expect(result).toBeInstanceOf(Map);
+      expect(result.size).toBe(0);
     });
   });
 });

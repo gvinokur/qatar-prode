@@ -9,9 +9,9 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/334
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** implementing
 - **Plan File:** plans/STORY-320-plan.md
-- **Task File:** (fill when implementation starts)
+- **Task File:** plans/STORY-320-tasks.md
 
 ## Quick Summary
 Removes the client-side rank calculation from LeaderboardCards and replaces it with pre-computed ranks read from the group_rankings table (materialized by Story #315). Adds a new batch repository function getLatestRankingsForGroupWithChange, a new server action getMaterializedLeaderboardRanks, threads the result through ProdeGroupTable → LeaderboardView → LeaderboardCards, and removes the calculateRanks/calculateRanksWithChange imports from the client component.

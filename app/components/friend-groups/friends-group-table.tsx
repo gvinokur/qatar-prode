@@ -38,9 +38,10 @@ type Props = {
   readonly themeColor?: string,
   readonly tournamentBadgeConfigs?: Record<string, TournamentBadgeConfig>,
   readonly historyByTournament?: Record<string, ScoreHistoryResult>,
+  readonly materializedRanksByTournament?: Record<string, Map<string, { currentRank: number; rankChange: number }>>,
 }
 
-export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament}: Props) {
+export default function ProdeGroupTable({users, userScoresByTournament, loggedInUser, tournaments, action, groupId, members, bettingData, selectedTournamentId, groupName, joinUrl, themeColor, tournamentBadgeConfigs, historyByTournament, materializedRanksByTournament}: Props) {
   const t = useTranslations('groups.standings');
   const tBetting = useTranslations('groups.betting');
   const tSharing = useTranslations('groups.sharing');
@@ -139,6 +140,7 @@ export default function ProdeGroupTable({users, userScoresByTournament, loggedIn
                   shareRef={leaderboardShareRef}
                   tournamentBadgeConfig={tournamentBadgeConfigs?.[tournament.id]}
                   historyData={historyByTournament?.[tournament.id]}
+                  materializedRanks={materializedRanksByTournament?.[tournament.id]}
                 />
                 {/* Betting Status (read-only) */}
                 {bettingConfig?.betting_enabled && (

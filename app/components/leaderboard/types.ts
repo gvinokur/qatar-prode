@@ -45,13 +45,13 @@ export interface LeaderboardViewProps {
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
   readonly historyData?: ScoreHistoryResult
+  readonly materializedRanks?: Map<string, { currentRank: number; rankChange: number }>
 }
 
 
 export interface LeaderboardCardsProps {
   readonly scores: unknown[]
   readonly currentUserId: string
-  readonly previousScores?: unknown[]
   readonly tournamentId?: string
   readonly groupName?: string
   readonly joinUrl?: string
@@ -59,6 +59,7 @@ export interface LeaderboardCardsProps {
   readonly shareRef?: React.RefObject<LeaderboardShareHandle | null>
   readonly tournamentBadgeConfig?: TournamentBadgeConfig
   readonly historyData?: ScoreHistoryResult
+  readonly materializedRanks?: Map<string, { currentRank: number; rankChange: number }>
 }
 
 export interface LeaderboardCardProps {

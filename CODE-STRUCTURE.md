@@ -570,11 +570,21 @@ Key flows:
                         ├── calculateRanks(scores, 'totalPoints')
                         └── upsertGroupRankingSnapshots(snapshots) → group_rankings table
 
-28. Group rank snapshot — read path (Story #315)
+28. Group rank snapshot — read path (Story #315; extended Story #320)
     getGroupRankingForUser(userId, groupId, tournamentId) [server action]
       └── getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) → [current, previous?]
             → derives rankChange = previous.rank - current.rank (positive = improved)
             → returns MaterializedGroupRanking | null
+
+    getMaterializedLeaderboardRanks(groupId, tournamentId) [server action, added Story #320]
+      └── getLatestRankingsForGroupWithChange(groupId, tournamentId)
+            ├── query 1: 2 most-recent distinct snapshot_dates
+            ├── query 2: all users' ranks at latest date
+            └── query 3: all users' ranks at penultimate date (if exists)
+                  → joins via Map → returns { userId, currentRank, previousRank | null, currentScore }[]
+      → builds Map<userId, { currentRank, rankChange }> (rankChange = previousRank - currentRank)
+      → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
+      → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
 29. Tournament Hub shell (Story #316; updated Story #317, #318, #319)
     TournamentHubPage (Server) — /tournaments/[id]/hub
