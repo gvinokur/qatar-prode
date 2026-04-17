@@ -46,6 +46,8 @@ export default async function TournamentGroupsPage(props: Props) {
       groups={groupStats}
       tournamentId={tournamentId}
       pendingRequests={pendingRequests}
+      favoriteGroupIds={prodeGroups.favoriteGroupIds}
+      mainGroupId={prodeGroups.mainGroupId}
     />
   );
 }

@@ -381,11 +381,22 @@ Key flows:
                   └── ScoreGrowthChart [renders] (when rows.length > 0)
 
 13. Friend group management
-    FriendGroupsList / TournamentGroupsList [Client]
+    FriendGroupsList [Client] (sidebar)
       ├── createDbGroup [server action]
       │     └── createProdeGroup
-      └── deleteGroup [server action]
-            └── deleteProdeGroup
+      ├── deleteGroup [server action]
+      │     └── deleteProdeGroup
+      ├── toggleFavoriteGroupAction [server action]
+      │     └── getFavoriteGroupIds, addFavoriteGroup | removeFavoriteGroup
+      └── setMainGroupAction [server action]
+            └── getFavoriteGroupIds, setMainGroup
+    TournamentGroupsList [Client] (friend-groups page)
+      ├── createDbGroup [server action]
+      │     └── createProdeGroup
+      ├── toggleFavoriteGroupAction [server action]
+      │     └── getFavoriteGroupIds, addFavoriteGroup | removeFavoriteGroup
+      └── setMainGroupAction [server action]
+            └── getFavoriteGroupIds, setMainGroup
     LeaveGroupButton [Client]
       └── leaveGroupAction [server action]
             └── deleteParticipantFromGroup
@@ -638,8 +649,13 @@ Key flows:
         allGroups = [...userGroups, ...participantGroups]
         → await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))
         → derives groupRanks: Record<string, number> (skips null results)
-        → passes groupRanks to TournamentSidebar → FriendGroupsList
+        → passes groupRanks, favoriteGroupIds, mainGroupId to TournamentSidebar → FriendGroupsList
           FriendGroupsList shows primary group rank in CardHeader subheader text and per-row Chips before group name links
+          FriendGroupsList sorts groups: main → favorites (alpha) → others; renders star/crown icons per row
+    - getGroupsForUser() now also fetches getFavoriteGroupIds and getMainGroupId in parallel
+        → returns favoriteGroupIds: string[] and mainGroupId: string | null alongside existing fields
+    - friend-groups/page.tsx also destructures favoriteGroupIds/mainGroupId from getGroupsForUser()
+        → passes to TournamentGroupsList for sorting and star/crown rendering on cards
     - GroupSelector [Client] (top nav) now calls isHubEnabled():
         when true  → Hub tab rendered before Matches, links to /tournaments/${id}/hub
         when false → Hub tab absent

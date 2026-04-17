@@ -161,8 +161,8 @@ Friend group management — creation, membership, scoring, and theme updates.
 
 - **createDbGroup(groupName)**: `Promise<ProdeGroup>` — Creates a new friend group.
   Calls: getLoggedInUser, createProdeGroup
-- **getGroupsForUser()**: `Promise<{ owned: ProdeGroup[]; participating: ProdeGroup[]; pendingRequests: JoinRequest[] }>` — Gets user's groups (owned, participating, and pending join requests).
-  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser
+- **getGroupsForUser()**: `Promise<{ userGroups: ProdeGroup[]; participantGroups: ProdeGroup[]; pendingRequests: { id: string; group_id: string; group_name: string | null }[]; favoriteGroupIds: string[]; mainGroupId: string | null } | undefined>` — Gets user's groups (owned, participating, pending join requests) plus favorite group IDs and main group ID in parallel.
+  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser, getFavoriteGroupIds, getMainGroupId
 - **deleteGroup(groupId)**: `Promise<void>` — Deletes group (owner only).
   Calls: getLoggedInUser, findProdeGroupById, deleteAllParticipantsFromGroup, deleteProdeGroup
 - **promoteParticipantToAdmin(groupId, userId)**: `Promise<void>` — Promotes participant to admin.
@@ -183,6 +183,16 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, getGroupTournamentBettingConfig, findUsersByIds
 - **sendGroupEmailInvitations(groupId, recipients, customMessage, locale, groupLogoUrl?, themeColor?)**: `Promise<{sent: number; failed: string[]}>` — Sends localized group invitation emails to up to 50 recipients. Validates user is owner or admin, deduplicates by email, sends in parallel via Promise.allSettled, returns counts of sent/failed.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, generateShortUrlForGroup, buildShortUrl, generateGroupInvitationEmail, sendEmail
+
+### app/actions/favorite-group-actions.ts
+Server Actions for managing user-level favorite and main-group designation (Story #332).
+
+- **toggleFavoriteGroupAction(groupId: string)**: `Promise<{ isFavorite: boolean }>` — Adds or removes the group from the authenticated user's favorites. Returns the new state.
+  Calls: getLoggedInUser, getFavoriteGroupIds, addFavoriteGroup | removeFavoriteGroup, revalidatePath
+- **setMainGroupAction(groupId: string)**: `Promise<void>` — Designates the group as the user's main group. Group must already be a favorite; throws otherwise.
+  Calls: getLoggedInUser, getFavoriteGroupIds, setMainGroup, revalidatePath
+- **clearMainGroupAction()**: `Promise<void>` — Clears the user's main group designation.
+  Calls: getLoggedInUser, clearMainGroup, revalidatePath
 
 ### app/actions/prode-group-discovery-actions.ts
 Public group discovery and search for group browsing.

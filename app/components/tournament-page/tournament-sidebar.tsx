@@ -26,6 +26,8 @@ interface TournamentSidebarProps {
     userGroups: any[]
     participantGroups: any[]
     pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
+    favoriteGroupIds?: string[]
+    mainGroupId?: string | null
   }
   readonly user?: User
   readonly groupRanks?: Record<string, number>
@@ -93,6 +95,8 @@ export default function TournamentSidebar({
               tournamentId={tournamentId}
               isActive={currentSection === 'friend-groups'}
               groupRanks={groupRanks}
+              favoriteGroupIds={prodeGroups.favoriteGroupIds}
+              mainGroupId={prodeGroups.mainGroupId}
             />
           )}
 

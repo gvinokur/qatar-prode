@@ -10,7 +10,7 @@ import {
   Stack,
   IconButton
 } from "@mui/material";
-import {Groups as GroupsIcon, Share as ShareIcon, MonetizationOn as MonetizationOnIcon} from "@mui/icons-material";
+import {Groups as GroupsIcon, Share as ShareIcon, MonetizationOn as MonetizationOnIcon, Star as StarIcon, StarBorder as StarBorderIcon, WorkspacePremium as WorkspacePremiumIcon} from "@mui/icons-material";
 import type { TournamentGroupStats } from "../../definitions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import { useLocale, useTranslations } from 'next-intl';
@@ -33,6 +33,10 @@ interface MyGroupsCardProps {
   readonly group: TournamentGroupStats;
   readonly tournamentId: string;
   readonly isPending?: boolean;
+  readonly isFavorite?: boolean;
+  readonly isMainGroup?: boolean;
+  readonly onToggleFavorite?: (groupId: string) => void;
+  readonly onSetMainGroup?: (groupId: string) => void;
 }
 
 // discovery variant props
@@ -52,6 +56,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
   const tPending = useTranslations('groups.pendingRequest');
   const tDiscovery = useTranslations('groups.discovery');
   const tBetting = useTranslations('groups.betting');
+  const tFavorites = useTranslations('groups.favorites');
 
   if (props.variant === 'discovery') {
     const { group, tournamentId, onRequestJoin } = props;
@@ -172,7 +177,7 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
   }
 
   // my-groups variant (original behavior, unchanged)
-  const { group, tournamentId, isPending = false } = props;
+  const { group, tournamentId, isPending = false, isFavorite = false, isMainGroup = false, onToggleFavorite, onSetMainGroup } = props;
   const isLeader = group.userPosition === 1;
   const leaderDisplay = isLeader ? t('you') : group.leaderName;
 
@@ -189,17 +194,28 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
             />
           </Box>
         )}
-        {/* Group Name with Owner Badge and Share Button */}
+        {/* Group Name with Owner Badge, Share Button, Favorite/Main icons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          {isMainGroup && (
+            <WorkspacePremiumIcon
+              fontSize="small"
+              sx={{ color: 'warning.main', flexShrink: 0 }}
+              titleAccess={tFavorites('mainGroupLabel')}
+            />
+          )}
           <Typography
             variant="h6"
-            component="h3"
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
             sx={{
               fontWeight: 600,
               flexGrow: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              color: 'inherit',
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' },
             }}
           >
             {group.groupName}
@@ -226,6 +242,16 @@ export default function TournamentGroupCard(props: TournamentGroupCardProps) {
             </>
           )}
           <PrivacyIndicatorIcon isPublic={group.is_public ?? false} size="small" />
+          {!isPending && (
+            <IconButton
+              size="small"
+              onClick={() => onToggleFavorite?.(group.groupId)}
+              aria-label={isFavorite ? tFavorites('removeFavorite') : tFavorites('addFavorite')}
+              sx={{ color: isFavorite ? 'warning.main' : 'action.disabled', p: 0.5 }}
+            >
+              {isFavorite ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+            </IconButton>
+          )}
         </Box>
 
         {/* Stats Section */}

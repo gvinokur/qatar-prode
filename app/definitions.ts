@@ -107,4 +107,6 @@ export interface TournamentGroupStats {
   themeColor?: string | null
   is_public?: boolean
   bettingEnabled?: boolean
+  isFavorite?: boolean
+  isMainGroup?: boolean
 }

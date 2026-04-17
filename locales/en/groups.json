@@ -606,6 +606,13 @@
     "noHistory": "No history yet",
     "noHistoryDescription": "Score history will appear once the tournament starts and scores are calculated."
   },
+  "favorites": {
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
+    "setMainGroup": "Set as main group",
+    "clearMainGroup": "Clear main group",
+    "mainGroupLabel": "Main group"
+  },
   "metadata": {
     "description": "View friend group standings and compete in {name}"
   }

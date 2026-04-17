@@ -199,9 +199,10 @@ Deprecated empty state component for groups (replaced by FriendGroupsLandingEmpt
 ### app/components/tournament-page/friend-groups-list.tsx
 Card showing user groups, participant groups, and pending requests with create/delete dialogs and optional rank badges.
 
-- **FriendGroupsList(props: Props)**: `JSX.Element` — [Client] Collapsible card with group lists, create/delete dialogs, invite functionality, and empty state. Optional `groupRanks?: Record<string, number>` prop: when provided, shows the primary group rank inline in the CardHeader subheader text (via i18n key `header.groupCountWithRank`) and a per-row Chip before the group name link for each group with an available rank.
-  Calls: createDbGroup, deleteGroup
-  Uses: useState, useTheme, useLocale, useRouter, useForm, useTranslations
+- **FriendGroupsList(props: Props)**: `JSX.Element` — [Client] Collapsible card with combined sorted group list, create/delete dialogs, invite functionality, and empty state. Accepts `favoriteGroupIds?: string[]` and `mainGroupId?: string | null`; sorts groups main → favorites (alpha) → others. Renders star (StarIcon/StarBorderIcon) and crown (WorkspacePremiumIcon) icon buttons per row. Optimistic local state updated immediately; server actions called via useTransition.
+  Props: `userGroups`, `participantGroups`, `tournamentId?`, `isActive?`, `pendingRequests?`, `groupRanks?`, `favoriteGroupIds?`, `mainGroupId?`
+  Calls: createDbGroup, deleteGroup, toggleFavoriteGroupAction, setMainGroupAction
+  Uses: useState, useTransition, useTheme, useLocale, useRouter, useForm, useTranslations
   Renders: FriendGroupsSidebarEmptyState, InviteFriendsDialog, ExpandMore, Chip
 
 ### app/components/tournament-page/group-standings-sidebar.tsx
@@ -230,16 +231,18 @@ Comprehensive rules and constraints display with expandable sections and example
 Card component for displaying group info with dual variant support (my-groups and discovery).
 
 - **DiscoveryGroupData**: `interface` — Data structure for public group discovery.
-- **TournamentGroupCard(props: TournamentGroupCardProps)**: `JSX.Element` — [Client] Renders different UI based on variant (my-groups with stats/actions, discovery with request-to-join). Supports pending request blur effect.
+- **TournamentGroupCard(props: TournamentGroupCardProps)**: `JSX.Element` — [Client] Renders different UI based on variant (my-groups with stats/actions, discovery with request-to-join). Supports pending request blur effect. my-groups variant: group name is a clickable Next.js Link; star icon button toggles favorite; crown icon shown when isMainGroup=true.
+  Props (my-groups only): `isFavorite?: boolean`, `isMainGroup?: boolean`, `onToggleFavorite?: (groupId: string) => void`, `onSetMainGroup?: (groupId: string) => void`
   Uses: useLocale, useTranslations
   Renders: PrivacyIndicatorIcon, InviteFriendsDialog
 
 ### app/components/tournament-page/tournament-groups-list.tsx
 Main groups list with create/discover dialogs and grid display of group cards.
 
-- **TournamentGroupsList({ groups, tournamentId, pendingRequests }: TournamentGroupsListProps)**: `JSX.Element` — [Client] Renders grid of group cards, shows empty state when no groups, includes create dialog.
-  Calls: createDbGroup
-  Uses: useState, useForm, useTranslations, useLocale, useRouter
+- **TournamentGroupsList({ groups, tournamentId, pendingRequests, favoriteGroupIds, mainGroupId }: TournamentGroupsListProps)**: `JSX.Element` — [Client] Renders grid of group cards sorted by favorites (main → favorites alpha → others), shows empty state when no groups, includes create dialog. Optimistic favorite state updated immediately; server actions called via useTransition.
+  Props: `groups`, `tournamentId`, `pendingRequests?`, `favoriteGroupIds?: string[]`, `mainGroupId?: string | null`
+  Calls: createDbGroup, toggleFavoriteGroupAction, setMainGroupAction
+  Uses: useState, useTransition, useForm, useTranslations, useLocale, useRouter
   Renders: FriendGroupsLandingEmptyState, TournamentGroupCard, Dialog
 
 ### app/components/tournament-page/user-tournament-statistics.tsx
