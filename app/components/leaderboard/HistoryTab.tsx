@@ -73,15 +73,15 @@ export default function HistoryTab({ historyData, themeColor, preStoredRankHisto
 
   // Derive rank-only histories for RankHistoryChart — prefer pre-stored when available
   const displayNameById = new Map(historyData.userHistories.map((u) => [u.userId, u.displayName]));
-  const rankHistories = preStoredRankHistories != null
-    ? preStoredRankHistories
-        .filter((e) => displayNameById.has(e.userId))
-        .map((e) => ({ userId: e.userId, displayName: displayNameById.get(e.userId)!, data: e.data }))
-    : historyData.userHistories.map((u) => ({
+  const rankHistories = preStoredRankHistories == null
+    ? historyData.userHistories.map((u) => ({
         userId: u.userId,
         displayName: u.displayName,
         data: u.data.map((d) => ({ date: d.date, rank: d.rank })),
-      }));
+      }))
+    : preStoredRankHistories
+        .filter((e) => displayNameById.has(e.userId))
+        .map((e) => ({ userId: e.userId, displayName: displayNameById.get(e.userId)!, data: e.data }));
 
   // Derive score-only histories for ScoreHistoryChart
   const scoreHistories = historyData.userHistories.map((u) => ({
