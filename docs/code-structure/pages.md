@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-17
 
 ---
 
@@ -168,7 +168,7 @@ Tournament Hub page. Renders the Action Center widget, Recent Results widget, an
 
 - **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub page that resolves `id` from params, derives locale via `toLocale`, then renders `TournamentHubActionCenter`, `TournamentHubRecentResults` (Story #318 — replaces predictionDashboard Paper), and `TournamentHubLeaderboardPeek`.
   Calls: getLocale, toLocale, TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
-  Renders: TournamentHubActionCenter, Paper (×1 placeholder), TournamentHubLeaderboardPeek
+  Renders: TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.

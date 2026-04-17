@@ -38,13 +38,13 @@ Client Component for a single group card in the Leaderboard Peek widget. Tappabl
 ### app/components/tournament-hub/tournament-hub-recent-results.tsx
 Async Server Component for the Recent Results widget. Fetches recent prediction outcome data and delegates rendering to the client widget.
 
-- **TournamentHubRecentResults({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getRecentResultsData`; computes `statsHref` as `/${locale}/tournaments/${tournamentId}/stats`; passes result to `RecentResultsWidget`.
+- **TournamentHubRecentResults({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getRecentResultsData`; computes `statsHref`, `resultsHref`, `qualifiedTeamsHref`, `awardsHref` from `/${locale}/tournaments/${tournamentId}/[suffix]`; passes result and all hrefs to `RecentResultsWidget`.
   Calls: getRecentResultsData
   Renders: RecentResultsWidget
 
 ### app/components/tournament-hub/recent-results-widget.tsx
 Client Component for the Recent Results widget. Renders 3-section card (recent games, qualified teams, tournament awards) with empty state when no data is available.
 
-- **RecentResultsWidget({ data, statsHref })**: `JSX.Element` — [Client] Renders section title and a MUI `Paper` card. Shows empty state (soccer icon + message) when all data is absent. Otherwise renders up to 3 sections: PARTIDOS RECIENTES (game items with ✅/❌, points, boost chip), EQUIPOS CLASIFICADOS (only when `qualifiedTeamsScore !== null`), PREMIOS DEL TORNEO (only when `individualAwardsScore !== null` or `honorRollScore !== null`). Footer has "View full statistics" button linking to `statsHref`.
+- **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Renders section title and a MUI `Paper` card. Shows empty state (soccer icon + message) when all data is absent. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`; award items show specific correct positions/awards from `honorRollCorrect`/`individualAwardsCorrect`). "View full statistics" button below card links to `statsHref`.
   Uses: useTranslations('hub.recentResults')
-  Renders: GameItem (inline sub-component)
+  Renders: GameItem (inline sub-component), AwardItem (inline sub-component), BoostBadge
