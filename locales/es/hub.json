@@ -36,6 +36,19 @@
     "boostBonus": "+{bonus} boost",
     "individualAwardsLabel": "Premios individuales",
     "qualifiedTeamsLabel": "Equipos clasificados",
-    "noCorrectPredictions": "Sin predicciones correctas"
+    "honorRollLabel": "Podio",
+    "noCorrectPredictions": "Sin predicciones correctas",
+    "correctItems": "Acertaste: {items}",
+    "honorRollPosition": {
+      "champion": "Campeón",
+      "runnerUp": "Subcampeón",
+      "thirdPlace": "Tercer puesto"
+    },
+    "individualAward": {
+      "bestPlayer": "Mejor Jugador",
+      "topGoalscorer": "Goleador",
+      "bestGoalkeeper": "Mejor Arquero",
+      "bestYoungPlayer": "Mejor Joven"
+    }
   }
 }

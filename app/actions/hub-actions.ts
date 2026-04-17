@@ -6,7 +6,7 @@ import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
-import { getTournamentGuessStatsForUsers } from '../db/tournament-guess-repository'
+import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
@@ -285,6 +285,9 @@ export async function getLeaderboardPeekData(
   })
 }
 
+export type HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'
+export type IndividualAwardType = 'bestPlayer' | 'topGoalscorer' | 'bestGoalkeeper' | 'bestYoungPlayer'
+
 export interface RecentGameResultItem {
   gameId: string
   homeTeamName: string
@@ -308,6 +311,10 @@ export interface RecentResultsData {
   qualifiedTeamsActualCount: number
   individualAwardsScore: number | null
   honorRollScore: number | null
+  /** Positions user predicted correctly; null = honor roll not yet scored */
+  honorRollCorrect: HonorRollPosition[] | null
+  /** Award types user predicted correctly; null = awards not yet scored */
+  individualAwardsCorrect: IndividualAwardType[] | null
 }
 
 const RECENT_GAMES_LIMIT = 5
@@ -325,11 +332,13 @@ export async function getRecentResultsData(
     throw new Error('Unauthorized')
   }
 
-  const [recentGames, statsArray, teams, qualifiedTeamsResult] = await Promise.all([
+  const [recentGames, statsArray, teams, qualifiedTeamsResult, tournament, tournamentGuess] = await Promise.all([
     findRecentGamesWithUserGuesses(user.id, tournamentId, RECENT_GAMES_LIMIT),
     getTournamentGuessStatsForUsers([user.id], tournamentId),
     findTeamInTournament(tournamentId),
     findQualifiedTeams(tournamentId),
+    findTournamentById(tournamentId),
+    findTournamentGuessByUserIdTournament(user.id, tournamentId),
   ])
 
   const localizedTeams = applyLocalizationBatch(teams, locale, [
@@ -358,13 +367,52 @@ export async function getRecentResultsData(
   })
 
   const stats = statsArray[0] ?? null
+  const honorRollScoreValue = stats?.honor_roll_score ?? null
+  const individualAwardsScoreValue = stats?.individual_awards_score ?? null
+
+  let honorRollCorrect: HonorRollPosition[] | null = null
+  if (honorRollScoreValue !== null && tournament) {
+    honorRollCorrect = []
+    if (tournamentGuess) {
+      if (tournament.champion_team_id && tournamentGuess.champion_team_id === tournament.champion_team_id) {
+        honorRollCorrect.push('champion')
+      }
+      if (tournament.runner_up_team_id && tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
+        honorRollCorrect.push('runnerUp')
+      }
+      if (tournament.third_place_team_id && tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
+        honorRollCorrect.push('thirdPlace')
+      }
+    }
+  }
+
+  let individualAwardsCorrect: IndividualAwardType[] | null = null
+  if (individualAwardsScoreValue !== null && tournament) {
+    individualAwardsCorrect = []
+    if (tournamentGuess) {
+      if (tournament.best_player_id && tournamentGuess.best_player_id === tournament.best_player_id) {
+        individualAwardsCorrect.push('bestPlayer')
+      }
+      if (tournament.top_goalscorer_player_id && tournamentGuess.top_goalscorer_player_id === tournament.top_goalscorer_player_id) {
+        individualAwardsCorrect.push('topGoalscorer')
+      }
+      if (tournament.best_goalkeeper_player_id && tournamentGuess.best_goalkeeper_player_id === tournament.best_goalkeeper_player_id) {
+        individualAwardsCorrect.push('bestGoalkeeper')
+      }
+      if (tournament.best_young_player_id && tournamentGuess.best_young_player_id === tournament.best_young_player_id) {
+        individualAwardsCorrect.push('bestYoungPlayer')
+      }
+    }
+  }
 
   return {
     recentGames: gameItems,
     qualifiedTeamsScore: stats?.qualified_teams_score ?? null,
     qualifiedTeamsCorrect: stats?.qualified_teams_correct ?? null,
     qualifiedTeamsActualCount: qualifiedTeamsResult.teams.length,
-    individualAwardsScore: stats?.individual_awards_score ?? null,
-    honorRollScore: stats?.honor_roll_score ?? null,
+    individualAwardsScore: individualAwardsScoreValue,
+    honorRollScore: honorRollScoreValue,
+    honorRollCorrect,
+    individualAwardsCorrect,
   }
 }

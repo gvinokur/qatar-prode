@@ -50,6 +50,7 @@ vi.mock('@/app/db/group-ranking-repository', () => ({
 
 vi.mock('@/app/db/tournament-guess-repository', () => ({
   getTournamentGuessStatsForUsers: vi.fn(),
+  findTournamentGuessByUserIdTournament: vi.fn(),
 }))
 
 vi.mock('next-intl/server', () => ({
@@ -544,6 +545,8 @@ describe('getRecentResultsData', () => {
     )
     vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
     vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
+    vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(null as any)
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(defaultTournament)
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([])
     vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
       teams: [],
@@ -782,5 +785,116 @@ describe('getRecentResultsData', () => {
     expect(game.awayScore).toBe(2)
     expect(game.userHomeGuess).toBe(2)
     expect(game.userAwayGuess).toBe(2)
+  })
+
+  describe('honorRollCorrect', () => {
+    it('returns null when honorRollScore is null (not yet scored)', async () => {
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.honorRollCorrect).toBeNull()
+    })
+
+    it('returns empty array when scored but no honor roll positions match', async () => {
+      const stats = { honor_roll_score: 0, individual_awards_score: null,
+        qualified_teams_score: null, qualified_teams_correct: null }
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
+      const tournament = testFactories.tournament({
+        id: TOURNAMENT_ID,
+        champion_team_id: 'team-champ',
+        runner_up_team_id: 'team-runner',
+        third_place_team_id: 'team-third',
+      })
+      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
+      const guess = testFactories.tournamentGuess({
+        champion_team_id: 'team-wrong',
+        runner_up_team_id: 'team-wrong',
+        third_place_team_id: 'team-wrong',
+      })
+      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.honorRollCorrect).toEqual([])
+    })
+
+    it('returns matched positions when honor roll positions match tournament results', async () => {
+      const stats = { honor_roll_score: 8, individual_awards_score: null,
+        qualified_teams_score: null, qualified_teams_correct: null }
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
+      const tournament = testFactories.tournament({
+        id: TOURNAMENT_ID,
+        champion_team_id: 'team-champ',
+        runner_up_team_id: 'team-runner',
+        third_place_team_id: null,
+      })
+      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
+      const guess = testFactories.tournamentGuess({
+        champion_team_id: 'team-champ',   // correct
+        runner_up_team_id: 'team-runner', // correct
+        third_place_team_id: 'team-wrong',
+      })
+      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.honorRollCorrect).toEqual(['champion', 'runnerUp'])
+    })
+  })
+
+  describe('individualAwardsCorrect', () => {
+    it('returns null when individualAwardsScore is null (not yet scored)', async () => {
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.individualAwardsCorrect).toBeNull()
+    })
+
+    it('returns empty array when scored but no individual award types match', async () => {
+      const stats = { individual_awards_score: 0, honor_roll_score: null,
+        qualified_teams_score: null, qualified_teams_correct: null }
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
+      const tournament = testFactories.tournament({
+        id: TOURNAMENT_ID,
+        best_player_id: 'player-best',
+        top_goalscorer_player_id: 'player-top',
+      })
+      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
+      const guess = testFactories.tournamentGuess({
+        best_player_id: 'player-wrong',
+        top_goalscorer_player_id: 'player-wrong',
+      })
+      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.individualAwardsCorrect).toEqual([])
+    })
+
+    it('returns matched award types when individual awards match tournament results', async () => {
+      const stats = { individual_awards_score: 6, honor_roll_score: null,
+        qualified_teams_score: null, qualified_teams_correct: null }
+      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
+      const tournament = testFactories.tournament({
+        id: TOURNAMENT_ID,
+        best_player_id: 'player-best',
+        top_goalscorer_player_id: 'player-top',
+        best_goalkeeper_player_id: 'player-gk',
+        best_young_player_id: null,
+      })
+      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
+      const guess = testFactories.tournamentGuess({
+        best_player_id: 'player-best',    // correct
+        top_goalscorer_player_id: 'player-wrong',
+        best_goalkeeper_player_id: 'player-gk', // correct
+      })
+      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
+
+      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+      expect(result.individualAwardsCorrect).toEqual(['bestPlayer', 'bestGoalkeeper'])
+    })
   })
 })

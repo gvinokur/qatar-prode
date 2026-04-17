@@ -44,6 +44,8 @@ const emptyData: RecentResultsData = {
   qualifiedTeamsActualCount: 0,
   individualAwardsScore: null,
   honorRollScore: null,
+  honorRollCorrect: null,
+  individualAwardsCorrect: null,
 }
 
 const defaultHrefs = {
@@ -350,29 +352,66 @@ describe('RecentResultsWidget', () => {
         ...emptyData,
         recentGames: [],
         honorRollScore: 3,
+        honorRollCorrect: ['champion'],
       }
 
       renderWithTheme(
         <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
     })
 
-    it('renders honor roll with no-correct caption when honorRollScore is 0', () => {
+    it('renders honor roll with no-correct caption when honorRollCorrect is empty', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
         honorRollScore: 0,
+        honorRollCorrect: [],
       }
 
       renderWithTheme(
         <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
       expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
+    })
+
+    it('renders correct honor roll positions in caption', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        honorRollScore: 8,
+        honorRollCorrect: ['champion', 'runnerUp'],
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(
+        screen.getByText(
+          /hub.recentResults:correctItems:\{"items":"hub.recentResults:honorRollPosition.champion, hub.recentResults:honorRollPosition.runnerUp"\}/
+        )
+      ).toBeInTheDocument()
+    })
+
+    it('renders null caption when honorRollCorrect is null (not yet scored)', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        honorRollScore: 3,
+        honorRollCorrect: null,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(screen.queryByText('hub.recentResults:noCorrectPredictions')).not.toBeInTheDocument()
+      expect(screen.queryByText(/hub.recentResults:correctItems/)).not.toBeInTheDocument()
     })
 
     it('renders both individual awards and honor roll when both are set', () => {
@@ -380,7 +419,9 @@ describe('RecentResultsWidget', () => {
         ...emptyData,
         recentGames: [],
         individualAwardsScore: 5,
+        individualAwardsCorrect: ['bestPlayer'],
         honorRollScore: 3,
+        honorRollCorrect: ['champion'],
       }
 
       renderWithTheme(
@@ -389,14 +430,15 @@ describe('RecentResultsWidget', () => {
 
       expect(screen.getByText('+5 pts')).toBeInTheDocument()
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
-      expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
     })
 
-    it('shows no-correct caption for individual awards when score is 0', () => {
+    it('shows no-correct caption for individual awards when individualAwardsCorrect is empty', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
         individualAwardsScore: 0,
+        individualAwardsCorrect: [],
       }
 
       renderWithTheme(
@@ -406,11 +448,31 @@ describe('RecentResultsWidget', () => {
       expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
     })
 
+    it('renders correct individual award types in caption', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        individualAwardsScore: 6,
+        individualAwardsCorrect: ['bestPlayer', 'topGoalscorer'],
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(
+        screen.getByText(
+          /hub.recentResults:correctItems:\{"items":"hub.recentResults:individualAward.bestPlayer, hub.recentResults:individualAward.topGoalscorer"\}/
+        )
+      ).toBeInTheDocument()
+    })
+
     it('does not show no-correct caption when individual awards score > 0', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
         individualAwardsScore: 6,
+        individualAwardsCorrect: ['bestPlayer'],
       }
 
       renderWithTheme(

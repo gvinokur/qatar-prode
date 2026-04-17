@@ -7,7 +7,7 @@ import SportsScoreIcon from '@mui/icons-material/SportsScore'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { BoostBadge } from '../boost-badge'
-import type { RecentResultsData, RecentGameResultItem } from '../../actions/hub-actions'
+import type { RecentResultsData, RecentGameResultItem, HonorRollPosition, IndividualAwardType } from '../../actions/hub-actions'
 
 interface RecentResultsWidgetProps {
   readonly data: RecentResultsData
@@ -76,7 +76,7 @@ function GameItem({ item }: { item: RecentGameResultItem }) {
   )
 }
 
-function AwardItem({ label, score, noCorrectText }: { label: string; score: number; noCorrectText: string }) {
+function AwardItem({ label, score, captionText }: { label: string; score: number; captionText: string | null }) {
   const isCorrect = score > 0
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
@@ -92,9 +92,9 @@ function AwardItem({ label, score, noCorrectText }: { label: string; score: numb
             {isCorrect ? `+${score}` : '0'} pts
           </Typography>
         </Box>
-        {!isCorrect && (
+        {captionText !== null && (
           <Typography variant="caption" color="text.secondary">
-            {noCorrectText}
+            {captionText}
           </Typography>
         )}
       </Box>
@@ -118,7 +118,33 @@ export function RecentResultsWidget({
     qualifiedTeamsActualCount,
     individualAwardsScore,
     honorRollScore,
+    honorRollCorrect,
+    individualAwardsCorrect,
   } = data
+
+  const honorRollPositionLabels: Record<HonorRollPosition, string> = {
+    champion: t('honorRollPosition.champion'),
+    runnerUp: t('honorRollPosition.runnerUp'),
+    thirdPlace: t('honorRollPosition.thirdPlace'),
+  }
+  const individualAwardLabels: Record<IndividualAwardType, string> = {
+    bestPlayer: t('individualAward.bestPlayer'),
+    topGoalscorer: t('individualAward.topGoalscorer'),
+    bestGoalkeeper: t('individualAward.bestGoalkeeper'),
+    bestYoungPlayer: t('individualAward.bestYoungPlayer'),
+  }
+
+  const honorRollCaption = honorRollCorrect === null
+    ? null
+    : honorRollCorrect.length === 0
+      ? t('noCorrectPredictions')
+      : t('correctItems', { items: honorRollCorrect.map(pos => honorRollPositionLabels[pos]).join(', ') })
+
+  const individualAwardsCaption = individualAwardsCorrect === null
+    ? null
+    : individualAwardsCorrect.length === 0
+      ? t('noCorrectPredictions')
+      : t('correctItems', { items: individualAwardsCorrect.map(award => individualAwardLabels[award]).join(', ') })
 
   const hasGames = recentGames.length > 0
   const hasQT = qualifiedTeamsActualCount > 0
@@ -206,10 +232,10 @@ export function RecentResultsWidget({
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {individualAwardsScore !== null && (
-                    <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} noCorrectText={t('noCorrectPredictions')} />
+                    <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} captionText={individualAwardsCaption} />
                   )}
                   {honorRollScore !== null && (
-                    <AwardItem label="Honor Roll" score={honorRollScore} noCorrectText={t('noCorrectPredictions')} />
+                    <AwardItem label={t('honorRollLabel')} score={honorRollScore} captionText={honorRollCaption} />
                   )}
                 </Box>
               </Box>
