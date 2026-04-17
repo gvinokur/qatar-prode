@@ -5,6 +5,7 @@ import {
   getLatestTwoGroupRankingSnapshots,
   findGroupsForUsers,
   getLatestRankingsForGroup,
+  getLatestRankingsForGroupWithChange,
 } from '../../app/db/group-ranking-repository';
 import { db } from '../../app/db/database';
 import { createMockSelectQuery, createMockInsertQuery } from './mock-helpers';
@@ -326,6 +327,91 @@ describe('Group Ranking Repository', () => {
         '=',
         20260602
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getLatestRankingsForGroupWithChange
+  // ---------------------------------------------------------------------------
+  describe('getLatestRankingsForGroupWithChange', () => {
+    it('returns empty array when group has no snapshots', async () => {
+      const dateQuery = createMockSelectQuery([]);
+      mockDb.selectFrom.mockReturnValue(dateQuery as any);
+
+      const result = await getLatestRankingsForGroupWithChange(group.id, tournament.id);
+
+      expect(result).toEqual([]);
+      expect(mockDb.selectFrom).toHaveBeenCalledWith('group_rankings');
+    });
+
+    it('returns all users with previousRank: null when only one snapshot date exists', async () => {
+      const dateQuery = createMockSelectQuery([{ snapshot_date: 20260601 }]);
+      const latestQuery = createMockSelectQuery([
+        { user_id: user.id, rank: 1, score: 100 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(latestQuery as any);
+
+      const result = await getLatestRankingsForGroupWithChange(group.id, tournament.id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ userId: user.id, currentRank: 1, previousRank: null, currentScore: 100 });
+    });
+
+    it('returns correct currentRank and previousRank when two snapshot dates exist', async () => {
+      const dateQuery = createMockSelectQuery([
+        { snapshot_date: 20260602 },
+        { snapshot_date: 20260601 },
+      ]);
+      const latestQuery = createMockSelectQuery([
+        { user_id: user.id, rank: 1, score: 110 },
+        { user_id: 'user-2', rank: 2, score: 90 },
+      ]);
+      const penultimateQuery = createMockSelectQuery([
+        { user_id: user.id, rank: 2 },
+        { user_id: 'user-2', rank: 1 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(latestQuery as any)
+        .mockReturnValueOnce(penultimateQuery as any);
+
+      const result = await getLatestRankingsForGroupWithChange(group.id, tournament.id);
+
+      expect(result).toHaveLength(2);
+      const entry1 = result.find(r => r.userId === user.id)!;
+      const entry2 = result.find(r => r.userId === 'user-2')!;
+      // user improved from rank 2 → rank 1
+      expect(entry1).toEqual({ userId: user.id, currentRank: 1, previousRank: 2, currentScore: 110 });
+      // user-2 dropped from rank 1 → rank 2
+      expect(entry2).toEqual({ userId: 'user-2', currentRank: 2, previousRank: 1, currentScore: 90 });
+    });
+
+    it('assigns previousRank: null to users absent from the penultimate snapshot', async () => {
+      const dateQuery = createMockSelectQuery([
+        { snapshot_date: 20260602 },
+        { snapshot_date: 20260601 },
+      ]);
+      const latestQuery = createMockSelectQuery([
+        { user_id: user.id, rank: 1, score: 100 },
+        { user_id: 'user-new', rank: 2, score: 60 },
+      ]);
+      // user-new is absent from penultimate snapshot (new member)
+      const penultimateQuery = createMockSelectQuery([
+        { user_id: user.id, rank: 1 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(latestQuery as any)
+        .mockReturnValueOnce(penultimateQuery as any);
+
+      const result = await getLatestRankingsForGroupWithChange(group.id, tournament.id);
+
+      const newEntry = result.find(r => r.userId === 'user-new')!;
+      expect(newEntry.previousRank).toBeNull();
+      const existingEntry = result.find(r => r.userId === user.id)!;
+      expect(existingEntry.previousRank).toBe(1);
     });
   });
 });

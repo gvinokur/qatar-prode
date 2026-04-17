@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ---
 
@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/leaderboard/types.ts
 Type definitions for leaderboard UI including user stats, view props, card props, and rank change indicators.
 
-- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser includes `badges?: Badge[]`, `latestSnapshotPoints?: number`, `penultimateSnapshotPoints?: number` (replaces `yesterdayTotalPoints` removed in Story #277). LeaderboardCardsProps and LeaderboardViewProps include `tournamentBadgeConfig?: TournamentBadgeConfig` and `historyData?: ScoreHistoryResult`. LeaderboardCardProps includes `badges?: Badge[]`.
+- **No default exports** — Type definitions only (LeaderboardUser, LeaderboardViewProps, LeaderboardCardsProps, LeaderboardCardProps, RankChangeIndicatorProps, LeaderboardShareHandle). Re-exports Badge and TournamentBadgeConfig from badge-calculator.ts. LeaderboardUser includes `badges?: Badge[]`, `latestSnapshotPoints?: number`, `penultimateSnapshotPoints?: number` (replaces `yesterdayTotalPoints` removed in Story #277). LeaderboardCardsProps and LeaderboardViewProps include `tournamentBadgeConfig?: TournamentBadgeConfig`, `historyData?: ScoreHistoryResult`, and `materializedRanks?: Map<string, { currentRank: number; rankChange: number }>` (added Story #320). `previousScores?: unknown[]` removed from LeaderboardCardsProps (was unused dead prop). LeaderboardCardProps includes `badges?: Badge[]`.
 
 ### app/components/leaderboard/BadgeRow.tsx
 Reusable badge display component rendering a flex row of emoji badges with tooltips.
@@ -23,7 +23,7 @@ Reusable badge display component rendering a flex row of emoji badges with toolt
 ### app/components/leaderboard/LeaderboardView.tsx
 Simple passthrough component — wraps LeaderboardCards with no tab logic. [Client]
 
-- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders LeaderboardCards directly with all props passed through (scores, currentUserId, tournament, groupName, joinUrl, themeColor, shareRef, tournamentBadgeConfig, historyData). No tab UI — history navigation is handled by AdminTabs in the parent page (Story #272 Amendment 1).
+- **LeaderboardView(props: LeaderboardViewProps)**: `JSX.Element` — [Client] Renders LeaderboardCards directly with all props passed through (scores, currentUserId, tournament, groupName, joinUrl, themeColor, shareRef, tournamentBadgeConfig, historyData, materializedRanks). No tab UI — history navigation is handled by AdminTabs in the parent page (Story #272 Amendment 1).
   Renders: LeaderboardCards
 
 ### app/components/leaderboard/LeaderboardCard.tsx
@@ -36,8 +36,8 @@ Expandable leaderboard card for individual user with collapsible detailed stats 
 ### app/components/leaderboard/LeaderboardCards.tsx
 Cards layout wrapper managing leaderboard state (expanded cards, comparisons, ranking animations). Implements sharing modal for leaderboard and personal highlights.
 
-- **LeaderboardCards(props: LeaderboardCardsProps)**: `JSX.Element` — [Client] Orchestrates leaderboard UI with expansion state, rank calculation with change indicators, head-to-head comparisons, and social sharing. Uses LayoutGroup for framer-motion animations. Renders off-screen LeaderboardTemplate and PersonalHighlightTemplate for image sharing. Computes badgeMap via useMemo from calculateBadges; builds rankHistoryMap from historyData.userHistories (when present) and sets rankHistory on each UserBadgeInput to enable time-dimension badges (Story #274).
-  Calls: calculateRanks, calculateRanksWithChange (rank-calculator), calculateBadges (badge-calculator)
+- **LeaderboardCards(props: LeaderboardCardsProps)**: `JSX.Element` — [Client] Orchestrates leaderboard UI with expansion state, rank assignment from materialized data, rank-change indicators, head-to-head comparisons, and social sharing. Uses LayoutGroup for framer-motion animations. Renders off-screen LeaderboardTemplate and PersonalHighlightTemplate for image sharing. Computes badgeMap via useMemo from calculateBadges; builds rankHistoryMap from historyData.userHistories (when present). Rank and rankChange are sourced from `materializedRanks` prop (Story #320); falls back to positional rank (index + 1) when map is empty/undefined. Removed: calculateRanks, calculateRanksWithChange calls.
+  Calls: calculateBadges (badge-calculator)
   Uses: useTranslations('groups.sharing'), useState, useMemo, useCallback, createPortal
   Renders: LeaderboardCard, HeadToHeadDialog, SharePreviewModal, LeaderboardTemplate, PersonalHighlightTemplate
 

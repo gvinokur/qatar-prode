@@ -13,15 +13,14 @@ export default function LeaderboardView({
   shareRef,
   tournamentBadgeConfig,
   historyData,
+  materializedRanks,
 }: LeaderboardViewProps) {
-  const previousScores = undefined
   const tournamentId = (tournament as any)?.id as string | undefined
 
   return (
     <LeaderboardCards
       scores={scores}
       currentUserId={currentUserId}
-      previousScores={previousScores}
       tournamentId={tournamentId}
       groupName={groupName}
       joinUrl={joinUrl}
@@ -29,6 +28,7 @@ export default function LeaderboardView({
       shareRef={shareRef}
       tournamentBadgeConfig={tournamentBadgeConfig}
       historyData={historyData}
+      materializedRanks={materializedRanks}
     />
   )
 }

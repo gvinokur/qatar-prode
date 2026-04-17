@@ -101,6 +101,66 @@ export async function getLatestRankingsForGroup(
 }
 
 /**
+ * Returns all users' ranks at the latest snapshot for a group+tournament, with
+ * each user's rank at the penultimate snapshot for rank-change computation.
+ * Three-step: (1) get the two most-recent distinct snapshot_dates, (2) fetch all
+ * user ranks at the latest date, (3) fetch all user ranks at the penultimate date
+ * (if it exists) and join.
+ * Returns empty array when no snapshots exist.
+ */
+export async function getLatestRankingsForGroupWithChange(
+  groupId: string,
+  tournamentId: string
+): Promise<{ userId: string; currentRank: number; previousRank: number | null; currentScore: number }[]> {
+  // Step 1: Get the two most-recent distinct snapshot_dates
+  const dateRows = await db
+    .selectFrom('group_rankings')
+    .select('snapshot_date')
+    .where('group_id', '=', groupId)
+    .where('tournament_id', '=', tournamentId)
+    .distinct()
+    .orderBy('snapshot_date', 'desc')
+    .limit(2)
+    .execute()
+
+  if (dateRows.length === 0) return []
+
+  const latestDate = dateRows[0].snapshot_date
+  const penultimateDate = dateRows[1]?.snapshot_date ?? null
+
+  // Step 2: Fetch all user ranks at the latest date
+  const latestRows = await db
+    .selectFrom('group_rankings')
+    .select(['user_id', 'rank', 'score'])
+    .where('group_id', '=', groupId)
+    .where('tournament_id', '=', tournamentId)
+    .where('snapshot_date', '=', latestDate)
+    .execute()
+
+  if (latestRows.length === 0) return []
+
+  // Step 3: Fetch penultimate rows and build a lookup map
+  let penultimateMap = new Map<string, number>()
+  if (penultimateDate !== null) {
+    const penultimateRows = await db
+      .selectFrom('group_rankings')
+      .select(['user_id', 'rank'])
+      .where('group_id', '=', groupId)
+      .where('tournament_id', '=', tournamentId)
+      .where('snapshot_date', '=', penultimateDate)
+      .execute()
+    penultimateMap = new Map(penultimateRows.map(r => [r.user_id, r.rank]))
+  }
+
+  return latestRows.map(r => ({
+    userId: r.user_id,
+    currentRank: r.rank,
+    previousRank: penultimateMap.get(r.user_id) ?? null,
+    currentScore: r.score,
+  }))
+}
+
+/**
  * Returns distinct group IDs where at least one member (owner or participant)
  * is in the given userIds list. Used to scope recalculation to only affected groups.
  */

@@ -27,6 +27,7 @@ import type { TournamentBadgeConfig } from "../../../components/leaderboard/type
 import { getScoreHistoryForGroup } from '../../../actions/score-history-actions';
 import { computeSnapshotScores } from '../../../utils/score-history-utils'
 import { buildPageMetadata } from '../../../utils/metadata-utils';
+import { getMaterializedLeaderboardRanks } from '../../../actions/group-ranking-actions';
 
 type Props = {
   readonly params: Promise<{
@@ -81,10 +82,11 @@ export default async function FriendsGroup(props : Props){
   const now = new Date()
   const tournamentData = await Promise.all(
     tournaments.map(async (tournament) => {
-      const [scores, qualifiedTeamsResult, tournamentStartDate] = await Promise.all([
+      const [scores, qualifiedTeamsResult, tournamentStartDate, materializedRanks] = await Promise.all([
         getUserScoresForTournament(allParticipants, tournament.id),
         findQualifiedTeams(tournament.id),
         getTournamentStartDate(tournament.id),
+        getMaterializedLeaderboardRanks(prodeGroup.id, tournament.id),
       ])
       const badgeConfig: TournamentBadgeConfig = {
         tournamentStarted: now >= tournamentStartDate,
@@ -94,7 +96,7 @@ export default async function FriendsGroup(props : Props){
         individualAwardPoints: tournament.individual_award_points ?? 0,
         totalQualifyingSlots: qualifiedTeamsResult.teams.length,
       }
-      return { tournamentId: tournament.id, scores, badgeConfig }
+      return { tournamentId: tournament.id, scores, badgeConfig, materializedRanks }
     })
   )
 
@@ -103,6 +105,9 @@ export default async function FriendsGroup(props : Props){
   )
   const tournamentBadgeConfigs = Object.fromEntries(
     tournamentData.map(({ tournamentId, badgeConfig }) => [tournamentId, badgeConfig])
+  )
+  const materializedRanksByTournament = Object.fromEntries(
+    tournamentData.map(({ tournamentId, materializedRanks }) => [tournamentId, materializedRanks])
   )
 
   let logoUrl = getThemeLogoUrl(prodeGroup.theme)
@@ -230,6 +235,7 @@ export default async function FriendsGroup(props : Props){
                   themeColor={prodeGroup.theme?.primary_color ?? undefined}
                   tournamentBadgeConfigs={tournamentBadgeConfigs}
                   historyByTournament={historyByTournament}
+                  materializedRanksByTournament={materializedRanksByTournament}
                 />
               }
               historyContent={

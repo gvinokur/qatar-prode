@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ---
 
@@ -351,6 +351,8 @@ Repository for the `group_rankings` table. Stores daily rank snapshots per user/
 - **getLatestTwoGroupRankingSnapshots(userId: string, groupId: string, tournamentId: string)**: `Promise<GroupRanking[]>` — Two most recent snapshots for a user/group/tournament, ordered `snapshot_date` descending, LIMIT 2. Used to derive rank change.
   Calls: db
 - **getLatestRankingsForGroup(groupId: string, tournamentId: string)**: `Promise<{ userId: string; userName: string; rank: number; score: number }[]>` — All users' ranks at the latest snapshot date for a group+tournament, ordered by rank ascending. Two-step query: gets max `snapshot_date` first, then JOINs with `users` (COALESCE nickname/email as display name). Returns empty array if no snapshots exist.
+  Calls: db
+- **getLatestRankingsForGroupWithChange(groupId: string, tournamentId: string)**: `Promise<{ userId: string; currentRank: number; previousRank: number | null; currentScore: number }[]>` — All users' ranks at the latest snapshot date, paired with each user's rank at the penultimate snapshot date (for rank-change computation). Three-step query: get 2 most-recent distinct dates, fetch latest rows, fetch penultimate rows (if exists), join via Map. Returns empty array when no snapshots exist; `previousRank` is null for users absent from the penultimate snapshot.
   Calls: db
 - **findGroupsForUsers(userIds: string[])**: `Promise<{ id: string }[]>` — Distinct group IDs where at least one member (owner or participant) is in `userIds`. Returns empty array for empty input. Uses LEFT JOIN on `prode_group_participants`.
   Calls: db
