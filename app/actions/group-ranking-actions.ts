@@ -98,7 +98,7 @@ export async function getMaterializedLeaderboardRanks(
     for (const row of rows) {
       result.set(row.userId, {
         currentRank: row.currentRank,
-        rankChange: row.previousRank !== null ? row.previousRank - row.currentRank : 0,
+        rankChange: row.previousRank === null ? 0 : row.previousRank - row.currentRank,
       })
     }
     return result
