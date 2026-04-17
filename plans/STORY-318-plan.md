@@ -12,7 +12,7 @@ Add a 'Recent Results' widget to the user's hub that summarizes their latest pre
 ## Acceptance Criteria
 - [ ] Displays a compact list of the latest 5 scoring events (Games, Qualified Teams, Tournament Awards)
 - [ ] Includes both successful predictions (with points/boosts) and failed predictions (0 pts)
-- [ ] Categories are separated by clear headers (Partidos Recientes, Recientemente Clasificados, Premios del Torneo)
+- [ ] Categories are separated by clear headers (Partidos Recientes, Equipos Clasificados, Premios del Torneo)
 - [ ] Game results include the score and a status message (e.g., 'Resultado exacto')
 - [ ] Qualification results show how many teams the user guessed correctly (e.g., 'Acertaste 3 de 4 equipos')
 - [ ] Tournament awards show score summary when awards have been entered
@@ -37,20 +37,48 @@ Data sources:
 
 "Ver estadísticas completas" links to `/${locale}/tournaments/${tournamentId}/stats`.
 
-## Visual Prototype
+## Widget States
 
+The widget renders 3 distinct states based on what data is available:
+
+**State 1 — Empty** (no scored games yet):
+```
+┌─────────────────────────────────────────┐
+│  ÚLTIMOS RESULTADOS                     │
+├─────────────────────────────────────────┤
+│           ⚽                            │
+│  Aún no tienes resultados recientes.   │
+│  Las novedades aparecerán aquí.        │
+└─────────────────────────────────────────┘
+```
+
+**State 2 — Games only** (games scored, QT/awards not yet):
 ```
 ┌─────────────────────────────────────────┐
 │  ÚLTIMOS RESULTADOS                     │
 ├─────────────────────────────────────────┤
 │ PARTIDOS RECIENTES                      │
 │  ✅  Argentina 2–1 Francia    +3 pts    │
-│      Resultado exacto       hace 4h  ⚡+1│
+│      Resultado exacto               ⚡+1│
 │  ─────────────────────────────────────  │
 │  ❌  Brasil 0–2 Croacia       0 pts     │
-│      Predicción: 1–0         ayer       │
+│      Predicción: 1–0                    │
 │                                         │
-│ RECIENTEMENTE CLASIFICADOS              │
+│  [Ver estadísticas completas]           │
+└─────────────────────────────────────────┘
+```
+No QT or awards sections shown — they appear only once scored.
+
+**State 3 — All sections** (games + QT + awards scored):
+```
+┌─────────────────────────────────────────┐
+│  ÚLTIMOS RESULTADOS                     │
+├─────────────────────────────────────────┤
+│ PARTIDOS RECIENTES                      │
+│  ✅  Argentina 2–1 Francia    +3 pts ⚡+1│
+│  ❌  Brasil 0–2 Croacia       0 pts     │
+│                                         │
+│ EQUIPOS CLASIFICADOS                    │
 │  ✅  Equipos clasificados     +8 pts    │
 │      Acertaste 3 de 4 equipos           │
 │                                         │
@@ -60,16 +88,11 @@ Data sources:
 │                                         │
 │  [Ver estadísticas completas]           │
 └─────────────────────────────────────────┘
-
-Empty state:
-┌─────────────────────────────────────────┐
-│  ÚLTIMOS RESULTADOS                     │
-├─────────────────────────────────────────┤
-│           ⚽                            │
-│  Aún no tienes resultados recientes.   │
-│  Las novedades aparecerán aquí.        │
-└─────────────────────────────────────────┘
 ```
+
+**Key design note:** QT and awards sections do NOT show timestamps — the `qualified_teams_score` and `individual_awards_score` columns are materialized aggregates with no update timestamp; we cannot determine whether they were scored recently or weeks ago. The sections simply appear once non-null, without any "hace X días" label.
+
+Game items also do not show timestamps (removes the need to compute relative time from `game_date`). The mockup's "hace 4 horas / ayer" display was removed from scope for this reason.
 
 ## Files to Create
 
@@ -201,6 +224,7 @@ export interface RecentResultsData {
   Uses: useTranslations('hub'), MUI Card/List/Button
   Tests:
   - renders empty state when recentGames is empty and QT/awards are null
+  - renders games-only state when recentGames populated but QT/awards are null
   - renders game items with ✅/❌ icons based on basePoints > 0
   - renders boost chip when boostType is set
   - renders QT section only when qualifiedTeamsScore is not null
@@ -216,7 +240,7 @@ export interface RecentResultsData {
 "recentResults": {
   "title": "Latest Results",
   "recentGames": "Recent Games",
-  "recentlyQualified": "Recently Qualified",
+  "qualifiedTeams": "Qualified Teams",
   "tournamentAwards": "Tournament Awards",
   "exactResult": "Exact result",
   "correctResult": "Correct result",
