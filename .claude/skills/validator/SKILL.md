@@ -1,6 +1,6 @@
 ---
 name: validator
-description: Quality analysis skill — invoke when user says "check quality gates" or "sonar results". Fetches SonarCloud issues, delegates to Gemini Explainer agent, writes human-readable explanation to tmp/sonar-explanation.md, presents findings, and awaits user authorization before fixing anything.
+description: Quality analysis skill — invoke when user says "check quality gates" or "sonar results". Fetches SonarCloud issues, writes human-readable explanation to tmp/sonar-explanation.md, presents findings, and awaits user authorization before fixing anything.
 context: fork
 agent: general-purpose
 ---
@@ -17,9 +17,9 @@ Read({ file_path: contextFile })
 ```
 
 Extract from the context file:
-- `STORY_NUMBER` — used in Gemini output file naming (`/tmp/gemini-story-${STORY_NUMBER}-sonar-1.json`)
+- `STORY_NUMBER` — used in output file naming
 - `PR_NUMBER` — used to fetch SonarCloud results
-- `WORKTREE_PATH` — used for `PROJECT_ROOT` resolution
+- `WORKTREE_PATH` — used for project root resolution
 
 **If you don't know these values** (fresh session after `/compact` or `/clear`):
 ```bash
@@ -41,69 +41,24 @@ Read that file to bootstrap your session.
 
 ```bash
 SONAR_OUTPUT=$(./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER})
+echo "${SONAR_OUTPUT}"
 ```
 
 ---
 
-## Step 2: Delegate to Gemini Explainer
+## Step 2: Analyze and Write Explanation
+
+Read and analyze the SonarCloud output. Write a structured explanation to `tmp/sonar-explanation.md`:
 
 ```bash
 PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
 mkdir -p ${PROJECT_ROOT}/tmp
-
-gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/explainer-agent.md)
-
----
-PR_NUMBER: ${PR_NUMBER}
-SONAR_OUTPUT:
-${SONAR_OUTPUT}
-COVERAGE_THRESHOLD: 80
-" > /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
-jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 
----
-
-## Step 2.5: Quality Assessment
-
-Apply the **Quality Assessment Loop** (see `/gemini`). Expected sections in `tmp/sonar-explanation.md`:
-- Quality Gate status (PASS/FAIL)
-- Coverage metrics
-- Issues by Severity, each with a concrete fix suggestion
-
-If any issue lacks a concrete fix suggestion:
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "The following issues lack concrete fix suggestions: [list them]. Please provide specific fix guidance for each." \
-  > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
-```
-Maximum 2 follow-up attempts.
+Write `${PROJECT_ROOT}/tmp/sonar-explanation.md` with:
+- **Quality Gate status**: PASS or FAIL
+- **Coverage metrics**: new code coverage %
+- **Issues by severity**: for each issue — file, line, rule, description, and a concrete fix suggestion
 
 ---
 
@@ -133,7 +88,7 @@ Follow the fix workflow from `/code-reviewer` Section 5:
 - Run tests to verify: `npm --prefix ${WORKTREE_PATH} run test`
 - Commit and push
 
-Apply issues in the priority order from `tmp/sonar-explanation.md`.
+Apply issues in priority order (BLOCKER → CRITICAL → MAJOR → MINOR).
 
 ---
 
@@ -143,36 +98,10 @@ After fixes are committed and pushed:
 
 ```bash
 ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
-```
-
-Then fetch the new sonar output and resume the existing session — do not re-run from Step 1:
-
-```bash
 SONAR_OUTPUT=$(./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER})
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-sonar-1.json)
-
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "Here is the updated SonarCloud output after fixes were applied:
-
-${SONAR_OUTPUT}
-
-Identify which issues remain, which were resolved, and update your analysis. Provide fix suggestions for any remaining issues." \
-  > /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json
-jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-sonar-2.json > ${PROJECT_ROOT}/tmp/sonar-explanation.md
 ```
 
-Then loop back to **Step 3** (re-present the updated explanation). Re-run until Quality Gate shows **PASS**.
+Re-analyze the new output and update `tmp/sonar-explanation.md`. Loop back to **Step 3** (re-present the updated explanation). Re-run until Quality Gate shows **PASS**.
 
 ---
 
@@ -180,5 +109,3 @@ Then loop back to **Step 3** (re-present the updated explanation). Re-run until 
 
 - `tmp/` is gitignored — `sonar-explanation.md` is ephemeral, regenerated each run
 - If `tmp/` is not yet in `.gitignore`, add it before the first run
-- Gemini requires `.gemini/GEMINI.md` to exist at the project root
-- `PROJECT_ROOT` resolves portably via `git worktree list` — works from any worktree

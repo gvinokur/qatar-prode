@@ -1,6 +1,6 @@
 ---
 name: ui-ux-designer
-description: UI/UX design skill — invoke when a feature needs high-fidelity mockups using real MUI v7 components. Optionally uses Playwright to capture current app state, delegates to Gemini for multimodal MUI component analysis, then produces a standalone HTML file (React + MUI v7 CDN, no build step) saved to mockups/. Can be invoked standalone or by /ticket-creator.
+description: UI/UX design skill — invoke when a feature needs high-fidelity mockups using real MUI v7 components. Optionally uses Playwright to capture current app state, then produces a standalone HTML file (React + MUI v7 CDN, no build step) saved to mockups/. Can be invoked standalone or by /ticket-creator.
 context: inline
 ---
 
@@ -164,145 +164,29 @@ If no screenshots are available at all, proceed to Step 2 — Gemini can design 
 
 ---
 
-## Step 2: Delegate to Gemini for MUI Component Spec
+## Step 2: Design the MUI Component Spec
 
-```bash
-PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
-FEATURE="[feature description from user or /ticket-creator]"
-THEME_CONFIG=$(cat ${PROJECT_ROOT}/docs/theme-variants.md)
+Based on the feature description, screenshot (if available), and existing MUI patterns in the codebase, design:
+- **Layout Blueprint**: overall structure and component arrangement
+- **MUI Component Inventory**: specific MUI components with key props
+- **States to Show**: loading, empty, populated, error, etc.
+- **Theme Token Mapping**: which tokens to use for colors/spacing
+- **JSX Scaffold**: skeleton JSX structure
 
-# Tag: use story number if available, otherwise derive a slug from the feature description
-UI_TAG="${STORY_NUMBER:+story-${STORY_NUMBER}-ui}${STORY_NUMBER:-ui-$(echo ${FEATURE} | tr ' ' '-' | tr '[:upper:]' '[:lower:]' | cut -c1-30)}"
-
-# With screenshot(s):
-gemini \
-  --yolo -m gemini-2.5-flash \
-  -o json \
-  -i /tmp/current-ui-state.png \
-  -p "$(cat ${PROJECT_ROOT}/.ai/agents/ui-ux-designer-agent.md)
-
----
-FEATURE_DESCRIPTION:
-${FEATURE}
-
-THEME_CONFIG:
-${THEME_CONFIG}
-
-SCREENSHOTS:
-Attached: current state of [describe the page/component shown]
-" > /tmp/gemini-${UI_TAG}-1.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-${UI_TAG}-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
-jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
-
-# Without screenshots (description-only mode):
-gemini \
-  --yolo -m gemini-2.5-flash \
-  -o json \
-  -p "$(cat ${PROJECT_ROOT}/.ai/agents/ui-ux-designer-agent.md)
-
----
-FEATURE_DESCRIPTION:
-${FEATURE}
-
-THEME_CONFIG:
-${THEME_CONFIG}
-
-SCREENSHOTS:
-None provided. Design from scratch using FEATURE_DESCRIPTION and THEME_CONFIG.
-" > /tmp/gemini-${UI_TAG}-1.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-${UI_TAG}-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
-jq -r '.response' /tmp/gemini-${UI_TAG}-1.json > /tmp/design-spec.md
-```
+Reference `docs/theme-variants.md` for the project's theme configuration if needed.
 
 ---
 
-## Step 2.5: Quality Assessment
+## Step 3: Review Design with User
 
-Apply the **Quality Assessment Loop** (see `/gemini`). Expected sections in `/tmp/design-spec.md`:
-- Layout Blueprint (overall structure and component arrangement)
-- MUI Component Inventory (specific MUI components with key props)
-- States to Show (loading, empty, populated, error, etc.)
-- Theme Token Mapping (which tokens to use for colors/spacing)
-- JSX Scaffold (skeleton JSX structure)
-
-**Images are expensive context** — if any section is missing, always resume rather than re-sending screenshots:
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "The spec is missing [section(s)]. Please provide: [specific request]. You already have the screenshots in context." \
-  > /tmp/gemini-${UI_TAG}-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-${UI_TAG}-2.json
-jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec.md
-```
-Maximum 2 follow-up attempts.
-
----
-
-## Step 3: Review MUI Component Spec with User
-
-Read `/tmp/design-spec.md` and present the key decisions:
+Present the key design decisions:
 - Proposed MUI component hierarchy
 - States to be shown in the mockup
 - Any design decisions that deviate from existing UI patterns
 
 Use AskUserQuestion to confirm or adjust **before** writing the HTML. One round is typical.
 
-**Design iteration path:** When the user requests changes after reviewing the spec or the rendered mockup — layout adjustments, component swaps, color changes, new states, anything — use `--resume-chat` rather than a fresh Gemini call. Gemini retains the full screenshot and theme context without re-sending images.
-
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-${UI_TAG}-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "[Only the change request. Example: 'Change the card layout to a horizontal list. Replace the Avatar with a numbered rank badge. Add a trending-up/down icon next to the score.']" \
-  > /tmp/gemini-${UI_TAG}-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-${UI_TAG}-2.json
-jq -r '.response' /tmp/gemini-${UI_TAG}-2.json > /tmp/design-spec-v2.md
-```
-
-Save the revised mockup as `mockups/[feature-slug]-mockup-v2.html`.
+For revision requests after reviewing the rendered mockup, update your design spec and revise the HTML directly. Save the revised mockup as `mockups/[feature-slug]-mockup-v2.html`.
 
 **Only make a fresh call** (new `-o json` with a new `UI_TAG`) if the design scope changes fundamentally — entirely new screens, a different feature entirely, or the session has gone off-track.
 

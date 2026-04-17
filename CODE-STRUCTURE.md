@@ -3,7 +3,7 @@
 Living map of all production source files, their exported functions/components, and call relationships.
 
 **Format guide:** `docs/claude/code-structure.md`
-**Last updated:** 2026-03-28
+**Last updated:** 2026-04-15
 
 ---
 
@@ -23,6 +23,12 @@ adds a new mutation or query, or needs to understand what auth/localization/vali
 a given action applies before calling the database. Each action shows which repositories
 and utilities it calls. This is the primary integration point between UI components and
 the database.
+
+### app/actions/hub-actions.ts
+Provides data for the Tournament Hub's "Action Center" carousel, focusing on urgent, unpredicted games.
+
+- **getHubPredictions(tournamentId, locale)**: `Promise<{ urgentPredictions: GamePredictionForHub[]; fallbackGames: GamePredictionForHub[] }>` — Fetches urgent, unpredicted games for the hub action center, with a fallback list of upcoming games.
+  Calls: auth, getTranslations, findTournamentById, getAllTournamentGames, applyLocalizationBatch, findGameGuessesByUserId, calculateDeadline, formatCountdown
 
 ### [docs/code-structure/utils.md](docs/code-structure/utils.md)
 All utility functions (`app/utils/`). Read this when looking for existing calculation or

@@ -198,101 +198,13 @@ Return: full issue details and relevant code patterns found.`
 })
 ```
 
-Wait for both agents to return before proceeding to Step 2.5 (Gemini delegation).
+Wait for both agents to return before proceeding to drafting the plan.
 
 **Clarify requirements:**
 - Use AskUserQuestion tool for ambiguities
 - Confirm technical approach options
 - Validate assumptions
 - Get decisions on implementation choices
-
-### 2.5. Delegate Analysis to Gemini Architect (MANDATORY before drafting plan)
-
-After gathering context in Step 2, call Gemini to produce the Story Definition + File Impact Map + Mid-Level Design scaffold. **Do this before writing a single line of the plan document.**
-
-```bash
-PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
-STORY_CONTENT=$(gh issue view ${STORY_NUMBER} --json number,title,body --jq '.body')
-CODE_STRUCTURE=$(cat ${WORKTREE_PATH}/CODE-STRUCTURE.md)
-# Read the layer files relevant to this story's domain
-LAYER_FILES=$(cat ${WORKTREE_PATH}/docs/code-structure/actions.md \
-              ${WORKTREE_PATH}/docs/code-structure/db.md)
-
-gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/architect-agent.md)
-
----
-STORY_CONTENT:
-${STORY_CONTENT}
-
-CODE_STRUCTURE:
-${CODE_STRUCTURE}
-
-RELEVANT_LAYER_FILES:
-${LAYER_FILES}
-" > /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
-# Note: this call can take 3-5 minutes for large codebases — use timeout: 300000 in Bash tool
-
-# Extract Gemini JSON — scan past any MCP/tool-init output to find the object containing session_id
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-architect-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
-GEMINI_DRAFT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
-```
-
-**Adjust `LAYER_FILES`** based on what the story touches (add components, utils, pages layer files if relevant).
-
-`GEMINI_DRAFT` will contain:
-- **Story Definition** (Objective, Acceptance Criteria, Out of Scope)
-- **File Impact Map** (files to create/modify, layers, notes)
-- **Architecture Concerns** (risks and constraints)
-- **Mid-Level Design Scaffold** (function signatures using real types, Calls:, test scenarios)
-- **Call Graph Changes** (YES/NO + description)
-
-#### Quality Assessment
-
-Apply the **Quality Assessment Loop** (see `/gemini`). Expected output sections for this agent:
-- Story Definition (Objective, Acceptance Criteria, Out of Scope)
-- File Impact Map
-- Architecture Concerns
-- Mid-Level Design Scaffold
-- Call Graph Changes
-
-If any section is missing or vague, resume with:
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "The response is missing [section]. Please provide it." \
-  > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
-```
-Maximum 2 follow-up attempts. If still incomplete, proceed and note the gap.
-
-Use `GEMINI_DRAFT` as the starting scaffold for the plan. Claude's job is to:
-1. Validate the analysis against the actual code (Gemini may occasionally miss context)
-2. Add Visual Prototypes (Step 3.1) if UI changes are involved — Gemini doesn't write HTML
-3. Add Testing Strategy and Validation Considerations sections
-4. Add any clarifications from `AskUserQuestion` rounds
 
 ### 3. Create Plan Document
 
@@ -747,27 +659,6 @@ Read the context file for WORKTREE_PATH, STORY_NUMBER, and BRANCH_NAME. Then exe
    Then follow **Section 2** of the loaded skill for the exact commit template. If unsure, STOP and tell the user: "I need to commit plan updates but need the git-ops template — please invoke `/git-ops`."
 
 3. **Repeat cycle** until user approves with "execute the plan"
-
-**Resume path for architectural reconsideration:** If feedback in this step requires architectural rethinking (changed requirements, new constraints, wrong approach), do NOT make a fresh Gemini call. Use:
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-architect-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "[only the feedback delta — what changed and why]" \
-  > /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-architect-2.json
-GEMINI_DRAFT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-architect-2.json)
-```
-Gemini retains the original story and codebase context. Send only the new constraints.
 
 **YOU NEVER EXIT PLAN MODE during this iteration cycle. Subagents handle all git operations.**
 

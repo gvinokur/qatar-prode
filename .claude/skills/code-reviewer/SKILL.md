@@ -399,86 +399,25 @@ This removes the DRAFT status, which triggers SonarCloud analysis. Then proceed 
 git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only | grep -E '^app/'
 ```
 
-#### Step B: Delegate accuracy audit to Gemini Librarian
+#### Step B: Audit layer files directly
 
-Collect all inputs and pass them to Gemini — it scans all changed files in a single call and identifies every instance of drift.
+For each changed source file, read it alongside its layer file entry and verify accuracy:
 
 ```bash
-PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
+# Get the list of changed source files
 CHANGED_FILES=$(git -C ${WORKTREE_PATH} diff origin/main..HEAD --name-only | grep -E '^app/')
-SOURCE_CONTENTS=$(for f in ${CHANGED_FILES}; do
-  echo "=== ${f} ==="
-  cat ${WORKTREE_PATH}/${f}
-done)
-COMMIT_LOG=$(git -C ${WORKTREE_PATH} log origin/main..HEAD --oneline)
-LAYER_CONTENTS=$(cat ${WORKTREE_PATH}/docs/code-structure/db.md \
-                 ${WORKTREE_PATH}/docs/code-structure/actions.md \
-                 ${WORKTREE_PATH}/docs/code-structure/utils.md \
-                 ${WORKTREE_PATH}/docs/code-structure/pages.md \
-                 ${WORKTREE_PATH}/docs/code-structure/components/*.md)
-
-gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/librarian-agent.md)
-
----
-CHANGED_FILES:
-${CHANGED_FILES}
-
-SOURCE_CONTENTS:
-${SOURCE_CONTENTS}
-
-LAYER_FILE_CONTENTS:
-${LAYER_CONTENTS}
-
-COMMIT_LOG:
-${COMMIT_LOG}
-" > /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-audit-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
-AUDIT_RESULT=$(jq -r '.response'  /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
+echo "${CHANGED_FILES}"
 ```
 
-Read `AUDIT_RESULT`:
-- If verdict is **`DRIFT FOUND`**: apply each correction listed in the Drift Found section directly to the layer files using Edit tool
-- If verdict is **`CLEAN`**: note it explicitly — "Gemini Librarian: no documentation drift found"
+For each file in `CHANGED_FILES`:
+1. Read the source file: `Read({ file_path: "${WORKTREE_PATH}/${file}" })`
+2. Identify the corresponding layer file (db.md, actions.md, utils.md, pages.md, or components-[domain].md)
+3. Read the layer file entry for that file
+4. Compare: do all function signatures, `Calls:` lines, and `Renders:` lines match the actual code?
+5. Note any drift found
 
-#### Quality Assessment
-
-Apply the **Quality Assessment Loop** (see `/gemini`). Expected output sections for this agent:
-- Files Audited list
-- Drift Found (with specific corrections) or CLEAN verdict
-- Call Graph Assessment (YES/NO with description)
-
-If any section is missing:
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "The response is missing [section]. Please provide it." \
-  > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
-```
-Maximum 2 follow-up attempts.
+If drift is found: apply corrections directly to the layer files using the Edit tool.
+If no drift: note "no documentation drift found" explicitly.
 
 #### Step C: Apply call graph updates if flagged
 
@@ -499,34 +438,7 @@ git -C ${WORKTREE_PATH} push
 
 If no changes were needed, explicitly note "no documentation drift found" — do not skip this confirmation.
 
-#### Re-audit path
-
-After applying drift corrections from a DRIFT FOUND verdict, verify accuracy by resuming the session with only the updated layer file entries — no need to re-send all source files:
-
-```bash
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-story-${STORY_NUMBER}-audit-1.json)
-gemini --yolo -m gemini-2.5-flash --resume-chat ${SESSION_ID} -o json \
-  -p "Here are the updated layer file entries after corrections were applied:
-
-[paste only the modified entries]
-
-Do these corrections now accurately reflect the source code? Are there any remaining drift issues?" \
-  > /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-story-${STORY_NUMBER}-audit-2.json
-AUDIT_RESULT=$(jq -r '.response' /tmp/gemini-story-${STORY_NUMBER}-audit-2.json)
-```
-
-Only proceed to the checklist below once the re-audit confirms CLEAN or all remaining issues are explicitly noted.
+After applying corrections, re-read the updated layer file entries and verify they now match the source. Only proceed to the checklist below once all entries are confirmed accurate.
 
 #### Section 7.5 Checklist (must be complete before Section 8)
 

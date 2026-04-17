@@ -31,7 +31,6 @@ Each skill declares its invocation mode in frontmatter (`context: inline | fork`
 | Code Review | "code looks good" | `/code-reviewer` | inline |
 | Quality Analysis | "check quality gates" / "sonar results" | `/validator` | **fork** |
 | Git Operations | Committing plan / PR / story complete | `/git-ops` | **fork** |
-| Gemini Delegation | >30 files, non-code tasks, multimodal | `/gemini` | **fork** |
 
 ### Invoking Skills
 
@@ -54,7 +53,6 @@ Context file: ${WORKTREE_PATH}/plans/STORY-${STORY_NUMBER}-context.md`
 
 // ❌ WRONG — never load fork-mode skills into main conversation
 Skill({ skill: "git-ops" })
-Skill({ skill: "gemini" })
 Skill({ skill: "plan-reviewer" })
 ```
 
@@ -141,7 +139,6 @@ Every story has a context file at `plans/STORY-N-context.md` (in the worktree). 
 - NPM commands: test, build, lint, scripts
 - GitHub CLI: PR operations, issue management
 - Project scripts: All scripts in ./scripts/
-- Gemini CLI: `gemini *` commands (for Architect, Librarian, Explainer, Ticket Creator, UI/UX Designer agent delegation)
 
 **See:** [Permissions Guide](docs/claude/permissions.md) for details on configuration
 
@@ -175,16 +172,15 @@ cd /Users/gvinokur/Personal/qatar-prode && git pull origin main # Update main wo
 
 For detailed guidance, see:
 
-- **[Ticket Creator Skill](.claude/skills/ticket-creator/SKILL.md)** - Interactive brainstorm → GitHub issue creation; Gemini feasibility analysis (internal only); feature-level tickets
-- **[UI/UX Designer Skill](.claude/skills/ui-ux-designer/SKILL.md)** - Playwright capture + Gemini multimodal analysis → standalone React + MUI v7 CDN mockup in `mockups/`
-- **[Architect Skill](.claude/skills/architect/SKILL.md)** - Plan creation, Gemini Architect delegation (Step 2.5), plan review, PR workflow
+- **[Ticket Creator Skill](.claude/skills/ticket-creator/SKILL.md)** - Interactive brainstorm → GitHub issue creation; feature-level tickets
+- **[UI/UX Designer Skill](.claude/skills/ui-ux-designer/SKILL.md)** - Playwright screenshot capture → standalone React + MUI v7 CDN mockup in `mockups/`
+- **[Architect Skill](.claude/skills/architect/SKILL.md)** - Plan creation, plan review, PR workflow
 - **[Plan Reviewer Skill](.claude/skills/plan-reviewer/SKILL.md)** - Dual-persona plan review loop
 - **[Implementer Skill](.claude/skills/implementer/SKILL.md)** - Task definition, dependencies, execution waves, coding practices
 - **[Test Engineer Skill](.claude/skills/test-engineer/SKILL.md)** - Parallel test creation, testing conventions, requirements
-- **[Code Reviewer Skill](.claude/skills/code-reviewer/SKILL.md)** - Quality gates, SonarCloud checks, Section 7.5 pre-merge audit (delegates to Gemini Librarian)
-- **[Validator Skill](.claude/skills/validator/SKILL.md)** - Gemini-powered SonarCloud explanation → `tmp/sonar-explanation.md`; awaits fix authorization
+- **[Code Reviewer Skill](.claude/skills/code-reviewer/SKILL.md)** - Quality gates, SonarCloud checks, Section 7.5 pre-merge documentation audit
+- **[Validator Skill](.claude/skills/validator/SKILL.md)** - SonarCloud analysis → `tmp/sonar-explanation.md`; awaits fix authorization
 - **[Git Ops Skill](.claude/skills/git-ops/SKILL.md)** - Exact templates for plan commits, PR creation, story complete
-- **[Gemini Skill](.claude/skills/gemini/SKILL.md)** - Delegation heuristics, PROJECT_ROOT pattern, five agent entry points
 - **[Permissions Guide](docs/claude/permissions.md)** - Configure Claude Code permissions for autonomous operation
 - **[Subagent Workflows Guide](docs/claude/subagent-workflows.md)** - Quick reference for all subagent patterns
 - **[Git Worktrees Guide](docs/claude/worktrees.md)** - Worktree setup, management, safety checks
@@ -246,7 +242,7 @@ For detailed guidance, see:
 | Not including "CODE-STRUCTURE files to update" in TaskCreate | CODE-STRUCTURE update gets forgotten during implementation | Every TaskCreate description MUST have a "CODE-STRUCTURE files to update" section — name the exact layer files and state YES/NO for call graph | /implementer Section 2 |
 | Updating CODE-STRUCTURE.md at end of story instead of per-task | Batch updates are incomplete; function signatures may have drifted from plan | Update the layer file and call graph in the SAME COMMIT as the source change, not after | /implementer Section 2 |
 | Missing call graph update after adding a new action or cross-layer call | Call graph becomes stale and misleads future planning | Update `## Call Graph` in CODE-STRUCTURE.md whenever a new page→action→repo flow is added or an existing flow gains a new step | code-structure.md |
-| Using `Skill({ skill: "git-ops" })` or `Skill({ skill: "gemini" })` in main conversation | Loads large skill content + verbose output into context, bloating it | These skills have `context: fork` — always spawn as `Agent({ subagent_type: "general-purpose" })` with skill path in prompt | Skill Router "fork" invocation |
+| Using `Skill({ skill: "git-ops" })` in main conversation | Loads large skill content + verbose output into context, bloating it | This skill has `context: fork` — always spawn as `Agent({ subagent_type: "general-purpose" })` with skill path in prompt | Skill Router "fork" invocation |
 | Not using `/compact` between skill phases | Context accumulates across planning, implementation, review — becomes expensive | After each phase writes its context file, tell user to `/compact`; next skill reads context file cold | Skill Router "Context File Handover" |
 
 ## Development Guidelines

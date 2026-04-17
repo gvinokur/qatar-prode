@@ -1,6 +1,6 @@
 ---
 name: ticket-creator
-description: Ticket creation skill — invoke when user wants to brainstorm a new feature or problem. Interactive loop that clarifies requirements at feature/user level (never implementation), calls Gemini internally for technical context, optionally invokes /ui-ux-designer for mockups, and creates a properly-formed GitHub issue with Priority/Effort/Category fields set.
+description: Ticket creation skill — invoke when user wants to brainstorm a new feature or problem. Interactive loop that clarifies requirements at feature/user level (never implementation), optionally invokes /ui-ux-designer for mockups, and creates a properly-formed GitHub issue with Priority/Effort/Category fields set.
 context: inline
 ---
 
@@ -39,65 +39,15 @@ Keep it conversational — 2–3 questions max per round.
 
 ---
 
-## Step 2: Delegate to Gemini for Internal Context
+## Step 2: Assess Technical Feasibility
 
-Once you can identify affected domains, call Gemini to understand feasibility and scope.
-**This output is for your reasoning only — do not paste it into the ticket.**
+Based on the feature description and your understanding of the codebase (from Step 1 context), assess:
+- Is the feature technically feasible given the current stack?
+- Which layers would be affected (DB, actions, components, pages)?
+- What's the rough Effort estimate (XS/S/M/L/XL)?
+- What should be explicitly out of scope for v1?
 
-```bash
-PROJECT_ROOT=$(git worktree list --porcelain | head -1 | sed 's/^worktree //')
-# KEYWORD: 2-3 words from the feature description, kebab-cased
-# e.g., "join-requests" for "Friend group join requests"
-TICKET_KEYWORD="[derive from FEATURE_DESCRIPTION]"
-
-gemini --yolo -m gemini-2.5-flash -o json -p "$(cat ${PROJECT_ROOT}/.ai/agents/ticket-creator-agent.md)
-
----
-FEATURE_DESCRIPTION:
-${FEATURE_DESCRIPTION}
-
-CODE_STRUCTURE:
-$(cat ${PROJECT_ROOT}/CODE-STRUCTURE.md)
-
-RELEVANT_LAYER_FILES:
-$(cat ${PROJECT_ROOT}/docs/code-structure/actions.md \
-      ${PROJECT_ROOT}/docs/code-structure/db.md)
-" > /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
-python3 -c "\
-import json, re, sys
-content = open(sys.argv[1]).read()
-for m in re.finditer(r'\\{', content):
-    try:
-        obj = json.loads(content[m.start():])
-        if 'session_id' in obj:
-            open(sys.argv[1], 'w').write(json.dumps(obj))
-            break
-    except: pass
-" /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json
-
-SESSION_ID=$(jq -r '.session_id' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)
-GEMINI_ANALYSIS=$(jq -r '.response' /tmp/gemini-ticket-${TICKET_KEYWORD}-1.json)
-```
-
-Use the analysis to:
-- Validate the feature is technically feasible
-- Calibrate the Effort estimate (XS/S/M/L/XL)
-- Check whether the Acceptance Criteria scope is realistic
-- Inform the Out of Scope list (what would be technically expensive to add in v1)
-
-#### Quality Assessment
-
-Apply the **Quality Assessment Loop** (see `/gemini`). Expected content in `GEMINI_ANALYSIS`:
-- Effort Signal (XS/S/M/L/XL with reasoning)
-- Capability Gaps (what the codebase lacks to support this feature)
-- Technical Risks
-
-If the effort signal is vague (e.g., "Medium, could vary"):
-```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat ticket-${TICKET_KEYWORD} \
-  -p "The effort estimate is not specific enough. Provide XS/S/M/L/XL with reasoning based on the number and complexity of layers that need to change."
-```
-Maximum 2 follow-up attempts.
+Use Glob/Grep to spot-check relevant areas of the codebase if needed to calibrate your effort estimate.
 
 ---
 
@@ -110,18 +60,6 @@ Iterate with the user via AskUserQuestion on:
 - **Open Questions** — unresolved product decisions (not technical questions)
 
 Typical cycles: 1–2 rounds.
-
-**Scope refinement path:** Any user feedback during this step — scope additions, removals, changes to acceptance criteria, clarifications on requirements — should go through Gemini via `--resume-chat` rather than being handled by Claude alone. Gemini retains the full feature description and codebase context.
-
-```bash
-gemini --yolo -m gemini-2.5-flash --resume-chat ticket-${TICKET_KEYWORD} \
-  -p "[The full user feedback, as stated. Examples:
-      'Remove the email notification requirement'
-      'Change the scope: this should only apply to group admins, not all members'
-      'Clarify: by join request, the user means approval is required, not just invites'
-      'Add: also cover the case where the group is private']
-  How does this affect the effort, capability gaps, and technical risks?"
-```
 
 ---
 
