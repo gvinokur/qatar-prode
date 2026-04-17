@@ -35,6 +35,7 @@
     "seeStats": "Ver estadísticas completas",
     "boostBonus": "+{bonus} boost",
     "individualAwardsLabel": "Premios individuales",
-    "qualifiedTeamsLabel": "Equipos clasificados"
+    "qualifiedTeamsLabel": "Equipos clasificados",
+    "noCorrectPredictions": "Sin predicciones correctas"
   }
 }

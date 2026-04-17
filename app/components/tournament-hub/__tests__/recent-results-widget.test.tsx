@@ -142,7 +142,7 @@ describe('RecentResultsWidget', () => {
       ).toBeInTheDocument()
     })
 
-    it('renders boost chip when boostType is set and boostBonus > 0', () => {
+    it('renders BoostBadge when boostType is set and boostBonus > 0 (golden shows 3x)', () => {
       const game = makeRecentGameItem({
         boostType: 'golden',
         boostBonus: 5,
@@ -158,15 +158,30 @@ describe('RecentResultsWidget', () => {
         <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      // Boost chip should show
-      expect(
-        screen.getByText(
-          /hub.recentResults:boostBonus:\{"bonus":5\}/
-        )
-      ).toBeInTheDocument()
+      // BoostBadge renders "3x" for golden boosts
+      expect(screen.getByText('3x')).toBeInTheDocument()
     })
 
-    it('does not render boost chip when boostBonus is 0', () => {
+    it('renders BoostBadge with 2x label for silver boosts', () => {
+      const game = makeRecentGameItem({
+        boostType: 'silver',
+        boostBonus: 3,
+        finalPoints: 6,
+        basePoints: 3,
+      })
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [game],
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(screen.getByText('2x')).toBeInTheDocument()
+    })
+
+    it('does not render BoostBadge when boostBonus is 0', () => {
       const game = makeRecentGameItem({
         boostType: 'silver',
         boostBonus: 0,
@@ -180,8 +195,8 @@ describe('RecentResultsWidget', () => {
         <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      // No boost chip should appear
-      expect(screen.queryByText(/boostBonus/)).not.toBeInTheDocument()
+      expect(screen.queryByText('2x')).not.toBeInTheDocument()
+      expect(screen.queryByText('3x')).not.toBeInTheDocument()
     })
 
     it('renders multiple game items with dividers between them', () => {
@@ -345,7 +360,7 @@ describe('RecentResultsWidget', () => {
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
     })
 
-    it('does not render honor roll when honorRollScore is 0 or null', () => {
+    it('renders honor roll with no-correct caption when honorRollScore is 0', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
@@ -356,7 +371,8 @@ describe('RecentResultsWidget', () => {
         <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      expect(screen.queryByText('Honor Roll')).not.toBeInTheDocument()
+      expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
     })
 
     it('renders both individual awards and honor roll when both are set', () => {
@@ -374,6 +390,34 @@ describe('RecentResultsWidget', () => {
       expect(screen.getByText('+5 pts')).toBeInTheDocument()
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
       expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+    })
+
+    it('shows no-correct caption for individual awards when score is 0', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        individualAwardsScore: 0,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
+    })
+
+    it('does not show no-correct caption when individual awards score > 0', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        individualAwardsScore: 6,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(screen.queryByText('hub.recentResults:noCorrectPredictions')).not.toBeInTheDocument()
     })
 
     it('awards section links to awardsHref', () => {

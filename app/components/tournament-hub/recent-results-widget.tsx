@@ -1,11 +1,12 @@
 'use client'
 
-import { Box, Button, Chip, Divider, Paper, Typography } from '@mui/material'
+import { Box, Button, Divider, Paper, Typography } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import SportsScoreIcon from '@mui/icons-material/SportsScore'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { BoostBadge } from '../boost-badge'
 import type { RecentResultsData, RecentGameResultItem } from '../../actions/hub-actions'
 
 interface RecentResultsWidgetProps {
@@ -62,13 +63,7 @@ function GameItem({ item }: { item: RecentGameResultItem }) {
                 {isCorrect ? `+${item.finalPoints}` : '0'} pts
               </Typography>
               {item.boostType && item.boostBonus > 0 && (
-                <Chip
-                  label={`⚡ ${t('boostBonus', { bonus: item.boostBonus })}`}
-                  size="small"
-                  color="warning"
-                  variant="outlined"
-                  sx={{ height: 18, fontSize: '0.65rem', '& .MuiChip-label': { px: 0.5 } }}
-                />
+                <BoostBadge type={item.boostType} />
               )}
             </Box>
           </Box>
@@ -76,6 +71,32 @@ function GameItem({ item }: { item: RecentGameResultItem }) {
             {subtext}
           </Typography>
         </Box>
+      </Box>
+    </Box>
+  )
+}
+
+function AwardItem({ label, score, noCorrectText }: { label: string; score: number; noCorrectText: string }) {
+  const isCorrect = score > 0
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+      {isCorrect ? (
+        <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+      ) : (
+        <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+      )}
+      <Box sx={{ flex: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="body2">{label}</Typography>
+          <Typography variant="body2" color={isCorrect ? 'success.main' : 'text.secondary'} fontWeight="medium">
+            {isCorrect ? `+${score}` : '0'} pts
+          </Typography>
+        </Box>
+        {!isCorrect && (
+          <Typography variant="caption" color="text.secondary">
+            {noCorrectText}
+          </Typography>
+        )}
       </Box>
     </Box>
   )
@@ -183,32 +204,14 @@ export function RecentResultsWidget({
                 >
                   {t('tournamentAwards')}
                 </Typography>
-                {individualAwardsScore !== null && (
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body2">{t('individualAwardsLabel')}</Typography>
-                        <Typography variant="body2" color="success.main" fontWeight="medium">
-                          +{individualAwardsScore} pts
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-                {honorRollScore !== null && honorRollScore > 0 && (
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: individualAwardsScore !== null ? 1 : 0 }}>
-                    <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body2">Honor Roll</Typography>
-                        <Typography variant="body2" color="success.main" fontWeight="medium">
-                          +{honorRollScore} pts
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {individualAwardsScore !== null && (
+                    <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} noCorrectText={t('noCorrectPredictions')} />
+                  )}
+                  {honorRollScore !== null && (
+                    <AwardItem label="Honor Roll" score={honorRollScore} noCorrectText={t('noCorrectPredictions')} />
+                  )}
+                </Box>
               </Box>
             )}
           </Box>
