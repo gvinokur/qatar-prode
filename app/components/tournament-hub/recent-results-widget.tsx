@@ -34,16 +34,19 @@ function isExactResult(item: RecentGameResultItem): boolean {
   )
 }
 
-function GameItem({ item }: { item: RecentGameResultItem }) {
+function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const t = useTranslations('hub.recentResults')
   const isCorrect = item.finalPoints > 0
   const exact = isExactResult(item)
 
-  const subtext = isCorrect
-    ? exact
-      ? t('exactResult')
-      : t('correctResult')
-    : t('yourGuess', { home: item.userHomeGuess ?? '?', away: item.userAwayGuess ?? '?' })
+  let subtext: string
+  if (!isCorrect) {
+    subtext = t('yourGuess', { home: item.userHomeGuess ?? '?', away: item.userAwayGuess ?? '?' })
+  } else if (exact) {
+    subtext = t('exactResult')
+  } else {
+    subtext = t('correctResult')
+  }
 
   return (
     <Box>
@@ -76,7 +79,7 @@ function GameItem({ item }: { item: RecentGameResultItem }) {
   )
 }
 
-function AwardItem({ label, score, captionText }: { label: string; score: number; captionText: string | null }) {
+function AwardItem({ label, score, captionText }: { readonly label: string; readonly score: number; readonly captionText: string | null }) {
   const isCorrect = score > 0
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
@@ -134,17 +137,23 @@ export function RecentResultsWidget({
     bestYoungPlayer: t('individualAward.bestYoungPlayer'),
   }
 
-  const honorRollCaption = honorRollCorrect === null
-    ? null
-    : honorRollCorrect.length === 0
-      ? t('noCorrectPredictions')
-      : t('correctItems', { items: honorRollCorrect.map(pos => honorRollPositionLabels[pos]).join(', ') })
+  let honorRollCaption: string | null = null
+  if (honorRollCorrect !== null) {
+    if (honorRollCorrect.length === 0) {
+      honorRollCaption = t('noCorrectPredictions')
+    } else {
+      honorRollCaption = t('correctItems', { items: honorRollCorrect.map(pos => honorRollPositionLabels[pos]).join(', ') })
+    }
+  }
 
-  const individualAwardsCaption = individualAwardsCorrect === null
-    ? null
-    : individualAwardsCorrect.length === 0
-      ? t('noCorrectPredictions')
-      : t('correctItems', { items: individualAwardsCorrect.map(award => individualAwardLabels[award]).join(', ') })
+  let individualAwardsCaption: string | null = null
+  if (individualAwardsCorrect !== null) {
+    if (individualAwardsCorrect.length === 0) {
+      individualAwardsCaption = t('noCorrectPredictions')
+    } else {
+      individualAwardsCaption = t('correctItems', { items: individualAwardsCorrect.map(award => individualAwardLabels[award]).join(', ') })
+    }
+  }
 
   const hasGames = recentGames.length > 0
   const hasQT = qualifiedTeamsActualCount > 0

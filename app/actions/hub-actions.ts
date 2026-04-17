@@ -288,6 +288,48 @@ export async function getLeaderboardPeekData(
 export type HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'
 export type IndividualAwardType = 'bestPlayer' | 'topGoalscorer' | 'bestGoalkeeper' | 'bestYoungPlayer'
 
+type TournamentResult = Awaited<ReturnType<typeof findTournamentById>>
+type TournamentGuess = Awaited<ReturnType<typeof findTournamentGuessByUserIdTournament>>
+
+function computeHonorRollCorrect(
+  tournament: TournamentResult,
+  tournamentGuess: TournamentGuess
+): HonorRollPosition[] {
+  const correct: HonorRollPosition[] = []
+  if (!tournamentGuess) return correct
+  if (tournament?.champion_team_id && tournamentGuess.champion_team_id === tournament.champion_team_id) {
+    correct.push('champion')
+  }
+  if (tournament?.runner_up_team_id && tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
+    correct.push('runnerUp')
+  }
+  if (tournament?.third_place_team_id && tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
+    correct.push('thirdPlace')
+  }
+  return correct
+}
+
+function computeIndividualAwardsCorrect(
+  tournament: TournamentResult,
+  tournamentGuess: TournamentGuess
+): IndividualAwardType[] {
+  const correct: IndividualAwardType[] = []
+  if (!tournamentGuess) return correct
+  if (tournament?.best_player_id && tournamentGuess.best_player_id === tournament.best_player_id) {
+    correct.push('bestPlayer')
+  }
+  if (tournament?.top_goalscorer_player_id && tournamentGuess.top_goalscorer_player_id === tournament.top_goalscorer_player_id) {
+    correct.push('topGoalscorer')
+  }
+  if (tournament?.best_goalkeeper_player_id && tournamentGuess.best_goalkeeper_player_id === tournament.best_goalkeeper_player_id) {
+    correct.push('bestGoalkeeper')
+  }
+  if (tournament?.best_young_player_id && tournamentGuess.best_young_player_id === tournament.best_young_player_id) {
+    correct.push('bestYoungPlayer')
+  }
+  return correct
+}
+
 export interface RecentGameResultItem {
   gameId: string
   homeTeamName: string
@@ -370,40 +412,15 @@ export async function getRecentResultsData(
   const honorRollScoreValue = stats?.honor_roll_score ?? null
   const individualAwardsScoreValue = stats?.individual_awards_score ?? null
 
-  let honorRollCorrect: HonorRollPosition[] | null = null
-  if (honorRollScoreValue !== null && tournament) {
-    honorRollCorrect = []
-    if (tournamentGuess) {
-      if (tournament.champion_team_id && tournamentGuess.champion_team_id === tournament.champion_team_id) {
-        honorRollCorrect.push('champion')
-      }
-      if (tournament.runner_up_team_id && tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
-        honorRollCorrect.push('runnerUp')
-      }
-      if (tournament.third_place_team_id && tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
-        honorRollCorrect.push('thirdPlace')
-      }
-    }
-  }
+  const honorRollCorrect: HonorRollPosition[] | null =
+    honorRollScoreValue !== null && tournament
+      ? computeHonorRollCorrect(tournament, tournamentGuess)
+      : null
 
-  let individualAwardsCorrect: IndividualAwardType[] | null = null
-  if (individualAwardsScoreValue !== null && tournament) {
-    individualAwardsCorrect = []
-    if (tournamentGuess) {
-      if (tournament.best_player_id && tournamentGuess.best_player_id === tournament.best_player_id) {
-        individualAwardsCorrect.push('bestPlayer')
-      }
-      if (tournament.top_goalscorer_player_id && tournamentGuess.top_goalscorer_player_id === tournament.top_goalscorer_player_id) {
-        individualAwardsCorrect.push('topGoalscorer')
-      }
-      if (tournament.best_goalkeeper_player_id && tournamentGuess.best_goalkeeper_player_id === tournament.best_goalkeeper_player_id) {
-        individualAwardsCorrect.push('bestGoalkeeper')
-      }
-      if (tournament.best_young_player_id && tournamentGuess.best_young_player_id === tournament.best_young_player_id) {
-        individualAwardsCorrect.push('bestYoungPlayer')
-      }
-    }
-  }
+  const individualAwardsCorrect: IndividualAwardType[] | null =
+    individualAwardsScoreValue !== null && tournament
+      ? computeIndividualAwardsCorrect(tournament, tournamentGuess)
+      : null
 
   return {
     recentGames: gameItems,
