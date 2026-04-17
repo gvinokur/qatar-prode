@@ -607,11 +607,8 @@
     "noHistoryDescription": "El historial de puntos aparecerá cuando comience el torneo y se calculen los puntajes."
   },
   "favorites": {
-    "addFavorite": "Agregar a favoritos",
-    "removeFavorite": "Quitar de favoritos",
-    "setMainGroup": "Establecer como grupo principal",
-    "clearMainGroup": "Quitar grupo principal",
-    "mainGroupLabel": "Grupo principal"
+    "addFavorite": "Agregar este grupo a tus favoritos",
+    "removeFavorite": "Este es uno de tus grupos favoritos"
   },
   "metadata": {
     "description": "Ver la tabla de posiciones del grupo {name}"

@@ -27,7 +27,7 @@ import { findTournamentGuessByUserIdsTournament } from '../db/tournament-guess-r
 import { customToMap } from "../utils/ObjectUtils";
 import { TournamentGroupStats, UserScore } from "../definitions";
 import { findUsersByIds } from "../db/users-repository";
-import { getFavoriteGroupIds, getMainGroupId } from "../db/favorite-groups-repository";
+import { getFavoriteGroupIds } from "../db/favorite-groups-repository";
 
 export async function createDbGroup( groupName: string) {
   const user = await getLoggedInUser()
@@ -47,12 +47,11 @@ export async function getGroupsForUser() {
   if(!user) {
     return
   }
-  const [userGroups, participantGroups, pendingRequests, favoriteGroupIds, mainGroupId] = await Promise.all([
+  const [userGroups, participantGroups, pendingRequests, favoriteGroupIds] = await Promise.all([
     findProdeGroupsByOwner(user.id),
     findProdeGroupsByParticipant(user.id),
     findJoinRequestsByUser(user.id, 'pending'),
     getFavoriteGroupIds(user.id),
-    getMainGroupId(user.id),
   ])
 
   return ({
@@ -64,7 +63,6 @@ export async function getGroupsForUser() {
       group_name: r.group_name
     })),
     favoriteGroupIds,
-    mainGroupId,
   })
 }
 

@@ -108,5 +108,4 @@ export interface TournamentGroupStats {
   is_public?: boolean
   bettingEnabled?: boolean
   isFavorite?: boolean
-  isMainGroup?: boolean
 }

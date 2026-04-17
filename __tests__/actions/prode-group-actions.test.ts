@@ -41,7 +41,6 @@ vi.mock('../../app/utils/email-templates');
 vi.mock('../../app/utils/email');
 vi.mock('../../app/db/favorite-groups-repository', () => ({
   getFavoriteGroupIds: vi.fn().mockResolvedValue([]),
-  getMainGroupId: vi.fn().mockResolvedValue(null),
 }));
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
@@ -192,7 +191,7 @@ describe('Prode Group Actions', () => {
   describe('getGroupsForUser', () => {
     it('returns user and participant groups', async () => {
       const result = await getGroupsForUser();
-      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [], favoriteGroupIds: [], mainGroupId: null });
+      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [], favoriteGroupIds: [] });
     });
     it('returns undefined if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);

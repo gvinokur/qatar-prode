@@ -17,16 +17,12 @@ import {
   ExpandMore as ExpandMoreIcon,
   Groups as GroupsIcon,
   Search as SearchIcon,
-  Star as StarIcon,
-  StarBorder as StarBorderIcon,
-  WorkspacePremium as WorkspacePremiumIcon,
 } from "@mui/icons-material";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
 import {createDbGroup, deleteGroup} from "../../actions/prode-group-actions";
-import { toggleFavoriteGroupAction, setMainGroupAction } from "../../actions/favorite-group-actions";
 import InviteFriendsDialog from "../invite-friends-dialog";
 import Link from "next/link";
 import { useLocale, useTranslations } from 'next-intl';
@@ -43,23 +39,17 @@ type Props = {
   pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
   groupRanks?: Record<string, number>
   favoriteGroupIds?: string[]
-  mainGroupId?: string | null
 }
 
 type GroupForm = {
   name: string
 }
 
-function sortGroups(groups: GroupItem[], favoriteIds: string[], mainGroupId: string | null): GroupItem[] {
+function sortGroups(groups: GroupItem[], favoriteIds: string[]): GroupItem[] {
   return [...groups].sort((a, b) => {
-    const aIsMain = a.id === mainGroupId
-    const bIsMain = b.id === mainGroupId
-    if (aIsMain !== bIsMain) return aIsMain ? -1 : 1
-
     const aIsFav = favoriteIds.includes(a.id)
     const bIsFav = favoriteIds.includes(b.id)
     if (aIsFav !== bIsFav) return aIsFav ? -1 : 1
-
     if (aIsFav && bIsFav) return a.name.localeCompare(b.name)
     return 0
   })
@@ -72,33 +62,26 @@ export default function FriendGroupsList({
   isActive = false,
   pendingRequests = [],
   groupRanks,
-  favoriteGroupIds: initialFavoriteGroupIds = [],
-  mainGroupId: initialMainGroupId = null,
+  favoriteGroupIds = [],
 } : Props) {
   const t = useTranslations('groups');
-  const tFavorites = useTranslations('groups.favorites');
   const theme = useTheme();
   const locale = useLocale();
   const router = useRouter();
 
   const [ownedGroups, setOwnedGroups] = useState(initialUserGroups);
-  const [localFavoriteIds, setLocalFavoriteIds] = useState<string[]>(initialFavoriteGroupIds)
-  const [localMainGroupId, setLocalMainGroupId] = useState<string | null>(initialMainGroupId)
-  const [, startTransition] = useTransition()
 
   // Combine all groups for unified sorting
   const allGroups: GroupItem[] = [
     ...ownedGroups.map(g => ({ ...g, isOwner: true })),
     ...participantGroups.map(g => ({ ...g, isOwner: false })),
   ]
-  const sortedGroups = sortGroups(allGroups, localFavoriteIds, localMainGroupId)
+  const sortedGroups = sortGroups(allGroups, favoriteGroupIds)
 
   const isEmpty = Boolean(tournamentId && allGroups.length === 0 && pendingRequests.length === 0);
 
-  // Primary group for subheader: main group if set, otherwise first in sorted list
-  const primaryGroup = localMainGroupId
-    ? sortedGroups.find(g => g.id === localMainGroupId) ?? sortedGroups[0]
-    : sortedGroups[0]
+  // Primary group for subheader: first favorite, or first overall
+  const primaryGroup = sortedGroups[0]
   const primaryGroupRank = primaryGroup ? (groupRanks?.[primaryGroup.id] ?? null) : null;
   const groupCount = allGroups.length
   const groupCountWithOptionalRank = primaryGroupRank !== null && primaryGroup
@@ -111,6 +94,7 @@ export default function FriendGroupsList({
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
   const { control, handleSubmit } = useForm<GroupForm>()
+
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -136,34 +120,6 @@ export default function FriendGroupsList({
     setOwnedGroups([...ownedGroups, newGroup])
     setLoading(false)
     setOpenCreateDialog(false)
-  }
-
-  const handleToggleFavorite = (groupId: string) => {
-    const isFav = localFavoriteIds.includes(groupId)
-    if (isFav) {
-      setLocalFavoriteIds(localFavoriteIds.filter(id => id !== groupId))
-      if (localMainGroupId === groupId) setLocalMainGroupId(null)
-    } else {
-      setLocalFavoriteIds([...localFavoriteIds, groupId])
-    }
-    startTransition(async () => {
-      await toggleFavoriteGroupAction(groupId)
-    })
-  }
-
-  const handleSetMain = (groupId: string) => {
-    if (localMainGroupId === groupId) {
-      // Already main — no-op (crown click on the main just stays)
-      return
-    }
-    setLocalMainGroupId(groupId)
-    // Ensure it's also a favorite
-    if (!localFavoriteIds.includes(groupId)) {
-      setLocalFavoriteIds([...localFavoriteIds, groupId])
-    }
-    startTransition(async () => {
-      await setMainGroupAction(groupId)
-    })
   }
 
   return (
@@ -218,53 +174,31 @@ export default function FriendGroupsList({
             <List sx={{ width: '100%'}} disablePadding>
             {sortedGroups.map(group => {
               const rank = groupRanks?.[group.id];
-              const isFav = localFavoriteIds.includes(group.id)
-              const isMain = localMainGroupId === group.id
               return (
                 <ListItem
                   key={group.id}
                   alignItems='flex-start'
                   disableGutters
                   secondaryAction={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleToggleFavorite(group.id)}
-                        aria-label={isFav ? tFavorites('removeFavorite') : tFavorites('addFavorite')}
-                        sx={{ color: isFav ? 'warning.main' : 'action.disabled', p: 0.5 }}
-                      >
-                        {isFav ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
-                      </IconButton>
-                      {group.isOwner && (
-                        <>
-                          <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(group.id)}>
-                            <DeleteIcon/>
-                          </IconButton>
-                          <InviteFriendsDialog
-                            trigger={
-                              <IconButton title={t('actions.invite')} color="primary">
-                                <ShareIcon/>
-                              </IconButton>}
-                            groupId={group.id}
-                            groupName={group.name}
-                            tournamentId={tournamentId} />
-                        </>
-                      )}
-                    </Box>
+                    group.isOwner ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(group.id)}>
+                          <DeleteIcon/>
+                        </IconButton>
+                        <InviteFriendsDialog
+                          trigger={
+                            <IconButton title={t('actions.invite')} color="primary">
+                              <ShareIcon/>
+                            </IconButton>}
+                          groupId={group.id}
+                          groupName={group.name}
+                          tournamentId={tournamentId} />
+                      </Box>
+                    ) : undefined
                   }
                 >
                   <ListItemText>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {isMain && (
-                        <IconButton
-                          size="small"
-                          onClick={() => handleSetMain(group.id)}
-                          aria-label={tFavorites('mainGroupLabel')}
-                          sx={{ color: 'warning.main', p: 0.25 }}
-                        >
-                          <WorkspacePremiumIcon fontSize="small" />
-                        </IconButton>
-                      )}
                       {rank !== undefined && (
                         <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
