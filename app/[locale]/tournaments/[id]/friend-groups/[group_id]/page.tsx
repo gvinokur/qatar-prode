@@ -168,7 +168,7 @@ export default async function TournamentScopedFriendGroup(props : Props){
   // Fetch score history and pre-stored rank history for this tournament's History tab
   const [historyData, preStoredRankHistories] = await Promise.all([
     getScoreHistoryForGroup(allParticipants, tournament.id),
-    getGroupRankHistory(prodeGroup.id, Number(tournament.id)),
+    getGroupRankHistory(prodeGroup.id, tournament.id),
   ]);
   const historyByTournament = { [tournament.id]: historyData };
 

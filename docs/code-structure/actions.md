@@ -391,7 +391,7 @@ Server Actions for materializing and reading per-group rank snapshots. Snapshots
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, calculateRanks, getTodayYYYYMMDD, upsertGroupRankingSnapshots
 - **recalculateGroupRankingsForUsers(tournamentId: string, changedUserIds: string[])**: `Promise<void>` — Internal. Finds all groups containing at least one user from changedUserIds, then calls recalculateGroupRankings per group with error isolation (try/catch per group). Does nothing for empty changedUserIds.
   Calls: findGroupsForUsers, recalculateGroupRankings
-- **getGroupRankHistory(groupId: string, tournamentId: number)**: `Promise<UserRankHistoryEntry[] | null>` — Server Action. Reads all pre-stored rank snapshots from group_rankings for a group/tournament. Returns null when no snapshots exist (caller falls back to computed ranks). Snapshots are grouped by userId and ordered by date ascending.
+- **getGroupRankHistory(groupId: string, tournamentId: string)**: `Promise<UserRankHistoryEntry[] | null>` — Server Action. Reads all pre-stored rank snapshots from group_rankings for a group/tournament. Returns null when no snapshots exist (caller falls back to computed ranks). Snapshots are grouped by userId and ordered by date ascending.
   Calls: getGroupRankingSnapshots
 - **getGroupRankingForUser(userId: string, groupId: string, tournamentId: string)**: `Promise<MaterializedGroupRanking | null>` — Server Action. Fetches two most recent snapshots and derives rankChange (previousRank - currentRank; positive = improved). Returns null when no snapshots exist.
   Calls: getLatestTwoGroupRankingSnapshots

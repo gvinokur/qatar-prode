@@ -24,7 +24,7 @@ describe('getGroupRankHistory', () => {
 
   it('returns null when group has no ranking snapshots', async () => {
     mockGetGroupRankingSnapshots.mockResolvedValue([])
-    const result = await getGroupRankHistory('group-1', 1)
+    const result = await getGroupRankHistory('group-1', 'tournament-1')
     expect(result).toBeNull()
   })
 
@@ -35,7 +35,7 @@ describe('getGroupRankHistory', () => {
       testFactories.groupRanking({ user_id: 'user-1', snapshot_date: 20260602, rank: 1 }),
     ])
 
-    const result = await getGroupRankHistory('group-1', 1)
+    const result = await getGroupRankHistory('group-1', 'tournament-1')
 
     expect(result).not.toBeNull()
     const user1 = result!.find((e) => e.userId === 'user-1')
@@ -56,7 +56,7 @@ describe('getGroupRankHistory', () => {
       testFactories.groupRanking({ user_id: 'user-1', snapshot_date: 20260603, rank: 1 }),
     ])
 
-    const result = await getGroupRankHistory('group-1', 1)
+    const result = await getGroupRankHistory('group-1', 'tournament-1')
 
     const dates = result![0].data.map((d) => d.date)
     expect(dates).toEqual([20260601, 20260602, 20260603])
@@ -67,7 +67,7 @@ describe('getGroupRankHistory', () => {
       testFactories.groupRanking({ user_id: 'solo-user', snapshot_date: 20260601, rank: 1 }),
     ])
 
-    const result = await getGroupRankHistory('group-solo', 42)
+    const result = await getGroupRankHistory('group-solo', 'tournament-42')
 
     expect(result).toHaveLength(1)
     expect(result![0]).toEqual({
@@ -83,7 +83,7 @@ describe('getGroupRankHistory', () => {
       testFactories.groupRanking({ user_id: 'user-c', snapshot_date: 20260601, rank: 3 }),
     ])
 
-    const result = await getGroupRankHistory('group-1', 1)
+    const result = await getGroupRankHistory('group-1', 'tournament-1')
 
     const userIds = result!.map((e) => e.userId).sort()
     expect(userIds).toEqual(['user-a', 'user-b', 'user-c'])

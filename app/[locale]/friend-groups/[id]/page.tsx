@@ -140,7 +140,7 @@ export default async function FriendsGroup(props : Props){
     Promise.all(
       tournaments.map(async (tournament) => [
         tournament.id,
-        await getGroupRankHistory(prodeGroup.id, Number(tournament.id)),
+        await getGroupRankHistory(prodeGroup.id, tournament.id),
       ])
     ).then(Object.fromEntries),
   ]);

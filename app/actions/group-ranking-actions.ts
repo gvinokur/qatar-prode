@@ -121,9 +121,9 @@ export interface UserRankHistoryEntry {
  */
 export async function getGroupRankHistory(
   groupId: string,
-  tournamentId: number
+  tournamentId: string
 ): Promise<UserRankHistoryEntry[] | null> {
-  const rows = await getGroupRankingSnapshots(groupId, String(tournamentId));
+  const rows = await getGroupRankingSnapshots(groupId, tournamentId);
   if (rows.length === 0) return null;
 
   const byUser = new Map<string, Array<{ date: number; rank: number }>>();
