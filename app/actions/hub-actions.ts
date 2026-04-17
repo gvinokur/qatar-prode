@@ -2,12 +2,11 @@
 
 import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
-import { findTeamInTournament } from '../db/team-repository'
+import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getTournamentGuessStatsForUsers } from '../db/tournament-guess-repository'
-import { getAllUserGroupPositionsPredictions } from '../db/qualified-teams-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
@@ -305,7 +304,8 @@ export interface RecentResultsData {
   recentGames: RecentGameResultItem[]
   qualifiedTeamsScore: number | null
   qualifiedTeamsCorrect: number | null
-  qualifiedTeamsTotalPredicted: number | null
+  /** Number of teams that have actually qualified (from tournament_group_teams.is_complete) */
+  qualifiedTeamsActualCount: number
   individualAwardsScore: number | null
   honorRollScore: number | null
 }
@@ -325,11 +325,11 @@ export async function getRecentResultsData(
     throw new Error('Unauthorized')
   }
 
-  const [recentGames, statsArray, groupPredictions, teams] = await Promise.all([
+  const [recentGames, statsArray, teams, qualifiedTeamsResult] = await Promise.all([
     findRecentGamesWithUserGuesses(user.id, tournamentId, RECENT_GAMES_LIMIT),
     getTournamentGuessStatsForUsers([user.id], tournamentId),
-    getAllUserGroupPositionsPredictions(user.id, tournamentId),
     findTeamInTournament(tournamentId),
+    findQualifiedTeams(tournamentId),
   ])
 
   const localizedTeams = applyLocalizationBatch(teams, locale, [
@@ -359,16 +359,11 @@ export async function getRecentResultsData(
 
   const stats = statsArray[0] ?? null
 
-  const qualifiedTeamsTotalPredicted = groupPredictions.reduce((sum, gp) => {
-    const positions = gp.team_predicted_positions ?? []
-    return sum + positions.filter((p) => p.predicted_to_qualify === true).length
-  }, 0)
-
   return {
     recentGames: gameItems,
     qualifiedTeamsScore: stats?.qualified_teams_score ?? null,
     qualifiedTeamsCorrect: stats?.qualified_teams_correct ?? null,
-    qualifiedTeamsTotalPredicted: groupPredictions.length > 0 ? qualifiedTeamsTotalPredicted : null,
+    qualifiedTeamsActualCount: qualifiedTeamsResult.teams.length,
     individualAwardsScore: stats?.individual_awards_score ?? null,
     honorRollScore: stats?.honor_roll_score ?? null,
   }

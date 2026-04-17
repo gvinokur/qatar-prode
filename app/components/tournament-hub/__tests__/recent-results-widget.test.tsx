@@ -41,9 +41,16 @@ const emptyData: RecentResultsData = {
   recentGames: [],
   qualifiedTeamsScore: null,
   qualifiedTeamsCorrect: null,
-  qualifiedTeamsTotalPredicted: null,
+  qualifiedTeamsActualCount: 0,
   individualAwardsScore: null,
   honorRollScore: null,
+}
+
+const defaultHrefs = {
+  statsHref: '/stats',
+  resultsHref: '/results',
+  qualifiedTeamsHref: '/qualified-teams',
+  awardsHref: '/awards',
 }
 
 describe('RecentResultsWidget', () => {
@@ -52,9 +59,9 @@ describe('RecentResultsWidget', () => {
   })
 
   describe('empty state', () => {
-    it('renders empty state when recentGames is empty and QT/awards are all null', () => {
+    it('renders empty state when recentGames is empty and QT/awards are all null/zero', () => {
       renderWithTheme(
-        <RecentResultsWidget data={emptyData} statsHref="/stats" />
+        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
       )
 
       expect(
@@ -65,14 +72,14 @@ describe('RecentResultsWidget', () => {
       ).toBeInTheDocument()
     })
 
-    it('does not render seeStats button in empty state', () => {
+    it('renders seeStats button even in empty state (button is outside the card)', () => {
       renderWithTheme(
-        <RecentResultsWidget data={emptyData} statsHref="/stats" />
+        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
       )
 
       expect(
-        screen.queryByText('hub.recentResults:seeStats')
-      ).not.toBeInTheDocument()
+        screen.getByText('hub.recentResults:seeStats')
+      ).toBeInTheDocument()
     })
   })
 
@@ -84,7 +91,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(
@@ -101,7 +108,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       // Should show positive points
@@ -122,7 +129,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       // Should show "0 pts" label
@@ -148,7 +155,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       // Boost chip should show
@@ -170,7 +177,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       // No boost chip should appear
@@ -191,26 +198,40 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(screen.getByText('Argentina 2–1 France')).toBeInTheDocument()
       expect(screen.getByText('Brazil 2–1 Germany')).toBeInTheDocument()
     })
+
+    it('game section links to resultsHref', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [makeRecentGameItem()],
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} resultsHref="/en/tournaments/t1/results" />
+      )
+
+      const links = screen.getAllByRole('link')
+      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/results')).toBe(true)
+    })
   })
 
   describe('qualified teams section', () => {
-    it('renders QT section only when qualifiedTeamsScore is not null', () => {
+    it('renders QT section only when qualifiedTeamsActualCount > 0', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
         qualifiedTeamsScore: 10,
         qualifiedTeamsCorrect: 8,
-        qualifiedTeamsTotalPredicted: 10,
+        qualifiedTeamsActualCount: 10,
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(
@@ -219,17 +240,17 @@ describe('RecentResultsWidget', () => {
       expect(screen.getByText('+10 pts')).toBeInTheDocument()
     })
 
-    it('shows qualified summary when correct and total are provided', () => {
+    it('shows qualified summary with actual count as denominator', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
         qualifiedTeamsScore: 10,
         qualifiedTeamsCorrect: 8,
-        qualifiedTeamsTotalPredicted: 10,
+        qualifiedTeamsActualCount: 10,
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(
@@ -239,22 +260,55 @@ describe('RecentResultsWidget', () => {
       ).toBeInTheDocument()
     })
 
-    it('does not render QT section when qualifiedTeamsScore is null', () => {
+    it('does not render QT section when qualifiedTeamsActualCount is 0', () => {
       const data: RecentResultsData = {
         ...emptyData,
         recentGames: [],
-        qualifiedTeamsScore: null,
+        qualifiedTeamsScore: 0,  // score may be 0 even before teams qualify
+        qualifiedTeamsActualCount: 0,
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
-      // Should not find the qualified teams label more than once (in title)
       const elements = screen.queryAllByText(
         'hub.recentResults:qualifiedTeams'
       )
       expect(elements.length).toBe(0)
+    })
+
+    it('renders QT section when qualifiedTeamsActualCount > 0 even if score is 0', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        qualifiedTeamsScore: 0,
+        qualifiedTeamsCorrect: 0,
+        qualifiedTeamsActualCount: 8,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(
+        screen.getByText('hub.recentResults:qualifiedTeams')
+      ).toBeInTheDocument()
+    })
+
+    it('QT section links to qualifiedTeamsHref', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        qualifiedTeamsScore: 10,
+        qualifiedTeamsActualCount: 8,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} qualifiedTeamsHref="/en/tournaments/t1/qualified-teams" />
+      )
+
+      const links = screen.getAllByRole('link')
+      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/qualified-teams')).toBe(true)
     })
   })
 
@@ -267,7 +321,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(
@@ -284,7 +338,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(screen.getByText('Honor Roll')).toBeInTheDocument()
@@ -299,7 +353,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(screen.queryByText('Honor Roll')).not.toBeInTheDocument()
@@ -314,12 +368,26 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(screen.getByText('+5 pts')).toBeInTheDocument()
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
       expect(screen.getByText('Honor Roll')).toBeInTheDocument()
+    })
+
+    it('awards section links to awardsHref', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        individualAwardsScore: 5,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} awardsHref="/en/tournaments/t1/awards" />
+      )
+
+      const links = screen.getAllByRole('link')
+      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/awards')).toBe(true)
     })
   })
 
@@ -331,7 +399,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       const button = screen.getByText('hub.recentResults:seeStats')
@@ -347,29 +415,30 @@ describe('RecentResultsWidget', () => {
       renderWithTheme(
         <RecentResultsWidget
           data={data}
+          {...defaultHrefs}
           statsHref="/en/tournaments/t1/stats"
         />
       )
 
-      const link = screen.getByRole('link')
-      expect(link).toHaveAttribute('href', '/en/tournaments/t1/stats')
+      const statsButton = screen.getByText('hub.recentResults:seeStats')
+      expect(statsButton.closest('a')).toHaveAttribute('href', '/en/tournaments/t1/stats')
     })
 
-    it('does not render stats button in empty state', () => {
+    it('renders stats button even in empty state (button is outside the card)', () => {
       renderWithTheme(
-        <RecentResultsWidget data={emptyData} statsHref="/stats" />
+        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
       )
 
       expect(
-        screen.queryByText('hub.recentResults:seeStats')
-      ).not.toBeInTheDocument()
+        screen.getByText('hub.recentResults:seeStats')
+      ).toBeInTheDocument()
     })
   })
 
   describe('title rendering', () => {
     it('always renders widget title', () => {
       renderWithTheme(
-        <RecentResultsWidget data={emptyData} statsHref="/stats" />
+        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
       )
 
       expect(
@@ -393,7 +462,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(
@@ -415,7 +484,7 @@ describe('RecentResultsWidget', () => {
       }
 
       renderWithTheme(
-        <RecentResultsWidget data={data} statsHref="/stats" />
+        <RecentResultsWidget data={data} {...defaultHrefs} />
       )
 
       expect(

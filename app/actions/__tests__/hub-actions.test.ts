@@ -7,7 +7,6 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
-import * as qualifiedTeamsRepository from '@/app/db/qualified-teams-repository'
 import * as userActions from '../user-actions'
 import { applyLocalizationBatch } from '@/app/utils/localization-helper'
 import { testFactories } from '../../../__tests__/db/test-factories'
@@ -28,6 +27,7 @@ vi.mock('@/app/db/game-guess-repository', () => ({
 
 vi.mock('@/app/db/team-repository', () => ({
   findTeamInTournament: vi.fn(),
+  findQualifiedTeams: vi.fn(),
 }))
 
 vi.mock('@/app/db/tournament-repository', () => ({
@@ -50,10 +50,6 @@ vi.mock('@/app/db/group-ranking-repository', () => ({
 
 vi.mock('@/app/db/tournament-guess-repository', () => ({
   getTournamentGuessStatsForUsers: vi.fn(),
-}))
-
-vi.mock('@/app/db/qualified-teams-repository', () => ({
-  getAllUserGroupPositionsPredictions: vi.fn(),
 }))
 
 vi.mock('next-intl/server', () => ({
@@ -548,8 +544,12 @@ describe('getRecentResultsData', () => {
     )
     vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
     vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
-    vi.mocked(qualifiedTeamsRepository.getAllUserGroupPositionsPredictions).mockResolvedValue([])
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([])
+    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
+      teams: [],
+      completeGroupIds: new Set(),
+      allGroupsComplete: false,
+    } as any)
     vi.mocked(applyLocalizationBatch).mockImplementation((teams) => teams)
   })
 
@@ -601,39 +601,32 @@ describe('getRecentResultsData', () => {
     expect(result.honorRollScore).toBe(2)
   })
 
-  it('computes qualifiedTeamsTotalPredicted by counting predicted_to_qualify=true entries', async () => {
-    const groupPredictions = [
-      {
-        team_predicted_positions: [
-          { predicted_to_qualify: true },
-          { predicted_to_qualify: false },
-          { predicted_to_qualify: true },
-        ],
-      },
-      {
-        team_predicted_positions: [
-          { predicted_to_qualify: true },
-        ],
-      },
-    ] as any
-
-    vi.mocked(
-      qualifiedTeamsRepository.getAllUserGroupPositionsPredictions
-    ).mockResolvedValue(groupPredictions)
+  it('returns qualifiedTeamsActualCount equal to number of qualified teams from findQualifiedTeams', async () => {
+    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
+      teams: [
+        { id: 'team-1', name: 'Argentina', short_name: 'ARG', group_id: 'g1', position: 1 },
+        { id: 'team-2', name: 'France', short_name: 'FRA', group_id: 'g1', position: 2 },
+        { id: 'team-3', name: 'Brazil', short_name: 'BRA', group_id: 'g2', position: 1 },
+      ],
+      completeGroupIds: new Set(['g1', 'g2']),
+      allGroupsComplete: false,
+    } as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsTotalPredicted).toBe(3) // 2 from group 1 + 1 from group 2
+    expect(result.qualifiedTeamsActualCount).toBe(3)
   })
 
-  it('returns null for qualifiedTeamsTotalPredicted when groupPredictions is empty', async () => {
-    vi.mocked(
-      qualifiedTeamsRepository.getAllUserGroupPositionsPredictions
-    ).mockResolvedValue([])
+  it('returns qualifiedTeamsActualCount of 0 when no teams have qualified', async () => {
+    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
+      teams: [],
+      completeGroupIds: new Set(),
+      allGroupsComplete: false,
+    } as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsTotalPredicted).toBeNull()
+    expect(result.qualifiedTeamsActualCount).toBe(0)
   })
 
   it('correctly computes boostBonus as finalPoints minus basePoints', async () => {

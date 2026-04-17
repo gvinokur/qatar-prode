@@ -11,7 +11,20 @@ import type { RecentResultsData, RecentGameResultItem } from '../../actions/hub-
 interface RecentResultsWidgetProps {
   readonly data: RecentResultsData
   readonly statsHref: string
+  readonly resultsHref: string
+  readonly qualifiedTeamsHref: string
+  readonly awardsHref: string
 }
+
+const sectionLinkSx = {
+  display: 'block',
+  textDecoration: 'none',
+  color: 'inherit',
+  borderRadius: 1,
+  '&:hover': { bgcolor: 'action.hover' },
+  p: 0.5,
+  m: -0.5,
+} as const
 
 function isExactResult(item: RecentGameResultItem): boolean {
   return (
@@ -68,20 +81,26 @@ function GameItem({ item }: { item: RecentGameResultItem }) {
   )
 }
 
-export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProps) {
+export function RecentResultsWidget({
+  data,
+  statsHref,
+  resultsHref,
+  qualifiedTeamsHref,
+  awardsHref,
+}: RecentResultsWidgetProps) {
   const t = useTranslations('hub.recentResults')
 
   const {
     recentGames,
     qualifiedTeamsScore,
     qualifiedTeamsCorrect,
-    qualifiedTeamsTotalPredicted,
+    qualifiedTeamsActualCount,
     individualAwardsScore,
     honorRollScore,
   } = data
 
   const hasGames = recentGames.length > 0
-  const hasQT = qualifiedTeamsScore !== null
+  const hasQT = qualifiedTeamsActualCount > 0
   const hasAwards = individualAwardsScore !== null || honorRollScore !== null
   const isEmpty = !hasGames && !hasQT && !hasAwards
 
@@ -105,7 +124,7 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {hasGames && (
-              <Box>
+              <Box component={Link} href={resultsHref} sx={sectionLinkSx}>
                 <Typography
                   variant="overline"
                   color="text.secondary"
@@ -125,7 +144,7 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
             )}
 
             {hasQT && (
-              <Box>
+              <Box component={Link} href={qualifiedTeamsHref} sx={sectionLinkSx}>
                 <Typography
                   variant="overline"
                   color="text.secondary"
@@ -139,14 +158,14 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
                       <Typography variant="body2" color="success.main" fontWeight="medium">
-                        +{qualifiedTeamsScore} pts
+                        +{qualifiedTeamsScore ?? 0} pts
                       </Typography>
                     </Box>
-                    {qualifiedTeamsCorrect !== null && qualifiedTeamsTotalPredicted !== null && (
+                    {qualifiedTeamsCorrect !== null && (
                       <Typography variant="caption" color="text.secondary">
                         {t('qualifiedSummary', {
                           correct: qualifiedTeamsCorrect,
-                          total: qualifiedTeamsTotalPredicted,
+                          total: qualifiedTeamsActualCount,
                         })}
                       </Typography>
                     )}
@@ -156,7 +175,7 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
             )}
 
             {hasAwards && (
-              <Box>
+              <Box component={Link} href={awardsHref} sx={sectionLinkSx}>
                 <Typography
                   variant="overline"
                   color="text.secondary"
@@ -192,21 +211,22 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
                 )}
               </Box>
             )}
-
-            <Box sx={{ textAlign: 'center', mt: 0.5 }}>
-              <Button
-                component={Link}
-                href={statsHref}
-                variant="text"
-                size="small"
-                color="primary"
-              >
-                {t('seeStats')}
-              </Button>
-            </Box>
           </Box>
         )}
       </Paper>
+
+      {/* View stats button — always shown outside the card, matching leaderboard peek pattern */}
+      <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+        <Button
+          component={Link}
+          href={statsHref}
+          variant="text"
+          size="small"
+          color="primary"
+        >
+          {t('seeStats')}
+        </Button>
+      </Box>
     </Box>
   )
 }

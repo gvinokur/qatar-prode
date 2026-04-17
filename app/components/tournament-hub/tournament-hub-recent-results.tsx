@@ -12,7 +12,15 @@ export async function TournamentHubRecentResults({
   locale,
 }: TournamentHubRecentResultsProps) {
   const data = await getRecentResultsData(tournamentId, locale)
-  const statsHref = `/${locale}/tournaments/${tournamentId}/stats`
+  const base = `/${locale}/tournaments/${tournamentId}`
 
-  return <RecentResultsWidget data={data} statsHref={statsHref} />
+  return (
+    <RecentResultsWidget
+      data={data}
+      statsHref={`${base}/stats`}
+      resultsHref={`${base}/results`}
+      qualifiedTeamsHref={`${base}/qualified-teams`}
+      awardsHref={`${base}/awards`}
+    />
+  )
 }

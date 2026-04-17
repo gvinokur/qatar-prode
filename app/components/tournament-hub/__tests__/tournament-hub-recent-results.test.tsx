@@ -20,7 +20,7 @@ const emptyData: RecentResultsData = {
   recentGames: [],
   qualifiedTeamsScore: null,
   qualifiedTeamsCorrect: null,
-  qualifiedTeamsTotalPredicted: null,
+  qualifiedTeamsActualCount: 0,
   individualAwardsScore: null,
   honorRollScore: null,
 }
@@ -50,7 +50,7 @@ describe('TournamentHubRecentResults', () => {
       ],
       qualifiedTeamsScore: null,
       qualifiedTeamsCorrect: null,
-      qualifiedTeamsTotalPredicted: null,
+      qualifiedTeamsActualCount: 0,
       individualAwardsScore: null,
       honorRollScore: null,
     }
