@@ -302,3 +302,39 @@ Coverage target: ≥80% on new code
 - `npm run lint` — no new ESLint issues
 - `npm run build` — production build succeeds
 - Verify in Vercel Preview: widget appears on hub, all 3 states render correctly
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: `RecentResultsData` field rename and new fields
+**Date:** 2026-04-17
+**Reason:** During feedback rounds, QT section visibility was changed from "score is not null" to "teams have actually qualified". The field tracking QT count was renamed accordingly and made non-nullable. Two additional fields were added to show users which specific positions/awards they predicted correctly.
+**Change:**
+- `qualifiedTeamsTotalPredicted: number | null` → `qualifiedTeamsActualCount: number` (renamed, always a number — count of teams returned by `findQualifiedTeams`)
+- Added `honorRollCorrect: HonorRollPosition[] | null` — null until scored; populated array of correctly predicted positions
+- Added `individualAwardsCorrect: IndividualAwardType[] | null` — null until scored; populated array of correctly predicted award types
+- Added exported types `HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'` and `IndividualAwardType = 'bestPlayer' | 'topGoalscorer' | 'bestGoalkeeper' | 'bestYoungPlayer'`
+
+### Amendment 2: `getRecentResultsData` call set changed
+**Date:** 2026-04-17
+**Reason:** The plan used `getAllUserGroupPositionsPredictions` to count predicted teams, but the actual approach computes `qualifiedTeamsActualCount` from `findQualifiedTeams` (number of teams that have actually qualified, not user-predicted). Honor roll and award correctness requires `findTournamentById` (tournament result fields) and `findTournamentGuessByUserIdTournament` (user's tournament predictions).
+**Change:**
+- Removed: `getAllUserGroupPositionsPredictions`
+- Added: `findQualifiedTeams`, `findTournamentById`, `findTournamentGuessByUserIdTournament`
+- Updated Calls: `getLoggedInUser, findRecentGamesWithUserGuesses, getTournamentGuessStatsForUsers, findTeamInTournament, findQualifiedTeams, findTournamentById, findTournamentGuessByUserIdTournament, applyLocalizationBatch`
+
+### Amendment 3: `RecentResultsWidget` additional href props
+**Date:** 2026-04-17
+**Reason:** During feedback, each section of the widget was made clickable and linked to the relevant page (results, qualified-teams, awards) rather than all linking to stats. This required three additional href props.
+**Change:**
+- Props: `{ data, statsHref }` → `{ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref }`
+- Games section links to `resultsHref` (`.../results`)
+- QT section links to `qualifiedTeamsHref` (`.../qualified-teams`)
+- Awards section links to `awardsHref` (`.../awards`)
+- "View full statistics" button still uses `statsHref` (outside the card)
+
+### Amendment 4: QT section visibility trigger changed
+**Date:** 2026-04-17
+**Reason:** QT section should appear as soon as any teams have qualified, regardless of whether the user's QT score has been computed. This gives users visibility even before scoring runs.
+**Change:** `hasQT` condition changed from `qualifiedTeamsScore !== null` to `qualifiedTeamsActualCount > 0`
