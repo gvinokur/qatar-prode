@@ -12,6 +12,13 @@ description: Ticket creation skill — invoke when user wants to brainstorm a ne
 
 ---
 
+## 🛑 MANDATORY STOP RULES
+
+**1. MOCKUP STOP:** If a mockup is being created (Step 4), you **MUST NOT** proceed to ticket drafting until the user has explicitly confirmed the mockup is correct.
+**2. DRAFT STOP:** Before calling any tool to create the issue (Step 7), you **MUST NOT** proceed until you have presented the full final ticket content (Step 6) and received explicit confirmation.
+
+---
+
 ## Critical Rule: Feature Level Only
 
 **Tickets MUST describe what users experience — never what code does.**
@@ -68,9 +75,13 @@ If the story involves new or changed UI, ask:
 > "This feature has UI changes. Do you want to create a mockup first?"
 
 If yes → pause ticket creation and invoke the `ui-ux-designer` skill. 
+
+**🛑 STOP: You MUST wait for user confirmation of the mockup before moving to Step 5.**
+
 The resulting mockup file path is included in the issue body.
 
 ---
+
 ## Step 5: Finalize Ticket Fields
 
 With user, confirm:
@@ -83,23 +94,23 @@ With user, confirm:
 
 ---
 
-## Step 6: Review with User (Mandatory)
+## Step 6: Review Draft with User (Mandatory)
 
 **Before calling any tool to create the issue, you MUST present the full final ticket content to the user for review.**
 
 1.  Draft the full issue body (Objective, Background, Acceptance Criteria, etc.)
 2.  Show it to the user in the chat.
 3.  Explicitly ask: "Is this story ready to be created in GitHub?"
-4.  **ONLY** proceed to Step 7 if the user gives explicit confirmation.
+4.  **🛑 STOP: ONLY proceed to Step 7 if the user gives explicit "Go/Yes" confirmation.**
 
 ---
 
-## Step 7: Create GitHub Issue
-
+## Step 7: Create GitHub Issue and Set Fields
 
 Use the `run_shell_command` tool to execute:
 
 ```bash
+# 1. Create the issue
 gh issue create \
   --title "${TITLE}" \
   --body "## Objective
@@ -122,11 +133,8 @@ gh issue create \
 ## Mockup
 [path to mockup file if created — omit this section if no mockup]" \
   --label "story"
-```
 
-Then set GitHub Projects fields using the helper script:
-
-```bash
+# 2. Set Project Fields (Ensure --project 1 is always included)
 ./scripts/github-projects-helper story set-fields ${ISSUE_NUMBER} \
   --project 1 \
   --priority "${PRIORITY}" \
@@ -134,7 +142,7 @@ Then set GitHub Projects fields using the helper script:
   --category "${CATEGORY}"
 ```
 
-*Note: The helper script will match values to available project options.*
+*Note: The helper script will match values to available project options. If 'XS' is not available, it will fall back or error—verify options with 'github-projects-helper field set --help' if unsure.*
 
 ---
 

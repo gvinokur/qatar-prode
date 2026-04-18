@@ -19,13 +19,13 @@ A standalone HTML file saved to `mockups/[feature-name]-mockup.html` via `write_
 
 Uses **React 19 + MUI v7 + Emotion + htm via ESM (importmap)** — renders real MUI components in the browser with the project's actual theme. 
 
-**Note on MUI v7:** Starting with v6, MUI dropped UMD bundles. We must use an ESM-based CDN (like `esm.sh`) and standard `import` syntax. Since we want JSX-like syntax in a single file without a build step, we use `htm` to bind to `React.createElement`.
+**Note on MUI v7:** Starting with v6, MUI dropped UMD bundles. You **MUST** use an ESM-based CDN (like `esm.sh`) and standard `import` syntax. Since we want JSX-like syntax in a single file without a build step, we use `htm` to bind to `React.createElement`.
 
 ---
 
 ## MUI ESM Boilerplate (Required Starting Point)
 
-Every mockup starts from this exact template:
+Every mockup **MUST** start from this exact template:
 
 ```html
 <!DOCTYPE html>
@@ -63,7 +63,8 @@ Every mockup starts from this exact template:
       ThemeProvider, createTheme, CssBaseline, 
       Container, Box, Stack, 
       Card, CardContent, CardHeader,
-      Typography, Chip, Icon, Skeleton
+      Typography, Chip, Icon, Skeleton,
+      Paper, Alert, Divider
       // Add more as needed
     } from '@mui/material';
 
@@ -73,15 +74,13 @@ Every mockup starts from this exact template:
     const theme = createTheme({
       palette: {
         mode: 'dark',
-        primary: {
-          main: '#a78bfa',
-          light: '#c4b5fd',
-          dark: '#8b5cf6',
-          contrastText: '#ffffff'
-        },
         background: {
           default: '#0a0a0a',
           paper: '#1a1a1a',
+        },
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
         },
         text: {
           primary: '#e5e7eb',
