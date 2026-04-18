@@ -159,7 +159,7 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
 - **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
-- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. After `getGroupsForUser`, fetches ranks for all user groups in parallel via `getGroupRankingForUser`, derives `groupRanks: Record<string, number>`, and passes to `TournamentSidebar`.
+- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. After `getGroupsForUser`, fetches ranks for all user groups in parallel via `getGroupRankingForUser`, derives `groupRanks: Record<string, number>`, and passes `prodeGroups` (including `favoriteGroupIds` and `mainGroupId`) to `TournamentSidebar → FriendGroupsList`.
   Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd, getGroupRankingForUser
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
@@ -228,7 +228,7 @@ Qualified teams (group finalists) prediction page with drag-and-drop interface.
 ### app/[locale]/tournaments/[id]/friend-groups/page.tsx
 Tournament-scoped friend groups list showing group stats for specific tournament.
 
-- **TournamentGroupsPage(props)**: `JSX.Element` — [Server] Fetches user's groups and calculates tournament-specific stats; renders groups list.
+- **TournamentGroupsPage(props)**: `JSX.Element` — [Server] Fetches user's groups and calculates tournament-specific stats; passes `favoriteGroupIds` and `mainGroupId` from `getGroupsForUser` to `TournamentGroupsList` for sorting and star/crown rendering.
   Calls: getLoggedInUser, getGroupsForUser, calculateTournamentGroupStats, getUserJoinRequests
   Renders: TournamentGroupsList
 

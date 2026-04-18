@@ -23,7 +23,8 @@ import {
   ShortUrlTable,
   TournamentScoreHistoryTable,
   AdSettingsTable,
-  GroupRankingTable
+  GroupRankingTable,
+  UserFavoriteGroupTable
 } from "./tables-definition";
 
 export interface Database {
@@ -65,6 +66,8 @@ export interface Database {
   ad_settings: AdSettingsTable
 
   group_rankings: GroupRankingTable
+
+  user_favorite_groups: UserFavoriteGroupTable
 }
 
 export const db= createKysely<Database>();

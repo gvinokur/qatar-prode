@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Box, Typography, Button, Grid } from "../mui-wrappers/";
 import {
   Stack,
@@ -16,6 +16,7 @@ import type { TournamentGroupStats } from "../../definitions";
 import TournamentGroupCard from "./tournament-group-card";
 import FriendGroupsLandingEmptyState from "../friend-groups/FriendGroupsLandingEmptyState";
 import { createDbGroup } from "../../actions/prode-group-actions";
+import { toggleFavoriteGroupAction } from "../../actions/favorite-group-actions";
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
@@ -32,19 +33,38 @@ interface TournamentGroupsListProps {
   readonly groups: TournamentGroupStats[];
   readonly tournamentId: string;
   readonly pendingRequests?: UserJoinRequest[];
+  readonly favoriteGroupIds?: string[];
 }
 
 type GroupForm = {
   name: string;
 }
 
-export default function TournamentGroupsList({ groups, tournamentId, pendingRequests = [] }: TournamentGroupsListProps) {
+function sortGroupsByFavorites(
+  groups: TournamentGroupStats[],
+  favoriteIds: string[]
+): TournamentGroupStats[] {
+  return [...groups].sort((a, b) => {
+    const aIsFav = favoriteIds.includes(a.groupId)
+    const bIsFav = favoriteIds.includes(b.groupId)
+    if (aIsFav !== bIsFav) return aIsFav ? -1 : 1
+    if (aIsFav && bIsFav) return a.groupName.localeCompare(b.groupName)
+    return 0
+  })
+}
+
+export default function TournamentGroupsList({ groups, tournamentId, pendingRequests = [], favoriteGroupIds: initialFavoriteGroupIds = [] }: TournamentGroupsListProps) {
   const tCreate = useTranslations('groups.create');
   const tList = useTranslations('groups.list');
   const tActions = useTranslations('groups.actions');
   const tDiscovery = useTranslations('groups.discovery');
   const locale = useLocale();
   const router = useRouter();
+
+  const [localFavoriteIds, setLocalFavoriteIds] = useState<string[]>(initialFavoriteGroupIds)
+  const [, startTransition] = useTransition()
+
+  const sortedGroups = sortGroupsByFavorites(groups, localFavoriteIds)
 
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,6 +92,19 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
   const handleDiscoverGroups = () => {
     router.push(`/${locale}/tournaments/${tournamentId}/friend-groups/discover`);
   };
+
+  const handleToggleFavorite = (groupId: string) => {
+    const isFav = localFavoriteIds.includes(groupId)
+    if (isFav) {
+      setLocalFavoriteIds(localFavoriteIds.filter(id => id !== groupId))
+    } else {
+      setLocalFavoriteIds([...localFavoriteIds, groupId])
+    }
+    startTransition(async () => {
+      await toggleFavoriteGroupAction(groupId)
+      router.refresh()
+    })
+  }
 
   // Show empty state if no groups and no actively pending requests
   const activePendingRequests = pendingRequests.filter(req => req.status === 'pending');
@@ -179,9 +212,14 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
             {/* Groups Grid */}
             <Grid container spacing={3}>
               {/* Approved Groups */}
-              {groups.map((group) => (
+              {sortedGroups.map((group) => (
                 <Grid size={{ xs: 12, sm: 12, md: 6 }} key={group.groupId}>
-                  <TournamentGroupCard group={group} tournamentId={tournamentId} />
+                  <TournamentGroupCard
+                    group={group}
+                    tournamentId={tournamentId}
+                    isFavorite={localFavoriteIds.includes(group.groupId)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
                 </Grid>
               ))}
 

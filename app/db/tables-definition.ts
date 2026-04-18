@@ -664,3 +664,13 @@ export type GroupRankingSnapshotNew = Pick<
   Insertable<GroupRankingTable>,
   'user_id' | 'group_id' | 'tournament_id' | 'snapshot_date' | 'rank' | 'score'
 >
+
+export interface UserFavoriteGroupTable {
+  user_id: string
+  group_id: string
+  is_main: boolean
+  created_at: Generated<Date>
+}
+
+export type UserFavoriteGroup = Selectable<UserFavoriteGroupTable>
+export type UserFavoriteGroupNew = Omit<Insertable<UserFavoriteGroupTable>, 'created_at'>

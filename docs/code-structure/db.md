@@ -31,6 +31,9 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **GroupRankingTable**: Interface for `group_rankings` table with `id` (Generated), `user_id`, `group_id`, `tournament_id`, `snapshot_date` (INTEGER YYYYMMDD), `rank`, `score`, `created_at` (Generated). Unique constraint on `(user_id, group_id, tournament_id, snapshot_date)`.
 - **GroupRanking**: `Selectable<GroupRankingTable>` — full row shape.
 - **GroupRankingSnapshotNew**: `Pick<Insertable<GroupRankingTable>, 'user_id' | 'group_id' | 'tournament_id' | 'snapshot_date' | 'rank' | 'score'>` — insert shape (excludes auto-generated fields).
+- **UserFavoriteGroupTable**: Interface for `user_favorite_groups` table with composite PK `(user_id, group_id)`, `is_main` (BOOLEAN DEFAULT FALSE), `created_at` (Generated). Partial unique index on `user_id WHERE is_main = TRUE` enforces at most one main group per user.
+- **UserFavoriteGroup**: `Selectable<UserFavoriteGroupTable>` — full row shape.
+- **UserFavoriteGroupNew**: `Omit<Insertable<UserFavoriteGroupTable>, 'created_at'>` — insert shape.
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
@@ -355,4 +358,20 @@ Repository for the `group_rankings` table. Stores daily rank snapshots per user/
 - **getLatestRankingsForGroupWithChange(groupId: string, tournamentId: string)**: `Promise<{ userId: string; currentRank: number; previousRank: number | null; currentScore: number }[]>` — All users' ranks at the latest snapshot date, paired with each user's rank at the penultimate snapshot date (for rank-change computation). Three-step query: get 2 most-recent distinct dates, fetch latest rows, fetch penultimate rows (if exists), join via Map. Returns empty array when no snapshots exist; `previousRank` is null for users absent from the penultimate snapshot.
   Calls: db
 - **findGroupsForUsers(userIds: string[])**: `Promise<{ id: string }[]>` — Distinct group IDs where at least one member (owner or participant) is in `userIds`. Returns empty array for empty input. Uses LEFT JOIN on `prode_group_participants`.
+  Calls: db
+
+### app/db/favorite-groups-repository.ts
+Repository for the `user_favorite_groups` table. Manages user-level favorite and main-group designation for friend groups (Story #332).
+
+- **getFavoriteGroupIds(userId: string)**: `Promise<string[]>` — All group IDs the user has favorited.
+  Calls: db
+- **getMainGroupId(userId: string)**: `Promise<string | null>` — The user's designated main group ID, or null if none.
+  Calls: db
+- **addFavoriteGroup(userId: string, groupId: string)**: `Promise<void>` — Inserts a favorite row; no-op on conflict (idempotent).
+  Calls: db
+- **removeFavoriteGroup(userId: string, groupId: string)**: `Promise<void>` — Deletes the favorite row (cascades main designation if that row had is_main=true).
+  Calls: db
+- **setMainGroup(userId: string, groupId: string)**: `Promise<void>` — Clears any existing main group for the user, then upserts the row with is_main=true. Group must already be a favorite (upsert will add it if not).
+  Calls: db
+- **clearMainGroup(userId: string)**: `Promise<void>` — Sets is_main=false for the user's current main group; no-op if no main group is set.
   Calls: db

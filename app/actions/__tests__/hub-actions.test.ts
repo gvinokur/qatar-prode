@@ -7,6 +7,7 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
+import * as favoriteGroupsRepository from '@/app/db/favorite-groups-repository'
 import * as userActions from '../user-actions'
 import { applyLocalizationBatch } from '@/app/utils/localization-helper'
 import { testFactories } from '../../../__tests__/db/test-factories'
@@ -36,6 +37,10 @@ vi.mock('@/app/db/tournament-repository', () => ({
 
 vi.mock('../user-actions', () => ({
   getLoggedInUser: vi.fn(),
+}))
+
+vi.mock('@/app/db/favorite-groups-repository', () => ({
+  getFavoriteGroupIds: vi.fn(),
 }))
 
 vi.mock('@/app/db/prode-group-repository', () => ({
@@ -371,6 +376,7 @@ describe('getLeaderboardPeekData', () => {
       makeRankings(group1.id, [USER_ID, 'user-2', 'user-3'], USER_ID)
     )
     vi.mocked(groupRankingRepository.getLatestTwoGroupRankingSnapshots).mockResolvedValue([])
+    vi.mocked(favoriteGroupsRepository.getFavoriteGroupIds).mockResolvedValue([])
   })
 
   it('returns empty array when user is not authenticated', async () => {
@@ -405,6 +411,27 @@ describe('getLeaderboardPeekData', () => {
     expect(result).toHaveLength(3)
     expect(result[0].groupId).toBe(group1.id)
     expect(result[1].groupId).toBe(group2.id)
+    expect(result[2].groupId).toBe(group3.id)
+  })
+
+  it('sorts favorite groups before non-favorites regardless of member count', async () => {
+    // group1: 5 members (largest), group2: 3 members (favorited), group3: 2 members
+    // Without favorites: group1, group2, group3
+    // With group2 favorited: group2 (favorite), group1 (most members), group3
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([
+      group1, group2, group3,
+    ])
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
+      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group2.id, [USER_ID, 'u2', 'u3'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group3.id, [USER_ID, 'u2'], USER_ID))
+    vi.mocked(favoriteGroupsRepository.getFavoriteGroupIds).mockResolvedValue([group2.id])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result).toHaveLength(3)
+    expect(result[0].groupId).toBe(group2.id) // favorite first
+    expect(result[1].groupId).toBe(group1.id) // then by member count desc
     expect(result[2].groupId).toBe(group3.id)
   })
 

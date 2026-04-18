@@ -208,7 +208,7 @@
     "yourPoints": "Tus Puntos",
     "leader": "Líder",
     "viewDetails": "Ver Detalles",
-    "viewLeaderboard": "Ver Marcador",
+    "viewLeaderboard": "Ver Posiciones",
     "positionOf": "#{position} de {total}"
   },
   "customization": {
@@ -328,8 +328,8 @@
     "createdBy": "Creado por {name}",
     "requestToJoin": "Solicitar Unirse",
     "pending": "Solicitud Pendiente",
-    "viewGroup": "Ver Marcador",
-    "viewLeaderboard": "Ver Marcador",
+    "viewGroup": "Ver Posiciones",
+    "viewLeaderboard": "Ver Posiciones",
     "readMore": "Leer más",
     "readLess": "Leer menos",
     "loginToJoin": "Inicia sesión para unirte a este grupo",
@@ -605,6 +605,10 @@
     "rankChartTitle": "Posición en el tiempo",
     "noHistory": "Sin historial",
     "noHistoryDescription": "El historial de puntos aparecerá cuando comience el torneo y se calculen los puntajes."
+  },
+  "favorites": {
+    "addFavorite": "Agregar este grupo a tus favoritos",
+    "removeFavorite": "Este es uno de tus grupos favoritos"
   },
   "metadata": {
     "description": "Ver la tabla de posiciones del grupo {name}"

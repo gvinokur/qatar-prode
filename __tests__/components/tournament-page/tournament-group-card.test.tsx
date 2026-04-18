@@ -71,8 +71,8 @@ describe('TournamentGroupCard', () => {
 
   it('has link to tournament-scoped friend group detail page', () => {
     renderWithTheme(<TournamentGroupCard group={mockGroup} tournamentId={tournamentId} />);
-    // Spanish: "Ver Marcador" instead of "View Leaderboard"
-    const link = screen.getByRole('link', { name: /Ver Marcador/ });
+    // Spanish: "Ver Posiciones" instead of "View Leaderboard" (fixed from "Ver Posiciones" in Story #332)
+    const link = screen.getByRole('link', { name: /Ver Posiciones/ });
     expect(link).toHaveAttribute('href', `/es/tournaments/${tournamentId}/friend-groups/${mockGroup.groupId}`);
   });
 
@@ -189,7 +189,7 @@ describe('TournamentGroupCard', () => {
       expect(pendingButton).toBeDisabled();
     });
 
-    it('shows "Ver Marcador" link when userStatus is member', () => {
+    it('shows "Ver Posiciones" link when userStatus is member', () => {
       renderWithTheme(
         <TournamentGroupCard
           variant="discovery"
@@ -197,10 +197,10 @@ describe('TournamentGroupCard', () => {
           tournamentId={tournamentId}
         />
       );
-      expect(screen.getByRole('link', { name: /Ver Marcador/ })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Ver Posiciones/ })).toBeInTheDocument();
     });
 
-    it('Ver Marcador link points to the correct URL', () => {
+    it('Ver Posiciones link points to the correct URL', () => {
       renderWithTheme(
         <TournamentGroupCard
           variant="discovery"
@@ -208,7 +208,7 @@ describe('TournamentGroupCard', () => {
           tournamentId={tournamentId}
         />
       );
-      const link = screen.getByRole('link', { name: /Ver Marcador/ });
+      const link = screen.getByRole('link', { name: /Ver Posiciones/ });
       expect(link).toHaveAttribute(
         'href',
         `/es/tournaments/${tournamentId}/friend-groups/${discoveryGroup.id}`

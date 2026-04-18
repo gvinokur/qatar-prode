@@ -39,6 +39,9 @@ vi.mock('../../app/db/prode-group-join-request-repository');
 vi.mock('../../app/actions/short-url-actions');
 vi.mock('../../app/utils/email-templates');
 vi.mock('../../app/utils/email');
+vi.mock('../../app/db/favorite-groups-repository', () => ({
+  getFavoriteGroupIds: vi.fn().mockResolvedValue([]),
+}));
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
 const mockCreateProdeGroup = vi.mocked(prodeGroupRepository.createProdeGroup);
@@ -188,7 +191,7 @@ describe('Prode Group Actions', () => {
   describe('getGroupsForUser', () => {
     it('returns user and participant groups', async () => {
       const result = await getGroupsForUser();
-      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [] });
+      expect(result).toEqual({ userGroups: [mockGroup], participantGroups: [mockGroup], pendingRequests: [], favoriteGroupIds: [] });
     });
     it('returns undefined if not logged in', async () => {
       mockGetLoggedInUser.mockResolvedValue(undefined);

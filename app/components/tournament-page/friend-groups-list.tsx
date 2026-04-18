@@ -10,8 +10,15 @@ import {
   ListItem,
   ListItemText, TextField, useTheme
 } from "@mui/material";
-import {Add as AddIcon, Delete as DeleteIcon, Share as ShareIcon, ExpandMore as ExpandMoreIcon, Groups as GroupsIcon, Search as SearchIcon} from "@mui/icons-material";
-import {useState} from "react";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Share as ShareIcon,
+  ExpandMore as ExpandMoreIcon,
+  Groups as GroupsIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
+import { useState } from "react";
 import {ExpandMore} from './expand-more';
 import {Controller, useForm} from "react-hook-form";
 import * as React from "react";
@@ -22,6 +29,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import FriendGroupsSidebarEmptyState from "../friend-groups/FriendGroupsSidebarEmptyState";
 
+type GroupItem = { id: string; name: string; isOwner: boolean }
+
 type Props = {
   userGroups: { id: string, name: string}[]
   participantGroups: {id: string, name: string}[]
@@ -29,38 +38,63 @@ type Props = {
   isActive?: boolean
   pendingRequests?: { id: string; group_id: string; group_name?: string | null }[]
   groupRanks?: Record<string, number>
+  favoriteGroupIds?: string[]
 }
 
 type GroupForm = {
   name: string
 }
 
+function sortGroups(groups: GroupItem[], favoriteIds: string[]): GroupItem[] {
+  return [...groups].sort((a, b) => {
+    const aIsFav = favoriteIds.includes(a.id)
+    const bIsFav = favoriteIds.includes(b.id)
+    if (aIsFav !== bIsFav) return aIsFav ? -1 : 1
+    if (aIsFav && bIsFav) return a.name.localeCompare(b.name)
+    return 0
+  })
+}
+
 export default function FriendGroupsList({
-  userGroups:initialUserGroups,
+  userGroups: initialUserGroups,
   participantGroups,
   tournamentId,
   isActive = false,
   pendingRequests = [],
   groupRanks,
+  favoriteGroupIds = [],
 } : Props) {
   const t = useTranslations('groups');
   const theme = useTheme();
   const locale = useLocale();
   const router = useRouter();
-  const [userGroups, setUserGroups] = useState(initialUserGroups);
-  const isEmpty = Boolean(tournamentId && userGroups.length + participantGroups.length === 0 && pendingRequests.length === 0);
-  const primaryGroup = userGroups[0] ?? participantGroups[0];
+
+  const [ownedGroups, setOwnedGroups] = useState(initialUserGroups);
+
+  // Combine all groups for unified sorting
+  const allGroups: GroupItem[] = [
+    ...ownedGroups.map(g => ({ ...g, isOwner: true })),
+    ...participantGroups.map(g => ({ ...g, isOwner: false })),
+  ]
+  const sortedGroups = sortGroups(allGroups, favoriteGroupIds)
+
+  const isEmpty = Boolean(tournamentId && allGroups.length === 0 && pendingRequests.length === 0);
+
+  // Primary group for subheader: first favorite, or first overall
+  const primaryGroup = sortedGroups[0]
   const primaryGroupRank = primaryGroup ? (groupRanks?.[primaryGroup.id] ?? null) : null;
-  const groupCount = userGroups.length + participantGroups.length;
+  const groupCount = allGroups.length
   const groupCountWithOptionalRank = primaryGroupRank !== null && primaryGroup
     ? t('header.groupCountWithRank', { count: groupCount, rank: primaryGroupRank, groupName: primaryGroup.name })
     : t('header.groupCount', { count: groupCount });
   const groupCountText = groupCount > 0 ? groupCountWithOptionalRank : t('header.noGroups');
+
   const [expanded, setExpanded] = useState(isEmpty);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [openConfirmDeleteGroup, setOpenConfirmDeleteGroup] = useState<string | false>(false)
   const [loading, setLoading] = useState(false)
-  const { control, handleSubmit } =useForm<GroupForm>()
+  const { control, handleSubmit } = useForm<GroupForm>()
+
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -73,9 +107,8 @@ export default function FriendGroupsList({
   const handleGroupDelete = async () => {
     setLoading(true)
     if(openConfirmDeleteGroup) {
-      // Delete the group on the backend
       deleteGroup(openConfirmDeleteGroup)
-      setUserGroups(userGroups.filter(group => group.id !== openConfirmDeleteGroup))
+      setOwnedGroups(ownedGroups.filter(group => group.id !== openConfirmDeleteGroup))
     }
     setLoading(false)
     setOpenConfirmDeleteGroup(false)
@@ -84,10 +117,7 @@ export default function FriendGroupsList({
   const createGroup = async (group: GroupForm) => {
     setLoading(true)
     const newGroup = await createDbGroup(group.name)
-    setUserGroups([
-      ...userGroups,
-      newGroup
-    ])
+    setOwnedGroups([...ownedGroups, newGroup])
     setLoading(false)
     setOpenCreateDialog(false)
   }
@@ -141,60 +171,46 @@ export default function FriendGroupsList({
               </Box>
             </>
           ) : (
-            <List sx={{ width: '100%'}} disablePadding >
-            {userGroups.map(userGroup => {
-              const rank = groupRanks?.[userGroup.id];
+            <List sx={{ width: '100%'}} disablePadding>
+            {sortedGroups.map(group => {
+              const rank = groupRanks?.[group.id];
               return (
-                <ListItem key={userGroup.id}
-                          alignItems='flex-start'
-                          disableGutters
-                          secondaryAction={
-                            <>
-                              <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(userGroup.id)}>
-                                <DeleteIcon/>
-                              </IconButton>
-                              <InviteFriendsDialog
-                                trigger={
-                                  <IconButton title={t('actions.invite')} color="primary">
-                                    <ShareIcon/>
-                                  </IconButton>}
-                                groupId={userGroup.id}
-                                groupName={userGroup.name}
-                                tournamentId={tournamentId} />
-                            </>
-                          }>
+                <ListItem
+                  key={group.id}
+                  alignItems='flex-start'
+                  disableGutters
+                  secondaryAction={
+                    group.isOwner ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton title={t('actions.delete')} color="secondary" onClick={() => setOpenConfirmDeleteGroup(group.id)}>
+                          <DeleteIcon/>
+                        </IconButton>
+                        <InviteFriendsDialog
+                          trigger={
+                            <IconButton title={t('actions.invite')} color="primary">
+                              <ShareIcon/>
+                            </IconButton>}
+                          groupId={group.id}
+                          groupName={group.name}
+                          tournamentId={tournamentId} />
+                      </Box>
+                    ) : undefined
+                  }
+                >
                   <ListItemText>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {rank !== undefined && (
                         <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                       )}
-                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${userGroup.id}` : `/${locale}/friend-groups/${userGroup.id}`}>
-                        {userGroup.name}
+                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${group.id}` : `/${locale}/friend-groups/${group.id}`}>
+                        {group.name}
                       </Link>
                     </Box>
                   </ListItemText>
                 </ListItem>
               );
             })}
-            {(userGroups.length > 0 && participantGroups.length > 0) &&  <ListItem divider/>}
-            {participantGroups.map(participantGroup => {
-              const rank = groupRanks?.[participantGroup.id];
-              return (
-                <ListItem key={participantGroup.id} disableGutters>
-                  <ListItemText>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {rank !== undefined && (
-                        <Chip label={`#${rank}`} size="small" color="primary" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
-                      )}
-                      <Link href={tournamentId ? `/${locale}/tournaments/${tournamentId}/friend-groups/${participantGroup.id}` : `/${locale}/friend-groups/${participantGroup.id}`}>
-                        {participantGroup.name}
-                      </Link>
-                    </Box>
-                  </ListItemText>
-                </ListItem>
-              );
-            })}
-            {pendingRequests.length > 0 && (userGroups.length > 0 || participantGroups.length > 0) && <ListItem divider/>}
+            {pendingRequests.length > 0 && allGroups.length > 0 && <ListItem divider/>}
             {pendingRequests.map(request => (
               <ListItem key={request.id} disableGutters sx={{ gap: 1 }}>
                 <ListItemText
@@ -316,6 +332,5 @@ export default function FriendGroupsList({
         </DialogActions>
       </Dialog>
     </>
-
   )
 }
