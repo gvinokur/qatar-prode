@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Nav Icons — Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack, 
+      Card, CardContent, CardHeader,
+      Typography, Chip, Tabs, Tab, Icon, Paper, Alert
+    } from '@mui/material';
+
+    const html = htm.bind(React.createElement);
+
+    // Project theme — mirrors app/components/context-providers/theme-provider.tsx
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper:   '#1a1a1a',
+        },
+        primary:  { main: '#a78bfa' },
+        error:    { main: '#f44336' },
+        success:  { main: '#4caf50' },
+        warning:  { main: '#ff9800' },
+        divider:  'rgba(255,255,255,0.08)',
+        text: {
+          primary:   '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 8 },
+    });
+
+    // Mirroring getTabSx from GroupSelector.tsx
+    const getTabSx = (backgroundColor, textColor, theme) => ({
+      color: textColor || theme.palette.text.primary,
+      fontWeight: 600,
+      minHeight: 48,
+      fontSize: '0.75rem',
+      textTransform: 'uppercase',
+      '&.Mui-selected': {
+        color: backgroundColor || theme.palette.primary.contrastText,
+        backgroundColor: textColor || theme.palette.primary.main,
+        borderRadius: '4px',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+      },
+    });
+
+    function MockupApp() {
+      const [view, setView] = React.useState('proposed');
+      const [activeTab, setActiveTab] = React.useState(0);
+      
+      // Simulation of Tournament theme colors passed to GroupSelector
+      const tournamentPrimary = '#a78bfa';
+      const tournamentSecondary = '#ffffff';
+
+      const tabSx = getTabSx(tournamentPrimary, tournamentSecondary, theme);
+
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="md" sx=${{ py: 4 }}>
+
+            <${Box} sx=${{ mb: 3 }}>
+              <${Typography} variant="h5" fontWeight=${700} gutterBottom>Semantic Navigation Icons<//>
+              <${Typography} variant="body2" color="text.secondary">
+                Aligning icons across all tournament navigation tabs using semantic mappings.
+              <//>
+            <//>
+
+            <${Stack} direction="row" spacing=${1} sx=${{ mb: 3 }}>
+              <${Chip} 
+                label="Current State" 
+                onClick=${() => setView('current')} 
+                variant=${view === 'current' ? 'filled' : 'outlined'} 
+                color=${view === 'current' ? 'primary' : 'default'} 
+              />
+              <${Chip} 
+                label="Proposed Fix" 
+                onClick=${() => setView('proposed')} 
+                variant=${view === 'proposed' ? 'filled' : 'outlined'} 
+                color=${view === 'proposed' ? 'primary' : 'default'} 
+              />
+            <//>
+
+            <${Paper} sx=${{ p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+              ${view === 'current' ? html`
+                <${Stack} spacing=${3}>
+                  <${Alert} severity="warning">
+                    Current inconsistency: Only "Matches" has an icon, and it's the wrong one (Trophy).
+                  <//>
+                  <${Box} sx=${{ bgcolor: tournamentPrimary, p: 1, borderRadius: 1 }}>
+                    <${Tabs} 
+                      value=${1} 
+                      variant="fullWidth" 
+                      slotProps=${{ indicator: { sx: { backgroundColor: 'transparent' } } }}
+                    >
+                      <${Tab} label="HUB" sx=${tabSx} />
+                      <${Tab} 
+                        label="MATCHES" 
+                        icon=${html`<${Icon} sx=${{ fontSize: 20 }}>emoji_events<//>`} 
+                        iconPosition="start" 
+                        sx=${tabSx} 
+                      />
+                      <${Tab} label="QUALIFIED" sx=${tabSx} />
+                      <${Tab} label="AWARDS" sx=${tabSx} />
+                    <//>
+                  <//>
+                <//>
+              ` : html`
+                <${Stack} spacing=${3}>
+                  <${Alert} severity="success">
+                    Proposed: Semantic icons for all tabs. Trophy correctly assigned to Awards.
+                  <//>
+                  <${Box} sx=${{ bgcolor: tournamentPrimary, p: 1, borderRadius: 1 }}>
+                    <${Tabs} 
+                      value=${activeTab} 
+                      onChange=${(_, v) => setActiveTab(v)}
+                      variant="fullWidth" 
+                      slotProps=${{ indicator: { sx: { backgroundColor: 'transparent' } } }}
+                    >
+                      <${Tab} label="HUB" icon=${html`<${Icon} sx=${{ fontSize: 20 }}>dashboard<//>`} iconPosition="start" sx=${tabSx} />
+                      <${Tab} label="MATCHES" icon=${html`<${Icon} sx=${{ fontSize: 20 }}>sports_soccer<//>`} iconPosition="start" sx=${tabSx} />
+                      <${Tab} label="QUALIFIED" icon=${html`<${Icon} sx=${{ fontSize: 20 }}>account_tree<//>`} iconPosition="start" sx=${tabSx} />
+                      <${Tab} label="AWARDS" icon=${html`<${Icon} sx=${{ fontSize: 20 }}>emoji_events<//>`} iconPosition="start" sx=${tabSx} />
+                    <//>
+                  <//>
+                <//>
+              `}
+            <//>
+
+            <${Stack} direction="row" spacing=${2} sx=${{ mt: 4 }}>
+              <${Card} variant="outlined" sx=${{ flex: 1 }}>
+                <${CardHeader} 
+                  title="Semantic Mapping" 
+                  titleTypographyProps=${{ variant: 'subtitle2', fontWeight: 700 }} 
+                />
+                <${CardContent} sx=${{ pt: 0 }}>
+                  <${Typography} variant="body2" color="text.secondary">
+                    • <b>Hub</b>: dashboard (Central view)<br/>
+                    • <b>Matches</b>: sports_soccer (Core game)<br/>
+                    • <b>Qualified</b>: account_tree (Bracket logic)<br/>
+                    • <b>Awards</b>: emoji_events (Trophy)
+                  <//>
+                <//>
+              <//>
+              <${Card} variant="outlined" sx=${{ flex: 1 }}>
+                <${CardHeader} 
+                  title="Visual Integrity" 
+                  titleTypographyProps=${{ variant: 'subtitle2', fontWeight: 700 }} 
+                />
+                <${CardContent} sx=${{ pt: 0 }}>
+                  <${Typography} variant="body2" color="text.secondary">
+                    Matching the inverted selection style of <code>GroupSelector</code>. 
+                    Start-position icons ensure vertical alignment across all tabs.
+                  <//>
+                <//>
+              <//>
+            <//>
+
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>
