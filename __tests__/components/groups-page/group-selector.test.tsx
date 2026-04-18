@@ -84,7 +84,7 @@ describe('GroupSelector', () => {
       expect(screen.getByRole('tablist', { name: 'Navegación del torneo' })).toBeInTheDocument();
     });
 
-    it('renders Matches tab with trophy icon', () => {
+    it('renders Matches tab with soccer ball icon', () => {
       renderWithTheme(
         <GroupSelector
           groups={mockGroups}
@@ -96,6 +96,30 @@ describe('GroupSelector', () => {
       expect(matchesTab).toBeInTheDocument();
       // MUI icon renders as SVG with specific test ID or class
       expect(matchesTab.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('renders Qualified tab with an icon', () => {
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+        />
+      );
+
+      const qualifiedTab = screen.getByRole('tab', { name: /CLASIFICADOS/i });
+      expect(qualifiedTab.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('renders Awards tab with an icon', () => {
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+        />
+      );
+
+      const awardsTab = screen.getByRole('tab', { name: /PREMIOS/i });
+      expect(awardsTab.querySelector('svg')).toBeInTheDocument();
     });
   });
 

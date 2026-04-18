@@ -1,6 +1,8 @@
 'use client'
 
 import { Tabs, Tab, useTheme } from "@mui/material";
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -84,7 +86,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
       )}
       <Tab
         label={t('matches')}
-        icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
+        icon={<SportsSoccerIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value=""
         component={Link}
@@ -93,6 +95,8 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
       />
       <Tab
         label={t('qualified')}
+        icon={<AccountTreeIcon sx={{ fontSize: 20 }} />}
+        iconPosition="start"
         value="qualified-teams"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
@@ -101,6 +105,8 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
       />
       <Tab
         label={t('awards')}
+        icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
+        iconPosition="start"
         value="individual_awards"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/awards`}
