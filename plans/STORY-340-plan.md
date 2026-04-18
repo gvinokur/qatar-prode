@@ -159,6 +159,15 @@ New test cases:
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Hub tab icon deferred
+**Date:** 2026-04-18
+**Reason:** Hub feature (separate branch) is not yet merged into `main`. Adding `DashboardIcon` to the Hub tab and its associated tests (`isHubEnabled` mock) was deferred to avoid a dependency on unmerged code. The Hub tab conditionally renders via `isHubEnabled()` and remains unchanged in this story.
+**Change:** `DashboardIcon` import omitted. Hub tab has no icon. Hub-specific tests (`renders Hub tab with an icon when hub is enabled`, `does not render Hub tab when hub is disabled`) not added. All other acceptance criteria met.
+
+---
+
 ## Validation
 
 1. `npm run test -- --testPathPattern=group-selector` — all tests pass
