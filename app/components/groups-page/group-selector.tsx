@@ -3,12 +3,12 @@
 import { Tabs, Tab, useTheme } from "@mui/material";
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from 'next-intl';
 import { User } from 'next-auth';
-import { isHubEnabled } from '@/app/utils/environment-utils';
 
 type Props = {
   readonly groups: { group_letter: string, id: string }[];
@@ -31,9 +31,9 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
 });
 
 /** Get selected tab value from pathname */
-const getSelectedTab = (pathname: string): string => {
-  if (pathname.includes('/hub')) {
-    return 'hub';
+const getSelectedTab = (pathname: string, tournamentId: string): string => {
+  if (pathname.includes('/games')) {
+    return 'matches';
   }
   if (pathname.includes('/qualified-teams')) {
     return 'qualified-teams';
@@ -41,8 +41,11 @@ const getSelectedTab = (pathname: string): string => {
   if (pathname.includes('/awards')) {
     return 'individual_awards';
   }
-  // Default to home tab for tournament root and any other tournament pages
-  return '';
+  // Root tournament path → hub tab active
+  if (pathname.endsWith(`/tournaments/${tournamentId}`) || pathname.endsWith(`/tournaments/${tournamentId}/`)) {
+    return 'hub';
+  }
+  return 'hub';
 };
 
 const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user }: Props) => {
@@ -50,8 +53,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
   const theme = useTheme();
-  const hubEnabled = isHubEnabled();
-  const selected = getSelectedTab(pathname);
+  const selected = getSelectedTab(pathname, tournamentId);
   const tabSx = getTabSx(backgroundColor, textColor, theme);
 
   return (
@@ -75,22 +77,22 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         },
       }}
     >
-      {hubEnabled && (
-        <Tab
-          label={t('hub')}
-          value="hub"
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/hub`}
-          sx={tabSx}
-        />
-      )}
+      <Tab
+        label={t('hub')}
+        icon={<DashboardIcon sx={{ fontSize: 20 }} />}
+        iconPosition="start"
+        value="hub"
+        component={Link}
+        href={`/${locale}/tournaments/${tournamentId}`}
+        sx={tabSx}
+      />
       <Tab
         label={t('matches')}
         icon={<SportsSoccerIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
-        value=""
+        value="matches"
         component={Link}
-        href={`/${locale}/tournaments/${tournamentId}`}
+        href={`/${locale}/tournaments/${tournamentId}/games`}
         sx={tabSx}
       />
       <Tab

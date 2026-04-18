@@ -16,6 +16,7 @@ vi.mock('next-intl', () => ({
   useTranslations: (namespace: string) => {
     const translations: Record<string, Record<string, string>> = {
       'navigation.topNav': {
+        hub: 'HUB',
         matches: 'PARTIDOS',
         qualified: 'CLASIFICADOS',
         awards: 'PREMIOS',
@@ -46,7 +47,7 @@ describe('GroupSelector', () => {
   });
 
   describe('Rendering', () => {
-    it('renders all three tabs (Matches, Qualified, Awards)', () => {
+    it('renders all four tabs (Hub, Matches, Qualified, Awards)', () => {
       renderWithTheme(
         <GroupSelector
           groups={mockGroups}
@@ -54,6 +55,7 @@ describe('GroupSelector', () => {
         />
       );
 
+      expect(screen.getByText('HUB')).toBeInTheDocument();
       expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
       expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
       expect(screen.getByText('PREMIOS')).toBeInTheDocument();
@@ -235,7 +237,7 @@ describe('GroupSelector', () => {
   });
 
   describe('Tab Links', () => {
-    it('Matches tab links to tournament root URL', () => {
+    it('Matches tab links to /games URL', () => {
       renderWithTheme(
         <GroupSelector
           groups={mockGroups}
@@ -244,7 +246,19 @@ describe('GroupSelector', () => {
       );
 
       const matchesTab = screen.getByRole('tab', { name: /PARTIDOS/i });
-      expect(matchesTab).toHaveAttribute('href', '/es/tournaments/tournament-123');
+      expect(matchesTab).toHaveAttribute('href', '/es/tournaments/tournament-123/games');
+    });
+
+    it('Hub tab links to tournament root URL', () => {
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+        />
+      );
+
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).toHaveAttribute('href', '/es/tournaments/tournament-123');
     });
 
     it('Qualified tab links to qualified-teams URL', () => {
@@ -273,8 +287,23 @@ describe('GroupSelector', () => {
   });
 
   describe('Tab Selection', () => {
-    it('selects Matches tab when pathname is tournament root', () => {
+    it('selects Hub tab when pathname is tournament root', () => {
       vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123');
+
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+        />
+      );
+
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).toHaveAttribute('aria-selected', 'true');
+      expect(hubTab).toHaveClass('Mui-selected');
+    });
+
+    it('selects Matches tab when pathname includes /games', () => {
+      vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123/games');
 
       renderWithTheme(
         <GroupSelector
@@ -318,7 +347,7 @@ describe('GroupSelector', () => {
       expect(awardsTab).toHaveClass('Mui-selected');
     });
 
-    it('defaults to Matches tab for unknown tournament pages', () => {
+    it('defaults to Hub tab for unknown tournament pages', () => {
       vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123/some-other-page');
 
       renderWithTheme(
@@ -328,14 +357,28 @@ describe('GroupSelector', () => {
         />
       );
 
-      const matchesTab = screen.getByRole('tab', { name: /PARTIDOS/i });
-      expect(matchesTab).toHaveAttribute('aria-selected', 'true');
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).toHaveAttribute('aria-selected', 'true');
     });
   });
 
   describe('Selected Tab Styling', () => {
-    it('applies selected styling to Matches tab when selected', () => {
+    it('applies selected styling to Hub tab when on tournament root', () => {
       vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123');
+
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+        />
+      );
+
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).toHaveClass('Mui-selected');
+    });
+
+    it('applies selected styling to Matches tab when on /games path', () => {
+      vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123/games');
 
       renderWithTheme(
         <GroupSelector
@@ -393,6 +436,7 @@ describe('GroupSelector', () => {
         />
       );
 
+      expect(screen.getByText('HUB')).toBeInTheDocument();
       expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
       expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
       expect(screen.getByText('PREMIOS')).toBeInTheDocument();
@@ -409,7 +453,7 @@ describe('GroupSelector', () => {
       );
 
       const matchesTab = screen.getByRole('tab', { name: /PARTIDOS/i });
-      expect(matchesTab).toHaveAttribute('href', '/es/tournaments/tournament-456');
+      expect(matchesTab).toHaveAttribute('href', '/es/tournaments/tournament-456/games');
     });
 
     it('renders with dark theme', () => {
@@ -421,6 +465,7 @@ describe('GroupSelector', () => {
         { theme: 'dark' }
       );
 
+      expect(screen.getByText('HUB')).toBeInTheDocument();
       expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
       expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
       expect(screen.getByText('PREMIOS')).toBeInTheDocument();

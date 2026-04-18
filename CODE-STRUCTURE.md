@@ -124,8 +124,8 @@ Architecture:
 
 Key flows:
 
-1. Predictions dashboard (tournament home)
-   TournamentLandingPage (Server)
+1. Predictions dashboard (games page — /tournaments/[id]/games)
+   TournamentGamesPage (Server)
      └── UnifiedGamesPage [renders] (Server)
            ├── getLoggedInUser
            ├── getTeamsMap [server action]
@@ -597,11 +597,12 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated Story #317, #318, #319)
-    TournamentHubPage (Server) — /tournaments/[id]/hub
-      → renders TournamentHubActionCenter (Story #317 — replaces smartPredictorCarousel Paper)
-      → renders TournamentHubRecentResults (Story #318 — replaces predictionDashboard Paper)
-      → renders TournamentHubLeaderboardPeek (Story #319 — replaces leaderboardPeek Paper)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root)
+    TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
+      → renders TournamentHubOfflineRedirect [Client] (Story #338 — redirects to /games when offline)
+      → renders TournamentHubActionCenter (Story #317)
+      → renders TournamentHubRecentResults (Story #318)
+      → renders TournamentHubLeaderboardPeek (Story #319)
 
 30. Action Center data flow (Story #317)
     TournamentHubActionCenter (Server) → getActionCenterGames(tournamentId, locale)
@@ -641,10 +642,8 @@ Key flows:
         → LeaderboardCard (compact=true) ×3
         → RankChangeIndicator (header momentum chip)
 
-    Modified flows (Story #316):
-    - TournamentRedirect [Client] now calls isHubEnabled():
-        when true  → redirects to /${locale}/tournaments/${id}/hub
-        when false → redirects to /${locale}/tournaments/${id}  (existing behavior)
+    Modified flows (Story #316; updated Story #338):
+    - TournamentRedirect [Client] always redirects to /${locale}/tournaments/${id} (hub root; Story #338 removed feature flag)
     - TournamentLayout (Server, Flow 25 context) — after getGroupsForUser():
         allGroups = [...userGroups, ...participantGroups]
         → await Promise.all(allGroups.map(g => getGroupRankingForUser(user.id, g.id, tournamentId)))
@@ -656,12 +655,8 @@ Key flows:
         → returns favoriteGroupIds: string[] and mainGroupId: string | null alongside existing fields
     - friend-groups/page.tsx also destructures favoriteGroupIds/mainGroupId from getGroupsForUser()
         → passes to TournamentGroupsList for sorting and star/crown rendering on cards
-    - GroupSelector [Client] (top nav) now calls isHubEnabled():
-        when true  → Hub tab rendered before Matches, links to /tournaments/${id}/hub
-        when false → Hub tab absent
-    - TournamentBottomNav [Client] Home tab calls isHubEnabled():
-        when true  → navigates to /tournaments/${id}/hub
-        when false → navigates to /${locale}
+    - GroupSelector [Client] (top nav — Story #338): Hub tab always rendered with DashboardIcon, links to /tournaments/${id}; Matches tab links to /tournaments/${id}/games
+    - TournamentBottomNav [Client] Home tab always navigates to /${locale}/tournaments/${id}
 
 33. Rank history read path — History tab (Story #335)
     FriendGroupPage / TournamentScopedFriendGroup (Server):

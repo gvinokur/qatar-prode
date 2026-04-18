@@ -1,64 +1,76 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { generateMetadata } from '../page'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { screen, cleanup } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import TournamentHubPage from '../page';
 
-const mockFindTournamentById = vi.fn()
-
+// Mock next-intl/server
 vi.mock('next-intl/server', () => ({
-  getLocale: async () => 'en',
-  getTranslations: async ({ namespace }: { locale: string; namespace: string }) => {
-    const translations: Record<string, Record<string, string>> = {
-      common: { 'app.name': 'World Cup Predictions' },
-      tournament: { 'metadata.description': 'Make your predictions for {name} and compete with friends' },
-    }
-    return (key: string, params?: Record<string, string>) => {
-      let value = translations[namespace]?.[key] ?? key
-      if (params) {
-        Object.entries(params).forEach(([k, v]) => { value = value.replace(`{${k}}`, v) })
-      }
-      return value
-    }
-  },
-}))
+  getLocale: vi.fn().mockResolvedValue('en'),
+}));
 
-vi.mock('@/app/db/tournament-repository', () => ({
-  findTournamentById: (...args: unknown[]) => mockFindTournamentById(...args),
-}))
+// Mock locale-utils
+vi.mock('@/app/utils/locale-utils', () => ({
+  toLocale: vi.fn((v: string) => v),
+}));
 
-vi.mock('@/app/components/mui-wrappers/', () => ({ Box: () => null }))
-vi.mock('@/app/components/unified-games-page', () => ({ UnifiedGamesPage: () => null }))
+// Mock TournamentHubOfflineRedirect
+vi.mock('@/app/components/tournament-hub/tournament-hub-offline-redirect', () => ({
+  TournamentHubOfflineRedirect: () => <div data-testid="offline-redirect" />,
+}));
 
-beforeEach(() => { mockFindTournamentById.mockReset() })
+// Mock TournamentHubActionCenter
+vi.mock('@/app/components/tournament-hub/tournament-hub-action-center', () => ({
+  TournamentHubActionCenter: () => <div data-testid="action-center">Action Center</div>,
+}));
 
-describe('Tournament Landing Page generateMetadata', () => {
-  it('returns tournament-specific title when tournament exists', async () => {
-    mockFindTournamentById.mockResolvedValue({ long_name: 'Copa América 2024', short_name: 'CA24' })
+// Mock TournamentHubLeaderboardPeek
+vi.mock('@/app/components/tournament-hub/tournament-hub-leaderboard-peek', () => ({
+  TournamentHubLeaderboardPeek: () => <div data-testid="leaderboard-peek">Leaderboard Peek Widget</div>,
+}));
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ id: 'tournament-1' }) })
+// Mock TournamentHubRecentResults
+vi.mock('@/app/components/tournament-hub/tournament-hub-recent-results', () => ({
+  TournamentHubRecentResults: () => <div data-testid="recent-results">Recent Results Widget</div>,
+}));
 
-    expect(metadata.title).toBe('Copa América 2024 | World Cup Predictions')
-  })
+describe('TournamentHubPage (root landing page)', () => {
+  const mockParams = Promise.resolve({ id: 'tournament-1' });
 
-  it('returns fallback appName when tournament not found', async () => {
-    mockFindTournamentById.mockResolvedValue(null)
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ id: 'nonexistent' }) })
+  afterEach(() => {
+    cleanup();
+  });
 
-    expect(metadata.title).toBe('World Cup Predictions')
-  })
+  it('renders the hub page without errors', async () => {
+    const result = await TournamentHubPage({ params: mockParams });
+    expect(result).toBeTruthy();
+  });
 
-  it('returns fallback appName when repository throws an error', async () => {
-    mockFindTournamentById.mockRejectedValue(new Error('Connection timeout'))
+  it('renders the Action Center widget', async () => {
+    const React = (await import('react')).default;
+    const page = await TournamentHubPage({ params: mockParams });
+    render(page as React.ReactElement);
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ id: 'tournament-1' }) })
+    expect(screen.getByTestId('action-center')).toBeInTheDocument();
+  });
 
-    expect(metadata.title).toBe('World Cup Predictions')
-  })
+  it('renders Recent Results widget and Leaderboard Peek widget', async () => {
+    const React = (await import('react')).default;
+    const page = await TournamentHubPage({ params: mockParams });
+    render(page as React.ReactElement);
 
-  it('sets openGraph title to match page title', async () => {
-    mockFindTournamentById.mockResolvedValue({ long_name: 'Copa América 2024', short_name: 'CA24' })
+    expect(screen.getByTestId('recent-results')).toBeInTheDocument();
+    expect(screen.getByTestId('leaderboard-peek')).toBeInTheDocument();
+  });
 
-    const metadata = await generateMetadata({ params: Promise.resolve({ id: 'tournament-1' }) })
+  it('renders offline redirect component', async () => {
+    const React = (await import('react')).default;
+    const page = await TournamentHubPage({ params: mockParams });
+    render(page as React.ReactElement);
 
-    expect((metadata.openGraph as any)?.title).toBe(metadata.title)
-  })
-})
+    expect(screen.getByTestId('offline-redirect')).toBeInTheDocument();
+  });
+});

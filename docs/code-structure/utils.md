@@ -31,8 +31,6 @@ Environment configuration utilities.
 
 - **isDevelopmentMode()**: `boolean` — Checks if the application is running in development mode by inspecting NODE_ENV.
   Calls: none
-- **isHubEnabled()**: `boolean` — Returns true when `NEXT_PUBLIC_HUB_ENABLED` env var equals `'true'`. Safe for use in both Server and Client Components.
-  Calls: none
 
 ### app/utils/notifications-utils.ts
 Web push notification subscription and management utilities for PWA.

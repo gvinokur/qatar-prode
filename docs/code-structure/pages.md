@@ -143,11 +143,18 @@ Offline fallback page shown when service worker catches offline navigation.
   Calls: getLocale
 
 ### app/[locale]/tournaments/[id]/page.tsx
-Tournament landing page showing games for selected group.
+Tournament Hub landing page — the primary entry point after route promotion (Story #338).
+
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub landing page. Resolves `id` from params, derives locale via `toLocale`, renders offline redirect + hub widgets.
+  Calls: getLocale, toLocale
+  Renders: TournamentHubOfflineRedirect, TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
+
+### app/[locale]/tournaments/[id]/games/page.tsx
+Games page (moved from root in Story #338). Shows match predictions for the tournament.
 
 - **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns tournament-specific title `"{long_name} | {appName}"` and localized description; falls back to appName on error or missing tournament.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentLandingPage(props)**: `JSX.Element` — [Server] Renders unified games page for tournament.
+- **TournamentGamesPage(props: Props)**: `JSX.Element` — [Server] Renders unified games page for tournament predictions.
   Renders: UnifiedGamesPage
 
 ### app/[locale]/tournaments/[id]/layout.tsx
@@ -164,11 +171,10 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
 
 ### app/[locale]/tournaments/[id]/hub/page.tsx
-Tournament Hub page. Renders the Action Center widget, Recent Results widget, and Leaderboard Peek widget.
+Backward-compatibility redirect for the old `/hub` route. Redirects to the tournament root.
 
-- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub page that resolves `id` from params, derives locale via `toLocale`, then renders `TournamentHubActionCenter`, `TournamentHubRecentResults` (Story #318 — replaces predictionDashboard Paper), and `TournamentHubLeaderboardPeek`.
-  Calls: getLocale, toLocale, TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
-  Renders: TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
+- **TournamentHubRedirectPage(props: Props)**: `JSX.Element` — [Server] Resolves `id` from params and locale, then calls `redirect` to `/${locale}/tournaments/${id}`.
+  Calls: getLocale, redirect
 
 ### app/[locale]/tournaments/[id]/error.tsx
 Error boundary for tournament access denied scenarios.

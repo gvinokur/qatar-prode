@@ -2,11 +2,17 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-18
 
 ---
 
 ## Files
+
+### app/components/tournament-hub/tournament-hub-offline-redirect.tsx
+Client Component that detects offline state and redirects to the Games page. Renders nothing visible.
+
+- **TournamentHubOfflineRedirect({ tournamentId, locale }: { tournamentId: string; locale: string })**: `JSX.Element | null` — [Client] On mount, checks `navigator.onLine`; if offline, calls `router.replace` to `/${locale}/tournaments/${tournamentId}/games`. Also listens for the `offline` browser event to redirect if connectivity is lost after mount. Uses a ref to ensure at most one redirect fires. Returns `null`.
+  Calls: useRouter, useEffect
 
 ### app/components/tournament-hub/tournament-hub-action-center.tsx
 Thin Server Component wrapper for the hub's Action Center widget. Calls the server action and delegates rendering to the client carousel.
