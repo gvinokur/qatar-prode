@@ -5,6 +5,12 @@ description: UI/UX design skill — invoke when a feature needs high-fidelity mo
 
 # UI/UX Designer (Mockup Creation Skill)
 
+> [!IMPORTANT]
+> **CRITICAL RULE: NO BABEL / NO UMD / NO GLOBALS**
+> MUI v7 **does not support UMD**. You MUST use the ESM + `importmap` pattern below. 
+> NEVER use `<script src="...babel.min.js">` or `window.MaterialUI`.
+> ALWAYS use `import ... from '@mui/material'` inside a `<script type="module">`.
+
 ## When to Invoke
 
 - User says "design this" / "create a mockup" / "show me what this would look like"
@@ -46,6 +52,7 @@ Every mockup **MUST** start from this exact template:
         "react-dom/client": "https://esm.sh/react-dom@19/client",
         "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
         "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
         "@emotion/react": "https://esm.sh/@emotion/react@11",
         "@emotion/styled": "https://esm.sh/@emotion/styled@11",
         "htm": "https://esm.sh/htm@3"
@@ -61,11 +68,13 @@ Every mockup **MUST** start from this exact template:
     import htm from 'htm';
     import { 
       ThemeProvider, createTheme, CssBaseline, 
-      Container, Box, Stack, 
-      Card, CardContent, CardHeader,
-      Typography, Chip, Icon, Skeleton,
-      Paper, Alert, Divider
-      // Add more as needed
+      Container, Box, Stack, Grid2,
+      Card, CardContent, CardHeader, CardActions,
+      Typography, Button, IconButton, Chip,
+      TextField, Divider, Avatar, List, ListItem,
+      ListItemText, ListItemAvatar, ListItemSecondaryAction,
+      Skeleton, Alert, Badge, Tooltip, LinearProgress, CircularProgress,
+      Paper
     } from '@mui/material';
 
     const html = htm.bind(React.createElement);
@@ -133,9 +142,9 @@ Every mockup **MUST** start from this exact template:
               onChange=\${setState}
             />
 
-            \${state === 'loading'   && html`<\${LoadingState} />`}
-            \${state === 'empty'     && html`<\${EmptyState} />`}
-            \${state === 'populated' && html`<\${PopulatedState} />`}
+            ${state === 'loading'   && html`<${LoadingState} />`}
+            ${state === 'empty'     && html`<${EmptyState} />`}
+            ${state === 'populated' && html`<${PopulatedState} />`}
 
           <//>
         <//>
