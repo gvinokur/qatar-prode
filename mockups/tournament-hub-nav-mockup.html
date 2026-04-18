@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tournament Hub Navigation — Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack, 
+      Card, CardContent, CardHeader,
+      Typography, Chip,
+      Tabs, Tab, BottomNavigation, BottomNavigationAction, Paper,
+      Icon, Alert
+    } from '@mui/material';
+
+    const html = htm.bind(React.createElement);
+
+    // Project theme — mirrors app/components/context-providers/theme-provider.tsx
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        primary: {
+          main: '#a78bfa',
+          light: '#c4b5fd',
+          dark: '#8b5cf6',
+          contrastText: '#ffffff'
+        },
+        secondary: {
+          main: '#f87171',
+          light: '#fca5a5',
+          dark: '#dc2626',
+          contrastText: '#ffffff'
+        },
+        background: {
+          default: '#0a0a0a',
+          paper: '#1a1a1a',
+        },
+        text: {
+          primary: '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+        divider: 'rgba(255, 255, 255, 0.08)'
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 8 },
+    });
+
+    function NavigationComparison({ iconType, label }) {
+      const [value, setValue] = React.useState(0);
+      const [bottomValue, setBottomValue] = React.useState(0);
+
+      const hubIconName = {
+        'Home': 'home',
+        'Dashboard': 'dashboard',
+        'Widgets': 'widgets',
+        'GridView': 'grid_view'
+      }[iconType];
+
+      return html`
+        <${Card} sx=${{ mb: 4, overflow: 'visible' }}>
+          <${CardHeader} 
+            title=${`Option: ${iconType}`} 
+            subheader=${`Label: ${label}`}
+            titleTypographyProps=${{ variant: 'subtitle1' }}
+          />
+          <${CardContent}>
+            <${Typography} variant="overline" color="text.secondary" gutterBottom display="block">
+              Top Navigation (GroupSelector)
+            <//>
+            <${Box} sx=${{ bgcolor: 'primary.dark', borderRadius: 1, p: 0.5, mb: 4 }}>
+              <${Tabs}
+                value=${value}
+                onChange=${(e, v) => setValue(v)}
+                variant="fullWidth"
+                sx=${{
+                  '.MuiTab-root': { color: 'white', minHeight: 48, fontWeight: 600 },
+                  '.Mui-selected': { color: 'primary.dark', bgcolor: 'white', borderRadius: '4px' }
+                }}
+                TabIndicatorProps=${{ sx: { display: 'none' } }}
+              >
+                <${Tab} label=${label} icon=${html`<${Icon} sx=${{ fontSize: 20 }}>${hubIconName}<//>`} iconPosition="start" />
+                <${Tab} label="PARTIDOS" icon=${html`<${Icon} sx=${{ fontSize: 20 }}>emoji_events<//>`} iconPosition="start" />
+                <${Tab} label="CLASIFICADOS" />
+                <${Tab} label="PREMIOS" />
+              <//>
+            <//>
+
+            <${Typography} variant="overline" color="text.secondary" gutterBottom display="block">
+              Bottom Navigation (Mobile)
+            <//>
+            <${Paper} sx=${{ position: 'relative', bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
+              <${BottomNavigation}
+                showLabels
+                value=${bottomValue}
+                onChange=${(e, v) => setBottomValue(v)}
+              >
+                <${BottomNavigationAction} label=${label} icon=${html`<${Icon}>${hubIconName}<//>`} />
+                <${BottomNavigationAction} label="TABLAS" icon=${html`<${Icon}>assessment<//>`} />
+                <${BottomNavigationAction} label="REGLAS" icon=${html`<${Icon}>gavel<//>`} />
+                <${BottomNavigationAction} label="GRUPOS" icon=${html`<${Icon}>groups<//>`} />
+                <${BottomNavigationAction} label="STATS" icon=${html`<${Icon}>bar_chart<//>`} />
+              <//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      const [iconType, setIconType] = React.useState('Home');
+      const [label, setLabel] = React.useState('INICIO');
+
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="md" sx=${{ py: 4 }}>
+
+            <${Box} sx=${{ mb: 4, textAlign: 'center' }}>
+              <${Typography} variant="h4" gutterBottom fontWeight=${700}>Tournament Hub Navigation<//>
+              <${Typography} variant="body1" color="text.secondary">
+                Testing different icons and labels for the new Tournament Hub landing page.
+              <//>
+            <//>
+
+            <${Stack} direction="row" spacing=${2} justifyContent="center" sx=${{ mb: 4 }}>
+              <${Box}>
+                <${Typography} variant="caption" display="block" gutterBottom>ICON TYPE<//>
+                <${Stack} direction="row" spacing=${1}>
+                  ${['Home', 'Dashboard', 'Widgets', 'GridView'].map(type => html`
+                    <${Chip} 
+                      key=${type} 
+                      label=${type} 
+                      onClick=${() => setIconType(type)}
+                      color=${iconType === type ? 'primary' : 'default'}
+                      variant=${iconType === type ? 'filled' : 'outlined'}
+                    />
+                  `)}
+                <//>
+              <//>
+              <${Box}>
+                <${Typography} variant="caption" display="block" gutterBottom>LABEL (ES-AR)<//>
+                <${Stack} direction="row" spacing=${1}>
+                  ${['INICIO', 'HUB', 'PANEL', 'CENTRAL'].map(l => html`
+                    <${Chip} 
+                      key=${l} 
+                      label=${l} 
+                      onClick=${() => setLabel(l)}
+                      color=${label === l ? 'secondary' : 'default'}
+                      variant=${label === l ? 'filled' : 'outlined'}
+                    />
+                  `)}
+                <//>
+              <//>
+            <//>
+
+            <${NavigationComparison} iconType=${iconType} label=${label} />
+
+            <${Alert} severity="info" sx=${{ mt: 4 }}>
+              The <strong>Hub</strong> (landing page) will now be at <code>/tournaments/[id]</code>.
+              The <strong>Matches</strong> page will move to <code>/tournaments/[id]/games</code>.
+            <//>
+
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>

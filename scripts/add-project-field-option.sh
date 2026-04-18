@@ -119,6 +119,7 @@ NEW_OPTIONS=$(echo "$EXISTING_OPTIONS" | jq -c --arg name "$OPTION_NAME" --arg c
 echo -e "\n${BLUE}Adding option '$OPTION_NAME' with color '$COLOR'...${NC}"
 
 # Prepare the GraphQL input
+# GitHub requires name, color, and description (cannot be null)
 OPTIONS_INPUT=$(echo "$NEW_OPTIONS" | jq -c 'map({name: .name, color: .color, description: ""})')
 
 # Update the field with all options (existing + new)
@@ -151,6 +152,6 @@ if echo "$RESULT" | jq -e '.data.updateProjectV2Field.projectV2Field' >/dev/null
 else
   echo -e "${RED}✗ Failed to add option${NC}"
   echo -e "${YELLOW}Response:${NC}"
-  echo "$RESULT" | jq '.'
+  echo "$RESULT"
   exit 1
 fi

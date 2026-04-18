@@ -185,6 +185,253 @@ class GitHubProjectsHelper:
             self._warning(f"Could not find project item: {e}")
             return None
 
+    def _find_field_by_name(self, project_number: int, field_name: str) -> Optional[Dict]:
+        """Find a project field by its name (case-insensitive)."""
+        fields_data = self._get_project_fields(project_number)
+
+        for field in fields_data.get("fields", []):
+            if field.get("name", "").lower() == field_name.lower():
+                return field
+
+        return None
+
+    def _match_field_option(self, field: Dict, option_name: str) -> Optional[Dict]:
+        """Match a field option by name (case-insensitive)."""
+        options = field.get("options", [])
+
+        # Try exact match
+        for option in options:
+            if option.get("name", "").lower() == option_name.lower():
+                return option
+
+        # Try partial match if no exact match
+        for option in options:
+            if option_name.lower() in option.get("name", "").lower():
+                return option
+
+        return None
+
+    def _create_field_option(self, field_id: str, field_name: str, project_number: int, name: str, color: str = "GRAY") -> Optional[str]:
+        """Create a new option for a single-select field by updating the field definition with the full list."""
+        try:
+            # 1. Fetch existing options
+            field = self._find_field_by_name(project_number, field_name)
+            if not field:
+                return None
+            
+            existing_options = field.get("options", [])
+            
+            # 2. Build the command with all existing options plus the new one
+            # We MUST provide all options, otherwise they are deleted!
+            # The most reliable way with gh CLI is using the array syntax: -F 'options[][name]=val'
+            cmd = [
+                "gh", "api", "graphql",
+                "-f", f"query=mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {{ updateProjectV2Field(input: {{ fieldId: $fieldId, singleSelectOptions: $options }}) {{ projectV2Field {{ ... on ProjectV2SingleSelectField {{ options {{ id name }} }} }} }} }}",
+                "-f", f"fieldId={field_id}"
+            ]
+            
+            # Add existing options
+            for opt in existing_options:
+                cmd.extend([
+                    "-F", f"options[][name]={opt['name']}",
+                    "-F", f"options[][color]={opt.get('color', 'GRAY').upper()}",
+                    "-F", "options[][description]="
+                ])
+            
+            # Add the new one (if it doesn't exist yet - sanity check)
+            if not any(o['name'] == name for o in existing_options):
+                cmd.extend([
+                    "-F", f"options[][name]={name}",
+                    "-F", f"options[][color]={color.upper()}",
+                    "-F", "options[][description]="
+                ])
+            
+            result = self._run_command(cmd)
+            data = json.loads(result.stdout)
+            updated_options = data.get("data", {}).get("updateProjectV2Field", {}).get("projectV2Field", {}).get("options", [])
+            
+            # Find the new option's ID
+            new_option = next((o for o in updated_options if o["name"] == name), None)
+            if new_option:
+                self._success(f"Created new option '{name}'")
+                # Invalidate cache
+                self._project_fields_cache = {}
+                return new_option["id"]
+            
+            return None
+        except Exception as e:
+            self._warning(f"Could not create option '{name}': {e}")
+            return None
+
+    def _update_project_item_field(
+        self,
+        project_number: int,
+        issue_number: int,
+        field_name: str,
+        value: str
+    ) -> bool:
+        """Update a generic project item field."""
+        # Get field
+        field = self._find_field_by_name(project_number, field_name)
+        if not field:
+            self._warning(f"Field '{field_name}' not found in project")
+            return False
+
+        # Get project item ID
+        item_id = self._get_project_item_id(project_number, issue_number)
+        if not item_id:
+            # Maybe it's not in the project yet? Try to add it.
+            self._info(f"Issue #{issue_number} not found in project. Adding it...")
+            try:
+                # Need project global ID
+                project_id_query = '''
+                query($owner: String!, $number: Int!) {
+                  user(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                    }
+                  }
+                }
+                '''
+                project_id_result = self._run_command([
+                    "gh", "api", "graphql",
+                    "-f", f"query={project_id_query}",
+                    "-F", f"owner={self.owner}",
+                    "-F", f"number={project_number}"
+                ])
+                project_id = json.loads(project_id_result.stdout).get("data", {}).get("user", {}).get("projectV2", {}).get("id")
+
+                # Get issue global ID
+                issue_id_query = '''
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                      id
+                    }
+                  }
+                }
+                '''
+                issue_id_result = self._run_command([
+                    "gh", "api", "graphql",
+                    "-f", f"query={issue_id_query}",
+                    "-F", f"owner={self.owner}",
+                    "-F", f"repo={self.repo_name}",
+                    "-F", f"number={issue_number}"
+                ])
+                issue_id = json.loads(issue_id_result.stdout).get("data", {}).get("repository", {}).get("issue", {}).get("id")
+
+                # Add to project
+                add_mutation = '''
+                mutation($projectId: ID!, $contentId: ID!) {
+                  addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
+                    item {
+                      id
+                    }
+                  }
+                }
+                '''
+                add_result = self._run_command([
+                    "gh", "api", "graphql",
+                    "-f", f"query={add_mutation}",
+                    "-f", f"projectId={project_id}",
+                    "-f", f"contentId={issue_id}"
+                ])
+                item_id = json.loads(add_result.stdout).get("data", {}).get("addProjectV2ItemById", {}).get("item", {}).get("id")
+                self._success(f"Added issue #{issue_number} to project")
+            except Exception as e:
+                self._warning(f"Could not add issue to project: {e}")
+                return False
+
+        # Handle different field types
+        field_type = field.get("type")
+        mutation_value = {}
+
+        if field_type == "ProjectV2SingleSelectField":
+            option = self._match_field_option(field, value)
+            if not option:
+                if field_name.lower() == "category":
+                    self._info(f"Option '{value}' not found for Category. Creating it...")
+                    option_id = self._create_field_option(field["id"], field_name, project_number, value, "BLUE")
+                    if not option_id:
+                        return False
+                    # Re-fetch field to get new option ID
+                    field = self._find_field_by_name(project_number, field_name)
+                    option = next((o for o in field.get("options", []) if o["id"] == option_id), None)
+                else:
+                    self._warning(f"Option '{value}' not found for field '{field_name}'")
+                    return False
+            
+            mutation_value = {"singleSelectOptionId": option["id"]}
+            display_value = option["name"]
+        elif field_type == "ProjectV2NumberField":
+            mutation_value = {"number": float(value)}
+            display_value = value
+        elif field_type == "ProjectV2IterationField":
+            # Iterations are tricky, but often we match by name
+            option = self._match_field_option(field, value)
+            if not option:
+                self._warning(f"Iteration '{value}' not found")
+                return False
+            mutation_value = {"iterationId": option["id"]}
+            display_value = option["name"]
+        else:
+            # Default to text
+            mutation_value = {"text": value}
+            display_value = value
+
+        try:
+            # Get project global ID (re-fetch if needed)
+            project_id_query = '''
+            query($owner: String!, $number: Int!) {
+              user(login: $owner) {
+                projectV2(number: $number) {
+                  id
+                }
+              }
+            }
+            '''
+            project_id_result = self._run_command([
+                "gh", "api", "graphql",
+                "-f", f"query={project_id_query}",
+                "-F", f"owner={self.owner}",
+                "-F", f"number={project_number}"
+            ])
+            project_id = json.loads(project_id_result.stdout).get("data", {}).get("user", {}).get("projectV2", {}).get("id")
+
+            mutation = '''
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: {
+                    singleSelectOptionId: $optionId
+                  }
+                }
+              ) {
+                projectV2Item {
+                  id
+                }
+              }
+            }
+            '''
+
+            self._run_command([
+                "gh", "api", "graphql",
+                "-f", f"query={mutation}",
+                "-f", f"projectId={project_id}",
+                "-f", f"itemId={item_id}",
+                "-f", f"fieldId={field['id']}",
+                "-f", f"optionId={mutation_value['singleSelectOptionId']}"
+            ])
+
+            self._success(f"Updated {field_name} to: {display_value}")
+            return True
+        except Exception as e:
+            self._warning(f"Could not update {field_name}: {e}")
+            return False
+
     def _update_project_item_status(
         self,
         project_number: int,
@@ -1049,6 +1296,13 @@ Examples:
     start_parser.add_argument("issue_number", type=int, help="Issue number")
     start_parser.add_argument("--project", type=int, help="Project number (optional)")
 
+    set_fields_parser = story_subparsers.add_parser("set-fields", help="Set Priority, Effort, and Category for a story")
+    set_fields_parser.add_argument("issue_number", type=int, help="Issue number")
+    set_fields_parser.add_argument("--project", type=int, required=True, help="Project number")
+    set_fields_parser.add_argument("--priority", help="Priority value")
+    set_fields_parser.add_argument("--effort", help="Effort value")
+    set_fields_parser.add_argument("--category", help="Category value")
+
     complete_parser = story_subparsers.add_parser("complete", help="Complete a story (merge, close, cleanup)")
     complete_parser.add_argument("issue_number", type=int, help="Issue number")
     complete_parser.add_argument("--pr", type=int, help="PR number (auto-detected if not provided)")
@@ -1075,6 +1329,16 @@ Examples:
     update_parser.add_argument("issue_number", type=int, help="Issue number")
     update_parser.add_argument("status", help="Status to set (e.g., 'Pending Review', 'In Progress', 'Done')")
     update_parser.add_argument("--project", type=int, required=True, help="Project number")
+
+    # Generic field update commands
+    field_parser = subparsers.add_parser("field", help="Project field operations")
+    field_subparsers = field_parser.add_subparsers(dest="subcommand")
+
+    field_set_parser = field_subparsers.add_parser("set", help="Set a project field value")
+    field_set_parser.add_argument("issue_number", type=int, help="Issue number")
+    field_set_parser.add_argument("field_name", help="Field name (e.g., 'Priority', 'Effort')")
+    field_set_parser.add_argument("value", help="Field value")
+    field_set_parser.add_argument("--project", type=int, required=True, help="Project number")
 
     args = parser.parse_args()
 
@@ -1107,8 +1371,16 @@ Examples:
                 result = helper.start_story(args.issue_number, args.project)
                 # Output JSON for programmatic use
                 print(f"\n{json.dumps(result, indent=2)}")
+            elif args.subcommand == "set-fields":
+                if args.priority:
+                    helper._update_project_item_field(args.project, args.issue_number, "Priority", args.priority)
+                if args.effort:
+                    helper._update_project_item_field(args.project, args.issue_number, "Effort", args.effort)
+                if args.category:
+                    helper._update_project_item_field(args.project, args.issue_number, "Category", args.category)
             elif args.subcommand == "complete":
                 helper.complete_story(args.issue_number, args.pr, args.merge_method, args.project)
+
 
         elif args.command == "pr":
             if args.subcommand == "wait-checks":
@@ -1123,6 +1395,10 @@ Examples:
         elif args.command == "status":
             if args.subcommand == "update":
                 helper._update_project_item_status(args.project, args.issue_number, args.status)
+
+        elif args.command == "field":
+            if args.subcommand == "set":
+                helper._update_project_item_field(args.project, args.issue_number, args.field_name, args.value)
 
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user")

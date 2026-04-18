@@ -71,7 +71,6 @@ If yes → pause ticket creation and invoke the `ui-ux-designer` skill.
 The resulting mockup file path is included in the issue body.
 
 ---
-
 ## Step 5: Finalize Ticket Fields
 
 With user, confirm:
@@ -84,7 +83,19 @@ With user, confirm:
 
 ---
 
-## Step 6: Create GitHub Issue
+## Step 6: Review with User (Mandatory)
+
+**Before calling any tool to create the issue, you MUST present the full final ticket content to the user for review.**
+
+1.  Draft the full issue body (Objective, Background, Acceptance Criteria, etc.)
+2.  Show it to the user in the chat.
+3.  Explicitly ask: "Is this story ready to be created in GitHub?"
+4.  **ONLY** proceed to Step 7 if the user gives explicit confirmation.
+
+---
+
+## Step 7: Create GitHub Issue
+
 
 Use the `run_shell_command` tool to execute:
 
@@ -113,17 +124,22 @@ gh issue create \
   --label "story"
 ```
 
-Then set GitHub Projects fields (if the helper script exists):
+Then set GitHub Projects fields using the helper script:
 
 ```bash
 ./scripts/github-projects-helper story set-fields ${ISSUE_NUMBER} \
+  --project 1 \
   --priority "${PRIORITY}" \
   --effort "${EFFORT}" \
   --category "${CATEGORY}"
 ```
 
+*Note: The helper script will match values to available project options.*
+
 ---
 
-## Step 7: Confirm with User
+## Step 8: Confirm with User (Finish Line)
 
-Show the issue URL. Ask if any fields need adjustment.
+1. Show the final issue URL.
+2. Ask if any fields need adjustment.
+3. **STOP.** Once the ticket is created and the user is informed, your task is complete. Do not initiate implementation or planning unless explicitly asked in a new turn. Fulfilling the Inquiry (creating the ticket) is the finality of this skill.
