@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-04-18
 
 ---
 
@@ -200,7 +200,7 @@ Dropdown menu to switch between tournaments while preserving current page path.
 
 **File:** `app/components/groups-page/group-selector.tsx`
 Tab navigation for tournament pages: Hub (conditional), Matches, Qualified Teams, Individual Awards. Disables tabs for non-authenticated users.
-- **GroupSelector** (FC) - `[Client]` - Calls: `isHubEnabled` - Uses: `useLocale, useTranslations, usePathname, useTheme` - Renders: `Tabs, Tab, Link, EmojiEventsIcon`. Hub tab rendered before Matches when `isHubEnabled()` is true.
+- **GroupSelector** (FC) - `[Client]` - Calls: `isHubEnabled` - Uses: `useLocale, useTranslations, usePathname, useTheme` - Renders: `Tabs, Tab, Link, SportsSoccerIcon, AccountTreeIcon, EmojiEventsIcon`. Hub tab rendered before Matches when `isHubEnabled()` is true.
 - **getTabSx** (fn) - Helper for tab styling
 - **getSelectedTab** (fn) - Helper to determine active tab from pathname (recognizes `/hub` path)
 
