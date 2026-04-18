@@ -262,6 +262,6 @@ Conditional wrapper that renders TournamentBottomNav only on mobile breakpoints.
 ### app/components/tournament-bottom-nav/tournament-bottom-nav.tsx
 Fixed bottom navigation for tournament pages with 5 action tabs (home, results, rules, groups, stats).
 
-- **TournamentBottomNav({ tournamentId, currentPath, user }: TournamentBottomNavProps)**: `JSX.Element` — [Client] BottomNavigation with conditional tabs (groups/stats hidden if not logged in), auto-selects tab based on pathname. Tab order: Home, Results, Rules, Groups, Stats. Home tab navigates to `/tournaments/[id]/hub` when `isHubEnabled()` is true, otherwise to `/[locale]`.
-  Calls: isHubEnabled
+- **TournamentBottomNav({ tournamentId, currentPath, user }: TournamentBottomNavProps)**: `JSX.Element` — [Client] BottomNavigation with conditional tabs (groups/stats hidden if not logged in), auto-selects tab based on pathname. Tab order: Home, Results, Rules, Groups, Stats. Home tab always navigates to `/${locale}/tournaments/${tournamentId}` (root hub). Root tournament path activates 'main-home'.
+  Calls: none
   Uses: useState, useEffect, useRouter, useLocale, useTranslations

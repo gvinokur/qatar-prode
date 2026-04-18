@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-18
 
 ---
 
@@ -150,10 +150,8 @@ Tournament Hub landing page — the primary entry point after route promotion (S
   Renders: TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
-Games page (moved from root in Story #338). Shows match predictions for the tournament.
+Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.
 
-- **generateMetadata({ params })**: `Promise<Metadata>` — [Server] Returns tournament-specific title `"{long_name} | {appName}"` and localized description; falls back to appName on error or missing tournament.
-  Calls: buildTournamentMetadata, getTranslations, getLocale
 - **TournamentGamesPage(props: Props)**: `JSX.Element` — [Server] Renders unified games page for tournament predictions.
   Renders: UnifiedGamesPage
 
