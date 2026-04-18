@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Tournament Hub as Central Landing Page
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-338
 - **Branch:** feature/story-338
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 339
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/339
 
 ## State
 - **Current Phase:** review-ready

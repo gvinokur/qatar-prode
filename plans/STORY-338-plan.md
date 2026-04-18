@@ -222,6 +222,19 @@ Home button → /tournaments/[id] (always)
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Auth Redirect Instead of Offline Detection
+**Date:** 2026-04-18
+**Reason:** During implementation, the requirement "offline: show Games page" was clarified by the user to mean "logged out: show Games page." The originally planned `TournamentHubOfflineRedirect` client component (using `navigator.onLine`) was replaced with a server-side auth check.
+**Change:**
+- `TournamentHubOfflineRedirect` was NOT created (plan listed it as a file to create)
+- `app/[locale]/tournaments/[id]/page.tsx` now calls `getLoggedInUser()` and server-redirects unauthenticated users to `/games`
+- `GroupSelector` Hub tab is `disabled={!user}` (grayed out for unauthenticated users)
+- No `tournament-hub-offline-redirect.test.tsx` was created (listed in Testing Strategy — never implemented)
+
+---
+
 ## Testing Strategy
 - New `games/page.test.tsx` — mirrors existing `hub/__tests__/page.test.tsx` pattern (render + mock widgets)
 - Updated `hub/__tests__/page.test.tsx` — tests redirect behavior (mock `redirect` from `next/navigation`)
