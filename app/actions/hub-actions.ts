@@ -6,6 +6,7 @@ import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
+import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
@@ -192,9 +193,10 @@ export async function getLeaderboardPeekData(
   const user = await getLoggedInUser()
   if (!user?.id) return []
 
-  const [ownedGroups, participantGroups] = await Promise.all([
+  const [ownedGroups, participantGroups, favoriteGroupIds] = await Promise.all([
     findProdeGroupsByOwner(user.id),
     findProdeGroupsByParticipant(user.id),
+    getFavoriteGroupIds(user.id),
   ])
 
   // Deduplicate: owner may also appear in participant list
@@ -226,8 +228,14 @@ export async function getLeaderboardPeekData(
     }
   }
 
-  // Sort by member count descending (most active groups first), take top 3
-  candidates.sort((a, b) => b.rankings.length - a.rankings.length)
+  // Sort: favorites first (by member count desc), then non-favorites (by member count desc)
+  const favoriteSet = new Set(favoriteGroupIds)
+  candidates.sort((a, b) => {
+    const aFav = favoriteSet.has(a.group.id) ? 1 : 0
+    const bFav = favoriteSet.has(b.group.id) ? 1 : 0
+    if (bFav !== aFav) return bFav - aFav
+    return b.rankings.length - a.rankings.length
+  })
   const topCandidates = candidates.slice(0, MAX_PEEK_GROUPS)
 
   if (topCandidates.length === 0) return []
