@@ -85,6 +85,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}`}
         sx={tabSx}
+        disabled={!user}
       />
       <Tab
         label={t('matches')}

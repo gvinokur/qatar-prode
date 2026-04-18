@@ -599,7 +599,7 @@ Key flows:
 
 29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
-      → renders TournamentHubOfflineRedirect [Client] (Story #338 — redirects to /games when offline)
+      → redirects to /games server-side when user is not logged in
       → renders TournamentHubActionCenter (Story #317)
       → renders TournamentHubRecentResults (Story #318)
       → renders TournamentHubLeaderboardPeek (Story #319)

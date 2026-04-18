@@ -126,6 +126,20 @@ describe('GroupSelector', () => {
   });
 
   describe('Tab States - Unauthenticated User', () => {
+    it('Hub tab is disabled when user is undefined', () => {
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+          user={undefined}
+        />
+      );
+
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).toHaveAttribute('aria-disabled', 'true');
+      expect(hubTab).toHaveClass('Mui-disabled');
+    });
+
     it('Matches tab is always enabled when user is undefined', () => {
       renderWithTheme(
         <GroupSelector
@@ -194,6 +208,20 @@ describe('GroupSelector', () => {
   });
 
   describe('Tab States - Authenticated User', () => {
+    it('Hub tab is enabled when user is provided', () => {
+      renderWithTheme(
+        <GroupSelector
+          groups={mockGroups}
+          tournamentId={tournamentId}
+          user={mockUser}
+        />
+      );
+
+      const hubTab = screen.getByRole('tab', { name: /HUB/i });
+      expect(hubTab).not.toHaveAttribute('aria-disabled', 'true');
+      expect(hubTab).not.toHaveClass('Mui-disabled');
+    });
+
     it('Matches tab is enabled when user is provided', () => {
       renderWithTheme(
         <GroupSelector

@@ -32,10 +32,19 @@ describe('GroupSelector i18n', () => {
     expect(screen.getByRole('tab', { name: /awards/i })).toBeInTheDocument()
   })
 
-  it('hub tab is always rendered without feature flag', () => {
+  it('hub tab is disabled when user is not provided', () => {
     renderWithTheme(<GroupSelector {...defaultProps} />)
 
-    expect(screen.getByRole('tab', { name: /hub/i })).toBeInTheDocument()
+    const hubTab = screen.getByRole('tab', { name: /hub/i })
+    expect(hubTab).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('hub tab is enabled when user is provided', () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test' }
+    renderWithTheme(<GroupSelector {...defaultProps} user={mockUser as any} />)
+
+    const hubTab = screen.getByRole('tab', { name: /hub/i })
+    expect(hubTab).not.toHaveAttribute('aria-disabled', 'true')
   })
 
   it('translates aria-label for accessibility', () => {
