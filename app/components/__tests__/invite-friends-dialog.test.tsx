@@ -236,4 +236,43 @@ describe('InviteFriendsDialog', () => {
     // Wait for short URL + logo to load, then flier shows group name with default violet theme
     await waitFor(() => expect(screen.getByText('Test Group')).toBeInTheDocument())
   })
+
+  describe('hideEmailTab prop', () => {
+    it('renders 3 tabs when hideEmailTab is false (default)', async () => {
+      renderWithTheme(<InviteFriendsDialog {...defaultProps} hideEmailTab={false} />)
+      await openDialog()
+
+      expect(screen.getByRole('tab', { name: 'tabs.link' })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'tabs.email' })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'tabs.flier' })).toBeInTheDocument()
+      expect(screen.getAllByRole('tab')).toHaveLength(3)
+    })
+
+    it('renders only 2 tabs (Link, Flier) when hideEmailTab is true', async () => {
+      renderWithTheme(<InviteFriendsDialog {...defaultProps} hideEmailTab={true} />)
+      await openDialog()
+
+      expect(screen.getByRole('tab', { name: 'tabs.link' })).toBeInTheDocument()
+      expect(screen.queryByRole('tab', { name: 'tabs.email' })).not.toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'tabs.flier' })).toBeInTheDocument()
+      expect(screen.getAllByRole('tab')).toHaveLength(2)
+    })
+
+    it('Flier tab content visible at index 1 when hideEmailTab is true', async () => {
+      renderWithTheme(<InviteFriendsDialog {...defaultProps} hideEmailTab={true} />)
+      await openDialog()
+
+      fireEvent.click(screen.getByRole('tab', { name: 'tabs.flier' }))
+      await waitFor(() => expect(screen.getByText('Test Group')).toBeInTheDocument())
+    })
+
+    it('email content not rendered when hideEmailTab is true', async () => {
+      renderWithTheme(<InviteFriendsDialog {...defaultProps} hideEmailTab={true} />)
+      await openDialog()
+
+      // Email tab doesn't exist, so EmailInvitationsTab should not be mounted
+      expect(screen.queryByPlaceholderText('nameLabel')).not.toBeInTheDocument()
+      expect(screen.queryByPlaceholderText('emailLabel')).not.toBeInTheDocument()
+    })
+  })
 })

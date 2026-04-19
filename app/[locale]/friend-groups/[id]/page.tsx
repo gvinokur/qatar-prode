@@ -71,6 +71,10 @@ export default async function FriendsGroup(props : Props){
   const tournaments = await findAllActiveTournaments(user.id)
 
   const participants = await findParticipantsInGroup(prodeGroup.id)
+  const isOwner = prodeGroup.owner_user_id === user.id;
+  const participantRecord = participants.find((p: any) => p.user_id === user.id);
+  const isMember = isOwner || !!participantRecord;
+  const isAdmin = isOwner || !!participantRecord?.is_admin;
   const allParticipants = [
     prodeGroup.owner_user_id,
     ...participants.map(({user_id}) => user_id)
@@ -216,22 +220,21 @@ export default async function FriendsGroup(props : Props){
         <Grid container spacing={2} justifyContent={'center'}>
           <Grid size={{ xs:12, md :9 }}>
             <AdminTabs
-              isAdmin={prodeGroup.owner_user_id === user.id || !!members.find(m => m.id === user.id)?.is_admin}
+              isAdmin={isAdmin}
               standingsContent={
                 <ProdeGroupTable
                   users={usersMap}
                   userScoresByTournament={patchedUserScoresByTournament}
                   loggedInUser={user.id}
                   tournaments={tournaments}
-                  action={prodeGroup.owner_user_id === user.id ? (
+                  action={isMember ? (
                     <InviteFriendsDialogButton
                       groupName={prodeGroup.name}
                       groupId={prodeGroup.id}
                       groupLogoUrl={logoUrl ?? undefined}
-                      themeColor={prodeGroup.theme?.primary_color ?? undefined}/>
-                  ) : (
-                    <LeaveGroupButton groupId={prodeGroup.id} />
-                  )}
+                      themeColor={prodeGroup.theme?.primary_color ?? undefined}
+                      hideEmailTab={!isAdmin}/>
+                  ) : undefined}
                   groupId={prodeGroup.id}
                   members={members}
                   bettingData={bettingData}
@@ -264,11 +267,16 @@ export default async function FriendsGroup(props : Props){
               }
             />
           </Grid>
-          {(prodeGroup.owner_user_id === user.id || members.find(m => m.id === user.id)?.is_admin) && (
+          {isAdmin && (
             <Grid size={{ xs:12, md : 3 }}>
              <ProdeGroupThemer group={prodeGroup}/>
             </Grid>
           ) || <></>}
+          {!isOwner && (
+            <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
+              <LeaveGroupButton groupId={prodeGroup.id} />
+            </Grid>
+          )}
         </Grid>
         {searchParams.hasOwnProperty('recentlyJoined') && (<JoinMessage />)}
       </Box>
