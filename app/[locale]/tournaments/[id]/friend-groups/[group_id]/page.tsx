@@ -263,13 +263,14 @@ export default async function TournamentScopedFriendGroup(props : Props){
         </Typography>
         <PrivacyIndicatorIcon isPublic={prodeGroup.is_public ?? false} size="medium" />
         <Box sx={{ ml: 'auto' }}>
-          {isOwner && (
+          {isMember && (
             <InviteFriendsDialogButton
               groupName={prodeGroup.name}
               groupId={prodeGroup.id}
               tournamentId={tournament.id}
               groupLogoUrl={logoUrl ?? undefined}
               themeColor={prodeGroup.theme?.primary_color ?? undefined}
+              hideEmailTab={!isAdmin}
             />
           )}
         </Box>

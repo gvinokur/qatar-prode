@@ -34,9 +34,10 @@ interface InviteFriendsDialogProps {
   readonly tournamentId?: string;
   readonly groupLogoUrl?: string;
   readonly themeColor?: string;
+  readonly hideEmailTab?: boolean;
 }
 
-export default function InviteFriendsDialog({ trigger, groupId, groupName, tournamentId, groupLogoUrl, themeColor }: InviteFriendsDialogProps) {
+export default function InviteFriendsDialog({ trigger, groupId, groupName, tournamentId, groupLogoUrl, themeColor, hideEmailTab }: InviteFriendsDialogProps) {
   const t = useTranslations('groups.invite');
   const tCommon = useTranslations('common.buttons');
   const locale = useLocale();
@@ -179,7 +180,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
           <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} aria-label="invite tabs">
             <Tab label={t('tabs.link')} />
-            <Tab label={t('tabs.email')} />
+            {!hideEmailTab && <Tab label={t('tabs.email')} />}
             <Tab label={t('tabs.flier')} />
           </Tabs>
         </Box>
@@ -228,7 +229,7 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
           )}
 
           {/* Tab 1 — Email */}
-          {activeTab === 1 && (
+          {!hideEmailTab && activeTab === 1 && (
             <EmailInvitationsTab
               groupId={groupId}
               groupLogoUrl={groupLogoUrl}
@@ -237,8 +238,8 @@ export default function InviteFriendsDialog({ trigger, groupId, groupName, tourn
             />
           )}
 
-          {/* Tab 2 — Folleto */}
-          {activeTab === 2 && (
+          {/* Tab 2 — Folleto (index 1 when hideEmailTab, otherwise 2) */}
+          {activeTab === (hideEmailTab ? 1 : 2) && (
             <Box
               sx={{
                 display: 'flex',

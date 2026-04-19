@@ -152,7 +152,7 @@ Email invitation tab with manual entry, CSV import, and batch send. [Client]
 ### app/components/friend-groups/invite-friends-dialog-button.tsx
 Button triggering invite friends dialog. [Client]
 
-- **InviteFriendsDialogButton({ groupId, groupName, tournamentId?, groupLogoUrl?, themeColor? })**: `JSX.Element` — [Client] Wrapper button that opens invite friends dialog; passes groupLogoUrl and themeColor through to InviteFriendsDialog.
+- **InviteFriendsDialogButton({ groupId, groupName, tournamentId?, groupLogoUrl?, themeColor?, hideEmailTab? })**: `JSX.Element` — [Client] Wrapper button that opens invite friends dialog; passes all props including hideEmailTab through to InviteFriendsDialog.
   Uses: useTranslations
   Renders: InviteFriendsDialog
 
