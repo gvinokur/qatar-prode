@@ -25,7 +25,7 @@ import FlippableGameCard from '../flippable-game-card'
 import { ActionCenterData } from '../../actions/hub-actions'
 import { getUrgencyLevel, formatCountdown } from '../../utils/countdown-utils'
 import type { Locale } from '../../../i18n.config'
-import PreTournamentHero from './pre-tournament-hero'
+import PreTournamentHero, { PreTournamentCountdown } from './pre-tournament-hero'
 import { TournamentStartBanner } from './tournament-start-banner'
 
 interface ActionCenterCarouselProps {
@@ -89,6 +89,11 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           <TournamentStartBanner locale={locale} tournamentId={tournamentId} />
         )}
 
+        {/* Countdown — shown above the header when in pre-tournament mode */}
+        {isPreTournament && (
+          <PreTournamentCountdown firstGameDate={data.firstGameDate!} />
+        )}
+
         {/* Header — centered */}
         <Box sx={{ mb: 1, textAlign: 'center' }}>
           <Typography variant="h6">{t('actionCenter.title')}</Typography>
@@ -97,10 +102,9 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </Typography>
         </Box>
 
-        {/* Pre-tournament hero (countdown + opener + progress) */}
+        {/* Pre-tournament: opener card + progress row (countdown rendered above) */}
         {isPreTournament ? (
           <PreTournamentHero
-            firstGameDate={data.firstGameDate!}
             openerGame={data.openerGame}
             tournamentId={tournamentId}
             locale={locale}
@@ -109,7 +113,10 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             qtAndAwardsOpen={data.qtAndAwardsOpen}
             totalGames={data.totalGames}
             predictedGames={data.predictedGames}
-            hasAwardsPredictions={data.hasAwardsPredictions}
+            awardsCompleted={data.awardsCompleted}
+            awardsTotal={data.awardsTotal}
+            qualifiersCompleted={data.qualifiersCompleted}
+            qualifiersTotal={data.qualifiersTotal}
           />
         ) : data.mode === 'empty' ? (
           /* Fallback empty state (tournament finished or no games) */

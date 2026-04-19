@@ -55,9 +55,12 @@ vi.mock('@/app/components/flippable-game-card', () => ({
   },
 }))
 
-// Mock PreTournamentHero to avoid complex hook/timer setup
+// Mock PreTournamentHero and PreTournamentCountdown to avoid complex hook/timer setup
 vi.mock('../pre-tournament-hero', () => ({
   default: () => <div data-testid="pre-tournament-hero">PreTournamentHero</div>,
+  PreTournamentCountdown: () => (
+    <div data-testid="pre-tournament-countdown">PreTournamentCountdown</div>
+  ),
 }))
 
 // Mock TournamentStartBanner

@@ -7,6 +7,7 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
+import * as tournamentPredictionCompletionRepository from '@/app/db/tournament-prediction-completion-repository'
 import * as favoriteGroupsRepository from '@/app/db/favorite-groups-repository'
 import * as userActions from '../user-actions'
 import { applyLocalizationBatch } from '@/app/utils/localization-helper'
@@ -20,8 +21,11 @@ vi.mock('@/app/db/game-repository', () => ({
   findFirstGameInTournament: vi.fn(),
   findLastGameInTournament: vi.fn(),
   findFirstGameFullData: vi.fn(),
-  getGameCountsForTournament: vi.fn(),
   findRecentGamesWithUserGuesses: vi.fn(),
+}))
+
+vi.mock('@/app/db/tournament-prediction-completion-repository', () => ({
+  getTournamentPredictionCompletion: vi.fn(),
 }))
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -104,9 +108,22 @@ beforeEach(() => {
   vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
     testFactories.game({ id: 'last-game', game_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }) as any
   )
-  // New fields: default game counts and no tournament guess (no awards predictions)
-  vi.mocked(gameRepository.getGameCountsForTournament).mockResolvedValue({ total: 64, played: 0 })
-  vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(null as any)
+  // Prediction completion: default to all-zero (no predictions made yet)
+  vi.mocked(tournamentPredictionCompletionRepository.getTournamentPredictionCompletion).mockResolvedValue({
+    finalStandings: { completed: 0, total: 3, champion: false, runnerUp: false, thirdPlace: false },
+    awards: { completed: 0, total: 4, bestPlayer: false, topGoalscorer: false, bestGoalkeeper: false, bestYoungPlayer: false },
+    qualifiers: { completed: 0, total: 0 },
+    overallCompleted: 0,
+    overallTotal: 7,
+    overallPercentage: 0,
+    isPredictionLocked: false,
+    completedGames: 0,
+    totalGames: 64,
+    silverBoostsUsed: 0,
+    goldenBoostsUsed: 0,
+    silverBoostsMax: 5,
+    goldenBoostsMax: 3,
+  } as any)
   vi.mocked(gameRepository.findFirstGameFullData).mockResolvedValue(undefined)
 })
 

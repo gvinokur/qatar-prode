@@ -63,7 +63,10 @@
     "awardsShort": "Awards",
     "totalShort": "Total",
     "awardsNotStarted": "Pending",
-    "awardsDone": "Submitted"
+    "awardsDone": "Submitted",
+    "qtLabel": "Qualified Teams",
+    "awardsLabel": "Awards",
+    "overallLabel": "Overall"
   },
   "tournamentStarted": {
     "title": "The tournament has started!",
@@ -79,6 +82,7 @@
   "groupsPreview": {
     "youreIn": "You're in",
     "andOthers": "and {count} others.",
+    "rankingPending": "Rankings will be available once the championship starts",
     "goToGroups": "Your Groups",
     "createGroup": "Create Group",
     "discoverGroups": "Discover Groups"

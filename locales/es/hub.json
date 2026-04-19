@@ -63,7 +63,10 @@
     "awardsShort": "Premios",
     "totalShort": "Total",
     "awardsNotStarted": "Pendiente",
-    "awardsDone": "Enviado"
+    "awardsDone": "Enviado",
+    "qtLabel": "Equipos Clasificados",
+    "awardsLabel": "Premios",
+    "overallLabel": "Total"
   },
   "tournamentStarted": {
     "title": "¡El torneo comenzó!",
@@ -79,6 +82,7 @@
   "groupsPreview": {
     "youreIn": "Estás en",
     "andOthers": "y {count} más.",
+    "rankingPending": "Los rankings estarán disponibles una vez que comience el campeonato",
     "goToGroups": "Tus Grupos",
     "createGroup": "Crear Grupo",
     "discoverGroups": "Descubrir Grupos"

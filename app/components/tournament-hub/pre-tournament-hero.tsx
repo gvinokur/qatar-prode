@@ -22,17 +22,13 @@ import { ExtendedGameData } from '../../definitions'
 import { GameGuessNew, Team } from '../../db/tables-definition'
 import type { Locale } from '../../../i18n.config'
 
-interface PreTournamentHeroProps {
+// ---------------------------------------------------------------------------
+// PreTournamentCountdown — exported separately so ActionCenterCarousel can
+// render it ABOVE the "Action Center" header title.
+// ---------------------------------------------------------------------------
+
+interface PreTournamentCountdownProps {
   readonly firstGameDate: Date
-  readonly openerGame: ExtendedGameData | null
-  readonly tournamentId: string
-  readonly locale: Locale
-  readonly teamsMap: Record<string, Team>
-  readonly gameGuesses: Record<string, GameGuessNew>
-  readonly qtAndAwardsOpen: boolean
-  readonly totalGames: number
-  readonly predictedGames: number
-  readonly hasAwardsPredictions: boolean
 }
 
 interface TimeLeft {
@@ -49,8 +45,99 @@ function computeTimeLeft(target: Date): TimeLeft {
   return { days, hours, mins }
 }
 
+export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdownProps) {
+  const t = useTranslations('hub')
+  const theme = useTheme()
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => computeTimeLeft(firstGameDate))
+
+  useEffect(() => {
+    const id = setInterval(() => setTimeLeft(computeTimeLeft(firstGameDate)), 1000)
+    return () => clearInterval(id)
+  }, [firstGameDate])
+
+  return (
+    <Paper
+      sx={{
+        background: `linear-gradient(135deg, ${theme.palette.secondary.main}14 0%, ${theme.palette.secondary.main}08 100%)`,
+        border: '1px solid',
+        borderColor: 'secondary.light',
+        borderRadius: 2,
+        p: 3,
+        textAlign: 'center',
+        mb: 2,
+      }}
+    >
+      <Typography variant="overline" color="secondary">
+        {t('preTournament.countdownTitle')}
+      </Typography>
+      <Stack direction="row" justifyContent="center" spacing={4} sx={{ mt: 1 }}>
+        <Box textAlign="center">
+          <Typography variant="h3" fontWeight="bold" color="secondary">
+            {timeLeft.days}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('preTournament.days')}
+          </Typography>
+        </Box>
+        <Box textAlign="center">
+          <Typography variant="h3" fontWeight="bold" color="secondary">
+            {timeLeft.hours}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('preTournament.hours')}
+          </Typography>
+        </Box>
+        <Box textAlign="center">
+          <Typography variant="h3" fontWeight="bold" color="secondary">
+            {timeLeft.mins}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('preTournament.mins')}
+          </Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// PreTournamentHero — opener game card + progress row.
+// The countdown is now rendered separately (see PreTournamentCountdown above).
+// ---------------------------------------------------------------------------
+
+interface PreTournamentHeroProps {
+  readonly openerGame: ExtendedGameData | null
+  readonly tournamentId: string
+  readonly locale: Locale
+  readonly teamsMap: Record<string, Team>
+  readonly gameGuesses: Record<string, GameGuessNew>
+  readonly qtAndAwardsOpen: boolean
+  readonly totalGames: number
+  readonly predictedGames: number
+  readonly awardsCompleted: number
+  readonly awardsTotal: number
+  readonly qualifiersCompleted: number
+  readonly qualifiersTotal: number
+}
+
+/** Renders a CircularProgress with a visible grey track behind it. */
+function TrackedCircularProgress({ value }: { value: number }) {
+  return (
+    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      {/* Track (always-visible background ring) */}
+      <CircularProgress
+        variant="determinate"
+        value={100}
+        size={48}
+        sx={{ color: 'action.selected', position: 'absolute', top: 0, left: 0 }}
+      />
+      {/* Actual progress */}
+      <CircularProgress variant="determinate" value={value} size={48} color="secondary" />
+    </Box>
+  )
+}
+
 export default function PreTournamentHero({
-  firstGameDate,
   openerGame,
   tournamentId,
   locale,
@@ -59,73 +146,26 @@ export default function PreTournamentHero({
   qtAndAwardsOpen,
   totalGames,
   predictedGames,
-  hasAwardsPredictions,
+  awardsCompleted,
+  awardsTotal,
+  qualifiersCompleted,
+  qualifiersTotal,
 }: PreTournamentHeroProps) {
   const t = useTranslations('hub')
   const theme = useTheme()
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'))
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => computeTimeLeft(firstGameDate))
-
-  useEffect(() => {
-    const id = setInterval(() => setTimeLeft(computeTimeLeft(firstGameDate)), 1000)
-    return () => clearInterval(id)
-  }, [firstGameDate])
+  const [isEditingOpener, setIsEditingOpener] = useState(false)
 
   const overallProgress =
     totalGames === 0 ? 0 : Math.round((predictedGames / totalGames) * 100)
+  const awardsProgress =
+    awardsTotal === 0 ? 0 : Math.round((awardsCompleted / awardsTotal) * 100)
+  const qtProgress =
+    qualifiersTotal === 0 ? 0 : Math.round((qualifiersCompleted / qualifiersTotal) * 100)
 
   return (
     <Box>
-      {/* Section 1: Countdown */}
-      <Paper
-        sx={{
-          background:
-            'linear-gradient(135deg, rgba(25, 118, 210, 0.08), rgba(25, 118, 210, 0.03))',
-          border: '1px solid',
-          borderColor: 'primary.light',
-          borderRadius: 2,
-          p: 3,
-          textAlign: 'center',
-          mb: 2,
-        }}
-      >
-        <Typography variant="overline" color="primary">
-          {t('preTournament.countdownTitle')}
-        </Typography>
-        <Stack
-          direction="row"
-          justifyContent="center"
-          spacing={4}
-          sx={{ mt: 1 }}
-        >
-          <Box textAlign="center">
-            <Typography variant="h3" fontWeight="bold" color="primary">
-              {timeLeft.days}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('preTournament.days')}
-            </Typography>
-          </Box>
-          <Box textAlign="center">
-            <Typography variant="h3" fontWeight="bold" color="primary">
-              {timeLeft.hours}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('preTournament.hours')}
-            </Typography>
-          </Box>
-          <Box textAlign="center">
-            <Typography variant="h3" fontWeight="bold" color="primary">
-              {timeLeft.mins}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('preTournament.mins')}
-            </Typography>
-          </Box>
-        </Stack>
-      </Paper>
-
-      {/* Section 2: Opener game card (only when openerGame != null) */}
+      {/* Section 1: Opener game card (only when openerGame != null) */}
       {openerGame && (
         <Box sx={{ mb: 2 }}>
           <Typography
@@ -146,121 +186,112 @@ export default function PreTournamentHero({
             awayPenaltyWinner={gameGuesses[openerGame.id]?.away_penalty_winner}
             boostType={gameGuesses[openerGame.id]?.boost_type}
             initialBoostType={gameGuesses[openerGame.id]?.boost_type}
-            isEditing={false}
-            onEditStart={() => {}}
-            onEditEnd={() => {}}
-            onAutoAdvanceNext={() => {}}
-            onAutoGoPrevious={() => {}}
+            isEditing={isEditingOpener}
+            onEditStart={() => setIsEditingOpener(true)}
+            onEditEnd={() => setIsEditingOpener(false)}
+            onAutoAdvanceNext={() => setIsEditingOpener(false)}
+            onAutoGoPrevious={() => setIsEditingOpener(false)}
           />
         </Box>
       )}
 
-      {/* Section 3: Progress row (shown when QT/Awards predictions are open) */}
-      {qtAndAwardsOpen && <Stack direction="row" justifyContent="space-around" sx={{ mt: 2 }}>
-        {/* Item 1: QT */}
-        <Box
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
-          sx={{
-            textDecoration: 'none',
-            color: 'inherit',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 0.5,
-          }}
-        >
-          <AccountTreeIcon color="primary" sx={{ mb: 0.5 }} />
-          <CircularProgress variant="determinate" value={0} size={48} />
-          {isDesktop ? (
-            <Typography variant="body2" fontWeight={500}>
-              Qualified Teams
-            </Typography>
-          ) : (
-            <Typography variant="caption">
-              {t('preTournament.qtShort')}
-            </Typography>
-          )}
-        </Box>
+      {/* Section 2: Progress row (shown when QT/Awards predictions are open) */}
+      {qtAndAwardsOpen && (
+        <Stack direction="row" justifyContent="space-around" sx={{ mt: 2 }}>
+          {/* QT */}
+          <Box
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <AccountTreeIcon color="secondary" sx={{ mb: 0.5 }} />
+            <TrackedCircularProgress value={qtProgress} />
+            {isDesktop ? (
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.qtLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {qualifiersCompleted}/{qualifiersTotal}
+                </Typography>
+              </Box>
+            ) : (
+              <Typography variant="caption">{t('preTournament.qtShort')}</Typography>
+            )}
+          </Box>
 
-        {/* Item 2: Awards */}
-        <Box
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}/awards`}
-          sx={{
-            textDecoration: 'none',
-            color: 'inherit',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 0.5,
-          }}
-        >
-          <EmojiEventsIcon color="primary" sx={{ mb: 0.5 }} />
-          <CircularProgress
-            variant="determinate"
-            value={hasAwardsPredictions ? 100 : 0}
-            size={48}
-          />
-          {isDesktop ? (
-            <Box>
-              <Typography variant="body2" fontWeight={500}>
-                Individual Awards
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {hasAwardsPredictions
-                  ? t('preTournament.awardsDone')
-                  : t('preTournament.awardsNotStarted')}
-              </Typography>
-            </Box>
-          ) : (
-            <Typography variant="caption">
-              {t('preTournament.awardsShort')}
-            </Typography>
-          )}
-        </Box>
+          {/* Awards */}
+          <Box
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}/awards`}
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <EmojiEventsIcon color="secondary" sx={{ mb: 0.5 }} />
+            <TrackedCircularProgress value={awardsProgress} />
+            {isDesktop ? (
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.awardsLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {awardsCompleted}/{awardsTotal}
+                </Typography>
+              </Box>
+            ) : (
+              <Typography variant="caption">{t('preTournament.awardsShort')}</Typography>
+            )}
+          </Box>
 
-        {/* Item 3: Overall */}
-        <Box
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}`}
-          sx={{
-            textDecoration: 'none',
-            color: 'inherit',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 0.5,
-          }}
-        >
-          <SportsSoccerIcon color="primary" sx={{ mb: 0.5 }} />
-          <CircularProgress
-            variant="determinate"
-            value={overallProgress}
-            size={48}
-          />
-          {isDesktop ? (
-            <Box>
-              <Typography variant="body2" fontWeight={500}>
-                Overall
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t('preTournament.gamesOfTotal', {
-                  predicted: predictedGames,
-                  total: totalGames,
-                })}
-              </Typography>
-            </Box>
-          ) : (
-            <Typography variant="caption">
-              {t('preTournament.totalShort')}
-            </Typography>
-          )}
-        </Box>
-      </Stack>}
+          {/* Overall */}
+          <Box
+            component={Link}
+            href={`/${locale}/tournaments/${tournamentId}`}
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <SportsSoccerIcon color="secondary" sx={{ mb: 0.5 }} />
+            <TrackedCircularProgress value={overallProgress} />
+            {isDesktop ? (
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.overallLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('preTournament.gamesOfTotal', {
+                    predicted: predictedGames,
+                    total: totalGames,
+                  })}
+                </Typography>
+              </Box>
+            ) : (
+              <Typography variant="caption">{t('preTournament.totalShort')}</Typography>
+            )}
+          </Box>
+        </Stack>
+      )}
     </Box>
   )
 }

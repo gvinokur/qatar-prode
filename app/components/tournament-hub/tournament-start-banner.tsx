@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Paper, Stack, Typography, Button } from '@mui/material'
+import { Paper, Stack, Typography, Button, useTheme } from '@mui/material'
 import { EmojiEvents as EmojiEventsIcon } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -17,11 +17,12 @@ export function TournamentStartBanner({
   tournamentId,
 }: TournamentStartBannerProps) {
   const t = useTranslations('hub')
+  const theme = useTheme()
 
   return (
     <Paper
       sx={{
-        background: 'linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
         p: 3,
         mb: 2,
         textAlign: 'center',

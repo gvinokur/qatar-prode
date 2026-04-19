@@ -1,6 +1,6 @@
 'use server'
 
-import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData, getGameCountsForTournament } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
@@ -8,6 +8,7 @@ import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prod
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
+import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
@@ -51,10 +52,16 @@ export interface ActionCenterData {
   openerGame: ExtendedGameData | null
   /** Total number of games in the tournament */
   totalGames: number
-  /** Number of games the user has predicted */
+  /** Number of games the user has fully predicted (both scores, playoff penalty included) */
   predictedGames: number
-  /** True if user has a tournament guess with at least one award field set */
-  hasAwardsPredictions: boolean
+  /** Sum of completed podium + individual awards (out of awardsTotal) */
+  awardsCompleted: number
+  /** Total number of award predictions available (3 podium + 4 individual = 7) */
+  awardsTotal: number
+  /** Number of qualifying team slots the user has predicted */
+  qualifiersCompleted: number
+  /** Total qualifying team slots available for the tournament */
+  qualifiersTotal: number
   /** True when the first game kicked off within the last 48h (celebration banner period) */
   tournamentJustStarted: boolean
 }
@@ -97,33 +104,29 @@ export async function getActionCenterGames(
 
   const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
 
-  const [games, guessesArray, teams, tournament, firstGame, lastGame, gameCounts, tournamentGuess] = await Promise.all([
+  const [games, guessesArray, teams, tournament, firstGame, lastGame] = await Promise.all([
     findGamesForDashboard(tournamentId),
     findGameGuessesByUserId(user.id, tournamentId),
     findTeamInTournament(tournamentId),
     findTournamentById(tournamentId),
     findFirstGameInTournament(tournamentId),
     findLastGameInTournament(tournamentId),
-    getGameCountsForTournament(tournamentId),
-    findTournamentGuessByUserIdTournament(user.id, tournamentId),
   ])
+
+  // Use the same completion logic as the Predictions Dashboard for consistent progress data
+  const predictionCompletion = tournament
+    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
+    : null
 
   const now = Date.now()
   const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < now
   const firstGameDate = firstGame?.game_date ?? null
-  const totalGames = gameCounts.total
-  const predictedGames = guessesArray.length
-  const hasAwardsPredictions = !!(
-    tournamentGuess && (
-      tournamentGuess.best_player_id != null ||
-      tournamentGuess.top_goalscorer_player_id != null ||
-      tournamentGuess.best_goalkeeper_player_id != null ||
-      tournamentGuess.best_young_player_id != null ||
-      tournamentGuess.champion_team_id != null ||
-      tournamentGuess.runner_up_team_id != null ||
-      tournamentGuess.third_place_team_id != null
-    )
-  )
+  const totalGames = predictionCompletion?.totalGames ?? 0
+  const predictedGames = predictionCompletion?.completedGames ?? 0
+  const awardsCompleted = (predictionCompletion?.finalStandings.completed ?? 0) + (predictionCompletion?.awards.completed ?? 0)
+  const awardsTotal = (predictionCompletion?.finalStandings.total ?? 0) + (predictionCompletion?.awards.total ?? 0)
+  const qualifiersCompleted = predictionCompletion?.qualifiers.completed ?? 0
+  const qualifiersTotal = predictionCompletion?.qualifiers.total ?? 0
   const tournamentJustStarted = !!(
     firstGameDate &&
     firstGameDate.getTime() < now &&
@@ -173,7 +176,10 @@ export async function getActionCenterGames(
       openerGame,
       totalGames,
       predictedGames,
-      hasAwardsPredictions,
+      awardsCompleted,
+      awardsTotal,
+      qualifiersCompleted,
+      qualifiersTotal,
       tournamentJustStarted,
     }
   }
@@ -238,7 +244,10 @@ export async function getActionCenterGames(
     openerGame: null,
     totalGames,
     predictedGames,
-    hasAwardsPredictions,
+    awardsCompleted,
+    awardsTotal,
+    qualifiersCompleted,
+    qualifiersTotal,
     tournamentJustStarted,
   }
 }
