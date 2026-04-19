@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { User } from 'next-auth';
-import { isHubEnabled } from '@/app/utils/environment-utils';
 
 interface TournamentBottomNavProps {
   readonly tournamentId: string;
@@ -27,10 +26,8 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
 
     if (pathWithoutLocale === '' || pathWithoutLocale === '/') {
       setValue('main-home');
-    } else if (pathWithoutLocale === `/tournaments/${tournamentId}/hub`) {
-      setValue('main-home');
     } else if (pathWithoutLocale === `/tournaments/${tournamentId}`) {
-      setValue(''); // PARTIDOS is in top nav, no bottom nav tab selected
+      setValue('main-home');
     } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/results`)) {
       setValue('results');
     } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/rules`)) {
@@ -41,7 +38,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
     } else if (pathWithoutLocale.startsWith(`/tournaments/${tournamentId}/stats`)) {
       setValue('stats');
     }
-    // Note: Individual game groups (/tournaments/[id]/groups/[group_id]) don't activate any bottom nav tab
+    // Note: /games and individual game groups don't activate any bottom nav tab
   }, [currentPath, tournamentId]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -50,11 +47,7 @@ export default function TournamentBottomNav({ tournamentId, currentPath, user }:
     // Navigate based on selected tab
     switch (newValue) {
       case 'main-home':
-        router.push(
-          isHubEnabled()
-            ? `/${locale}/tournaments/${tournamentId}/hub`
-            : `/${locale}`
-        );
+        router.push(`/${locale}/tournaments/${tournamentId}`);
         break;
       case 'results':
         router.push(`/${locale}/tournaments/${tournamentId}/results`);

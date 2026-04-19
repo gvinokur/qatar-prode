@@ -26,11 +26,6 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn()
 }))
 
-// Mock environment-utils with controllable hub flag
-let mockHubEnabled = false;
-vi.mock('@/app/utils/environment-utils', () => ({
-  isHubEnabled: () => mockHubEnabled,
-}));
 
 const mockUser: User = {
   id: 'user1',
@@ -47,7 +42,6 @@ describe('TournamentBottomNav', () => {
 
   beforeEach(() => {
     mockPush = vi.fn()
-    mockHubEnabled = false;
     vi.mocked(useRouter).mockReturnValue({
       push: mockPush,
       replace: vi.fn(),
@@ -162,16 +156,13 @@ describe('TournamentBottomNav', () => {
     expect(gruposButton).toHaveClass('Mui-selected')
   })
 
-  it('does not activate any tab when on tournament home (PARTIDOS)', () => {
+  it('activates Home tab when on tournament root (hub landing page)', () => {
     renderWithTheme(
       <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}`} user={mockUser} />
     )
 
-    // None of the bottom nav buttons should be selected (PARTIDOS is in top nav)
-    const tabs = screen.getAllByRole('button')
-    tabs.forEach(tab => {
-      expect(tab).not.toHaveClass('Mui-selected')
-    })
+    const homeButton = screen.getByText('Home').closest('button')
+    expect(homeButton).toHaveClass('Mui-selected')
   })
 
   it('navigates to correct route when Home tab is clicked', () => {
@@ -182,7 +173,7 @@ describe('TournamentBottomNav', () => {
     const homeTab = screen.getByText('Home').closest('button')
     if (homeTab) {
       fireEvent.click(homeTab)
-      expect(mockPush).toHaveBeenCalledWith('/es')
+      expect(mockPush).toHaveBeenCalledWith(`/es/tournaments/${tournamentId}`)
     }
   })
 
@@ -233,37 +224,25 @@ describe('TournamentBottomNav', () => {
     })
   })
 
-  describe('hub-aware Home tab', () => {
-    it('navigates to /[locale] when hub flag is disabled', () => {
-      mockHubEnabled = false;
+  describe('Home tab navigation', () => {
+    it('always navigates to /tournaments/[id] (hub root) regardless of current path', () => {
       renderWithTheme(
         <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
       )
       const homeTab = screen.getByText('Home').closest('button')
       if (homeTab) {
         fireEvent.click(homeTab)
-        expect(mockPush).toHaveBeenCalledWith('/es')
+        expect(mockPush).toHaveBeenCalledWith(`/es/tournaments/${tournamentId}`)
+        expect(mockPush).not.toHaveBeenCalledWith(expect.stringContaining('/hub'))
       }
     })
 
-    it('navigates to /tournaments/[id]/hub when hub flag is enabled', () => {
-      mockHubEnabled = true;
+    it('does not activate Home tab when on /games sub-path', () => {
       renderWithTheme(
-        <TournamentBottomNav tournamentId={tournamentId} currentPath="/es" user={mockUser} />
-      )
-      const homeTab = screen.getByText('Home').closest('button')
-      if (homeTab) {
-        fireEvent.click(homeTab)
-        expect(mockPush).toHaveBeenCalledWith(`/es/tournaments/${tournamentId}/hub`)
-      }
-    })
-
-    it('activates Home tab when on hub path', () => {
-      renderWithTheme(
-        <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/hub`} user={mockUser} />
+        <TournamentBottomNav tournamentId={tournamentId} currentPath={`/es/tournaments/${tournamentId}/games`} user={mockUser} />
       )
       const homeButton = screen.getByText('Home').closest('button')
-      expect(homeButton).toHaveClass('Mui-selected')
+      expect(homeButton).not.toHaveClass('Mui-selected')
     })
   })
 

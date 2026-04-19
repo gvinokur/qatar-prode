@@ -8,7 +8,6 @@ import {
   getLastSelectedTournamentId,
   setLastSelectedTournamentId,
 } from '@/app/utils/dismissal-storage';
-import { isHubEnabled } from '@/app/utils/environment-utils';
 
 interface TournamentRedirectProps {
   readonly tournaments: ReadonlyArray<{ readonly id: string }>;
@@ -46,9 +45,7 @@ export default function TournamentRedirect({
     setLastSelectedTournamentId(targetTournament.id);
 
     // Build redirect URL with preserved query parameters
-    const targetPath = isHubEnabled()
-      ? `/${locale}/tournaments/${targetTournament.id}/hub`
-      : `/${locale}/tournaments/${targetTournament.id}`;
+    const targetPath = `/${locale}/tournaments/${targetTournament.id}`;
     const queryString = searchParams?.toString();
     const redirectUrl = queryString ? `${targetPath}?${queryString}` : targetPath;
 

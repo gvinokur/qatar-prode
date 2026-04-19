@@ -1,72 +1,47 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, cleanup } from '@testing-library/react';
-import { render } from '@testing-library/react';
-import TournamentHubPage from '../page';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import TournamentHubRedirectPage from '../page';
+
+const mockRedirect = vi.fn()
+
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  redirect: (url: string) => mockRedirect(url),
+}));
 
 // Mock next-intl/server
 vi.mock('next-intl/server', () => ({
-  getTranslations: vi.fn().mockResolvedValue((key: string) => key),
-  getLocale: vi.fn().mockResolvedValue('en'),
+  getLocale: vi.fn().mockResolvedValue('es'),
 }));
 
-// Mock locale-utils
-vi.mock('@/app/utils/locale-utils', () => ({
-  toLocale: vi.fn((v: string) => v),
-}));
-
-// Mock TournamentHubActionCenter (server component — renders a test placeholder)
-vi.mock('@/app/components/tournament-hub/tournament-hub-action-center', () => ({
-  TournamentHubActionCenter: () => <div data-testid="action-center">Action Center</div>,
-}));
-
-// Mock TournamentHubLeaderboardPeek (server component — renders a test placeholder)
-vi.mock('@/app/components/tournament-hub/tournament-hub-leaderboard-peek', () => ({
-  TournamentHubLeaderboardPeek: () => <div data-testid="leaderboard-peek">Leaderboard Peek Widget</div>,
-}));
-
-// Mock TournamentHubRecentResults (server component — renders a test placeholder)
-vi.mock('@/app/components/tournament-hub/tournament-hub-recent-results', () => ({
-  TournamentHubRecentResults: () => <div data-testid="recent-results">Recent Results Widget</div>,
-}));
-
-describe('TournamentHubPage', () => {
-  const mockParams = Promise.resolve({ id: 'tournament-1' });
-
+describe('TournamentHubRedirectPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    cleanup();
+  it('calls redirect to /${locale}/tournaments/${id} for es locale', async () => {
+    const { getLocale } = await import('next-intl/server');
+    vi.mocked(getLocale).mockResolvedValue('es');
+
+    await TournamentHubRedirectPage({ params: Promise.resolve({ id: 'tournament-1' }) });
+
+    expect(mockRedirect).toHaveBeenCalledWith('/es/tournaments/tournament-1');
   });
 
-  it('renders the hub page without errors', async () => {
-    const result = await TournamentHubPage({ params: mockParams });
-    expect(result).toBeTruthy();
+  it('calls redirect to /${locale}/tournaments/${id} for en locale', async () => {
+    const { getLocale } = await import('next-intl/server');
+    vi.mocked(getLocale).mockResolvedValue('en');
+
+    await TournamentHubRedirectPage({ params: Promise.resolve({ id: 'tournament-2' }) });
+
+    expect(mockRedirect).toHaveBeenCalledWith('/en/tournaments/tournament-2');
   });
 
-  it('renders the Action Center widget', async () => {
-    const React = (await import('react')).default;
-    const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
+  it('redirect uses the correct tournamentId from params', async () => {
+    const { getLocale } = await import('next-intl/server');
+    vi.mocked(getLocale).mockResolvedValue('es');
 
-    expect(screen.getByTestId('action-center')).toBeInTheDocument();
-  });
+    await TournamentHubRedirectPage({ params: Promise.resolve({ id: 'my-special-tournament' }) });
 
-  it('renders Recent Results widget and Leaderboard Peek widget', async () => {
-    const React = (await import('react')).default;
-    const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
-
-    expect(screen.getByTestId('recent-results')).toBeInTheDocument();
-    expect(screen.getByTestId('leaderboard-peek')).toBeInTheDocument();
-  });
-
-  it('does not render the Smart Predictor Carousel placeholder', async () => {
-    const React = (await import('react')).default;
-    const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
-
-    expect(screen.queryByText('Smart Predictor Carousel')).not.toBeInTheDocument();
+    expect(mockRedirect).toHaveBeenCalledWith('/es/tournaments/my-special-tournament');
   });
 });

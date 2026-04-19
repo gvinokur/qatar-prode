@@ -1,10 +1,13 @@
 'use server'
 
-import type { Metadata } from 'next'
-import { getLocale, getTranslations } from 'next-intl/server'
-import {Box} from "../../../components/mui-wrappers/";
-import {UnifiedGamesPage} from "../../../components/unified-games-page";
-import { buildTournamentMetadata } from '../../../utils/metadata-utils'
+import { Box } from '@mui/material'
+import { getLocale } from 'next-intl/server'
+import { redirect } from 'next/navigation'
+import { toLocale } from '@/app/utils/locale-utils'
+import { getLoggedInUser } from '@/app/actions/user-actions'
+import { TournamentHubActionCenter } from '@/app/components/tournament-hub/tournament-hub-action-center'
+import { TournamentHubLeaderboardPeek } from '@/app/components/tournament-hub/tournament-hub-leaderboard-peek'
+import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
 
 type Props = {
   readonly params: Promise<{
@@ -12,30 +15,23 @@ type Props = {
   }>
 }
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> }
-): Promise<Metadata> {
-  const { id } = await params
-  const locale = await getLocale()
-  const tCommon = await getTranslations({ locale, namespace: 'common' })
-  const tTournament = await getTranslations({ locale, namespace: 'tournament' })
-  const appName = tCommon('app.name')
+export default async function TournamentHubPage(props: Props) {
+  const { id } = await props.params
+  const rawLocale = await getLocale()
+  const locale = toLocale(rawLocale)
 
-  return buildTournamentMetadata(
-    id,
-    appName,
-    (t) => `${t.long_name} | ${appName}`,
-    (t) => tTournament('metadata.description', { name: t.long_name })
-  )
-}
-
-export default async function TournamentLandingPage(props: Props) {
-  const params = await props.params
-  const tournamentId = params.id
+  const user = await getLoggedInUser()
+  if (!user) {
+    redirect(`/${locale}/tournaments/${id}/games`)
+  }
 
   return (
-    <Box sx={{ height: '100%' }}>
-      <UnifiedGamesPage tournamentId={tournamentId} />
+    <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <TournamentHubActionCenter tournamentId={id} locale={locale} />
+
+      <TournamentHubRecentResults tournamentId={id} locale={locale} />
+
+      <TournamentHubLeaderboardPeek tournamentId={id} locale={locale} />
     </Box>
   )
 }
