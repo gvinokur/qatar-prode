@@ -9,7 +9,7 @@
 - **PR URL:** (fill after PR creation)
 
 ## State
-- **Current Phase:** implementing
+- **Current Phase:** review-ready
 - **Plan File:** plans/STORY-342-plan.md
 
 ## Quick Summary
