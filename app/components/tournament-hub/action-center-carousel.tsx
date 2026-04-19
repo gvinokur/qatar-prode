@@ -106,8 +106,6 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             locale={locale}
             teamsMap={data.teamsMap}
             gameGuesses={data.gameGuesses}
-            tournamentMaxSilver={data.tournamentMaxSilver}
-            tournamentMaxGolden={data.tournamentMaxGolden}
             qtAndAwardsOpen={data.qtAndAwardsOpen}
             totalGames={data.totalGames}
             predictedGames={data.predictedGames}

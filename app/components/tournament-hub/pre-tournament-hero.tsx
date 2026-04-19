@@ -29,8 +29,6 @@ interface PreTournamentHeroProps {
   readonly locale: Locale
   readonly teamsMap: Record<string, Team>
   readonly gameGuesses: Record<string, GameGuessNew>
-  readonly tournamentMaxSilver: number
-  readonly tournamentMaxGolden: number
   readonly qtAndAwardsOpen: boolean
   readonly totalGames: number
   readonly predictedGames: number
@@ -58,8 +56,6 @@ export default function PreTournamentHero({
   locale,
   teamsMap,
   gameGuesses,
-  tournamentMaxSilver,
-  tournamentMaxGolden,
   qtAndAwardsOpen,
   totalGames,
   predictedGames,
