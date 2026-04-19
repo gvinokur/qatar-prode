@@ -109,11 +109,12 @@ The feature builds on the existing Tournament Hub architecture with targeted add
 └─────────────────────────────────────────┘
 
 ┌── 3 Circular Progress Items (single row) ────────────────┐
-│   [○ 30%]           [○ 0%]           [○ 12%]             │
-│   Qualified Teams   Individual Awards  Overall            │ ← desktop
+│   [AccountTree]     [EmojiEvents]     [SportsSoccer]      │ ← same icon in both
+│    [○ 30%]           [○ 0%]           [○ 12%]             │   desktop & mobile
+│   Qualified Teams   Individual Awards  Overall            │ ← desktop: full label
 │   3/12 groups       Pending            12/104 games       │
 │                                                           │
-│   [●QT]  [🏆]  [📊]   ← mobile: icon + short label only  │
+│    [○]  QT          [○] Awards         [○] Total          │ ← mobile: short label
 └───────────────────────────────────────────────────────────┘
 ```
 
@@ -245,9 +246,9 @@ Each circular progress item links to its page (QT → qualified-teams, Awards �
 
 **New components:**
 
-- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, msUntilPredictionLock, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Renders three sections in order: (1) `CountdownSection` — gradient Paper, overline "TOURNAMENT KICKOFF", three boxes (days / hours / mins) computed from `firstGameDate - Date.now()` via `useEffect` + `setInterval(1000)`, (2) if `openerGame` is not null, a `FlippableGameCard` with "Opening Match" overline label (centered), (3) a single-row circular progress section — three `CircularProgress` items (QT, Awards, Overall) displayed in a `Stack direction="row" justifyContent="space-around"`. Desktop: each item shows CircularProgress + full label + value text; Mobile (`xs` breakpoint): each shows CircularProgress + abbreviated label only (e.g., "QT" / "Awards" / "Total"). Each item links to its page. Progress % formula: `predictedGames / totalGames * 100` (clamp to 0 when `totalGames === 0`). Awards shows 100% when `hasAwardsPredictions`, else 0%. QT shows value from `msUntilPredictionLock` or defaults to 0% (actual group count from QT predictions is a future enhancement — see Open Questions).
+- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, msUntilPredictionLock, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Renders three sections in order: (1) `CountdownSection` — gradient Paper, overline "TOURNAMENT KICKOFF", three boxes (days / hours / mins) computed from `firstGameDate - Date.now()` via `useEffect` + `setInterval(1000)`, (2) if `openerGame` is not null, a `FlippableGameCard` with "Opening Match" overline label (centered), (3) a single-row circular progress section — three `CircularProgress` items (QT, Awards, Overall) displayed in a `Stack direction="row" justifyContent="space-around"`. **Icons must match the Group Selector nav bar** — `AccountTreeIcon` for QT, `EmojiEventsIcon` for Awards, `SportsSoccerIcon` for Overall. Icons are shown on BOTH desktop and mobile for visual consistency; labels differ by breakpoint: desktop shows full label + value text beneath the circle, mobile shows abbreviated label only (e.g., "QT" / "Awards" / "Total"). Each item links to its page. Progress % formula: `predictedGames / totalGames * 100` (clamp to 0 when `totalGames === 0`). Awards shows 100% when `hasAwardsPredictions`, else 0%. QT defaults to 0% (see Open Questions).
   Calls: FlippableGameCard
-  Uses: useState, useEffect, useTranslations, CircularProgress, Stack, Box, Typography, Button, Link, useTheme, useMediaQuery
+  Uses: useState, useEffect, useTranslations, CircularProgress, Stack, Box, Typography, Button, Link, useTheme, useMediaQuery, AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon
   Tests:
   - renders countdown days/hours/mins derived from firstGameDate
   - shows "0 Days 0 Hours 0 Mins" gracefully when firstGameDate is in the past (boundary case)
