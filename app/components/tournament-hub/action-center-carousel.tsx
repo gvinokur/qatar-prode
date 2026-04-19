@@ -25,6 +25,8 @@ import FlippableGameCard from '../flippable-game-card'
 import { ActionCenterData } from '../../actions/hub-actions'
 import { getUrgencyLevel, formatCountdown } from '../../utils/countdown-utils'
 import type { Locale } from '../../../i18n.config'
+import PreTournamentHero from './pre-tournament-hero'
+import { TournamentStartBanner } from './tournament-start-banner'
 
 interface ActionCenterCarouselProps {
   readonly data: ActionCenterData
@@ -70,6 +72,10 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
   }
   const countdownText = showUrgencyChip ? formatCountdown(data.msUntilPredictionLock) : ''
 
+  // Pre-tournament: mode=empty, firstGameDate set, tournament not yet finished (started)
+  const isPreTournament =
+    data.mode === 'empty' && data.firstGameDate !== null && !data.tournamentFinished
+
   return (
     <GuessesContextProvider
       gameGuesses={data.gameGuesses}
@@ -78,6 +84,11 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
       tournamentMaxGolden={data.tournamentMaxGolden}
     >
       <Box>
+        {/* Celebration banner — shown above everything for 48h after tournament starts */}
+        {data.tournamentJustStarted && (
+          <TournamentStartBanner locale={locale} tournamentId={tournamentId} />
+        )}
+
         {/* Header — centered */}
         <Box sx={{ mb: 1, textAlign: 'center' }}>
           <Typography variant="h6">{t('actionCenter.title')}</Typography>
@@ -86,8 +97,24 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </Typography>
         </Box>
 
-        {/* Game carousel or empty state */}
-        {data.mode === 'empty' ? (
+        {/* Pre-tournament hero (countdown + opener + progress) */}
+        {isPreTournament ? (
+          <PreTournamentHero
+            firstGameDate={data.firstGameDate!}
+            openerGame={data.openerGame}
+            tournamentId={tournamentId}
+            locale={locale}
+            teamsMap={data.teamsMap}
+            gameGuesses={data.gameGuesses}
+            tournamentMaxSilver={data.tournamentMaxSilver}
+            tournamentMaxGolden={data.tournamentMaxGolden}
+            qtAndAwardsOpen={data.qtAndAwardsOpen}
+            totalGames={data.totalGames}
+            predictedGames={data.predictedGames}
+            hasAwardsPredictions={data.hasAwardsPredictions}
+          />
+        ) : data.mode === 'empty' ? (
+          /* Fallback empty state (tournament finished or no games) */
           <Box
             sx={{
               width: '100%',
@@ -110,10 +137,16 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             </Button>
           </Box>
         ) : (
+          /* Game carousel */
           <ScrollShadowContainer
             direction="horizontal"
             hideScrollbar={true}
-            scrollContainerSx={{ display: 'flex', gap: 2, pb: 1 }}
+            scrollContainerSx={{
+              display: 'flex',
+              gap: 2,
+              pb: 1,
+              ...(data.games.length === 1 ? { justifyContent: 'center' } : {}),
+            }}
           >
             {data.games.map((game) => {
               const guess = data.gameGuesses[game.id]
@@ -142,8 +175,9 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </ScrollShadowContainer>
         )}
 
-        {/* Quick-action cards — only shown when QT/Awards predictions are still open */}
-        {data.qtAndAwardsOpen && (
+        {/* Quick-action cards — only shown when QT/Awards predictions are still open
+            and we're NOT in pre-tournament mode (PreTournamentHero shows its own progress row) */}
+        {data.qtAndAwardsOpen && !isPreTournament && (
           <Box sx={{ mt: 2 }}>
             <Typography
               variant="overline"

@@ -55,6 +55,18 @@ vi.mock('@/app/components/flippable-game-card', () => ({
   },
 }))
 
+// Mock PreTournamentHero to avoid complex hook/timer setup
+vi.mock('../pre-tournament-hero', () => ({
+  default: () => <div data-testid="pre-tournament-hero">PreTournamentHero</div>,
+}))
+
+// Mock TournamentStartBanner
+vi.mock('../tournament-start-banner', () => ({
+  TournamentStartBanner: () => (
+    <div data-testid="tournament-start-banner">TournamentStartBanner</div>
+  ),
+}))
+
 const team1 = testFactories.team({ id: 'team-1', name: 'Team 1' })
 const team2 = testFactories.team({ id: 'team-2', name: 'Team 2' })
 const teamsMap = { 'team-1': team1, 'team-2': team2 }
@@ -75,6 +87,12 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   qtAndAwardsOpen: true,
   msUntilPredictionLock: TEN_DAYS_MS,
   tournamentFinished: false,
+  firstGameDate: null,
+  openerGame: null,
+  totalGames: 0,
+  predictedGames: 0,
+  hasAwardsPredictions: false,
+  tournamentJustStarted: false,
   ...overrides,
 })
 
@@ -343,6 +361,101 @@ describe('ActionCenterCarousel', () => {
       const hrefs = links.map((l) => l.getAttribute('href'))
       expect(hrefs).toContain('/en/tournaments/tour-42/qualified-teams')
       expect(hrefs).toContain('/en/tournaments/tour-42/awards')
+    })
+  })
+
+  describe('pre-tournament hero', () => {
+    it('renders PreTournamentHero when mode=empty and firstGameDate is set and tournament not finished', () => {
+      const futureDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'empty', games: [], firstGameDate: futureDate, tournamentFinished: false })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('pre-tournament-hero')).toBeInTheDocument()
+      expect(screen.queryByText('actionCenter.noGamesInWindow')).not.toBeInTheDocument()
+    })
+
+    it('renders existing empty box when mode=empty and tournamentFinished=true', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'empty', games: [], firstGameDate: null, tournamentFinished: true })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByTestId('pre-tournament-hero')).not.toBeInTheDocument()
+      expect(screen.getByText('actionCenter.noGamesInWindow')).toBeInTheDocument()
+    })
+
+    it('renders existing empty box when mode=empty and firstGameDate is null', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'empty', games: [], firstGameDate: null, tournamentFinished: false })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByTestId('pre-tournament-hero')).not.toBeInTheDocument()
+      expect(screen.getByText('actionCenter.noGamesInWindow')).toBeInTheDocument()
+    })
+  })
+
+  describe('celebration banner', () => {
+    it('renders TournamentStartBanner above carousel when tournamentJustStarted=true', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ tournamentJustStarted: true })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('tournament-start-banner')).toBeInTheDocument()
+    })
+
+    it('does not render TournamentStartBanner when tournamentJustStarted=false', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ tournamentJustStarted: false })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByTestId('tournament-start-banner')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('single-game centering', () => {
+    it('does not center when games.length > 1', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      const container = screen.getByTestId('scroll-shadow-container')
+      // With multiple games the parent doesn't force center alignment
+      expect(container).toBeInTheDocument()
+      // All 3 game cards render
+      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.getByTestId('flippable-card-game-2')).toBeInTheDocument()
+      expect(screen.getByTestId('flippable-card-game-3')).toBeInTheDocument()
+    })
+
+    it('renders exactly one card when games.length is 1', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ games: [game1] as any })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.queryByTestId('flippable-card-game-2')).not.toBeInTheDocument()
     })
   })
 

@@ -1,6 +1,6 @@
 'use server'
 
-import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData, getGameCountsForTournament } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
@@ -45,6 +45,18 @@ export interface ActionCenterData {
   msUntilPredictionLock: number
   /** True when the last scheduled game has already kicked off — tournament is over */
   tournamentFinished: boolean
+  /** game_date of the first tournament game (null if no games) */
+  firstGameDate: Date | null
+  /** Full game data for the opener card — only populated when mode=empty and tournament not started */
+  openerGame: ExtendedGameData | null
+  /** Total number of games in the tournament */
+  totalGames: number
+  /** Number of games the user has predicted */
+  predictedGames: number
+  /** True if user has a tournament guess with at least one award field set */
+  hasAwardsPredictions: boolean
+  /** True when the first game kicked off within the last 48h (celebration banner period) */
+  tournamentJustStarted: boolean
 }
 
 const MAX_URGENT_CARDS = 4
@@ -83,16 +95,40 @@ export async function getActionCenterGames(
     throw new Error('Unauthorized')
   }
 
-  const [games, guessesArray, teams, tournament, firstGame, lastGame] = await Promise.all([
+  const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
+
+  const [games, guessesArray, teams, tournament, firstGame, lastGame, gameCounts, tournamentGuess] = await Promise.all([
     findGamesForDashboard(tournamentId),
     findGameGuessesByUserId(user.id, tournamentId),
     findTeamInTournament(tournamentId),
     findTournamentById(tournamentId),
     findFirstGameInTournament(tournamentId),
     findLastGameInTournament(tournamentId),
+    getGameCountsForTournament(tournamentId),
+    findTournamentGuessByUserIdTournament(user.id, tournamentId),
   ])
 
-  const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < Date.now()
+  const now = Date.now()
+  const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < now
+  const firstGameDate = firstGame?.game_date ?? null
+  const totalGames = gameCounts.total
+  const predictedGames = guessesArray.length
+  const hasAwardsPredictions = !!(
+    tournamentGuess && (
+      tournamentGuess.best_player_id != null ||
+      tournamentGuess.top_goalscorer_player_id != null ||
+      tournamentGuess.best_goalkeeper_player_id != null ||
+      tournamentGuess.best_young_player_id != null ||
+      tournamentGuess.champion_team_id != null ||
+      tournamentGuess.runner_up_team_id != null ||
+      tournamentGuess.third_place_team_id != null
+    )
+  )
+  const tournamentJustStarted = !!(
+    firstGameDate &&
+    firstGameDate.getTime() < now &&
+    now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
+  )
 
   const { qtAndAwardsOpen, msUntilPredictionLock } = computePredictionLockState(
     tournament,
@@ -104,9 +140,28 @@ export async function getActionCenterGames(
       { field: 'name', i18nField: 'name_i18n' },
     ])
     const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
+
+    // Fetch opener game data when pre-tournament (firstGame is in the future)
+    let openerGame: ExtendedGameData | null = null
+    let openerGameGuesses: Record<string, GameGuessNew> = {}
+    if (firstGameDate && firstGameDate.getTime() > now) {
+      const fullOpenerGame = await findFirstGameFullData(tournamentId)
+      if (fullOpenerGame) {
+        const [localizedOpener] = applyLocalizationBatch([fullOpenerGame], locale, [
+          { field: 'location', i18nField: 'location_i18n' },
+        ]) as ExtendedGameData[]
+        openerGame = localizedOpener
+        // Include user's guess for the opener game if it exists
+        const openerGuess = guessesArray.find((g) => g.game_id === fullOpenerGame.id)
+        if (openerGuess) {
+          openerGameGuesses = { [fullOpenerGame.id]: openerGuess }
+        }
+      }
+    }
+
     return {
       games: [],
-      gameGuesses: {},
+      gameGuesses: openerGameGuesses,
       teamsMap,
       tournamentMaxSilver: tournament?.max_silver_games ?? 0,
       tournamentMaxGolden: tournament?.max_golden_games ?? 0,
@@ -114,14 +169,18 @@ export async function getActionCenterGames(
       qtAndAwardsOpen,
       msUntilPredictionLock,
       tournamentFinished,
+      firstGameDate,
+      openerGame,
+      totalGames,
+      predictedGames,
+      hasAwardsPredictions,
+      tournamentJustStarted,
     }
   }
 
   // Build a set of game IDs the user has already guessed
   const guessedGameIds = new Set(guessesArray.map((g) => g.game_id))
   const guessesMapAll = Object.fromEntries(guessesArray.map((g) => [g.game_id, g]))
-
-  const now = Date.now()
 
   // Urgent mode: unpredicted games with deadline still open, sorted by deadline asc
   const urgentGames = games
@@ -175,7 +234,19 @@ export async function getActionCenterGames(
     qtAndAwardsOpen,
     msUntilPredictionLock,
     tournamentFinished,
+    firstGameDate,
+    openerGame: null,
+    totalGames,
+    predictedGames,
+    hasAwardsPredictions,
+    tournamentJustStarted,
   }
+}
+
+export interface LeaderboardPeekResult {
+  groups: GroupPeekData[]
+  userHasGroups: boolean
+  allGroupNames: Array<{ id: string; name: string }>
 }
 
 const MAX_PEEK_GROUPS = 3
@@ -184,14 +255,15 @@ const MAX_PEEK_GROUPS = 3
  * Fetches the current user's leaderboard standing in their top friend groups for a tournament.
  * Returns up to 3 groups sorted by ranked member count descending, each with a 3-row
  * neighbor window (person above, user, person below) and a momentum indicator (rank change).
- * Returns empty array if user is unauthenticated or has no groups with ranking data.
+ * Also returns userHasGroups (before ranking filter) and allGroupNames (for pre-tournament preview).
+ * Returns { groups: [], userHasGroups: false, allGroupNames: [] } when unauthenticated.
  */
 export async function getLeaderboardPeekData(
   tournamentId: string,
   _locale: Locale
-): Promise<GroupPeekData[]> {
+): Promise<LeaderboardPeekResult> {
   const user = await getLoggedInUser()
-  if (!user?.id) return []
+  if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [] }
 
   const [ownedGroups, participantGroups, favoriteGroupIds] = await Promise.all([
     findProdeGroupsByOwner(user.id),
@@ -206,7 +278,11 @@ export async function getLeaderboardPeekData(
   ])
   const allGroups = Array.from(allGroupsMap.values())
 
-  if (allGroups.length === 0) return []
+  // Build allGroupNames from ALL groups (before ranking filter) — used for pre-tournament preview
+  const allGroupNames = allGroups.map((g) => ({ id: g.id, name: g.name }))
+  const userHasGroups = allGroups.length > 0
+
+  if (allGroups.length === 0) return { groups: [], userHasGroups: false, allGroupNames: [] }
 
   // Fetch latest rankings for all groups concurrently
   const rankingsPerGroup = await Promise.all(
@@ -238,14 +314,14 @@ export async function getLeaderboardPeekData(
   })
   const topCandidates = candidates.slice(0, MAX_PEEK_GROUPS)
 
-  if (topCandidates.length === 0) return []
+  if (topCandidates.length === 0) return { groups: [], userHasGroups, allGroupNames }
 
   // Fetch rank change snapshots for top 3 groups concurrently
   const snapshotResults = await Promise.all(
     topCandidates.map((c) => getLatestTwoGroupRankingSnapshots(user.id, c.group.id, tournamentId))
   )
 
-  return topCandidates.map((candidate, idx) => {
+  const groups: GroupPeekData[] = topCandidates.map((candidate, idx) => {
     const { group, rankings, userRankEntry } = candidate
     const snapshots = snapshotResults[idx]
 
@@ -291,6 +367,8 @@ export async function getLeaderboardPeekData(
       rows,
     }
   })
+
+  return { groups, userHasGroups, allGroupNames }
 }
 
 export type HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'

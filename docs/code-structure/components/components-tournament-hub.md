@@ -15,18 +15,44 @@ Thin Server Component wrapper for the hub's Action Center widget. Calls the serv
   Calls: getActionCenterGames
   Renders: ActionCenterCarousel
 
+### app/components/tournament-hub/pre-tournament-hero.tsx
+Client Component shown in the Action Center when the tournament is >7 days away. Renders a live countdown, the opening match prediction card, and a 3-item progress row.
+
+- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Section 1: Paper with gradient bg, countdown in days/hours/mins via `useEffect+setInterval(1000)`; clamps at 0 when firstGameDate is past. Section 2 (conditional): "Opening Match" overline + `FlippableGameCard` when `openerGame` is non-null. Section 3 (conditional on `qtAndAwardsOpen`): `Stack direction="row"` with 3 `CircularProgress` items (QT at 0%, Awards at 100%/0% based on `hasAwardsPredictions`, Overall at `predictedGames/totalGames*100` clamped); icons match Group Selector nav bar (AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon); `useMediaQuery` controls label verbosity.
+  Calls: FlippableGameCard
+  Uses: useState, useEffect, useTranslations, CircularProgress, Stack, Box, Typography, Paper, useTheme, useMediaQuery, AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon, Link
+
+### app/components/tournament-hub/tournament-start-banner.tsx
+Client Component celebration banner shown above the Action Center carousel for 48h after the tournament's first game kicks off.
+
+- **TournamentStartBanner({ locale, tournamentId })**: `JSX.Element` — [Client] Festive Paper with purple gradient background. Renders EmojiEventsIcon, h6 title, body2 subtitle, and a "See all games" Button linking to the tournament games page.
+  Uses: useTranslations, Paper, Stack, Typography, Button, EmojiEventsIcon, Link
+
+### app/components/tournament-hub/social-hub-card.tsx
+Client Component social CTA shown in the Leaderboard widget when the user belongs to 0 groups.
+
+- **SocialHubCard({ locale, tournamentId })**: `JSX.Element` — [Client] Outlined dashed Paper (secondary-tinted border). Renders GroupAddIcon (48px), h6 title, body2 description, and two buttons: "Create Group" (contained, secondary) and "Find Public Group" (outlined, secondary), both linking to the friend-groups page.
+  Uses: useTranslations, Paper, Stack, Typography, Button, GroupAddIcon, Link
+
+### app/components/tournament-hub/pre-tournament-groups-preview.tsx
+Client Component shown in the Leaderboard widget when the user has groups but no ranking data yet (pre-tournament). Shows group name chips and 3 CTAs.
+
+- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Renders "You're in" text followed by up to 3 group name `Chip` links; appends "and N others." text when `allGroupNames.length > 3`. Below that, 3 CTA buttons (Your Groups, Create Group, Discover Groups) linking to the friend-groups page.
+  Uses: useTranslations, Box, Stack, Typography, Button, Chip, Link
+
 ### app/components/tournament-hub/action-center-carousel.tsx
 Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.
 
-- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps games in `GuessesContextProvider` (autoSave=true), renders a centered title/subtitle header, then either an empty-state placeholder (mode=empty, with a "Predict all games" link) or a horizontal `ScrollShadowContainer` with one `FlippableGameCard` per game. Tracks `editingGameId` state; exposes `onEditStart`, `onEditEnd`, `onAutoAdvanceNext`, and `onAutoGoPrevious` callbacks to each card. When `data.qtAndAwardsOpen` is true, renders a "More to predict" section below the carousel with Qualified Teams and Awards quick-action cards; cards show an urgency `Chip` (info/warning/error) with countdown text when the prediction lock is within 48h.
-  Uses: GuessesContextProvider, ScrollShadowContainer, FlippableGameCard, getUrgencyLevel, formatCountdown, useTranslations
+- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders header (title/subtitle). Then branches: pre-tournament (`mode=empty && firstGameDate && !tournamentFinished`) → `PreTournamentHero`; fallback empty (tournament finished or no firstGameDate) → dashed box with "Predict all games" link; active carousel → `ScrollShadowContainer` with `FlippableGameCard` per game (single-game carousel centers with `justifyContent: 'center'`). When `data.qtAndAwardsOpen && !isPreTournament`: shows QT/Awards quick-action cards below carousel with urgency `Chip` when lock is near.
+  Renders: TournamentStartBanner (conditional), PreTournamentHero (conditional), FlippableGameCard
+  Uses: GuessesContextProvider, ScrollShadowContainer, getUrgencyLevel, formatCountdown, useTranslations
 
 ### app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx
-Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and renders up to 3 group cards or an empty state.
+Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and branches on group membership and ranking state.
 
-- **TournamentHubLeaderboardPeek({ tournamentId, locale })**: `JSX.Element | null` — [Server] Calls `getLeaderboardPeekData`; returns `null` if unauthenticated (empty array from action). Renders section title (`leaderboardPeek` i18n key) and either an empty-state message (`noRankingData`) or one `LeaderboardPeekCard` per group. Navigation hrefs computed as `/${locale}/tournaments/${tournamentId}/friend-groups/${groupId}`.
+- **TournamentHubLeaderboardPeek({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getLeaderboardPeekData` (returns `LeaderboardPeekResult`). Three branches: (1) `!userHasGroups` → header + `SocialHubCard`; (2) `userHasGroups && groups.length === 0` → header + `PreTournamentGroupsPreview`; (3) `groups.length > 0` → header + `LeaderboardPeekCard` per group + "See all groups" link.
   Calls: getLeaderboardPeekData
-  Renders: LeaderboardPeekCard
+  Renders: SocialHubCard, PreTournamentGroupsPreview, LeaderboardPeekCard
 
 ### app/components/tournament-hub/leaderboard-peek-card.tsx
 Client Component for a single group card in the Leaderboard Peek widget. Tappable card showing group name, user rank, momentum indicator, and a 3-row compact mini-leaderboard.

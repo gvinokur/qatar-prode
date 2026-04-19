@@ -50,5 +50,37 @@
       "bestGoalkeeper": "Best Goalkeeper",
       "bestYoungPlayer": "Best Young Player"
     }
+  },
+  "preTournament": {
+    "countdownTitle": "Tournament Kickoff",
+    "days": "Days",
+    "hours": "Hours",
+    "mins": "Mins",
+    "openerLabel": "Opening Match",
+    "overallProgress": "Overall",
+    "gamesOfTotal": "{predicted} of {total} games",
+    "qtShort": "QT",
+    "awardsShort": "Awards",
+    "totalShort": "Total",
+    "awardsNotStarted": "Pending",
+    "awardsDone": "Submitted"
+  },
+  "tournamentStarted": {
+    "title": "The tournament has started!",
+    "subtitle": "Good luck with your predictions!",
+    "seeGames": "See all games"
+  },
+  "socialHub": {
+    "title": "Don't play alone!",
+    "description": "The best way to enjoy the World Cup is in a group. Create yours and invite your friends.",
+    "createGroup": "Create Group",
+    "findGroup": "Find Public Group"
+  },
+  "groupsPreview": {
+    "youreIn": "You're in",
+    "andOthers": "and {count} others.",
+    "goToGroups": "Your Groups",
+    "createGroup": "Create Group",
+    "discoverGroups": "Discover Groups"
   }
 }

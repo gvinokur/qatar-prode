@@ -86,6 +86,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **findGamesInTournament(tournamentId: string, draftResult: boolean)**: `Promise<ExtendedGameData[]>` — Finds all games in tournament with group/playoff metadata (cached).
 - **getGameCountsForTournament(tournamentId: string)**: `Promise<{ total: number; played: number }>` — Efficient COUNT query for total and played games.
 - **findFirstGameInTournament(tournamentId: string)**: `Promise<Game | undefined>` — Finds first game by date (cached).
+- **findFirstGameFullData(tournamentId: string)**: `Promise<ExtendedGameData | undefined>` — Finds first game by date with full group, playoff, and result metadata (cached). Used by pre-tournament hero to surface the opener prediction card.
 - **findLastGameInTournament(tournamentId: string)**: `Promise<Game | undefined>` — Finds last game by date (cached). Used for score history chart X-axis end bound.
 - **findGamesInGroup(groupId: string, completeGame: boolean, draftResult: boolean)**: `Promise<ExtendedGameData[] | Game[]>` — Finds games in a group with optional metadata (cached).
 - **deleteAllGamesFromTournament(tournamentId: string)**: `Promise<void>` — Deletes all games for a tournament.
