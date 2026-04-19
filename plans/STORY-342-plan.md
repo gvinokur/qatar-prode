@@ -19,12 +19,14 @@ Reference mockup: `mockups/pre-tournament-action-center-mockup-v2.html`
 
 ## Acceptance Criteria
 
-1. **Permanent Hero Countdown**: When tournament is >7 days away (mode=empty, tournament not started), Action Center shows a prominent visual countdown to kickoff instead of the generic empty state.
-2. **Tournament Opener Feature**: The first tournament game is always surfaced as a featured prediction card when >7 days away (even when the game isn't in the 7-day dashboard window).
-3. **Side-by-Side Progress**: QT and Individual Awards cards displayed in a responsive grid with progress indicators ("3/12 groups predicted" / "Pending").
-4. **Unified Progress Tracking**: Total game prediction completion (predicted games / total games) surfaced with a `CircularProgress` indicator.
-5. **Social CTA Replacement**: When user belongs to 0 groups, the Leaderboard "Your Standings" widget is replaced by a "Social Hub" card inviting them to create or find a group.
-6. **i18n**: All new elements fully localized in EN and Argentine Spanish (ES).
+1. **Permanent Hero Countdown**: When tournament is >7 days away (mode=empty, tournament not started), Action Center shows a prominent visual countdown to the first game instead of the generic empty state.
+2. **Post-Start Celebration Banner**: For ~48h after the first game kicks off, a celebration banner appears **above** the normal carousel (carousel still shows normally below it).
+3. **Tournament Opener Feature**: The first tournament game is always surfaced as a featured prediction card when >7 days away (even when the game isn't in the 7-day dashboard window).
+4. **Single-game centering**: When the carousel has exactly 1 game, that card is centered (not left-aligned).
+5. **Unified Progress Row**: QT, Individual Awards, and Overall game completion all rendered as `CircularProgress` in a **single responsive row** — full titles on desktop, icon + short label on mobile.
+6. **Social CTA Replacement**: When user belongs to 0 groups, the Leaderboard "Your Standings" widget is replaced by a "Social Hub" card inviting them to create or find a group.
+7. **Pre-Tournament Groups Preview**: When user HAS groups but no rankings yet, show their group names ("You're in Group X, Group Y, Group Z, and N others.") with 3 CTAs: Go to Groups page, Create a new group, Discover public groups.
+8. **i18n**: All new elements fully localized in EN and Argentine Spanish (ES).
 
 ---
 
@@ -32,15 +34,24 @@ Reference mockup: `mockups/pre-tournament-action-center-mockup-v2.html`
 
 The feature builds on the existing Tournament Hub architecture with targeted additions:
 
-### When the pre-tournament view activates
+### When each new feature activates
 
-`getActionCenterGames` returns `mode: 'empty'` when `findGamesForDashboard` (last 24h + next 7 days window) returns 0 results. This occurs when tournament starts > 7 days in the future. The new pre-tournament view activates when:
+**Pre-tournament countdown hero** (`mode === 'empty' AND firstGameDate != null AND !tournamentFinished`):
+- `findGamesForDashboard` returns 0 results (no games in last 24h + next 7-day window)
+- Tournament has a first game in the future
+- Countdown ticks down to `firstGameDate`
+- Opener game card shows for the first tournament game
+- Progress row (QT / Awards / Overall) shows below
 
-```
-data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinished
-```
+**Post-start celebration banner** (`tournamentJustStarted === true`):
+- First game kicked off within the last 48 hours (`firstGame.game_date < now AND now - firstGame.game_date < 48h`)
+- Banner renders ABOVE the normal carousel (which still shows games normally)
+- Celebration styling: festive gradient, "🎉 Tournament has started!" message
 
-(If the tournament has no games or already finished, keep existing behavior.)
+**Single-game centering**:
+- `data.games.length === 1` → center the game card (any mode)
+
+(If the tournament has no games or is long finished, keep existing behavior.)
 
 ### Architecture of changes
 
@@ -48,14 +59,16 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 - `findFirstGameFullData(tournamentId)` → `ExtendedGameData | undefined` (first game with group/playoff/gameResult metadata, needed to render the `FlippableGameCard`)
 
 **Actions layer** — expand two existing actions:
-- `getActionCenterGames`: add `firstGameDate`, `openerGame`, `totalGames`, `predictedGames`, `hasAwardsPredictions` to `ActionCenterData`; call `findFirstGameFullData` + `getGameCountsForTournament` + `findTournamentGuessByUserIdTournament` when appropriate
-- `getLeaderboardPeekData`: change return type to `LeaderboardPeekResult { groups, userHasGroups }` so the component can distinguish "no groups at all" from "groups exist but no rankings yet"
+- `getActionCenterGames`: add `firstGameDate`, `openerGame`, `totalGames`, `predictedGames`, `hasAwardsPredictions`, `tournamentJustStarted` to `ActionCenterData`; call `findFirstGameFullData` + `getGameCountsForTournament` + `findTournamentGuessByUserIdTournament` when appropriate
+- `getLeaderboardPeekData`: change return type to `LeaderboardPeekResult { groups, userHasGroups, allGroupNames }` so the component can distinguish "no groups at all" from "groups exist but no rankings yet", and can list group names for the pre-tournament preview
 
 **Component layer** — new sub-components + modified shells:
-- `PreTournamentHero` (new Client component): renders the countdown, opener game card, progress section
+- `PreTournamentHero` (new Client component): renders the countdown, opener game card, 3-item circular progress row
+- `TournamentStartBanner` (new Client component): celebration banner shown above the carousel for ~48h after first game kicks off
 - `SocialHubCard` (new Client component): renders the social CTA when user has no groups
-- `ActionCenterCarousel`: delegates to `PreTournamentHero` when pre-tournament conditions met
-- `TournamentHubLeaderboardPeek`: renders `SocialHubCard` when `userHasGroups=false`
+- `PreTournamentGroupsPreview` (new Client component): renders group names + 3 CTAs when user has groups but no rankings yet
+- `ActionCenterCarousel`: delegates to `PreTournamentHero` when pre-tournament, shows `TournamentStartBanner` above carousel for 48h post-start, centers single-game carousel
+- `TournamentHubLeaderboardPeek`: renders `SocialHubCard` when `userHasGroups=false`; renders `PreTournamentGroupsPreview` when `userHasGroups=true` but `groups.length=0`
 
 ---
 
@@ -65,10 +78,12 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 |------|--------|-------|
 | `app/db/game-repository.ts` | Modify | Add `findFirstGameFullData` |
 | `app/actions/hub-actions.ts` | Modify | Expand `ActionCenterData`, update `getActionCenterGames` and `getLeaderboardPeekData` |
-| `app/components/tournament-hub/pre-tournament-hero.tsx` | **Create** | New Client component |
-| `app/components/tournament-hub/social-hub-card.tsx` | **Create** | New Client component |
-| `app/components/tournament-hub/action-center-carousel.tsx` | Modify | Delegate to `PreTournamentHero` |
-| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Modify | Render `SocialHubCard` when no groups |
+| `app/components/tournament-hub/pre-tournament-hero.tsx` | **Create** | Countdown + opener + 3-item circular progress row |
+| `app/components/tournament-hub/tournament-start-banner.tsx` | **Create** | 48h post-start celebration banner |
+| `app/components/tournament-hub/social-hub-card.tsx` | **Create** | Social CTA when user has 0 groups |
+| `app/components/tournament-hub/pre-tournament-groups-preview.tsx` | **Create** | Groups list + 3 CTAs when user has groups but no rankings |
+| `app/components/tournament-hub/action-center-carousel.tsx` | Modify | Pre-tournament hero, celebration banner, single-game centering |
+| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Modify | Render SocialHubCard or GroupsPreview based on state |
 | `locales/en/hub.json` | Modify | Add `preTournament.*` and `socialHub.*` keys |
 | `locales/es/hub.json` | Modify | Same keys in Argentine Spanish |
 | `docs/code-structure/components/components-tournament-hub.md` | Modify | Document new components |
@@ -82,36 +97,37 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 
 ```
 ┌─────────────────────────────────────────┐
-│            Action Center                │
-│        Countdown to kickoff             │
-├─────────────────────────────────────────┤
 │         TOURNAMENT KICKOFF              │  ← overline, primary color
-│                                         │
-│    [ 52 ]    [ 14 ]    [ 28 ]           │
-│    DAYS      HOURS      MINS            │  ← h3, bold, primary color
-│                                         │
+│    [ 52 ]  :  [ 14 ]  :  [ 28 ]        │  ← h3, bold, primary color
+│    DAYS        HOURS      MINS          │
 │   (gradient paper bg, purple border)   │
 └─────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────┐
 │      Opening Match • June 11, 20:00     │  ← overline, centered
-│  [🇲🇽]     VS     [🇫🇷]               │
-│  Mexico           France                │
-│                                         │
-│         [  Predict Opener  ]            │  ← FlippableGameCard (compact)
+│        FlippableGameCard (full)         │
 └─────────────────────────────────────────┘
 
-[  Qualified Teams  ] [Individual Awards ]  ← Grid(xs:12, sm:6) with progress bars
-  Groups icon            Trophy icon
-  "Predict which          "Golden Boot..."
-   teams qualify"
-  ████░░░░  3/12       ░░░░░░░░  Pending
-  [Go to page]          [Go to page]
+┌── 3 Circular Progress Items (single row) ────────────────┐
+│   [○ 30%]           [○ 0%]           [○ 12%]             │
+│   Qualified Teams   Individual Awards  Overall            │ ← desktop
+│   3/12 groups       Pending            12/104 games       │
+│                                                           │
+│   [●QT]  [🏆]  [📊]   ← mobile: icon + short label only  │
+└───────────────────────────────────────────────────────────┘
+```
 
-┌──────────────────────┐
-│  Overall Completion  │  ← dashed border box
-│  12 of 104 games    │  → CircularProgress (12%)
-└──────────────────────┘
+Each circular progress item links to its page (QT → qualified-teams, Awards → awards, Overall → games list).
+
+### Post-Start Celebration Banner (above carousel, first 48h)
+
+```
+┌─────────────────────────────────────────┐
+│  🎉  The tournament has started!  🎉   │  ← festive gradient bg
+│  "Good luck with your predictions!"    │
+│            [See all games →]           │
+└─────────────────────────────────────────┘
+          ↓  (normal carousel below)
 ```
 
 ### Social Hub Card (replaces Leaderboard "Your Standings" when user has 0 groups)
@@ -124,10 +140,21 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 │           👥  (group_add icon)          │  ← 48px, secondary color
 │         Don't play alone!               │  ← h6
 │  The best way to enjoy the World Cup    │
-│  is in a group. Create yours or join    │
-│  an existing one.                       │
+│  is in a group. Create yours or join.  │
 │                                         │
-│  [Create Group]    [Find Public Group]  │  ← contained/outlined buttons
+│  [Create Group]  [Find Public Group]   │  ← contained/outlined buttons
+└─────────────────────────────────────────┘
+```
+
+### Pre-Tournament Groups Preview (user HAS groups, no rankings yet)
+
+```
+┌─────────────────────────────────────────┐
+│           Your Standings                │  ← h6, centered
+│   You're in [Group X], [Group Y],       │  ← body2, chips for up to 3 groups
+│   [Group Z], and 2 others.             │  ← "and N others" if >3
+│                                         │
+│  [Go to Groups]  [Create]  [Discover]  │  ← 3 CTAs
 └─────────────────────────────────────────┘
 ```
 
@@ -178,12 +205,13 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
   totalGames: number                   // total games in tournament (for progress indicator)
   predictedGames: number               // games user has predicted (guessesArray.length)
   hasAwardsPredictions: boolean        // true if user has a non-null tournament guess with any award field set
+  tournamentJustStarted: boolean       // true when first game kicked off within last 48h
   ```
 
 **Changed functions:**
 
 - **getActionCenterGames(tournamentId: string, locale: Locale)**: `Promise<ActionCenterData>` *(signature unchanged, return type expanded)*
-  Now also calls `getGameCountsForTournament(tournamentId)` for `totalGames`. Sets `predictedGames = guessesArray.length`. Sets `firstGameDate = firstGame?.game_date ?? null`. When `mode === 'empty'` and `firstGame.game_date > Date.now()` (tournament not yet started): calls `findFirstGameFullData(tournamentId)` for `openerGame` and includes its guess in `gameGuesses` if user has predicted it. Calls `findTournamentGuessByUserIdTournament(user.id, tournamentId)` to compute `hasAwardsPredictions` (true if result is non-null and any of `best_player_id`, `top_goalscorer_player_id`, `best_goalkeeper_player_id`, `best_young_player_id` is set).
+  Now also calls `getGameCountsForTournament(tournamentId)` for `totalGames`. Sets `predictedGames = guessesArray.length`. Sets `firstGameDate = firstGame?.game_date ?? null`. When `mode === 'empty'` and `firstGame.game_date > Date.now()` (tournament not yet started): calls `findFirstGameFullData(tournamentId)` for `openerGame` and includes its guess in `gameGuesses` if user has predicted it. Calls `findTournamentGuessByUserIdTournament(user.id, tournamentId)` to compute `hasAwardsPredictions`. Sets `tournamentJustStarted = firstGame.game_date < now AND now - firstGame.game_date.getTime() < 48 * 3600 * 1000`.
   Calls: (existing) + getGameCountsForTournament, findFirstGameFullData (conditional), findTournamentGuessByUserIdTournament
   Tests:
   - sets firstGameDate to first game's date when games exist
@@ -196,16 +224,20 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
   - hasAwardsPredictions is false when no tournament guess exists
   - hasAwardsPredictions is true when any award field is set on tournament guess
   - opener game's guess is included in gameGuesses when user has predicted it
+  - tournamentJustStarted is true when first game kicked off within last 48h
+  - tournamentJustStarted is false when first game kicked off more than 48h ago
+  - tournamentJustStarted is false when first game is in the future
 
 - **getLeaderboardPeekData(tournamentId: string, _locale: Locale)**: `Promise<LeaderboardPeekResult>` *(was: `Promise<GroupPeekData[]>`)*
-  Now returns `{ groups: GroupPeekData[], userHasGroups: boolean }`. `userHasGroups` is `allGroups.length > 0` — computed before the ranking data filter. Returns `{ groups: [], userHasGroups: false }` when user is unauthenticated. Returns `{ groups: [], userHasGroups: true }` when user has groups but none have ranking data yet.
+  Now returns `{ groups: GroupPeekData[], userHasGroups: boolean, allGroupNames: Array<{ id: string, name: string }> }`. `userHasGroups` is `allGroups.length > 0` (computed before ranking filter). `allGroupNames` is built from ALL user groups (owned + participant, deduplicated) regardless of whether ranking data exists — used for the pre-tournament groups preview. Returns `{ groups: [], userHasGroups: false, allGroupNames: [] }` when unauthenticated.
   Calls: (unchanged)
   Tests:
-  - returns userHasGroups=false when user is unauthenticated
+  - returns userHasGroups=false and empty allGroupNames when user is unauthenticated
   - returns userHasGroups=false when user has no groups (owned or participant)
-  - returns userHasGroups=true when user has groups but no ranking data yet
-  - returns userHasGroups=true with populated groups array when ranking data exists
-  - groups array is same data as before (backward-compatible content)
+  - returns userHasGroups=true with allGroupNames populated when user has groups but no ranking data yet
+  - returns userHasGroups=true with populated groups array and allGroupNames when ranking data exists
+  - allGroupNames is deduplicated when user is both owner and participant of same group
+  - groups array content is backward-compatible with previous GroupPeekData[] return
 
 ---
 
@@ -213,18 +245,31 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 
 **New components:**
 
-- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, msUntilPredictionLock, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Renders three sections in order: (1) `CountdownSection` (gradient Paper, overline label, days/hours/mins boxes from `useCountdown` hook or inline state), (2) if `openerGame` is not null, a compact game card using `FlippableGameCard` with "Opening Match" overline, (3) if `qtAndAwardsOpen`, a `Grid container spacing=2` with QT card (GroupsIcon, progress bar showing groups-predicted / total-groups when available, "Go to page" button) and Awards card (EmojiEventsIcon, "Pending" or check indicator, "Go to page" button), plus an overall progress box showing `predictedGames` of `totalGames` with `CircularProgress`. All text from `useTranslations('hub')`.
+- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, msUntilPredictionLock, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Renders three sections in order: (1) `CountdownSection` — gradient Paper, overline "TOURNAMENT KICKOFF", three boxes (days / hours / mins) computed from `firstGameDate - Date.now()` via `useEffect` + `setInterval(1000)`, (2) if `openerGame` is not null, a `FlippableGameCard` with "Opening Match" overline label (centered), (3) a single-row circular progress section — three `CircularProgress` items (QT, Awards, Overall) displayed in a `Stack direction="row" justifyContent="space-around"`. Desktop: each item shows CircularProgress + full label + value text; Mobile (`xs` breakpoint): each shows CircularProgress + abbreviated label only (e.g., "QT" / "Awards" / "Total"). Each item links to its page. Progress % formula: `predictedGames / totalGames * 100` (clamp to 0 when `totalGames === 0`). Awards shows 100% when `hasAwardsPredictions`, else 0%. QT shows value from `msUntilPredictionLock` or defaults to 0% (actual group count from QT predictions is a future enhancement — see Open Questions).
   Calls: FlippableGameCard
-  Uses: useState, useEffect (for live countdown), useTranslations, LinearProgress, CircularProgress, Grid, Card, Paper, Typography, Button, Link
+  Uses: useState, useEffect, useTranslations, CircularProgress, Stack, Box, Typography, Button, Link, useTheme, useMediaQuery
   Tests:
   - renders countdown days/hours/mins derived from firstGameDate
-  - shows "0 Days 0 Hours 0 Mins" (or hides countdown) gracefully when firstGameDate is in the past (boundary: tournament just starting)
+  - shows "0 Days 0 Hours 0 Mins" gracefully when firstGameDate is in the past (boundary case)
   - renders opener card when openerGame is non-null
   - does not render opener card when openerGame is null
-  - renders QT and Awards progress cards when qtAndAwardsOpen is true
-  - does not render QT/Awards cards when qtAndAwardsOpen is false
-  - renders CircularProgress with correct percentage (predictedGames / totalGames * 100)
-  - renders CircularProgress at 0% without crashing when totalGames is 0 (guards against division by zero)
+  - renders 3-item circular progress row when qtAndAwardsOpen is true
+  - renders CircularProgress at correct percentage for overall (predictedGames / totalGames * 100)
+  - renders CircularProgress at 0% without crashing when totalGames is 0 (zero-division guard)
+  - Awards shows 100% when hasAwardsPredictions is true, 0% otherwise
+
+---
+
+### `app/components/tournament-hub/tournament-start-banner.tsx` *(new)*
+
+**New components:**
+
+- **TournamentStartBanner({ locale, tournamentId })**: `JSX.Element` — [Client] Festive Paper banner (gradient bg, celebration styling) shown above the carousel for the first 48h after tournament starts. Renders a centered celebration icon, title ("The tournament has started!"), subtitle, and a "See all games" link button. Banner is self-contained; parent decides whether to render it based on `data.tournamentJustStarted`.
+  Uses: useTranslations, Paper, Typography, Button, Link, Box, Stack
+  Tests:
+  - renders celebration title text
+  - renders "See all games" link with correct href including locale and tournamentId
+  - applies festive/gradient styling (Paper with sx background gradient)
 
 ---
 
@@ -232,12 +277,27 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 
 **New components:**
 
-- **SocialHubCard({ locale, tournamentId })**: `JSX.Element` — [Client] Renders a Paper (secondary-tinted bg, dashed border, centered) containing: GroupAddIcon (48px, secondary color), h6 title, body2 description, and two buttons: "Create Group" (contained, secondary) linking to `/${locale}/tournaments/${tournamentId}/friend-groups/new` (or root friend-groups page), and "Find Public Group" (outlined, secondary) linking to the public group discovery page. All text from `useTranslations('hub.socialHub')`.
+- **SocialHubCard({ locale, tournamentId })**: `JSX.Element` — [Client] Renders a Paper (secondary-tinted bg, dashed border, centered) containing: GroupAddIcon (48px, secondary color), h6 title, body2 description, and two buttons: "Create Group" (contained, secondary) linking to `/${locale}/tournaments/${tournamentId}/friend-groups` and "Find Public Group" (outlined, secondary) linking to public group discovery. All text from `useTranslations('hub.socialHub')`.
   Uses: useTranslations, Paper, Typography, Button, Icon, Link, Stack, Box
   Tests:
   - renders Create Group button with correct href for given locale and tournamentId
   - renders Find Public Group button
-  - does not render when called outside proper context (prop-types validated via TypeScript)
+  - renders GroupAddIcon as the main illustration
+
+---
+
+### `app/components/tournament-hub/pre-tournament-groups-preview.tsx` *(new)*
+
+**New components:**
+
+- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Shown when `userHasGroups=true` but no ranking data yet. Renders: body2 text "You're in [Chip: Group X], [Chip: Group Y], [Chip: Group Z], and N others." (shows up to 3 group name Chips as links; if `allGroupNames.length > 3` appends "and N others" as plain text). Below that, 3 CTA buttons in a row: (1) "Your Groups" linking to `/${locale}/tournaments/${tournamentId}/friend-groups`, (2) "Create Group" linking to friend-groups page, (3) "Discover Groups" linking to public group discovery. All text from `useTranslations('hub')`.
+  Uses: useTranslations, Chip, Stack, Box, Typography, Button, Link
+  Tests:
+  - renders up to 3 group name chips when allGroupNames has 3 or fewer items
+  - appends "and N others" when allGroupNames has more than 3 items
+  - renders exactly 3 CTA buttons (Your Groups, Create Group, Discover Groups)
+  - does not render "and N others" when allGroupNames has exactly 3 items
+  - group chips link to the correct group href
 
 ---
 
@@ -246,12 +306,15 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 **Changed functions:**
 
 - **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — *(signature unchanged, behavior extended)*
-  When `data.mode === 'empty'` AND `data.firstGameDate !== null` AND `!data.tournamentFinished`: renders header then `<PreTournamentHero>` (passing all pre-tournament data fields). When `data.mode === 'empty'` AND tournament is finished or has no firstGameDate: keeps existing empty-state box. When `data.mode !== 'empty'`: existing behavior + QT/Awards quick-action cards now also show Awards progress indicator based on `data.hasAwardsPredictions`.
-  Renders: PreTournamentHero (new branch), existing branches unchanged
+  When `data.tournamentJustStarted === true`: renders `<TournamentStartBanner>` above the regular carousel content (banner is additive, not a replacement). When `data.mode === 'empty'` AND `data.firstGameDate !== null` AND `!data.tournamentFinished`: renders header then `<PreTournamentHero>` instead of the empty-state box. When `data.mode === 'empty'` AND tournament is finished or has no firstGameDate: keeps existing empty-state box. When `data.mode !== 'empty'`: existing carousel + if `data.games.length === 1`, the single card is centered (`justifyContent: 'center'` on the scroll container) rather than left-aligned.
+  Renders: TournamentStartBanner (conditional additive), PreTournamentHero (conditional replacement), existing branches
   Tests:
+  - renders TournamentStartBanner above carousel when tournamentJustStarted=true
+  - does not render TournamentStartBanner when tournamentJustStarted=false
   - renders PreTournamentHero when mode=empty and firstGameDate is set and tournament not finished
   - renders existing empty box when mode=empty and tournamentFinished=true
-  - renders existing carousel when mode=urgent or fallback
+  - centers the single game card when games.length=1 (scroll container has justifyContent center)
+  - does not center when games.length > 1
 
 ---
 
@@ -259,12 +322,13 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 
 **Changed functions:**
 
-- **TournamentHubLeaderboardPeek({ tournamentId, locale })**: `JSX.Element | null` — [Server] Now calls updated `getLeaderboardPeekData` which returns `LeaderboardPeekResult`. When `result.userHasGroups === false`: renders section header then `<SocialHubCard locale tournamentId>`. When `result.userHasGroups === true` but `result.groups.length === 0`: renders existing empty-state Paper with `noRankingData` message. When `result.groups.length > 0`: existing group card rendering. Returns `null` only for unauthenticated case (handled by userHasGroups=false short-circuit — renders SocialHubCard instead, which is the right behavior for unauthenticated too since we can invite them to join/create).
+- **TournamentHubLeaderboardPeek({ tournamentId, locale })**: `JSX.Element | null` — [Server] Now calls updated `getLeaderboardPeekData` which returns `LeaderboardPeekResult`. Three branches: (1) `!result.userHasGroups` → renders section header + `<SocialHubCard>`, (2) `result.userHasGroups && result.groups.length === 0` → renders section header + `<PreTournamentGroupsPreview allGroupNames={result.allGroupNames}>`, (3) `result.groups.length > 0` → existing rendering with `LeaderboardPeekCard` per group.
   Calls: getLeaderboardPeekData
-  Renders: SocialHubCard (new branch), LeaderboardPeekCard (existing)
+  Renders: SocialHubCard (new branch), PreTournamentGroupsPreview (new branch), LeaderboardPeekCard (existing)
   Tests:
   - renders SocialHubCard when userHasGroups is false
-  - renders noRankingData empty state when userHasGroups=true but groups is empty
+  - renders PreTournamentGroupsPreview when userHasGroups=true but groups array is empty
+  - passes allGroupNames to PreTournamentGroupsPreview
   - renders LeaderboardPeekCards when groups is non-empty
 
 ---
@@ -281,19 +345,31 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
     "hours": "Hours",
     "mins": "Mins",
     "openerLabel": "Opening Match",
-    "predictOpener": "Predict Opener",
-    "overallProgress": "Overall Completion",
-    "gamesOfTotal": "{predicted} of {total} games predicted",
-    "qtProgressLabel": "{predicted} of {total} groups",
-    "qtNotStarted": "Not started",
+    "overallProgress": "Overall",
+    "gamesOfTotal": "{predicted} of {total} games",
+    "qtShort": "QT",
+    "awardsShort": "Awards",
+    "totalShort": "Total",
     "awardsNotStarted": "Pending",
     "awardsDone": "Submitted"
+  },
+  "tournamentStarted": {
+    "title": "The tournament has started!",
+    "subtitle": "Good luck with your predictions!",
+    "seeGames": "See all games"
   },
   "socialHub": {
     "title": "Don't play alone!",
     "description": "The best way to enjoy the World Cup is in a group. Create yours and invite your friends.",
     "createGroup": "Create Group",
     "findGroup": "Find Public Group"
+  },
+  "groupsPreview": {
+    "youreIn": "You're in",
+    "andOthers": "and {count} others.",
+    "goToGroups": "Your Groups",
+    "createGroup": "Create Group",
+    "discoverGroups": "Discover Groups"
   }
 }
 ```
@@ -308,19 +384,31 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
     "hours": "Horas",
     "mins": "Min",
     "openerLabel": "Partido Inaugural",
-    "predictOpener": "Predecir Partido Inaugural",
-    "overallProgress": "Progreso General",
-    "gamesOfTotal": "{predicted} de {total} partidos predichos",
-    "qtProgressLabel": "{predicted} de {total} grupos",
-    "qtNotStarted": "Sin empezar",
+    "overallProgress": "Total",
+    "gamesOfTotal": "{predicted} de {total} partidos",
+    "qtShort": "EQ",
+    "awardsShort": "Premios",
+    "totalShort": "Total",
     "awardsNotStarted": "Pendiente",
     "awardsDone": "Enviado"
+  },
+  "tournamentStarted": {
+    "title": "¡El torneo comenzó!",
+    "subtitle": "¡Buena suerte con tus predicciones!",
+    "seeGames": "Ver todos los partidos"
   },
   "socialHub": {
     "title": "¡No juegues solo!",
     "description": "La mejor manera de disfrutar el Mundial es en grupo. Creá el tuyo e invitá a tus amigos.",
     "createGroup": "Crear Grupo",
     "findGroup": "Encontrar Grupo Público"
+  },
+  "groupsPreview": {
+    "youreIn": "Estás en",
+    "andOthers": "y {count} más.",
+    "goToGroups": "Tus Grupos",
+    "createGroup": "Crear Grupo",
+    "discoverGroups": "Descubrir Grupos"
   }
 }
 ```
@@ -350,34 +438,47 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 ### Wave 2 — New components (can run after Wave 1)
 
 **Task 4**: Create `PreTournamentHero` component
-- Countdown using `useEffect` + `setInterval` (1s updates), computing `days/hours/mins` from `firstGameDate - Date.now()`
-- Opener game: `FlippableGameCard` with `GuessesContextProvider` wrapper (inherits from parent carousel's provider)
-- Progress section: Grid with QT card (LinearProgress, groups progress text) + Awards card (LinearProgress, hasAwardsPredictions determines 0%/100%)
-- Overall progress: `CircularProgress` with `predictedGames/totalGames * 100`
+- Countdown using `useEffect` + `setInterval` (1s updates), computing `days/hours/mins` from `firstGameDate - Date.now()`; clamp at 0 when date is past
+- Opener game: `FlippableGameCard` (inherits `GuessesContextProvider` from parent carousel)
+- Progress section: 3-item `Stack direction="row"` with `CircularProgress` per item (QT, Awards, Overall); `useMediaQuery` for responsive labels
+- Zero-division guard: `totalGames === 0 ? 0 : predictedGames / totalGames * 100`
 - CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: NO
 
-**Task 5**: Create `SocialHubCard` component
-- CTA card with create/find group buttons
-- Hrefs: create group = `/${locale}/tournaments/${tournamentId}/friend-groups` (hub for group creation), find group = public group discovery page
+**Task 5**: Create `TournamentStartBanner` component
+- Festive Paper with gradient background + celebration title + "See all games" link
+- CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: NO
+
+**Task 6**: Create `SocialHubCard` component
+- CTA card with create/find group buttons (2 buttons)
+- Hrefs: create group = `/${locale}/tournaments/${tournamentId}/friend-groups`, find group = public group discovery
+- CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: NO
+
+**Task 7**: Create `PreTournamentGroupsPreview` component
+- Display up to 3 group names as Chips (each links to its group page); if >3 groups, append "and N others" text
+- 3 CTA buttons: Your Groups → friend-groups page, Create Group, Discover Groups
 - CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: NO
 
 ### Wave 3 — Wire-up (after Wave 1 + Wave 2)
 
-**Task 6**: Update `ActionCenterCarousel`
-- Import `PreTournamentHero`
-- Add pre-tournament branch: `data.mode === 'empty' && data.firstGameDate && !data.tournamentFinished`
-- Pass all new `ActionCenterData` fields to `PreTournamentHero`
+**Task 8**: Update `ActionCenterCarousel`
+- Import `PreTournamentHero`, `TournamentStartBanner`
+- Add celebration banner branch: `data.tournamentJustStarted` → render `<TournamentStartBanner>` above carousel
+- Add pre-tournament branch: `data.mode === 'empty' && data.firstGameDate && !data.tournamentFinished` → render `<PreTournamentHero>`
+- Single-game centering: when `data.games.length === 1`, apply `justifyContent: 'center'` to scroll container
 - CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: NO
 
-**Task 7**: Update `TournamentHubLeaderboardPeek`
-- Import `SocialHubCard`
-- Call updated `getLeaderboardPeekData` (destructure `{ groups, userHasGroups }`)
-- Render `SocialHubCard` when `!userHasGroups`
+**Task 9**: Update `TournamentHubLeaderboardPeek`
+- Import `SocialHubCard`, `PreTournamentGroupsPreview`
+- Call updated `getLeaderboardPeekData` (destructure `{ groups, userHasGroups, allGroupNames }`)
+- Branch 1: `!userHasGroups` → `<SocialHubCard>`
+- Branch 2: `userHasGroups && groups.length === 0` → `<PreTournamentGroupsPreview allGroupNames={allGroupNames}>`
+- Branch 3: existing `<LeaderboardPeekCard>` rendering
 - CODE-STRUCTURE files to update: `docs/code-structure/components/components-tournament-hub.md`; call graph: YES (Flow 29)
 
 ### Wave 4 — i18n
 
-**Task 8**: Add `preTournament.*` and `socialHub.*` keys to EN and ES hub.json
+**Task 10**: Add all new keys to EN and ES hub.json
+- `preTournament.*`, `tournamentStarted.*`, `socialHub.*`, `groupsPreview.*`
 - CODE-STRUCTURE files to update: none (i18n files are not tracked in CODE-STRUCTURE); call graph: NO
 
 ---
@@ -388,11 +489,13 @@ data.mode === 'empty' AND data.firstGameDate != null AND !data.tournamentFinishe
 
 **`app/components/tournament-hub/__tests__/`** (existing directory):
 
-- `hub-actions.test.ts` (or similar): test `getActionCenterGames` new fields and `getLeaderboardPeekData` new return type (mock DB functions)
-- `pre-tournament-hero.test.tsx`: test countdown rendering, opener card presence/absence, progress section, i18n keys
-- `social-hub-card.test.tsx`: test button hrefs, i18n keys
-- `action-center-carousel.test.tsx` (update): test new PreTournamentHero branch renders correctly
-- `tournament-hub-leaderboard-peek.test.tsx` (update): test SocialHubCard renders when userHasGroups=false
+- `hub-actions.test.ts` (or similar): test `getActionCenterGames` new fields (incl. `tournamentJustStarted`) and `getLeaderboardPeekData` new return type (`userHasGroups`, `allGroupNames`)
+- `pre-tournament-hero.test.tsx`: countdown, opener card presence/absence, circular progress row, zero-division guard
+- `tournament-start-banner.test.tsx`: celebration title, "See all games" link href
+- `social-hub-card.test.tsx`: button hrefs, i18n keys
+- `pre-tournament-groups-preview.test.tsx`: up-to-3 chips, "and N others" text, 3 CTA buttons and hrefs
+- `action-center-carousel.test.tsx` (update): pre-tournament hero branch, celebration banner branch, single-game centering
+- `tournament-hub-leaderboard-peek.test.tsx` (update): SocialHubCard when no groups, PreTournamentGroupsPreview when has groups but no rankings
 
 ### Test factories and mock patterns
 
@@ -445,8 +548,10 @@ import { renderWithTheme } from '@/app/__tests__/helpers/render-with-theme'
 
 ## Open Questions / Risks
 
-1. **QT group count for progress bar**: The "3/12 groups predicted" label requires knowing how many groups have QT predictions. The QT prediction schema needs to be investigated during implementation (likely stored as JSONB in `tournament_guess` or a separate table). If the exact per-group count is not accessible without a complex query, fall back to: show "Started" vs "Not started" based on whether any QT prediction record exists for the user.
+1. **QT group count for circular progress**: The exact per-group QT prediction count requires investigating the schema (likely JSONB in `tournament_guess`). For this story, the QT circle defaults to 0% unless the data is easily accessible — implementation to confirm. If found, wire it up; otherwise, QT circle shows "Not started" at 0% until user visits QT page.
 
-2. **Friend group creation URL**: Need to verify the exact URL for creating a new group. The `SocialHubCard` links to the friend-groups section — confirm the correct route during implementation.
+2. **Friend group URLs**: Confirm the exact routes for "Create Group" and "Discover Groups" during implementation — current plan uses `/${locale}/tournaments/${tournamentId}/friend-groups` as the base path.
 
-3. **Unauthenticated users and Social Hub**: Currently `getLeaderboardPeekData` returns `userHasGroups=false` for unauthenticated users. The Social Hub CTA will be shown to unauthenticated users, which may be confusing if group creation requires auth. Consider whether to show a "Sign in to create groups" message instead — defer decision to implementation review.
+3. **Unauthenticated users**: `getLeaderboardPeekData` returns `userHasGroups=false` for unauthenticated users, so they see `SocialHubCard`. This is acceptable — the CTA naturally prompts sign-in when they try to create/join a group.
+
+4. **Celebration banner duration**: The 48h window is a hardcoded constant `TOURNAMENT_START_CELEBRATION_MS = 48 * 3600 * 1000`. Can be adjusted easily if the product feels it should be shorter/longer.
