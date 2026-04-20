@@ -110,9 +110,7 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
     >
       <Box>
         {/* Celebration banner — shown above everything for 48h after tournament starts */}
-        {data.tournamentJustStarted && (
-          <TournamentStartBanner locale={locale} tournamentId={tournamentId} />
-        )}
+        {data.tournamentJustStarted && <TournamentStartBanner />}
 
         {/* Countdown — shown before the tournament starts */}
         {!data.tournamentHasStarted && data.firstGameDate !== null && (

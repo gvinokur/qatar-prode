@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Box, Stack, Typography, Paper, useTheme } from '@mui/material'
+import { HourglassEmpty as HourglassEmptyIcon } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 
 // ---------------------------------------------------------------------------
@@ -49,6 +50,17 @@ export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdown
         mb: 2,
       }}
     >
+      <HourglassEmptyIcon
+        color="secondary"
+        sx={{
+          fontSize: 36,
+          animation: 'spin 3s linear infinite',
+          '@keyframes spin': {
+            '0%': { transform: 'rotate(0deg)' },
+            '100%': { transform: 'rotate(360deg)' },
+          },
+        }}
+      />
       <Typography variant="overline" color="secondary">
         {t('preTournament.countdownTitle')}
       </Typography>

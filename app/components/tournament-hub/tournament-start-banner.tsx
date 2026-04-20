@@ -1,55 +1,34 @@
 'use client'
 
 import React from 'react'
-import { Paper, Stack, Typography, Button, useTheme } from '@mui/material'
-import { EmojiEvents as EmojiEventsIcon } from '@mui/icons-material'
+import { Paper, Stack, Typography, useTheme } from '@mui/material'
+import { Celebration as CelebrationIcon } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import type { Locale } from '../../../i18n.config'
 
-interface TournamentStartBannerProps {
-  readonly locale: Locale
-  readonly tournamentId: string
-}
-
-export function TournamentStartBanner({
-  locale,
-  tournamentId,
-}: TournamentStartBannerProps) {
+export function TournamentStartBanner() {
   const t = useTranslations('hub')
   const theme = useTheme()
 
   return (
     <Paper
       sx={{
-        background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-        p: 3,
-        mb: 2,
-        textAlign: 'center',
+        background: `linear-gradient(135deg, ${theme.palette.secondary.main}14 0%, ${theme.palette.secondary.main}08 100%)`,
+        border: '1px solid',
+        borderColor: 'secondary.light',
         borderRadius: 2,
+        p: 3,
+        textAlign: 'center',
+        mb: 2,
       }}
     >
       <Stack direction="column" alignItems="center" spacing={1}>
-        <EmojiEventsIcon sx={{ fontSize: 40, color: 'white' }} />
-        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+        <CelebrationIcon color="secondary" sx={{ fontSize: 40 }} />
+        <Typography variant="h6" fontWeight="bold" color="secondary">
           {t('tournamentStarted.title')}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.85)' }}>
+        <Typography variant="body2" color="text.secondary">
           {t('tournamentStarted.subtitle')}
         </Typography>
-        <Button
-          component={Link}
-          href={`/${locale}/tournaments/${tournamentId}`}
-          variant="contained"
-          sx={{
-            mt: 1,
-            backgroundColor: 'white',
-            color: 'primary.dark',
-            '&:hover': { backgroundColor: 'grey.100' },
-          }}
-        >
-          {t('tournamentStarted.seeGames')}
-        </Button>
       </Stack>
     </Paper>
   )
