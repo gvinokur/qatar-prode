@@ -90,6 +90,42 @@ function computePredictionLockState(
   return { qtAndAwardsOpen: msRemaining > 0, msUntilPredictionLock: msRemaining }
 }
 
+/** Fetches and localizes the first tournament game for pre-tournament backfill. */
+async function fetchOpenerBackfill(
+  tournamentId: string,
+  firstGameDate: Date | null,
+  now: number,
+  guessesArray: GameGuessNew[],
+  locale: Locale
+): Promise<{ games: ExtendedGameData[]; gameGuesses: Record<string, GameGuessNew> }> {
+  if (!firstGameDate || firstGameDate.getTime() <= now) {
+    return { games: [], gameGuesses: {} }
+  }
+  const fullOpenerGame = await findFirstGameFullData(tournamentId)
+  if (!fullOpenerGame) {
+    return { games: [], gameGuesses: {} }
+  }
+  const [localizedOpener] = applyLocalizationBatch([fullOpenerGame], locale, [
+    { field: 'location', i18nField: 'location_i18n' },
+  ]) as ExtendedGameData[]
+  const openerGuess = guessesArray.find((g) => g.game_id === fullOpenerGame.id)
+  return {
+    games: [localizedOpener],
+    gameGuesses: openerGuess ? { [fullOpenerGame.id]: openerGuess } : {},
+  }
+}
+
+/** Returns the localized short name of the tournament, or null if no tournament. */
+function computeTournamentName(
+  tournament: Awaited<ReturnType<typeof findTournamentById>> | undefined | null,
+  locale: Locale
+): string | null {
+  if (!tournament) return null
+  return applyLocalization(tournament, locale, [
+    { field: 'short_name', i18nField: 'short_name_i18n' },
+  ]).short_name
+}
+
 /**
  * Fetches and ranks upcoming games for the Tournament Hub Action Center.
  * Returns up to 4 unpredicted open games (urgent mode), or 3 upcoming games
@@ -150,23 +186,13 @@ export async function getActionCenterGames(
     const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
 
     // Backfill with opener game when no window games found and tournament hasn't started
-    let openerGames: ExtendedGameData[] = []
-    let openerGameGuesses: Record<string, GameGuessNew> = {}
-    if (firstGameDate && firstGameDate.getTime() > now) {
-      const fullOpenerGame = await findFirstGameFullData(tournamentId)
-      if (fullOpenerGame) {
-        const [localizedOpener] = applyLocalizationBatch([fullOpenerGame], locale, [
-          { field: 'location', i18nField: 'location_i18n' },
-        ]) as ExtendedGameData[]
-        openerGames = [localizedOpener]
-        // Include user's guess for the opener game if it exists
-        const openerGuess = guessesArray.find((g) => g.game_id === fullOpenerGame.id)
-        if (openerGuess) {
-          openerGameGuesses = { [fullOpenerGame.id]: openerGuess }
-        }
-      }
-    }
-
+    const { games: openerGames, gameGuesses: openerGameGuesses } = await fetchOpenerBackfill(
+      tournamentId,
+      firstGameDate,
+      now,
+      guessesArray,
+      locale
+    )
     const openerBackfill = openerGames.length > 0
 
     return {
@@ -181,9 +207,7 @@ export async function getActionCenterGames(
       tournamentFinished,
       firstGameDate,
       tournamentHasStarted,
-      tournamentName: tournament
-        ? applyLocalization(tournament, locale, [{ field: 'short_name', i18nField: 'short_name_i18n' }]).short_name
-        : null,
+      tournamentName: computeTournamentName(tournament, locale),
       openerBackfill,
       totalGames,
       predictedGames,
@@ -234,12 +258,11 @@ export async function getActionCenterGames(
   const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
 
   // Only include guesses for the selected carousel games
-  const gameGuesses: Record<string, GameGuessNew> = {}
-  for (const game of localizedGames) {
-    if (guessesMapAll[game.id]) {
-      gameGuesses[game.id] = guessesMapAll[game.id]
-    }
-  }
+  const gameGuesses = Object.fromEntries(
+    localizedGames
+      .filter((g) => guessesMapAll[g.id] !== undefined)
+      .map((g) => [g.id, guessesMapAll[g.id]] as [string, GameGuessNew])
+  )
 
   return {
     games: localizedGames,
@@ -253,9 +276,7 @@ export async function getActionCenterGames(
     tournamentFinished,
     firstGameDate,
     tournamentHasStarted,
-    tournamentName: tournament
-      ? applyLocalization(tournament, locale, [{ field: 'short_name', i18nField: 'short_name_i18n' }]).short_name
-      : null,
+    tournamentName: computeTournamentName(tournament, locale),
     openerBackfill: false,
     totalGames,
     predictedGames,

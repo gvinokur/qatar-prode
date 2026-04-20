@@ -31,7 +31,7 @@ interface ActionCenterCarouselProps {
 }
 
 /** Renders a CircularProgress with a visible grey track and an icon centered inside. */
-function TrackedCircularProgress({ value, icon }: { value: number; icon: React.ReactNode }) {
+function TrackedCircularProgress({ value, icon }: { readonly value: number; readonly icon: React.ReactNode }) {
   return (
     <Box
       sx={{
