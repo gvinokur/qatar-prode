@@ -114,7 +114,10 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
 
         {/* Countdown — shown before the tournament starts */}
         {!data.tournamentHasStarted && data.firstGameDate !== null && (
-          <PreTournamentCountdown firstGameDate={data.firstGameDate} />
+          <PreTournamentCountdown
+            firstGameDate={data.firstGameDate}
+            tournamentName={data.tournamentName}
+          />
         )}
 
         {/* Header — centered */}

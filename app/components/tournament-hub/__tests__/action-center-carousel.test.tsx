@@ -94,6 +94,7 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   tournamentFinished: false,
   firstGameDate: null,
   tournamentHasStarted: false,
+  tournamentName: null,
   openerBackfill: false,
   totalGames: 64,
   predictedGames: 0,

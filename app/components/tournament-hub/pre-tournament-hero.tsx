@@ -12,6 +12,7 @@ import { useTranslations } from 'next-intl'
 
 interface PreTournamentCountdownProps {
   readonly firstGameDate: Date
+  readonly tournamentName: string | null
 }
 
 interface TimeLeft {
@@ -28,7 +29,7 @@ function computeTimeLeft(target: Date): TimeLeft {
   return { days, hours, mins }
 }
 
-export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdownProps) {
+export function PreTournamentCountdown({ firstGameDate, tournamentName }: PreTournamentCountdownProps) {
   const t = useTranslations('hub')
   const theme = useTheme()
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => computeTimeLeft(firstGameDate))
@@ -64,9 +65,6 @@ export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdown
           },
         }}
       />
-      <Typography variant="overline" color="secondary">
-        {t('preTournament.countdownTitle')}
-      </Typography>
       <Stack direction="row" justifyContent="center" spacing={4} sx={{ mt: 1 }}>
         <Box textAlign="center">
           <Typography variant="h3" fontWeight="bold" color="secondary">
@@ -93,6 +91,11 @@ export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdown
           </Typography>
         </Box>
       </Stack>
+      {tournamentName && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          {t('preTournament.countdownSubtitle', { tournamentName })}
+        </Typography>
+      )}
     </Paper>
   )
 }

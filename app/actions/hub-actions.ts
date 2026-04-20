@@ -50,6 +50,8 @@ export interface ActionCenterData {
   firstGameDate: Date | null
   /** True when the first game has already kicked off (tournament is underway or finished) */
   tournamentHasStarted: boolean
+  /** Short display name of the tournament (e.g. "FIFA 2026") for the countdown subtitle */
+  tournamentName: string | null
   /** True when games array was backfilled with the opener because no window games were found */
   openerBackfill: boolean
   /** Total number of games in the tournament */
@@ -179,6 +181,7 @@ export async function getActionCenterGames(
       tournamentFinished,
       firstGameDate,
       tournamentHasStarted,
+      tournamentName: tournament?.short_name ?? null,
       openerBackfill,
       totalGames,
       predictedGames,
@@ -248,6 +251,7 @@ export async function getActionCenterGames(
     tournamentFinished,
     firstGameDate,
     tournamentHasStarted,
+    tournamentName: tournament?.short_name ?? null,
     openerBackfill: false,
     totalGames,
     predictedGames,

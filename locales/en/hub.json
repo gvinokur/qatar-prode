@@ -53,6 +53,7 @@
   },
   "preTournament": {
     "countdownTitle": "Tournament Kickoff",
+    "countdownSubtitle": "Until {tournamentName} kicks off",
     "days": "Days",
     "hours": "Hours",
     "mins": "Mins",

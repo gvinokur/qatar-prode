@@ -53,6 +53,7 @@
   },
   "preTournament": {
     "countdownTitle": "Inicio del Torneo",
+    "countdownSubtitle": "Para que empiece el {tournamentName}",
     "days": "Días",
     "hours": "Horas",
     "mins": "Min",
