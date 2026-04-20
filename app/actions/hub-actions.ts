@@ -253,7 +253,9 @@ export async function getActionCenterGames(
     tournamentFinished,
     firstGameDate,
     tournamentHasStarted,
-    tournamentName: tournament?.short_name ?? null,
+    tournamentName: tournament
+      ? applyLocalization(tournament, locale, [{ field: 'short_name', i18nField: 'short_name_i18n' }]).short_name
+      : null,
     openerBackfill: false,
     totalGames,
     predictedGames,

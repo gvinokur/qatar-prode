@@ -547,6 +547,40 @@ import { renderWithTheme } from '@/app/__tests__/helpers/render-with-theme'
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Architecture Refactor — PreTournamentHero eliminated, opener backfilled into games[]
+**Date:** 2026-04-20
+**Reason:** User objected to a duplicate rendering path where `ActionCenterCarousel` was entirely replaced by `PreTournamentHero` in pre-tournament mode. This created code duplication and a different rendering path for a state that shares most of the carousel logic.
+**Change:** `PreTournamentHero` was stripped to a single named export `PreTournamentCountdown` (countdown widget only). The opener game is now backfilled directly into `data.games` from `getActionCenterGames` when no window games are found and the tournament hasn't started — `openerBackfill: boolean` signals this. The circular progress row was moved into `ActionCenterCarousel` and is shown for ALL users when `data.qtAndAwardsOpen` (not just pre-tournament). An "Opening Match" overline is rendered above the carousel when `openerBackfill=true`. The countdown is shown above the header any time `!data.tournamentHasStarted && data.firstGameDate !== null`.
+
+### Amendment 2: ActionCenterData fields changed
+**Date:** 2026-04-20
+**Reason:** Follow-on from Amendment 1 — fields were redesigned to match the simplified architecture.
+**Change:** `openerGame: ExtendedGameData|null` and `hasAwardsPredictions: boolean` were removed. Added: `tournamentHasStarted: boolean`, `tournamentName: string|null`, `openerBackfill: boolean`, `awardsCompleted: number`, `awardsTotal: number`, `qualifiersCompleted: number`, `qualifiersTotal: number`. Progress data now comes from `getTournamentPredictionCompletion` (consistent with the Predictions Dashboard) instead of `getGameCountsForTournament` + `findTournamentGuessByUserIdTournament`.
+
+### Amendment 3: TournamentStartBanner simplified — no props, no CTA button
+**Date:** 2026-04-20
+**Reason:** User requested removal of the "See all games" button from the celebration banner. Props (`locale`, `tournamentId`) were only needed for the button link.
+**Change:** `TournamentStartBanner` now takes no props. The "See all games" button was removed. Icon changed from `EmojiEvents` to `Celebration`. Styling was matched to the countdown (subtle secondary gradient + border) rather than the original dark festive design.
+
+### Amendment 4: Countdown redesigned — icon + numbers + subtitle, no overline title
+**Date:** 2026-04-20
+**Reason:** User requested an hourglass icon above the countdown numbers and a localized tournament name subtitle below ("Para que empiece el {tournamentName}"). The original overline title was removed as redundant given the icon.
+**Change:** `PreTournamentCountdown` now renders: `HourglassEmptyIcon` with a realistic flip animation (still→flip 180°→still→flip 180° back via per-keyframe `animationTimingFunction`), countdown numbers, and a conditional `countdownSubtitle` below. The overline "TOURNAMENT KICKOFF" text was removed. `tournamentName` prop added.
+
+### Amendment 5: Tournament name localized in both code paths
+**Date:** 2026-04-20
+**Reason:** The opener backfill path correctly used `applyLocalization` for `tournamentName`, but the normal games-found path used `tournament?.short_name` (raw, not localized). The countdown can show in the games-found path when the first game is within 7 days but hasn't kicked off.
+**Change:** Both return branches in `getActionCenterGames` now use `applyLocalization(tournament, locale, [{ field: 'short_name', i18nField: 'short_name_i18n' }]).short_name` for `tournamentName`.
+
+### Amendment 6: i18n keys diverged from plan
+**Date:** 2026-04-20
+**Reason:** The third progress circle was renamed from "Overall" to "Games" per UX feedback. A new key `countdownSubtitle` was added for the tournament name subtitle.
+**Change:** Added `preTournament.countdownSubtitle` ("Until {tournamentName} kicks off" / "Para que empiece el {tournamentName}") and `preTournament.gamesLabel` ("Games" / "Partidos") instead of the planned `overallProgress`. The `overallProgress` key was kept in the JSON files for backward compatibility but is not used by any component.
+
+---
+
 ## Open Questions / Risks
 
 1. **QT group count for circular progress**: The exact per-group QT prediction count requires investigating the schema (likely JSONB in `tournament_guess`). For this story, the QT circle defaults to 0% unless the data is easily accessible — implementation to confirm. If found, wire it up; otherwise, QT circle shows "Not started" at 0% until user visits QT page.

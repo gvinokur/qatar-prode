@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-20
 
 ---
 
@@ -16,17 +16,16 @@ Thin Server Component wrapper for the hub's Action Center widget. Calls the serv
   Renders: ActionCenterCarousel
 
 ### app/components/tournament-hub/pre-tournament-hero.tsx
-Client Component shown in the Action Center when the tournament is >7 days away. Renders a live countdown, the opening match prediction card, and a 3-item progress row.
+Client Component countdown shown above the Action Center when the tournament hasn't started yet. Renders a live days/hours/mins countdown with an animated hourglass and optional tournament name subtitle.
 
-- **PreTournamentHero({ firstGameDate, openerGame, tournamentId, locale, teamsMap, gameGuesses, tournamentMaxSilver, tournamentMaxGolden, qtAndAwardsOpen, totalGames, predictedGames, hasAwardsPredictions })**: `JSX.Element` — [Client] Section 1: Paper with gradient bg, countdown in days/hours/mins via `useEffect+setInterval(1000)`; clamps at 0 when firstGameDate is past. Section 2 (conditional): "Opening Match" overline + `FlippableGameCard` when `openerGame` is non-null. Section 3 (conditional on `qtAndAwardsOpen`): `Stack direction="row"` with 3 `CircularProgress` items (QT at 0%, Awards at 100%/0% based on `hasAwardsPredictions`, Overall at `predictedGames/totalGames*100` clamped); icons match Group Selector nav bar (AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon); `useMediaQuery` controls label verbosity.
-  Calls: FlippableGameCard
-  Uses: useState, useEffect, useTranslations, CircularProgress, Stack, Box, Typography, Paper, useTheme, useMediaQuery, AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon, Link
+- **PreTournamentCountdown({ firstGameDate, tournamentName })**: `JSX.Element` — [Client] Gradient Paper with secondary border. Renders a flip-animated `HourglassEmptyIcon`, a `Stack direction="row"` with days/hours/mins values computed from `firstGameDate - Date.now()` via `useEffect+setInterval(1000)` (clamped at 0). Conditionally renders a body2 subtitle with `countdownSubtitle` i18n key when `tournamentName` is non-null.
+  Uses: useState, useEffect, useTranslations, Paper, Stack, Box, Typography, useTheme, HourglassEmptyIcon
 
 ### app/components/tournament-hub/tournament-start-banner.tsx
-Client Component celebration banner shown above the Action Center carousel for 48h after the tournament's first game kicks off.
+Client Component celebration banner shown above the Action Center carousel for 48h after the tournament's first game kicks off. No props — all display is self-contained.
 
-- **TournamentStartBanner({ locale, tournamentId })**: `JSX.Element` — [Client] Festive Paper with purple gradient background. Renders EmojiEventsIcon, h6 title, body2 subtitle, and a "See all games" Button linking to the tournament games page.
-  Uses: useTranslations, Paper, Stack, Typography, Button, EmojiEventsIcon, Link
+- **TournamentStartBanner()**: `JSX.Element` — [Client] Gradient Paper matching the countdown style (secondary tint, secondary border). Renders `CelebrationIcon`, h6 title, and body2 subtitle. No link button (removed per UX feedback).
+  Uses: useTranslations, Paper, Stack, Typography, useTheme, CelebrationIcon
 
 ### app/components/tournament-hub/social-hub-card.tsx
 Client Component social CTA shown in the Leaderboard widget when the user belongs to 0 groups.
@@ -43,9 +42,9 @@ Client Component shown in the Leaderboard widget when the user has groups but no
 ### app/components/tournament-hub/action-center-carousel.tsx
 Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.
 
-- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders header (title/subtitle). Then branches: pre-tournament (`mode=empty && firstGameDate && !tournamentFinished`) → `PreTournamentHero`; fallback empty (tournament finished or no firstGameDate) → dashed box with "Predict all games" link; active carousel → `ScrollShadowContainer` with `FlippableGameCard` per game (single-game carousel centers with `justifyContent: 'center'`). When `data.qtAndAwardsOpen && !isPreTournament`: shows QT/Awards quick-action cards below carousel with urgency `Chip` when lock is near.
-  Renders: TournamentStartBanner (conditional), PreTournamentHero (conditional), FlippableGameCard
-  Uses: GuessesContextProvider, ScrollShadowContainer, getUrgencyLevel, formatCountdown, useTranslations
+- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders `PreTournamentCountdown` above header when `!data.tournamentHasStarted && data.firstGameDate !== null`. Renders header (title/subtitle). Optionally renders "Opening Match" overline when `data.openerBackfill`. Branches: empty mode → dashed box; fallback/urgent mode → `ScrollShadowContainer` with `FlippableGameCard` per game (single-game carousel centers with `justifyContent: 'center'`). When `data.qtAndAwardsOpen`: renders a `Stack direction="row"` of 3 `TrackedCircularProgress` circles (inline helper component) for QT, Awards, and Games, each linking to its page.
+  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), FlippableGameCard
+  Uses: GuessesContextProvider, ScrollShadowContainer, useTranslations, TrackedCircularProgress (inline), AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon
 
 ### app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx
 Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and branches on group membership and ranking state.
