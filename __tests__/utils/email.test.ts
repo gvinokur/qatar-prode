@@ -8,6 +8,7 @@ declare global {
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { sendEmail } from '../../app/utils/email';
 import nodemailer from 'nodemailer';
+import { getTranslations } from 'next-intl/server';
 
 // Mock next-intl/server
 vi.mock('next-intl/server', () => ({
@@ -225,6 +226,18 @@ describe('email', () => {
             from: 'noreply@example.com',
             to: 'user@example.com',
           },
+        })
+      );
+    });
+
+    it('should use fallback sender name when translations fail', async () => {
+      vi.mocked(getTranslations).mockRejectedValueOnce(new Error('Translation service unavailable'));
+
+      await sendEmail({ to: 'test@example.com', subject: 'Test Subject', html: '<p>Test</p>' });
+
+      expect(globalThis.mockSendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: '"Prode Mundial" <noreply@example.com>',
         })
       );
     });
