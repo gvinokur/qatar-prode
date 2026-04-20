@@ -11,17 +11,17 @@ import {
 // Mock translations
 const mockTranslations = {
   en: {
-    'verification.subject': 'Account Verification - La Maquina Prode',
+    'verification.subject': 'Account Verification - Prode Mundial',
     'verification.title': 'Verify your email address',
     'verification.greeting': 'Thanks for signing up!',
     'verification.button': 'Verify email address',
     'verification.expiration': 'This link will expire in 24 hours.',
-    'verification.signature': 'The La Maquina Prode team',
-    'passwordReset.subject': 'Password Recovery - La Maquina Prode',
+    'verification.signature': 'The Prode Mundial Team',
+    'passwordReset.subject': 'Password Recovery - Prode Mundial',
     'passwordReset.title': 'Reset password',
     'passwordReset.button': 'Reset password',
     'passwordReset.expiration': 'This link will expire in 1 hour.',
-    'passwordReset.signature': 'The La Maquina Prode team',
+    'passwordReset.signature': 'The Prode Mundial Team',
     'joinRequest.adminNotification.subject': 'New join request for {groupName}',
     'joinRequest.adminNotification.title': 'New Join Request',
     'joinRequest.adminNotification.greeting': 'Hi {adminName},',
@@ -47,20 +47,20 @@ const mockTranslations = {
     'groupInvitation.senderAttribution': '{senderDisplayName} invited you to join {groupName}',
     'groupInvitation.button': 'Join the group',
     'groupInvitation.customMessageIntro': 'Personal message:',
-    'groupInvitation.signature': 'The La Maquina Prode Team',
+    'groupInvitation.signature': 'The Prode Mundial Team',
   },
   es: {
-    'verification.subject': 'Verificación de Cuenta - La Maquina Prode',
+    'verification.subject': 'Verificación de Cuenta - Prode Mundial',
     'verification.title': 'Verifica tu dirección de correo electrónico',
     'verification.greeting': '¡Gracias por registrarte!',
     'verification.button': 'Verificar correo electrónico',
     'verification.expiration': 'Este enlace expirará en 24 horas.',
-    'verification.signature': 'El equipo de La Maquina Prode',
-    'passwordReset.subject': 'Recuperación de contraseña - La Maquina Prode',
+    'verification.signature': 'El equipo de Prode Mundial',
+    'passwordReset.subject': 'Recuperación de contraseña - Prode Mundial',
     'passwordReset.title': 'Restablecer contraseña',
     'passwordReset.button': 'Restablecer contraseña',
     'passwordReset.expiration': 'Este enlace expirará en 1 hora.',
-    'passwordReset.signature': 'El equipo de La Maquina Prode',
+    'passwordReset.signature': 'El equipo de Prode Mundial',
     'joinRequest.adminNotification.subject': 'Nueva solicitud para {groupName}',
     'joinRequest.adminNotification.title': 'Nueva Solicitud',
     'joinRequest.adminNotification.greeting': 'Hola {adminName},',
@@ -86,7 +86,7 @@ const mockTranslations = {
     'groupInvitation.senderAttribution': '{senderDisplayName} te invitó a unirse a {groupName}',
     'groupInvitation.button': 'Unirte al grupo',
     'groupInvitation.customMessageIntro': 'Mensaje personal:',
-    'groupInvitation.signature': 'El equipo de La Maquina Prode',
+    'groupInvitation.signature': 'El equipo de Prode Mundial',
   },
 };
 
@@ -108,7 +108,7 @@ describe('email-templates', () => {
       const result = await generateVerificationEmail(email, verificationLink);
 
       expect(result.to).toBe(email);
-      expect(result.subject).toBe('Verificación de Cuenta - La Maquina Prode');
+      expect(result.subject).toBe('Verificación de Cuenta - Prode Mundial');
       expect(result.html).toContain('Verifica tu dirección de correo electrónico');
     });
 
@@ -119,7 +119,7 @@ describe('email-templates', () => {
       const result = await generateVerificationEmail(email, verificationLink, 'en');
 
       expect(result.to).toBe(email);
-      expect(result.subject).toBe('Account Verification - La Maquina Prode');
+      expect(result.subject).toBe('Account Verification - Prode Mundial');
       expect(result.html).toContain('Verify your email address');
       expect(result.html).toContain('Thanks for signing up!');
     });
@@ -199,7 +199,7 @@ describe('email-templates', () => {
       const result = await generatePasswordResetEmail(email, resetLink);
 
       expect(result.to).toBe(email);
-      expect(result.subject).toBe('Recuperación de contraseña - La Maquina Prode');
+      expect(result.subject).toBe('Recuperación de contraseña - Prode Mundial');
       expect(result.html).toContain('Restablecer contraseña');
     });
 
@@ -210,7 +210,7 @@ describe('email-templates', () => {
       const result = await generatePasswordResetEmail(email, resetLink, 'en');
 
       expect(result.to).toBe(email);
-      expect(result.subject).toBe('Password Recovery - La Maquina Prode');
+      expect(result.subject).toBe('Password Recovery - Prode Mundial');
       expect(result.html).toContain('Reset password');
     });
 
@@ -258,7 +258,7 @@ describe('email-templates', () => {
       expect(result.html).toContain('<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">');
       expect(result.html).toContain('href="' + resetLink + '"');
       expect(result.html).toContain('style="display: inline-block; padding: 10px 20px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 4px;"');
-      expect(result.html).toContain('El equipo de La Maquina Prode');
+      expect(result.html).toContain('El equipo de Prode Mundial');
     });
 
     it('should include locale in password reset email data for Spanish', async () => {

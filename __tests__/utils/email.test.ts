@@ -15,10 +15,10 @@ vi.mock('next-intl/server', () => ({
     const locale = config.locale || 'es';
     const translations = {
       en: {
-        senderName: 'La Maquina World Cup Predictions',
+        senderName: 'Prode Mundial',
       },
       es: {
-        senderName: 'La Maquina Prode Mundial',
+        senderName: 'Prode Mundial',
       },
     };
     return Promise.resolve((key: string) => {
@@ -160,7 +160,7 @@ describe('email', () => {
       };
       await sendEmail(differentEmailOptions);
       expect(globalThis.mockSendMail).toHaveBeenCalledWith({
-        from: '"La Maquina Prode Mundial" <noreply@example.com>',
+        from: '"Prode Mundial" <noreply@example.com>',
         to: 'different@example.com',
         subject: 'Different Subject',
         html: '<h1>Different Content</h1>',
@@ -183,7 +183,7 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: '"La Maquina Prode Mundial" <noreply@example.com>',
+          from: '"Prode Mundial" <noreply@example.com>',
           envelope: {
             from: 'noreply@example.com',
             to: 'user@example.com',
@@ -202,7 +202,7 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: '"La Maquina World Cup Predictions" <noreply@example.com>',
+          from: '"Prode Mundial" <noreply@example.com>',
           envelope: {
             from: 'noreply@example.com',
             to: 'user@example.com',
@@ -220,7 +220,7 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: '"La Maquina Prode Mundial" <noreply@example.com>',
+          from: '"Prode Mundial" <noreply@example.com>',
           envelope: {
             from: 'noreply@example.com',
             to: 'user@example.com',
@@ -239,7 +239,7 @@ describe('email', () => {
 
       expect(globalThis.mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: '"La Maquina Prode Mundial" <noreply@example.com>',
+          from: '"Prode Mundial" <noreply@example.com>',
           envelope: {
             from: 'noreply@example.com',
             to: 'user@example.com',
