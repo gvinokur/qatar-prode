@@ -7,6 +7,7 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
+import * as tournamentPredictionCompletionRepository from '@/app/db/tournament-prediction-completion-repository'
 import * as favoriteGroupsRepository from '@/app/db/favorite-groups-repository'
 import * as userActions from '../user-actions'
 import { applyLocalizationBatch } from '@/app/utils/localization-helper'
@@ -19,7 +20,12 @@ vi.mock('@/app/db/game-repository', () => ({
   findGamesForDashboard: vi.fn(),
   findFirstGameInTournament: vi.fn(),
   findLastGameInTournament: vi.fn(),
+  findFirstGameFullData: vi.fn(),
   findRecentGamesWithUserGuesses: vi.fn(),
+}))
+
+vi.mock('@/app/db/tournament-prediction-completion-repository', () => ({
+  getTournamentPredictionCompletion: vi.fn(),
 }))
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -65,6 +71,7 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/app/utils/localization-helper', () => ({
   applyLocalizationBatch: vi.fn((items: any[]) => items),
+  applyLocalization: vi.fn((item: any) => item),
 }))
 
 const TOURNAMENT_ID = 'tournament-1'
@@ -102,6 +109,23 @@ beforeEach(() => {
   vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
     testFactories.game({ id: 'last-game', game_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }) as any
   )
+  // Prediction completion: default to all-zero (no predictions made yet)
+  vi.mocked(tournamentPredictionCompletionRepository.getTournamentPredictionCompletion).mockResolvedValue({
+    finalStandings: { completed: 0, total: 3, champion: false, runnerUp: false, thirdPlace: false },
+    awards: { completed: 0, total: 4, bestPlayer: false, topGoalscorer: false, bestGoalkeeper: false, bestYoungPlayer: false },
+    qualifiers: { completed: 0, total: 0 },
+    overallCompleted: 0,
+    overallTotal: 7,
+    overallPercentage: 0,
+    isPredictionLocked: false,
+    completedGames: 0,
+    totalGames: 64,
+    silverBoostsUsed: 0,
+    goldenBoostsUsed: 0,
+    silverBoostsMax: 5,
+    goldenBoostsMax: 3,
+  } as any)
+  vi.mocked(gameRepository.findFirstGameFullData).mockResolvedValue(undefined)
 })
 
 describe('getActionCenterGames', () => {
@@ -379,21 +403,25 @@ describe('getLeaderboardPeekData', () => {
     vi.mocked(favoriteGroupsRepository.getFavoriteGroupIds).mockResolvedValue([])
   })
 
-  it('returns empty array when user is not authenticated', async () => {
+  it('returns empty result when user is not authenticated', async () => {
     vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null as any)
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result).toEqual([])
+    expect(result.groups).toEqual([])
+    expect(result.userHasGroups).toBe(false)
+    expect(result.allGroupNames).toEqual([])
   })
 
-  it('returns empty array when user has no groups', async () => {
+  it('returns empty groups and userHasGroups=false when user has no groups', async () => {
     vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([])
     vi.mocked(prodeGroupRepository.findProdeGroupsByParticipant).mockResolvedValue([])
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result).toEqual([])
+    expect(result.groups).toEqual([])
+    expect(result.userHasGroups).toBe(false)
+    expect(result.allGroupNames).toEqual([])
   })
 
   it('returns up to 3 groups sorted by member count descending', async () => {
@@ -408,10 +436,11 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result).toHaveLength(3)
-    expect(result[0].groupId).toBe(group1.id)
-    expect(result[1].groupId).toBe(group2.id)
-    expect(result[2].groupId).toBe(group3.id)
+    expect(result.groups).toHaveLength(3)
+    expect(result.groups[0].groupId).toBe(group1.id)
+    expect(result.groups[1].groupId).toBe(group2.id)
+    expect(result.groups[2].groupId).toBe(group3.id)
+    expect(result.userHasGroups).toBe(true)
   })
 
   it('sorts favorite groups before non-favorites regardless of member count', async () => {
@@ -429,10 +458,10 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result).toHaveLength(3)
-    expect(result[0].groupId).toBe(group2.id) // favorite first
-    expect(result[1].groupId).toBe(group1.id) // then by member count desc
-    expect(result[2].groupId).toBe(group3.id)
+    expect(result.groups).toHaveLength(3)
+    expect(result.groups[0].groupId).toBe(group2.id) // favorite first
+    expect(result.groups[1].groupId).toBe(group1.id) // then by member count desc
+    expect(result.groups[2].groupId).toBe(group3.id)
   })
 
   it('filters out groups where user has no ranking entry', async () => {
@@ -444,8 +473,10 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result).toHaveLength(1)
-    expect(result[0].groupId).toBe(group1.id)
+    expect(result.groups).toHaveLength(1)
+    expect(result.groups[0].groupId).toBe(group1.id)
+    // userHasGroups is true because user owns both groups (before ranking filter)
+    expect(result.userHasGroups).toBe(true)
   })
 
   it('builds correct 3-row window when user is rank 1 (shows top 3)', async () => {
@@ -454,11 +485,11 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result[0].userRank).toBe(1)
-    expect(result[0].rows).toHaveLength(3)
-    expect(result[0].rows[0].rank).toBe(1)
-    expect(result[0].rows[2].rank).toBe(3)
-    expect(result[0].rows[0].isCurrentUser).toBe(true)
+    expect(result.groups[0].userRank).toBe(1)
+    expect(result.groups[0].rows).toHaveLength(3)
+    expect(result.groups[0].rows[0].rank).toBe(1)
+    expect(result.groups[0].rows[2].rank).toBe(3)
+    expect(result.groups[0].rows[0].isCurrentUser).toBe(true)
   })
 
   it('builds correct 3-row window when user is last rank (shows last 3)', async () => {
@@ -472,11 +503,11 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result[0].userRank).toBe(4)
-    expect(result[0].rows).toHaveLength(3)
-    expect(result[0].rows[0].rank).toBe(2)
-    expect(result[0].rows[2].rank).toBe(4)
-    expect(result[0].rows[2].isCurrentUser).toBe(true)
+    expect(result.groups[0].userRank).toBe(4)
+    expect(result.groups[0].rows).toHaveLength(3)
+    expect(result.groups[0].rows[0].rank).toBe(2)
+    expect(result.groups[0].rows[2].rank).toBe(4)
+    expect(result.groups[0].rows[2].isCurrentUser).toBe(true)
   })
 
   it('builds correct 3-row window for middle ranks (shows above/user/below)', async () => {
@@ -491,12 +522,12 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result[0].userRank).toBe(3)
-    expect(result[0].rows).toHaveLength(3)
-    expect(result[0].rows[0].rank).toBe(2)
-    expect(result[0].rows[1].rank).toBe(3)
-    expect(result[0].rows[1].isCurrentUser).toBe(true)
-    expect(result[0].rows[2].rank).toBe(4)
+    expect(result.groups[0].userRank).toBe(3)
+    expect(result.groups[0].rows).toHaveLength(3)
+    expect(result.groups[0].rows[0].rank).toBe(2)
+    expect(result.groups[0].rows[1].rank).toBe(3)
+    expect(result.groups[0].rows[1].isCurrentUser).toBe(true)
+    expect(result.groups[0].rows[2].rank).toBe(4)
   })
 
   it('returns exactly 3 rows when multiple users share the same rank as the user (ties)', async () => {
@@ -515,9 +546,9 @@ describe('getLeaderboardPeekData', () => {
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
     // Must always be exactly 3 rows regardless of ties
-    expect(result[0].rows).toHaveLength(3)
+    expect(result.groups[0].rows).toHaveLength(3)
     // The current user must appear in the window
-    expect(result[0].rows.some((r) => r.isCurrentUser)).toBe(true)
+    expect(result.groups[0].rows.some((r) => r.isCurrentUser)).toBe(true)
   })
 
   it('sets rankChange to null when only one snapshot exists', async () => {
@@ -527,7 +558,7 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result[0].rankChange).toBeNull()
+    expect(result.groups[0].rankChange).toBeNull()
   })
 
   it('returns positive rankChange when user moved up in rank', async () => {
@@ -540,7 +571,7 @@ describe('getLeaderboardPeekData', () => {
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
-    expect(result[0].rankChange).toBe(2)
+    expect(result.groups[0].rankChange).toBe(2)
   })
 })
 

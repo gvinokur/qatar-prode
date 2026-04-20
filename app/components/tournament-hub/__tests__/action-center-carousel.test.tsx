@@ -6,7 +6,10 @@ import type { ActionCenterData } from '@/app/actions/hub-actions'
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
-  useTranslations: vi.fn(() => (key: string) => key),
+  useTranslations: vi.fn(() => (key: string, params?: Record<string, unknown>) => {
+    if (params) return `${key}(${JSON.stringify(params)})`
+    return key
+  }),
   useLocale: vi.fn(() => 'en'),
 }))
 
@@ -55,6 +58,20 @@ vi.mock('@/app/components/flippable-game-card', () => ({
   },
 }))
 
+// Mock PreTournamentCountdown to avoid complex hook/timer setup
+vi.mock('../pre-tournament-hero', () => ({
+  PreTournamentCountdown: () => (
+    <div data-testid="pre-tournament-countdown">PreTournamentCountdown</div>
+  ),
+}))
+
+// Mock TournamentStartBanner
+vi.mock('../tournament-start-banner', () => ({
+  TournamentStartBanner: () => (
+    <div data-testid="tournament-start-banner">TournamentStartBanner</div>
+  ),
+}))
+
 const team1 = testFactories.team({ id: 'team-1', name: 'Team 1' })
 const team2 = testFactories.team({ id: 'team-2', name: 'Team 2' })
 const teamsMap = { 'team-1': team1, 'team-2': team2 }
@@ -75,6 +92,17 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   qtAndAwardsOpen: true,
   msUntilPredictionLock: TEN_DAYS_MS,
   tournamentFinished: false,
+  firstGameDate: null,
+  tournamentHasStarted: false,
+  tournamentName: null,
+  openerBackfill: false,
+  totalGames: 64,
+  predictedGames: 0,
+  awardsCompleted: 0,
+  awardsTotal: 7,
+  qualifiersCompleted: 0,
+  qualifiersTotal: 32,
+  tournamentJustStarted: false,
   ...overrides,
 })
 
@@ -258,7 +286,7 @@ describe('ActionCenterCarousel', () => {
       expect(screen.getByText('actionCenter.noGamesInWindow')).toBeInTheDocument()
     })
 
-    it('renders predict-games and quick-action links in empty mode', () => {
+    it('renders predict-games link in empty mode', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'empty', games: [] })}
@@ -268,8 +296,6 @@ describe('ActionCenterCarousel', () => {
       )
 
       expect(screen.getByText('actionCenter.predictGames')).toBeInTheDocument()
-      expect(screen.getAllByText('actionCenter.qualifiedTeamsTitle').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByText('actionCenter.awardsTitle').length).toBeGreaterThanOrEqual(1)
     })
 
     it('does not render the scroll container in empty mode', () => {
@@ -311,29 +337,63 @@ describe('ActionCenterCarousel', () => {
     })
   })
 
-  describe('quick-action cards', () => {
-    it('renders qualified teams and awards cards when qtAndAwardsOpen is true', () => {
+  describe('opener backfill', () => {
+    it('shows opener label when openerBackfill=true', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'fallback', games: [game1] as any, openerBackfill: true })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByText('preTournament.openerLabel')).toBeInTheDocument()
+    })
+
+    it('does not show opener label when openerBackfill=false', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      expect(screen.queryByText('preTournament.openerLabel')).not.toBeInTheDocument()
+    })
+
+    it('renders the opener card in the carousel when openerBackfill=true', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ mode: 'fallback', games: [game1] as any, openerBackfill: true })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.getByTestId('scroll-shadow-container')).toBeInTheDocument()
+    })
+  })
+
+  describe('prediction progress circles', () => {
+    it('renders progress circles when qtAndAwardsOpen is true', () => {
       render(<ActionCenterCarousel data={buildData({ qtAndAwardsOpen: true })} tournamentId="t-1" locale="en" />)
 
-      expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
-      expect(screen.getByText('actionCenter.awardsHint')).toBeInTheDocument()
+      expect(screen.getByText('preTournament.qtLabel')).toBeInTheDocument()
+      expect(screen.getByText('preTournament.awardsLabel')).toBeInTheDocument()
+      expect(screen.getByText('preTournament.gamesLabel')).toBeInTheDocument()
     })
 
-    it('does not render quick-action section when qtAndAwardsOpen is false', () => {
+    it('does not render progress circles when qtAndAwardsOpen is false', () => {
       render(<ActionCenterCarousel data={buildData({ qtAndAwardsOpen: false })} tournamentId="t-1" locale="en" />)
 
-      expect(screen.queryByText('actionCenter.qualifiedTeamsHint')).not.toBeInTheDocument()
-      expect(screen.queryByText('actionCenter.awardsHint')).not.toBeInTheDocument()
-      expect(screen.queryByText('actionCenter.quickActions')).not.toBeInTheDocument()
+      expect(screen.queryByText('preTournament.qtLabel')).not.toBeInTheDocument()
+      expect(screen.queryByText('preTournament.awardsLabel')).not.toBeInTheDocument()
+      expect(screen.queryByText('preTournament.gamesLabel')).not.toBeInTheDocument()
     })
 
-    it('renders quick-action cards in fallback mode when qtAndAwardsOpen is true', () => {
+    it('renders progress circles in fallback mode when qtAndAwardsOpen is true', () => {
       render(
         <ActionCenterCarousel data={buildData({ mode: 'fallback', qtAndAwardsOpen: true })} tournamentId="t-1" locale="en" />
       )
 
-      expect(screen.getByText('actionCenter.qualifiedTeamsHint')).toBeInTheDocument()
-      expect(screen.getByText('actionCenter.awardsHint')).toBeInTheDocument()
+      expect(screen.getByText('preTournament.qtLabel')).toBeInTheDocument()
+      expect(screen.getByText('preTournament.awardsLabel')).toBeInTheDocument()
     })
 
     it('links to the correct URLs', () => {
@@ -343,62 +403,100 @@ describe('ActionCenterCarousel', () => {
       const hrefs = links.map((l) => l.getAttribute('href'))
       expect(hrefs).toContain('/en/tournaments/tour-42/qualified-teams')
       expect(hrefs).toContain('/en/tournaments/tour-42/awards')
+      expect(hrefs).toContain('/en/tournaments/tour-42/games')
     })
   })
 
-  describe('urgency chip', () => {
-    it('does not show urgency chips when msUntilPredictionLock is safe (>48h)', () => {
+  describe('countdown', () => {
+    it('renders PreTournamentCountdown when tournament has not started and firstGameDate is set', () => {
+      const futureDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
       render(
         <ActionCenterCarousel
-          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: TEN_DAYS_MS })}
+          data={buildData({ firstGameDate: futureDate, tournamentHasStarted: false })}
           tournamentId="t-1"
           locale="en"
         />
       )
 
-      expect(screen.queryByTestId('urgency-chip-qt')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('urgency-chip-awards')).not.toBeInTheDocument()
+      expect(screen.getByTestId('pre-tournament-countdown')).toBeInTheDocument()
     })
 
-    it('shows urgency chips when msUntilPredictionLock is in notice range (24-48h)', () => {
-      const THIRTY_HOURS_MS = 30 * 60 * 60 * 1000
+    it('does not render countdown when tournamentHasStarted=true', () => {
+      const pastDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
       render(
         <ActionCenterCarousel
-          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: THIRTY_HOURS_MS })}
+          data={buildData({ firstGameDate: pastDate, tournamentHasStarted: true })}
           tournamentId="t-1"
           locale="en"
         />
       )
 
-      expect(screen.getByTestId('urgency-chip-qt')).toBeInTheDocument()
-      expect(screen.getByTestId('urgency-chip-awards')).toBeInTheDocument()
+      expect(screen.queryByTestId('pre-tournament-countdown')).not.toBeInTheDocument()
     })
 
-    it('shows urgency chips when msUntilPredictionLock is in warning range (<24h)', () => {
-      const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000
+    it('does not render countdown when firstGameDate is null', () => {
       render(
         <ActionCenterCarousel
-          data={buildData({ qtAndAwardsOpen: true, msUntilPredictionLock: TWELVE_HOURS_MS })}
+          data={buildData({ firstGameDate: null, tournamentHasStarted: false })}
           tournamentId="t-1"
           locale="en"
         />
       )
 
-      expect(screen.getByTestId('urgency-chip-qt')).toBeInTheDocument()
-      expect(screen.getByTestId('urgency-chip-awards')).toBeInTheDocument()
+      expect(screen.queryByTestId('pre-tournament-countdown')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('celebration banner', () => {
+    it('renders TournamentStartBanner above carousel when tournamentJustStarted=true', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ tournamentJustStarted: true })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('tournament-start-banner')).toBeInTheDocument()
     })
 
-    it('does not show urgency chips when qtAndAwardsOpen is false even if ms is low', () => {
+    it('does not render TournamentStartBanner when tournamentJustStarted=false', () => {
       render(
         <ActionCenterCarousel
-          data={buildData({ qtAndAwardsOpen: false, msUntilPredictionLock: 1000 })}
+          data={buildData({ tournamentJustStarted: false })}
           tournamentId="t-1"
           locale="en"
         />
       )
 
-      expect(screen.queryByTestId('urgency-chip-qt')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('urgency-chip-awards')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('tournament-start-banner')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('single-game centering', () => {
+    it('does not center when games.length > 1', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      const container = screen.getByTestId('scroll-shadow-container')
+      // With multiple games the parent doesn't force center alignment
+      expect(container).toBeInTheDocument()
+      // All 3 game cards render
+      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.getByTestId('flippable-card-game-2')).toBeInTheDocument()
+      expect(screen.getByTestId('flippable-card-game-3')).toBeInTheDocument()
+    })
+
+    it('renders exactly one card when games.length is 1', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ games: [game1] as any })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.queryByTestId('flippable-card-game-2')).not.toBeInTheDocument()
     })
   })
 })

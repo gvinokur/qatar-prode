@@ -1,6 +1,6 @@
 'use server'
 
-import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
@@ -8,8 +8,9 @@ import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prod
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
+import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
 import { getLoggedInUser } from './user-actions'
-import { applyLocalizationBatch } from '../utils/localization-helper'
+import { applyLocalizationBatch, applyLocalization } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
 import { ExtendedGameData } from '../definitions'
 import { GameGuessNew, Team } from '../db/tables-definition'
@@ -45,6 +46,28 @@ export interface ActionCenterData {
   msUntilPredictionLock: number
   /** True when the last scheduled game has already kicked off — tournament is over */
   tournamentFinished: boolean
+  /** game_date of the first tournament game (null if no games) */
+  firstGameDate: Date | null
+  /** True when the first game has already kicked off (tournament is underway or finished) */
+  tournamentHasStarted: boolean
+  /** Short display name of the tournament (e.g. "FIFA 2026") for the countdown subtitle */
+  tournamentName: string | null
+  /** True when games array was backfilled with the opener because no window games were found */
+  openerBackfill: boolean
+  /** Total number of games in the tournament */
+  totalGames: number
+  /** Number of games the user has fully predicted (both scores, playoff penalty included) */
+  predictedGames: number
+  /** Sum of completed podium + individual awards (out of awardsTotal) */
+  awardsCompleted: number
+  /** Total number of award predictions available (3 podium + 4 individual = 7) */
+  awardsTotal: number
+  /** Number of qualifying team slots the user has predicted */
+  qualifiersCompleted: number
+  /** Total qualifying team slots available for the tournament */
+  qualifiersTotal: number
+  /** True when the first game kicked off within the last 48h (celebration banner period) */
+  tournamentJustStarted: boolean
 }
 
 const MAX_URGENT_CARDS = 4
@@ -67,6 +90,42 @@ function computePredictionLockState(
   return { qtAndAwardsOpen: msRemaining > 0, msUntilPredictionLock: msRemaining }
 }
 
+/** Fetches and localizes the first tournament game for pre-tournament backfill. */
+async function fetchOpenerBackfill(
+  tournamentId: string,
+  firstGameDate: Date | null,
+  now: number,
+  guessesArray: GameGuessNew[],
+  locale: Locale
+): Promise<{ games: ExtendedGameData[]; gameGuesses: Record<string, GameGuessNew> }> {
+  if (!firstGameDate || firstGameDate.getTime() <= now) {
+    return { games: [], gameGuesses: {} }
+  }
+  const fullOpenerGame = await findFirstGameFullData(tournamentId)
+  if (!fullOpenerGame) {
+    return { games: [], gameGuesses: {} }
+  }
+  const [localizedOpener] = applyLocalizationBatch([fullOpenerGame], locale, [
+    { field: 'location', i18nField: 'location_i18n' },
+  ]) as ExtendedGameData[]
+  const openerGuess = guessesArray.find((g) => g.game_id === fullOpenerGame.id)
+  return {
+    games: [localizedOpener],
+    gameGuesses: openerGuess ? { [fullOpenerGame.id]: openerGuess } : {},
+  }
+}
+
+/** Returns the localized short name of the tournament, or null if no tournament. */
+function computeTournamentName(
+  tournament: Awaited<ReturnType<typeof findTournamentById>> | undefined | null,
+  locale: Locale
+): string | null {
+  if (!tournament) return null
+  return applyLocalization(tournament, locale, [
+    { field: 'short_name', i18nField: 'short_name_i18n' },
+  ]).short_name
+}
+
 /**
  * Fetches and ranks upcoming games for the Tournament Hub Action Center.
  * Returns up to 4 unpredicted open games (urgent mode), or 3 upcoming games
@@ -83,6 +142,8 @@ export async function getActionCenterGames(
     throw new Error('Unauthorized')
   }
 
+  const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
+
   const [games, guessesArray, teams, tournament, firstGame, lastGame] = await Promise.all([
     findGamesForDashboard(tournamentId),
     findGameGuessesByUserId(user.id, tournamentId),
@@ -92,7 +153,26 @@ export async function getActionCenterGames(
     findLastGameInTournament(tournamentId),
   ])
 
-  const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < Date.now()
+  // Use the same completion logic as the Predictions Dashboard for consistent progress data
+  const predictionCompletion = tournament
+    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
+    : null
+
+  const now = Date.now()
+  const tournamentFinished = !!lastGame && lastGame.game_date.getTime() < now
+  const firstGameDate = firstGame?.game_date ?? null
+  const totalGames = predictionCompletion?.totalGames ?? 0
+  const predictedGames = predictionCompletion?.completedGames ?? 0
+  const awardsCompleted = (predictionCompletion?.finalStandings.completed ?? 0) + (predictionCompletion?.awards.completed ?? 0)
+  const awardsTotal = (predictionCompletion?.finalStandings.total ?? 0) + (predictionCompletion?.awards.total ?? 0)
+  const qualifiersCompleted = predictionCompletion?.qualifiers.completed ?? 0
+  const qualifiersTotal = predictionCompletion?.qualifiers.total ?? 0
+  const tournamentJustStarted = !!(
+    firstGameDate &&
+    firstGameDate.getTime() < now &&
+    now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
+  )
+  const tournamentHasStarted = firstGameDate !== null && firstGameDate.getTime() <= now
 
   const { qtAndAwardsOpen, msUntilPredictionLock } = computePredictionLockState(
     tournament,
@@ -104,24 +184,44 @@ export async function getActionCenterGames(
       { field: 'name', i18nField: 'name_i18n' },
     ])
     const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
+
+    // Backfill with opener game when no window games found and tournament hasn't started
+    const { games: openerGames, gameGuesses: openerGameGuesses } = await fetchOpenerBackfill(
+      tournamentId,
+      firstGameDate,
+      now,
+      guessesArray,
+      locale
+    )
+    const openerBackfill = openerGames.length > 0
+
     return {
-      games: [],
-      gameGuesses: {},
+      games: openerGames,
+      gameGuesses: openerGameGuesses,
       teamsMap,
       tournamentMaxSilver: tournament?.max_silver_games ?? 0,
       tournamentMaxGolden: tournament?.max_golden_games ?? 0,
-      mode: 'empty',
+      mode: openerBackfill ? 'fallback' : 'empty',
       qtAndAwardsOpen,
       msUntilPredictionLock,
       tournamentFinished,
+      firstGameDate,
+      tournamentHasStarted,
+      tournamentName: computeTournamentName(tournament, locale),
+      openerBackfill,
+      totalGames,
+      predictedGames,
+      awardsCompleted,
+      awardsTotal,
+      qualifiersCompleted,
+      qualifiersTotal,
+      tournamentJustStarted,
     }
   }
 
   // Build a set of game IDs the user has already guessed
   const guessedGameIds = new Set(guessesArray.map((g) => g.game_id))
   const guessesMapAll = Object.fromEntries(guessesArray.map((g) => [g.game_id, g]))
-
-  const now = Date.now()
 
   // Urgent mode: unpredicted games with deadline still open, sorted by deadline asc
   const urgentGames = games
@@ -158,12 +258,11 @@ export async function getActionCenterGames(
   const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
 
   // Only include guesses for the selected carousel games
-  const gameGuesses: Record<string, GameGuessNew> = {}
-  for (const game of localizedGames) {
-    if (guessesMapAll[game.id]) {
-      gameGuesses[game.id] = guessesMapAll[game.id]
-    }
-  }
+  const gameGuesses = Object.fromEntries(
+    localizedGames
+      .filter((g) => guessesMapAll[g.id] !== undefined)
+      .map((g) => [g.id, guessesMapAll[g.id]] as [string, GameGuessNew])
+  )
 
   return {
     games: localizedGames,
@@ -175,7 +274,24 @@ export async function getActionCenterGames(
     qtAndAwardsOpen,
     msUntilPredictionLock,
     tournamentFinished,
+    firstGameDate,
+    tournamentHasStarted,
+    tournamentName: computeTournamentName(tournament, locale),
+    openerBackfill: false,
+    totalGames,
+    predictedGames,
+    awardsCompleted,
+    awardsTotal,
+    qualifiersCompleted,
+    qualifiersTotal,
+    tournamentJustStarted,
   }
+}
+
+export interface LeaderboardPeekResult {
+  groups: GroupPeekData[]
+  userHasGroups: boolean
+  allGroupNames: Array<{ id: string; name: string }>
 }
 
 const MAX_PEEK_GROUPS = 3
@@ -184,14 +300,15 @@ const MAX_PEEK_GROUPS = 3
  * Fetches the current user's leaderboard standing in their top friend groups for a tournament.
  * Returns up to 3 groups sorted by ranked member count descending, each with a 3-row
  * neighbor window (person above, user, person below) and a momentum indicator (rank change).
- * Returns empty array if user is unauthenticated or has no groups with ranking data.
+ * Also returns userHasGroups (before ranking filter) and allGroupNames (for pre-tournament preview).
+ * Returns { groups: [], userHasGroups: false, allGroupNames: [] } when unauthenticated.
  */
 export async function getLeaderboardPeekData(
   tournamentId: string,
   _locale: Locale
-): Promise<GroupPeekData[]> {
+): Promise<LeaderboardPeekResult> {
   const user = await getLoggedInUser()
-  if (!user?.id) return []
+  if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [] }
 
   const [ownedGroups, participantGroups, favoriteGroupIds] = await Promise.all([
     findProdeGroupsByOwner(user.id),
@@ -206,7 +323,11 @@ export async function getLeaderboardPeekData(
   ])
   const allGroups = Array.from(allGroupsMap.values())
 
-  if (allGroups.length === 0) return []
+  // Build allGroupNames from ALL groups (before ranking filter) — used for pre-tournament preview
+  const allGroupNames = allGroups.map((g) => ({ id: g.id, name: g.name }))
+  const userHasGroups = allGroups.length > 0
+
+  if (allGroups.length === 0) return { groups: [], userHasGroups: false, allGroupNames: [] }
 
   // Fetch latest rankings for all groups concurrently
   const rankingsPerGroup = await Promise.all(
@@ -238,14 +359,14 @@ export async function getLeaderboardPeekData(
   })
   const topCandidates = candidates.slice(0, MAX_PEEK_GROUPS)
 
-  if (topCandidates.length === 0) return []
+  if (topCandidates.length === 0) return { groups: [], userHasGroups, allGroupNames }
 
   // Fetch rank change snapshots for top 3 groups concurrently
   const snapshotResults = await Promise.all(
     topCandidates.map((c) => getLatestTwoGroupRankingSnapshots(user.id, c.group.id, tournamentId))
   )
 
-  return topCandidates.map((candidate, idx) => {
+  const groups: GroupPeekData[] = topCandidates.map((candidate, idx) => {
     const { group, rankings, userRankEntry } = candidate
     const snapshots = snapshotResults[idx]
 
@@ -291,6 +412,8 @@ export async function getLeaderboardPeekData(
       rows,
     }
   })
+
+  return { groups, userHasGroups, allGroupNames }
 }
 
 export type HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'

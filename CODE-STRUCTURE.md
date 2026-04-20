@@ -604,19 +604,29 @@ Key flows:
       → renders TournamentHubRecentResults (Story #318)
       → renders TournamentHubLeaderboardPeek (Story #319)
 
-30. Action Center data flow (Story #317)
+30. Action Center data flow (Story #317; updated #342)
     TournamentHubActionCenter (Server) → getActionCenterGames(tournamentId, locale)
       → getLoggedInUser
       → findGamesForDashboard(tournamentId)
       → findGameGuessesByUserId(userId, tournamentId)
       → findTeamInTournament(tournamentId)
       → findTournamentById(tournamentId)
-      → applyLocalizationBatch (teams + games)
-      → returns ActionCenterData { games, gameGuesses, teamsMap, boostLimits, mode }
+      → findFirstGameInTournament(tournamentId) + findLastGameInTournament(tournamentId)
+      → getGameCountsForTournament(tournamentId)
+      → findTournamentGuessByUserIdTournament(userId, tournamentId)
+      → findFirstGameFullData(tournamentId) [conditional: only when mode=empty and tournament not started]
+      → applyLocalizationBatch (teams + games + openerGame)
+      → returns ActionCenterData { games, gameGuesses, teamsMap, boostLimits, mode,
+                                    firstGameDate, openerGame, totalGames, predictedGames,
+                                    hasAwardsPredictions, tournamentJustStarted }
     → ActionCenterCarousel [Client]
+        → TournamentStartBanner [Client] (conditional: tournamentJustStarted=true, shown above carousel)
         → GuessesContextProvider (gameGuesses, autoSave=true, boost limits)
-        → ScrollShadowContainer (direction="horizontal")
-          → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
+        → [branch: isPreTournament] PreTournamentHero [Client]
+            → FlippableGameCard (opener game)
+            → CircularProgress ×3 (QT, Awards, Overall)
+        → [branch: active] ScrollShadowContainer (direction="horizontal")
+            → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
 
 31. Recent Results data flow (Story #318)
     TournamentHubRecentResults (Server) → getRecentResultsData(tournamentId, locale)
@@ -631,14 +641,16 @@ Key flows:
         → renders up to 3 sections (games, QT, awards) based on null checks
         → "View full statistics" button → /${locale}/tournaments/${tournamentId}/stats
 
-32. Leaderboard Peek data flow (Story #319)
+32. Leaderboard Peek data flow (Story #319; updated #342)
     TournamentHubLeaderboardPeek (Server) → getLeaderboardPeekData(tournamentId, locale)
       → getLoggedInUser
-      → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId)
+      → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId) + getFavoriteGroupIds(userId)
       → getLatestRankingsForGroup(groupId, tournamentId) ×N groups (concurrent)
       → getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3 groups (concurrent)
-      → returns GroupPeekData[] (up to 3, sorted by member count desc)
-    → LeaderboardPeekCard [Client] ×N
+      → returns LeaderboardPeekResult { groups: GroupPeekData[], userHasGroups, allGroupNames }
+    → [branch: !userHasGroups] SocialHubCard [Client]
+    → [branch: userHasGroups && no ranking data] PreTournamentGroupsPreview [Client]
+    → [branch: groups.length > 0] LeaderboardPeekCard [Client] ×N
         → LeaderboardCard (compact=true) ×3
         → RankChangeIndicator (header momentum chip)
 

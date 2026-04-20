@@ -50,5 +50,43 @@
       "bestGoalkeeper": "Mejor Arquero",
       "bestYoungPlayer": "Mejor Joven"
     }
+  },
+  "preTournament": {
+    "countdownTitle": "Inicio del Torneo",
+    "countdownSubtitle": "Para que empiece el {tournamentName}",
+    "days": "Días",
+    "hours": "Horas",
+    "mins": "Min",
+    "openerLabel": "Partido Inaugural",
+    "overallProgress": "Total",
+    "gamesOfTotal": "{predicted} de {total} partidos",
+    "qtShort": "EQ",
+    "awardsShort": "Premios",
+    "totalShort": "Total",
+    "awardsNotStarted": "Pendiente",
+    "awardsDone": "Enviado",
+    "qtLabel": "Equipos Clasificados",
+    "awardsLabel": "Premios",
+    "overallLabel": "Total",
+    "gamesLabel": "Partidos"
+  },
+  "tournamentStarted": {
+    "title": "¡El torneo comenzó!",
+    "subtitle": "¡Buena suerte con tus predicciones!",
+    "seeGames": "Ver todos los partidos"
+  },
+  "socialHub": {
+    "title": "¡No juegues solo!",
+    "description": "La mejor manera de disfrutar el Mundial es en grupo. Creá el tuyo e invitá a tus amigos.",
+    "createGroup": "Crear Grupo",
+    "findGroup": "Encontrar Grupo Público"
+  },
+  "groupsPreview": {
+    "youreIn": "Estás en",
+    "andOthers": "y {count} más.",
+    "rankingPending": "Los rankings estarán disponibles una vez que comience el campeonato",
+    "goToGroups": "Tus Grupos",
+    "createGroup": "Crear Grupo",
+    "discoverGroups": "Descubrir Grupos"
   }
 }

@@ -120,6 +120,53 @@ export const findFirstGameInTournament = cache(async (tournamentId: string)  => 
 })
 
 /**
+ * Find the first game in a tournament with full group, playoff, and result metadata.
+ * Used to surface the opener game card in the pre-tournament hero.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
+export const findFirstGameFullData = cache(async (tournamentId: string): Promise<ExtendedGameData | undefined> => {
+  return await db.selectFrom(tableName)
+    .selectAll()
+    .select((eb) => [
+      jsonObjectFrom(
+        eb.selectFrom('tournament_group_games')
+          .innerJoin('tournament_groups', 'tournament_groups.id', 'tournament_group_games.tournament_group_id')
+          .whereRef('tournament_group_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_group_games.tournament_group_id',
+            'tournament_groups.group_letter'
+          ])
+      ).as('group'),
+      jsonObjectFrom(
+        eb.selectFrom('tournament_playoff_round_games')
+          .innerJoin('tournament_playoff_rounds',
+            'tournament_playoff_rounds.id',
+            'tournament_playoff_round_games.tournament_playoff_round_id')
+          .whereRef('tournament_playoff_round_games.game_id', '=', 'games.id')
+          .select([
+            'tournament_playoff_round_games.tournament_playoff_round_id',
+            'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.is_final',
+            'tournament_playoff_rounds.is_third_place'
+          ])
+      ).as('playoffStage'),
+      jsonObjectFrom(
+        eb.selectFrom('game_results')
+          .whereRef('game_results.game_id', '=', 'games.id')
+          .selectAll()
+      ).as('gameResult')
+    ])
+    .where('tournament_id', '=', tournamentId)
+    .orderBy('game_date', 'asc')
+    .executeTakeFirst() as unknown as ExtendedGameData | undefined
+})
+
+/**
  * Find the last game by date in a tournament (used for X-axis end bound in score history charts).
  */
 export const findLastGameInTournament = cache(async (tournamentId: string) => {
