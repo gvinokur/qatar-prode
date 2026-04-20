@@ -145,15 +145,14 @@ Update entries for `tournament-hub-action-center.tsx` and `social-hub-card.tsx`;
 └────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────┐
-│ 🌳  Equipos Clasificados         0%   0/64 │
+│ [AccountTreeIcon]  Equipos Clasificados  0%│
 │ Armá tu llave. Elegí quiénes pasan         │
 │ de ronda y quién gana la final.             │
 │ ┌──────────────────────────────────────┐   │
-│ │ REGLAS: 1pto por equipo clasificado, │   │
-│ │ +1 extra por posición exacta.        │   │
+│ │ REGLAS: (from rules.rules i18n)      │   │
 │ └──────────────────────────────────────┘   │
 │ [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%│
-│ [Armar mi Llave]                           │
+│ [Pronosticar quien avanza]                 │
 └────────────────────────────────────────────┘
 
 ┌────────────────────────────────────────────┐
@@ -280,6 +279,7 @@ When all tracks are 100%: show "Revisar" (Review) instead of "Empezar" (CTA), bu
 - **PredictionTrackCard(props)**: `JSX.Element` (server-compatible sub-component within the same file)
   Renders: icon, title, description, scoring rules list (dashed border box, one item per line), LinearProgress, CTA Button (Link).
   Props: `title`, `icon`, `description`, `rules: string[]` (pre-computed from `getRulesBySection`), `scoringLabel`, `progress` (0-100), `completed` (count), `total`, `cta`, `href`, `isComplete`
+  Icon usage: `SportsSoccerIcon` for Matches, `AccountTreeIcon` for Qualified Teams (same as `action-center-carousel.tsx`), `EmojiEventsIcon` for Awards.
   Tests: covered by PreTournamentNewUserActionCenter tests above
 
 ### `app/components/tournament-hub/social-hub-card.tsx` *(modified)*
@@ -315,7 +315,7 @@ When all tracks are 100%: show "Revisar" (Review) instead of "Empezar" (CTA), bu
     "qualifiedTeams": {
       "title": "Qualified Teams",
       "description": "Build your bracket. Choose who advances from each group and who wins the final.",
-      "cta": "Build My Bracket",
+      "cta": "Predict who advances",
       "ctaReview": "Review"
     },
     "awards": {
