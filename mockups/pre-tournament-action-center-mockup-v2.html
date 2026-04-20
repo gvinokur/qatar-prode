@@ -86,19 +86,21 @@
     });
 
     function StateToggle({ states, current, onChange }) {
+      const chips = states.map(s => html`
+        <${Chip}
+          key=${s}
+          label=${s.toUpperCase()}
+          size="small"
+          onClick=${() => onChange(s)}
+          variant=${current === s ? 'filled' : 'outlined'}
+          color=${current === s ? 'primary' : 'default'}
+          sx=${{ px: 1 }}
+        />
+      `);
+
       return html`
         <${Stack} direction="row" spacing=${1} sx=${{ mb: 3, justifyContent: 'center' }}>
-          ${states.map(s => html`
-            <${Chip}
-              key=${s}
-              label=${s.toUpperCase()}
-              size="small"
-              onClick=${() => onChange(s)}
-              variant=${current === s ? 'filled' : 'outlined'}
-              color=${current === s ? 'primary' : 'default'}
-              sx=${{ px: 1 }}
-            />
-          `)}
+          ${chips}
         <//>
       `;
     }
@@ -316,6 +318,10 @@
         ]
       };
 
+      const trackCards = tracks[state].map((track, i) => html`
+        <${TrackCard} key=${i} ...${track} />
+      `);
+
       return html`
         <${ThemeProvider} theme=${theme}>
           <${CssBaseline} />
@@ -339,9 +345,7 @@
             <//>
 
             <${Stack} spacing=${3}>
-              ${tracks[state].map((track, i) => html`
-                <${TrackCard} key=${i} ...${track} />
-              `)}
+              ${trackCards}
             <//>
 
             <${FriendGroupsSection} isEmpty=${state === 'incomplete'} />
