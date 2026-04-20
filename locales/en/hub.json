@@ -66,7 +66,8 @@
     "awardsDone": "Submitted",
     "qtLabel": "Qualified Teams",
     "awardsLabel": "Awards",
-    "overallLabel": "Overall"
+    "overallLabel": "Overall",
+    "gamesLabel": "Games"
   },
   "tournamentStarted": {
     "title": "The tournament has started!",

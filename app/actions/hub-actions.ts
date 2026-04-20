@@ -48,8 +48,10 @@ export interface ActionCenterData {
   tournamentFinished: boolean
   /** game_date of the first tournament game (null if no games) */
   firstGameDate: Date | null
-  /** Full game data for the opener card — only populated when mode=empty and tournament not started */
-  openerGame: ExtendedGameData | null
+  /** True when the first game has already kicked off (tournament is underway or finished) */
+  tournamentHasStarted: boolean
+  /** True when games array was backfilled with the opener because no window games were found */
+  openerBackfill: boolean
   /** Total number of games in the tournament */
   totalGames: number
   /** Number of games the user has fully predicted (both scores, playoff penalty included) */
@@ -132,6 +134,7 @@ export async function getActionCenterGames(
     firstGameDate.getTime() < now &&
     now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
   )
+  const tournamentHasStarted = firstGameDate !== null && firstGameDate.getTime() <= now
 
   const { qtAndAwardsOpen, msUntilPredictionLock } = computePredictionLockState(
     tournament,
@@ -144,8 +147,8 @@ export async function getActionCenterGames(
     ])
     const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
 
-    // Fetch opener game data when pre-tournament (firstGame is in the future)
-    let openerGame: ExtendedGameData | null = null
+    // Backfill with opener game when no window games found and tournament hasn't started
+    let openerGames: ExtendedGameData[] = []
     let openerGameGuesses: Record<string, GameGuessNew> = {}
     if (firstGameDate && firstGameDate.getTime() > now) {
       const fullOpenerGame = await findFirstGameFullData(tournamentId)
@@ -153,7 +156,7 @@ export async function getActionCenterGames(
         const [localizedOpener] = applyLocalizationBatch([fullOpenerGame], locale, [
           { field: 'location', i18nField: 'location_i18n' },
         ]) as ExtendedGameData[]
-        openerGame = localizedOpener
+        openerGames = [localizedOpener]
         // Include user's guess for the opener game if it exists
         const openerGuess = guessesArray.find((g) => g.game_id === fullOpenerGame.id)
         if (openerGuess) {
@@ -162,18 +165,21 @@ export async function getActionCenterGames(
       }
     }
 
+    const openerBackfill = openerGames.length > 0
+
     return {
-      games: [],
+      games: openerGames,
       gameGuesses: openerGameGuesses,
       teamsMap,
       tournamentMaxSilver: tournament?.max_silver_games ?? 0,
       tournamentMaxGolden: tournament?.max_golden_games ?? 0,
-      mode: 'empty',
+      mode: openerBackfill ? 'fallback' : 'empty',
       qtAndAwardsOpen,
       msUntilPredictionLock,
       tournamentFinished,
       firstGameDate,
-      openerGame,
+      tournamentHasStarted,
+      openerBackfill,
       totalGames,
       predictedGames,
       awardsCompleted,
@@ -241,7 +247,8 @@ export async function getActionCenterGames(
     msUntilPredictionLock,
     tournamentFinished,
     firstGameDate,
-    openerGame: null,
+    tournamentHasStarted,
+    openerBackfill: false,
     totalGames,
     predictedGames,
     awardsCompleted,

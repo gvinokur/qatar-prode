@@ -3,19 +3,16 @@
 import React, { useState } from 'react'
 import {
   Box,
+  Stack,
   Typography,
-  Card,
-  CardContent,
-  CardActions,
   Button,
-  Grid,
-  Chip,
+  CircularProgress,
 } from '@mui/material'
 import {
   CalendarToday as CalendarTodayIcon,
+  AccountTree as AccountTreeIcon,
   EmojiEvents as EmojiEventsIcon,
-  Groups as GroupsIcon,
-  Schedule as ScheduleIcon,
+  SportsSoccer as SportsSoccerIcon,
 } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -23,15 +20,49 @@ import { GuessesContextProvider } from '../context-providers/guesses-context-pro
 import { ScrollShadowContainer } from '../common/scroll-shadow-container'
 import FlippableGameCard from '../flippable-game-card'
 import { ActionCenterData } from '../../actions/hub-actions'
-import { getUrgencyLevel, formatCountdown } from '../../utils/countdown-utils'
 import type { Locale } from '../../../i18n.config'
-import PreTournamentHero, { PreTournamentCountdown } from './pre-tournament-hero'
+import { PreTournamentCountdown } from './pre-tournament-hero'
 import { TournamentStartBanner } from './tournament-start-banner'
 
 interface ActionCenterCarouselProps {
   readonly data: ActionCenterData
   readonly tournamentId: string
   readonly locale: Locale
+}
+
+/** Renders a CircularProgress with a visible grey track and an icon centered inside. */
+function TrackedCircularProgress({ value, icon }: { value: number; icon: React.ReactNode }) {
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* Track (always-visible background ring) */}
+      <CircularProgress
+        variant="determinate"
+        value={100}
+        size={64}
+        sx={{ color: 'action.selected', position: 'absolute', top: 0, left: 0 }}
+      />
+      {/* Actual progress */}
+      <CircularProgress variant="determinate" value={value} size={64} color="secondary" />
+      {/* Icon centered inside the circle */}
+      <Box
+        sx={{
+          position: 'absolute',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icon}
+      </Box>
+    </Box>
+  )
 }
 
 export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCenterCarouselProps) {
@@ -44,6 +75,7 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
   const gamesUrl = `/${locale}/tournaments/${tournamentId}`
   const qualifiedTeamsUrl = `/${locale}/tournaments/${tournamentId}/qualified-teams`
   const awardsUrl = `/${locale}/tournaments/${tournamentId}/awards`
+  const gamesCircleUrl = `/${locale}/tournaments/${tournamentId}/games`
 
   const handleEditStart = (gameId: string) => setEditingGameId(gameId)
   const handleEditEnd = () => setEditingGameId(null)
@@ -60,21 +92,14 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
     setEditingGameId(index > 0 ? data.games[index - 1].id : null)
   }
 
-  const urgency = getUrgencyLevel(data.msUntilPredictionLock)
-  const showUrgencyChip = data.qtAndAwardsOpen && urgency !== 'safe'
-  let urgencyChipColor: 'error' | 'warning' | 'info'
-  if (urgency === 'urgent') {
-    urgencyChipColor = 'error'
-  } else if (urgency === 'warning') {
-    urgencyChipColor = 'warning'
-  } else {
-    urgencyChipColor = 'info'
-  }
-  const countdownText = showUrgencyChip ? formatCountdown(data.msUntilPredictionLock) : ''
-
-  // Pre-tournament: mode=empty, firstGameDate set, tournament not yet finished (started)
-  const isPreTournament =
-    data.mode === 'empty' && data.firstGameDate !== null && !data.tournamentFinished
+  const gamesProgress =
+    data.totalGames === 0 ? 0 : Math.round((data.predictedGames / data.totalGames) * 100)
+  const awardsProgress =
+    data.awardsTotal === 0 ? 0 : Math.round((data.awardsCompleted / data.awardsTotal) * 100)
+  const qtProgress =
+    data.qualifiersTotal === 0
+      ? 0
+      : Math.round((data.qualifiersCompleted / data.qualifiersTotal) * 100)
 
   return (
     <GuessesContextProvider
@@ -89,9 +114,9 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           <TournamentStartBanner locale={locale} tournamentId={tournamentId} />
         )}
 
-        {/* Countdown — shown above the header when in pre-tournament mode */}
-        {isPreTournament && (
-          <PreTournamentCountdown firstGameDate={data.firstGameDate!} />
+        {/* Countdown — shown before the tournament starts */}
+        {!data.tournamentHasStarted && data.firstGameDate !== null && (
+          <PreTournamentCountdown firstGameDate={data.firstGameDate} />
         )}
 
         {/* Header — centered */}
@@ -102,24 +127,19 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </Typography>
         </Box>
 
-        {/* Pre-tournament: opener card + progress row (countdown rendered above) */}
-        {isPreTournament ? (
-          <PreTournamentHero
-            openerGame={data.openerGame}
-            tournamentId={tournamentId}
-            locale={locale}
-            teamsMap={data.teamsMap}
-            gameGuesses={data.gameGuesses}
-            qtAndAwardsOpen={data.qtAndAwardsOpen}
-            totalGames={data.totalGames}
-            predictedGames={data.predictedGames}
-            awardsCompleted={data.awardsCompleted}
-            awardsTotal={data.awardsTotal}
-            qualifiersCompleted={data.qualifiersCompleted}
-            qualifiersTotal={data.qualifiersTotal}
-          />
-        ) : data.mode === 'empty' ? (
-          /* Fallback empty state (tournament finished or no games) */
+        {/* Opener label — shown when the carousel was backfilled with the first tournament game */}
+        {data.openerBackfill && (
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ display: 'block', textAlign: 'center', mb: 0.5 }}
+          >
+            {t('preTournament.openerLabel')}
+          </Typography>
+        )}
+
+        {data.mode === 'empty' ? (
+          /* Empty state — no games and no opener to backfill */
           <Box
             sx={{
               width: '100%',
@@ -142,7 +162,7 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             </Button>
           </Box>
         ) : (
-          /* Game carousel */
+          /* Game carousel — includes opener when openerBackfill=true */
           <ScrollShadowContainer
             direction="horizontal"
             hideScrollbar={true}
@@ -180,80 +200,96 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
           </ScrollShadowContainer>
         )}
 
-        {/* Quick-action cards — only shown when QT/Awards predictions are still open
-            and we're NOT in pre-tournament mode (PreTournamentHero shows its own progress row) */}
-        {data.qtAndAwardsOpen && !isPreTournament && (
-          <Box sx={{ mt: 2 }}>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ display: 'block', textAlign: 'center', mb: 1 }}
+        {/* Prediction progress — circular progress row replacing the old quick-action cards */}
+        {data.qtAndAwardsOpen && (
+          <Stack direction="row" justifyContent="space-around" sx={{ mt: 2 }}>
+            {/* Qualified Teams */}
+            <Box
+              component={Link}
+              href={qualifiedTeamsUrl}
+              sx={{
+                textDecoration: 'none',
+                color: 'inherit',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
             >
-              {t('actionCenter.quickActions')}
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Card variant="outlined" sx={{ height: '100%' }}>
-                  <CardContent sx={{ pb: 0 }}>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-                      <GroupsIcon color="primary" fontSize="small" />
-                      <Typography variant="subtitle2">
-                        {t('actionCenter.qualifiedTeamsTitle')}
-                      </Typography>
-                      {showUrgencyChip && (
-                        <Chip
-                          label={countdownText}
-                          color={urgencyChipColor}
-                          size="small"
-                          icon={<ScheduleIcon />}
-                          sx={{ ml: 'auto' }}
-                          data-testid="urgency-chip-qt"
-                        />
-                      )}
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('actionCenter.qualifiedTeamsHint')}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button component={Link} href={qualifiedTeamsUrl} size="small">
-                      {t('actionCenter.goToPage')}
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Card variant="outlined" sx={{ height: '100%' }}>
-                  <CardContent sx={{ pb: 0 }}>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-                      <EmojiEventsIcon color="primary" fontSize="small" />
-                      <Typography variant="subtitle2">
-                        {t('actionCenter.awardsTitle')}
-                      </Typography>
-                      {showUrgencyChip && (
-                        <Chip
-                          label={countdownText}
-                          color={urgencyChipColor}
-                          size="small"
-                          icon={<ScheduleIcon />}
-                          sx={{ ml: 'auto' }}
-                          data-testid="urgency-chip-awards"
-                        />
-                      )}
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('actionCenter.awardsHint')}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button component={Link} href={awardsUrl} size="small">
-                      {t('actionCenter.goToPage')}
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
+              <TrackedCircularProgress
+                value={qtProgress}
+                icon={<AccountTreeIcon sx={{ color: 'text.secondary', fontSize: 22 }} />}
+              />
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.qtLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {data.qualifiersCompleted}/{data.qualifiersTotal}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Awards */}
+            <Box
+              component={Link}
+              href={awardsUrl}
+              sx={{
+                textDecoration: 'none',
+                color: 'inherit',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              <TrackedCircularProgress
+                value={awardsProgress}
+                icon={<EmojiEventsIcon sx={{ color: 'text.secondary', fontSize: 22 }} />}
+              />
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.awardsLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {data.awardsCompleted}/{data.awardsTotal}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Games */}
+            <Box
+              component={Link}
+              href={gamesCircleUrl}
+              sx={{
+                textDecoration: 'none',
+                color: 'inherit',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              <TrackedCircularProgress
+                value={gamesProgress}
+                icon={<SportsSoccerIcon sx={{ color: 'text.secondary', fontSize: 22 }} />}
+              />
+              <Box>
+                <Typography variant="body2" fontWeight={500}>
+                  {t('preTournament.gamesLabel')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t('preTournament.gamesOfTotal', {
+                    predicted: data.predictedGames,
+                    total: data.totalGames,
+                  })}
+                </Typography>
+              </Box>
+            </Box>
+          </Stack>
         )}
       </Box>
     </GuessesContextProvider>
