@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Pre-tournament Hub: Action Center redesign for new users
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-349
 - **Branch:** feature/story-349
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 350
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/350
 
 ## State
 - **Current Phase:** planning
