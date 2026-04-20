@@ -54,9 +54,12 @@ export function PreTournamentCountdown({ firstGameDate }: PreTournamentCountdown
         color="secondary"
         sx={{
           fontSize: 36,
-          animation: 'spin 3s linear infinite',
-          '@keyframes spin': {
-            '0%': { transform: 'rotate(0deg)' },
+          animation: 'hourglassFlip 4s infinite',
+          '@keyframes hourglassFlip': {
+            '0%': { transform: 'rotate(0deg)', animationTimingFunction: 'linear' },
+            '35%': { transform: 'rotate(0deg)', animationTimingFunction: 'ease-in-out' },
+            '50%': { transform: 'rotate(180deg)', animationTimingFunction: 'linear' },
+            '85%': { transform: 'rotate(180deg)', animationTimingFunction: 'ease-in-out' },
             '100%': { transform: 'rotate(360deg)' },
           },
         }}
