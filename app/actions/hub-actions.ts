@@ -10,7 +10,7 @@ import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
 import { getLoggedInUser } from './user-actions'
-import { applyLocalizationBatch } from '../utils/localization-helper'
+import { applyLocalizationBatch, applyLocalization } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
 import { ExtendedGameData } from '../definitions'
 import { GameGuessNew, Team } from '../db/tables-definition'
@@ -181,7 +181,9 @@ export async function getActionCenterGames(
       tournamentFinished,
       firstGameDate,
       tournamentHasStarted,
-      tournamentName: tournament?.short_name ?? null,
+      tournamentName: tournament
+        ? applyLocalization(tournament, locale, [{ field: 'short_name', i18nField: 'short_name_i18n' }]).short_name
+        : null,
       openerBackfill,
       totalGames,
       predictedGames,

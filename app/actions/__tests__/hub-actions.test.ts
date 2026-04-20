@@ -71,6 +71,7 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('@/app/utils/localization-helper', () => ({
   applyLocalizationBatch: vi.fn((items: any[]) => items),
+  applyLocalization: vi.fn((item: any) => item),
 }))
 
 const TOURNAMENT_ID = 'tournament-1'
