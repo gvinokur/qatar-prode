@@ -6,9 +6,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import GroupsIcon from '@mui/icons-material/Groups'
 import HistoryIcon from '@mui/icons-material/History'
 import { getLocale } from 'next-intl/server'
-import { redirect } from 'next/navigation'
 import { toLocale } from '@/app/utils/locale-utils'
-import { getLoggedInUser } from '@/app/actions/user-actions'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 
 type Props = {
@@ -20,11 +18,6 @@ type Props = {
 export default async function TournamentHubPage(props: Props) {
   const { id } = await props.params
   const locale = toLocale(await getLocale())
-
-  const user = await getLoggedInUser()
-  if (!user) {
-    redirect(`/${locale}/tournaments/${id}/games`)
-  }
 
   return (
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
