@@ -6,6 +6,12 @@ export interface ScoringRulesBySection {
   awards: string[]
 }
 
+export interface ConstraintsBySection {
+  matches: string
+  qualifiedTeams: string
+  awards: string
+}
+
 /**
  * Organises scoring rule labels into the three prediction tracks (Matches, Qualified Teams, Awards).
  * Uses the same i18n keys and pluralisation logic as rules.tsx's getRules().
@@ -77,4 +83,25 @@ export function getRulesBySection(
   ]
 
   return { matches, qualifiedTeams, awards }
+}
+
+/**
+ * Returns per-section prediction deadline constraint strings sourced from the
+ * `rules.constraints` namespace. When `lockDate` is provided (a pre-formatted
+ * date string) it is interpolated into the QT/Awards constraint text; otherwise
+ * the fallback phrase "5 days after the tournament starts" is used.
+ *
+ * @param tConstraints  Translator bound to the `rules.constraints` namespace
+ * @param lockDate      Pre-formatted close date for QT/Awards (e.g. "June 16, 2026"), or null
+ */
+export function getConstraintsBySection(
+  tConstraints: (_key: string, _params?: Record<string, unknown>) => string,
+  lockDate: string | null
+): ConstraintsBySection {
+  const date = lockDate ?? tConstraints('lockDateFallback')
+  return {
+    matches: tConstraints('matchPredictionTime'),
+    qualifiedTeams: tConstraints('qualifiedTeamsPredictionTime', { date }),
+    awards: tConstraints('podiumPredictionTime', { date }),
+  }
 }

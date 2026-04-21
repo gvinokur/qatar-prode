@@ -52,9 +52,10 @@
   },
   "constraints": {
     "matchPredictionTime": "Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo",
-    "podiumPredictionTime": "Se permite modificar pronosticos de podio y premios individuales luego hasta 2 dias despues del comienzo del torneo",
+    "podiumPredictionTime": "Se permite modificar pronósticos de podio y premios individuales hasta el {date}",
+    "qualifiedTeamsPredictionTime": "Se permite modificar pronósticos de equipos clasificados hasta el {date}",
     "singlePrediction": "No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos",
-    "qualifiedTeamsPredictionTime": "Se permite modificar pronosticos de equipos clasificados hasta 2 dias despues del comienzo del torneo"
+    "lockDateFallback": "5 días después del inicio del torneo"
   },
   "examples": {
     "winnerDraw": "Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.",
@@ -66,9 +67,9 @@
     "thirdPlace": "Ejemplo: Si predices que Francia será tercero y efectivamente Francia gana el partido por el tercer puesto, obtienes {points} {points, plural, one {punto} other {puntos}}.",
     "individualAwards": "Ejemplo: Si predices que Lionel Messi ganará el premio al mejor jugador y efectivamente lo gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Lo mismo aplica para otros premios (arquero, goleador, etc.).",
     "matchPredictionTime": "Ejemplo: Si un partido comienza a las 15:00, puedes modificar tu pronóstico hasta las 14:00. Después de esa hora, el pronóstico queda bloqueado.",
-    "podiumPredictionTime": "Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de campeón, subcampeón y tercer puesto hasta el 3 de junio a las 23:59.",
+    "podiumPredictionTime": "Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de campeón, subcampeón y tercer puesto hasta el 6 de junio a las 23:59.",
     "singlePrediction": "Ejemplo: Solo puedes tener un pronostico activo, pero ese mismo pronostico puede usarse en el grupo con tus amigos, en el grupo de tu oficina, y en cualquier otro grupo al que te unas.",
-    "qualifiedTeamsPredictionTime": "Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 3 de junio a las 23:59."
+    "qualifiedTeamsPredictionTime": "Ejemplo: Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 6 de junio a las 23:59."
   },
   "actions": {
     "viewFullRules": "Ver Reglas Completas"

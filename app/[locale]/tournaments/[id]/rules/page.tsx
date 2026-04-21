@@ -6,6 +6,7 @@ import Rules, { ScoringConfig } from '../../../../components/tournament-page/rul
 import { redirect } from 'next/navigation'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
+import { findFirstGameInTournament } from '../../../../db/game-repository'
 import JsonLd from '../../../../components/shared/json-ld'
 import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 
@@ -41,11 +42,22 @@ export default async function TournamentRulesPage(props: Props) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   // Server Component pattern: Import repository directly, fetch data, pass as props
-  const tournament = await findTournamentByIdCached(tournamentId)
+  const [tournament, firstGame] = await Promise.all([
+    findTournamentByIdCached(tournamentId),
+    findFirstGameInTournament(tournamentId),
+  ])
 
   if (!tournament) {
     redirect('/es')
   }
+
+  // Compute the QT/Awards lock date: 5 days after the first game
+  const LOCK_OFFSET_MS = 5 * 24 * 60 * 60 * 1000
+  const lockDate = firstGame?.game_date
+    ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
+        new Date(firstGame.game_date.getTime() + LOCK_OFFSET_MS)
+      )
+    : undefined
 
   // Extract scoring config from tournament
   const scoringConfig: ScoringConfig = {
@@ -69,7 +81,7 @@ export default async function TournamentRulesPage(props: Props) {
         { name: tRules('title'), url: `${appUrl}/${locale}/tournaments/${tournamentId}/rules` },
       ])} />
       <Box sx={{ pt: 2 }}>
-        <Rules fullpage scoringConfig={scoringConfig} />
+        <Rules fullpage scoringConfig={scoringConfig} lockDate={lockDate} />
       </Box>
     </>
   )

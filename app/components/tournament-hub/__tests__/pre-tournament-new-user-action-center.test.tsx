@@ -37,6 +37,11 @@ vi.mock('@/app/utils/scoring-rules-utils', () => ({
     qualifiedTeams: ['qt-rule-1', 'qt-rule-2'],
     awards: ['awards-rule-1', 'awards-rule-2'],
   })),
+  getConstraintsBySection: vi.fn(() => ({
+    matches: 'matches-deadline',
+    qualifiedTeams: 'qt-deadline',
+    awards: 'awards-deadline',
+  })),
 }))
 
 const defaultScoringConfig = {

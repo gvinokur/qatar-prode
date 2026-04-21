@@ -113,9 +113,7 @@
         "ctaReview": "Review Your Predictions"
       },
       "deadline": {
-        "label": "PREDICTION DEADLINE:",
-        "matchesText": "Predictions lock 1 hour before each match kickoff",
-        "qtAndAwardsText": "Closes on {date}"
+        "label": "PREDICTION DEADLINE:"
       },
       "scoringLabel": "SCORING RULES:"
     },

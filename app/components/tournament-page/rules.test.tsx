@@ -247,13 +247,13 @@ describe('Rules', () => {
     it('renders qualified teams prediction time constraint', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />)
 
-      expect(screen.getByText(/Se permite modificar pronosticos de equipos clasificados/i)).toBeInTheDocument()
+      expect(screen.getByText(/Se permite modificar.*equipos clasificados/i)).toBeInTheDocument()
     })
 
     it('renders qualified teams constraint in English', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
 
-      expect(screen.getByText(/You can modify qualified teams predictions up to 2 days after the tournament starts/i)).toBeInTheDocument()
+      expect(screen.getByText(/You can modify qualified teams predictions until 5 days after the tournament starts/i)).toBeInTheDocument()
     })
   })
 })

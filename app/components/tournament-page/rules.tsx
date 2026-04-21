@@ -42,9 +42,11 @@ interface RulesProps {
   readonly scoringConfig?: ScoringConfig;
   readonly tournamentId?: string;
   readonly isActive?: boolean;
+  /** Pre-formatted QT/Awards lock date (e.g. "June 16, 2026"). When omitted, falls back to "5 days after the tournament starts". */
+  readonly lockDate?: string;
 }
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {
+export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false, lockDate }: RulesProps) {
   const locale = useLocale();
   const theme = useTheme();
   const t = useTranslations('rules');
@@ -140,18 +142,20 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     return baseRules;
   };
 
-  // Constraints with i18n
+  // Constraints with i18n — use the specific lock date when available, otherwise fall back to
+  // the generic "5 days after the tournament starts" phrase so the text is always complete.
+  const date = lockDate || tConstraints('lockDateFallback');
   const constraints: Rule[] = [
     {
       label: tConstraints('matchPredictionTime'),
       component: <MatchPredictionTimeExample />
     },
     {
-      label: tConstraints('podiumPredictionTime'),
+      label: tConstraints('podiumPredictionTime', { date }),
       component: <PodiumPredictionTimeExample />
     },
     {
-      label: tConstraints('qualifiedTeamsPredictionTime'),
+      label: tConstraints('qualifiedTeamsPredictionTime', { date }),
       component: <QualifiedTeamsPredictionTimeExample />
     },
     {

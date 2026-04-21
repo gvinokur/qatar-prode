@@ -52,9 +52,10 @@
   },
   "constraints": {
     "matchPredictionTime": "You can change your predictions for each match up to one hour before it starts",
-    "podiumPredictionTime": "You can modify podium and individual awards predictions up to 2 days after the tournament starts",
+    "podiumPredictionTime": "You can modify podium and individual awards predictions until {date}",
+    "qualifiedTeamsPredictionTime": "You can modify qualified teams predictions until {date}",
     "singlePrediction": "Only one prediction per person is allowed, but the same prediction can be used in multiple groups",
-    "qualifiedTeamsPredictionTime": "You can modify qualified teams predictions up to 2 days after the tournament starts"
+    "lockDateFallback": "5 days after the tournament starts"
   },
   "examples": {
     "winnerDraw": "Example: If you predict Argentina will beat Brazil and Argentina indeed wins, you get {points} {points, plural, one {point} other {points}}. If you predict a draw and the match ends in a draw, you also get {points} {points, plural, one {point} other {points}}.",
@@ -66,9 +67,9 @@
     "thirdPlace": "Example: If you predict France will be third and France indeed wins the third place match, you get {points} {points, plural, one {point} other {points}}.",
     "individualAwards": "Example: If you predict Lionel Messi will win the best player award and he indeed wins it, you get {points} {points, plural, one {point} other {points}}. The same applies for other awards (goalkeeper, top scorer, etc.).",
     "matchPredictionTime": "Example: If a match starts at 3:00 PM, you can modify your prediction until 2:00 PM. After that time, the prediction is locked.",
-    "podiumPredictionTime": "Example: If the tournament starts on June 1st, you can modify your champion, runner-up, and third place predictions until June 3rd at 11:59 PM.",
+    "podiumPredictionTime": "Example: If the tournament starts on June 1st, you can modify your champion, runner-up, and third place predictions until June 6th at 11:59 PM.",
     "singlePrediction": "Example: You can only have one active prediction, but that same prediction can be used in your friends' group, your office group, and any other group you join.",
-    "qualifiedTeamsPredictionTime": "Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 3rd at 11:59 PM."
+    "qualifiedTeamsPredictionTime": "Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 6th at 11:59 PM."
   },
   "actions": {
     "viewFullRules": "View Full Rules"

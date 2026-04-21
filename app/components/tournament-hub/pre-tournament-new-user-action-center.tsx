@@ -12,7 +12,7 @@ import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { PreTournamentCountdown } from './pre-tournament-hero'
 import { TutorialCTACard } from './tutorial-cta-card'
-import { getRulesBySection } from '../../utils/scoring-rules-utils'
+import { getRulesBySection, getConstraintsBySection } from '../../utils/scoring-rules-utils'
 import type { ActionCenterData } from '../../actions/hub-actions'
 import type { Locale } from '../../../i18n.config'
 
@@ -152,9 +152,15 @@ export async function PreTournamentNewUserActionCenter({
 }: PreTournamentNewUserActionCenterProps) {
   const t = await getTranslations('hub')
   const tRulesRaw = await getTranslations('rules.rules')
-  // Wrap with a typed adapter so getRulesBySection can use a plain string key
+  const tConstraintsRaw = await getTranslations('rules.constraints')
+  // Wrap with typed adapters so the utils can use plain string keys
   const tRules = (key: string, params?: Record<string, unknown>) =>
     tRulesRaw(key as Parameters<typeof tRulesRaw>[0], params as Parameters<typeof tRulesRaw>[1])
+  const tConstraints = (key: string, params?: Record<string, unknown>) =>
+    tConstraintsRaw(
+      key as Parameters<typeof tConstraintsRaw>[0],
+      params as Parameters<typeof tConstraintsRaw>[1]
+    )
 
   const rulesBySection = getRulesBySection(data.scoringConfig, tRules)
 
@@ -180,20 +186,15 @@ export async function PreTournamentNewUserActionCenter({
   const scoringLabel = t('newUser.tracks.scoringLabel')
   const deadlineLabel = t('newUser.tracks.deadline.label')
 
-  // QT/Awards lock 5 days after the first game
-  const qtLockDate = data.firstGameDate
-    ? new Date(data.firstGameDate.getTime() + 5 * 24 * 60 * 60 * 1000)
-    : null
-  const qtLockDateFormatted = qtLockDate
+  // QT/Awards lock 5 days after the first game — compute the formatted date once and pass it to
+  // getConstraintsBySection, which embeds it directly into the constraint text from rules.constraints.
+  const qtLockDateFormatted = data.firstGameDate
     ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
-        qtLockDate
+        new Date(data.firstGameDate.getTime() + 5 * 24 * 60 * 60 * 1000)
       )
     : null
-  const qtAwardsDeadline = qtLockDateFormatted
-    ? t('newUser.tracks.deadline.qtAndAwardsText', { date: qtLockDateFormatted })
-    : null
 
-  const matchesDeadline = t('newUser.tracks.deadline.matchesText')
+  const constraintsBySection = getConstraintsBySection(tConstraints, qtLockDateFormatted)
 
   // 4-state CTA: none → keep → finish → review
   // Matches threshold: 30% | QT & Awards threshold: 90%
@@ -244,7 +245,7 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.matches.description', { total: data.totalGames })}
         rules={rulesBySection.matches}
         scoringLabel={scoringLabel}
-        deadline={matchesDeadline}
+        deadline={constraintsBySection.matches}
         deadlineLabel={deadlineLabel}
         progress={gamesProgress}
         completed={data.predictedGames}
@@ -261,7 +262,7 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.qualifiedTeams.description')}
         rules={rulesBySection.qualifiedTeams}
         scoringLabel={scoringLabel}
-        deadline={qtAwardsDeadline}
+        deadline={constraintsBySection.qualifiedTeams}
         deadlineLabel={deadlineLabel}
         progress={qtProgress}
         completed={data.qualifiersCompleted}
@@ -278,7 +279,7 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.awards.description')}
         rules={rulesBySection.awards}
         scoringLabel={scoringLabel}
-        deadline={qtAwardsDeadline}
+        deadline={constraintsBySection.awards}
         deadlineLabel={deadlineLabel}
         progress={awardsProgress}
         completed={data.awardsCompleted}
