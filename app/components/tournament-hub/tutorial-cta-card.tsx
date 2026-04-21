@@ -20,7 +20,7 @@ export function TutorialCTACard() {
     <>
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40, flexShrink: 0 }}>
+          <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40, flexShrink: 0 }}>
             <HelpOutlineIcon fontSize="small" />
           </Avatar>
           <Stack flexGrow={1} spacing={0.5}>
@@ -33,7 +33,7 @@ export function TutorialCTACard() {
           </Stack>
           <Button
             variant="contained"
-            color="secondary"
+            color="primary"
             size="small"
             onClick={() => setOpen(true)}
             sx={{ flexShrink: 0 }}
