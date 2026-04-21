@@ -81,6 +81,37 @@
     "createGroup": "Create Group",
     "findGroup": "Find Public Group"
   },
+  "newUser": {
+    "tutorial": {
+      "title": "New to Prode?",
+      "subtitle": "Learn how to earn points and win your friends' tournament.",
+      "cta": "View Tutorial"
+    },
+    "tracks": {
+      "matches": {
+        "title": "Matches",
+        "description": "Predict the result of all {total} tournament matches.",
+        "cta": "Start Predicting",
+        "ctaReview": "Review"
+      },
+      "qualifiedTeams": {
+        "title": "Qualified Teams",
+        "description": "Build your bracket. Choose who advances from each group and who wins the final.",
+        "cta": "Predict who advances",
+        "ctaReview": "Review"
+      },
+      "awards": {
+        "title": "Awards",
+        "description": "Choose the Champion, Top Scorer, Best Goalkeeper and more individual awards.",
+        "cta": "Choose Awards",
+        "ctaReview": "Review"
+      },
+      "scoringLabel": "SCORING RULES:"
+    },
+    "socialHub": {
+      "learnMore": "Learn more about groups"
+    }
+  },
   "groupsPreview": {
     "youreIn": "You're in",
     "andOthers": "and {count} others.",

@@ -47,4 +47,15 @@ describe('SocialHubCard', () => {
       expect(link).toHaveAttribute('href', expect.stringContaining('/es/'))
     })
   })
+
+  it('renders the "Learn more" link below the main CTAs', () => {
+    render(<SocialHubCard {...defaultProps} />)
+    expect(screen.getByText('newUser.socialHub.learnMore')).toBeInTheDocument()
+  })
+
+  it('"Learn more" link points to the friend-groups page URL', () => {
+    render(<SocialHubCard {...defaultProps} />)
+    const learnMoreLink = screen.getByText('newUser.socialHub.learnMore').closest('a')
+    expect(learnMoreLink).toHaveAttribute('href', '/en/tournaments/tour-42/friend-groups')
+  })
 })

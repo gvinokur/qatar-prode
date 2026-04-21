@@ -145,9 +145,9 @@ Offline fallback page shown when service worker catches offline navigation.
 ### app/[locale]/tournaments/[id]/page.tsx
 Tournament Hub landing page — the primary entry point after route promotion (Story #338).
 
-- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub landing page. Resolves `id` from params, derives locale via `toLocale`, redirects to `/games` if user is not logged in, otherwise renders hub widgets.
-  Calls: getLocale, toLocale, getLoggedInUser, redirect
-  Renders: TournamentHubActionCenter, TournamentHubRecentResults, TournamentHubLeaderboardPeek
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub landing page. Resolves `id` from params, derives locale via `toLocale`, redirects to `/games` if user is not logged in. Fetches `ActionCenterData` at page level, computes `isIncompleteUser` via `computeIsIncompleteUser`, passes pre-fetched data to `TournamentHubActionCenter`, and suppresses `TournamentHubRecentResults` for incomplete users.
+  Calls: getLocale, toLocale, getLoggedInUser, redirect, getActionCenterGames, computeIsIncompleteUser
+  Renders: TournamentHubActionCenter, TournamentHubRecentResults (conditional), TournamentHubLeaderboardPeek
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
 Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.

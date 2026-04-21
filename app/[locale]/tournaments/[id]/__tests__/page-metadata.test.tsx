@@ -26,6 +26,24 @@ vi.mock('@/app/actions/user-actions', () => ({
   getLoggedInUser: () => mockGetLoggedInUser(),
 }));
 
+// Mock hub-actions (data lift means page.tsx now calls these directly)
+vi.mock('@/app/actions/hub-actions', () => ({
+  getActionCenterGames: vi.fn().mockResolvedValue({
+    games: [], gameGuesses: {}, teamsMap: {}, tournamentMaxSilver: 0, tournamentMaxGolden: 0,
+    mode: 'empty', qtAndAwardsOpen: true, msUntilPredictionLock: 0,
+    tournamentFinished: false, firstGameDate: null, tournamentHasStarted: true,
+    tournamentName: null, openerBackfill: false, totalGames: 64, predictedGames: 64,
+    awardsCompleted: 7, awardsTotal: 7, qualifiersCompleted: 32, qualifiersTotal: 32,
+    tournamentJustStarted: false, scoringConfig: {
+      game_exact_score_points: 2, game_correct_outcome_points: 1, champion_points: 5,
+      runner_up_points: 3, third_place_points: 1, individual_award_points: 3,
+      qualified_team_points: 1, exact_position_qualified_points: 2,
+      max_silver_games: 0, max_golden_games: 0,
+    },
+  }),
+  computeIsIncompleteUser: vi.fn().mockReturnValue(false),
+}));
+
 // Mock TournamentHubActionCenter
 vi.mock('@/app/components/tournament-hub/tournament-hub-action-center', () => ({
   TournamentHubActionCenter: () => <div data-testid="action-center">Action Center</div>,

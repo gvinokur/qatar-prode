@@ -52,6 +52,15 @@ export function SocialHubCard({ locale, tournamentId }: SocialHubCardProps) {
             {t('socialHub.findGroup')}
           </Button>
         </Stack>
+        <Button
+          variant="text"
+          color="secondary"
+          size="small"
+          component={Link}
+          href={friendGroupsUrl}
+        >
+          {t('newUser.socialHub.learnMore')}
+        </Button>
       </Stack>
     </Paper>
   )

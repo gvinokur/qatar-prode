@@ -81,6 +81,37 @@
     "createGroup": "Crear Grupo",
     "findGroup": "Encontrar Grupo Público"
   },
+  "newUser": {
+    "tutorial": {
+      "title": "¿Nuevo en el Prode?",
+      "subtitle": "Aprendé cómo sumar puntos y ganarle el torneo a tus amigos.",
+      "cta": "Ver Tutorial"
+    },
+    "tracks": {
+      "matches": {
+        "title": "Partidos",
+        "description": "Pronosticá el resultado de los {total} partidos del torneo.",
+        "cta": "Empezar a Pronosticar",
+        "ctaReview": "Revisar"
+      },
+      "qualifiedTeams": {
+        "title": "Equipos Clasificados",
+        "description": "Elegí quién pasa de cada grupo y quién gana la final.",
+        "cta": "Pronosticar quien avanza",
+        "ctaReview": "Revisar"
+      },
+      "awards": {
+        "title": "Premios",
+        "description": "Elegí al Campeón, Goleador, Mejor Arquero y más premios individuales.",
+        "cta": "Elegir Premios",
+        "ctaReview": "Revisar"
+      },
+      "scoringLabel": "REGLAS DE PUNTUACIÓN:"
+    },
+    "socialHub": {
+      "learnMore": "Más información sobre los grupos"
+    }
+  },
   "groupsPreview": {
     "youreIn": "Estás en",
     "andOthers": "y {count} más.",

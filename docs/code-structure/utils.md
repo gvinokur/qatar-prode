@@ -8,6 +8,19 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
+### app/utils/scoring-config.ts
+Shared scoring configuration types and defaults — kept in a neutral (non-client, non-server) file so it can be imported from Server Components/Actions and Client Components alike.
+
+- **ScoringConfig**: TypeScript interface — `{ game_exact_score_points, game_correct_outcome_points, champion_points, runner_up_points, third_place_points, individual_award_points, qualified_team_points, exact_position_qualified_points, max_silver_games, max_golden_games }` (all `number`). Re-exported from `rules.tsx` for backward compatibility.
+- **DEFAULT_SCORING**: `ScoringConfig` — Default scoring values (1pt correct outcome, +1 exact bonus, 5/3/1 podium, 3 awards, 1+2 QT, no boosts). Used as fallback when a tournament has no scoring config.
+
+### app/utils/scoring-rules-utils.ts
+Pure utility that organises scoring rule labels into the three prediction tracks (Matches, Qualified Teams, Awards) using the same i18n keys and pluralisation logic as `rules.tsx`.
+
+- **getRulesBySection(config: ScoringConfig, tRules: (key: string, params?: Record<string, unknown>) => string)**: `ScoringRulesBySection` — Maps `ScoringConfig` values to the three prediction track sections. `matches` = winnerDraw + exactScore + optional boost entries (same condition as `rules.tsx`). `qualifiedTeams` = qualifiedTeam + exactPosition. `awards` = champion + runnerUp + thirdPlace + individualAwards. Accepts translator bound to `rules.rules` namespace so it works in both server (`getTranslations`) and client (`useTranslations`) contexts.
+  Calls: *(none — pure function)*
+- **ScoringRulesBySection**: TypeScript interface — `{ matches: string[], qualifiedTeams: string[], awards: string[] }`.
+
 ### app/utils/json-ld-utils.ts
 Pure builder functions for schema.org JSON-LD structured data objects.
 
