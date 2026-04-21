@@ -422,6 +422,50 @@ Add test for "Learn more" link presence and correct href (friend-groups URL).
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: 4-state CTA labels per track
+**Date:** 2026-04-21
+**Reason:** User feedback — single cta/ctaReview was not enough. Distinct labels needed to match progress stages.
+**Change:** Each track card CTA now has 4 states keyed by progress thresholds:
+- `cta` — 0% (nothing done yet)
+- `ctaKeep` — 1–29% for matches, 1–89% for QT/awards
+- `ctaFinish` — ≥30% for matches, ≥90% for QT/awards (but not 100%)
+- `ctaReview` — 100% complete
+Added `ctaKeep` and `ctaFinish` keys to all 3 track sections in `hub.json` (EN + ES).
+
+### Amendment 2: Prediction deadline box in each track card
+**Date:** 2026-04-21
+**Reason:** User feedback — users should see when predictions lock, not just scoring rules.
+**Change:** `PredictionTrackCard` gains `deadline: string | null` and `deadlineLabel: string` props. A dashed-border deadline box with `ScheduleIcon` is rendered above the scoring rules box. Deadline text is sourced from `rules.constraints` namespace (see Amendment 3).
+
+### Amendment 3: `getConstraintsBySection` added to `scoring-rules-utils.ts`
+**Date:** 2026-04-21
+**Reason:** Deadline text was already defined in `rules.json` `constraints` section. Reusing it avoids duplication and ensures the Hub track cards and the Rules page show identical, consistent text.
+**Change:** Added `getConstraintsBySection(tConstraints, lockDate: string | null): ConstraintsBySection` to `scoring-rules-utils.ts`. The `lockDate` parameter is the actual QT/awards lock date, formatted as a locale-specific string (e.g. "June 6, 2026"). Matches constraint: `matchPredictionTime` (no date param). QT/Awards: `qualifiedTeamsPredictionTime` / `podiumPredictionTime` with `{ date }` interpolation. When `lockDate` is null, falls back to `lockDateFallback` ("5 days after the tournament starts").
+
+### Amendment 4: `rules.json` constraints refactored to use `{date}` param
+**Date:** 2026-04-21
+**Reason:** Constraint strings previously embedded a hardcoded "2 days" which was wrong (code enforces 5-day offset). Replacing with a `{date}` param allows the actual date to be interpolated, fixing the discrepancy and making the text date-accurate.
+**Change:** `qualifiedTeamsPredictionTime` and `podiumPredictionTime` in both `locales/en/rules.json` and `locales/es/rules.json` now use `{date}`. Added `lockDateFallback` key as the generic fallback string. Updated examples in both locales from "June 3rd"/"3 de junio" to "June 6th"/"6 de junio" (correct 5-day offset from June 1st).
+
+### Amendment 5: `rules.tsx` accepts optional `lockDate` prop
+**Date:** 2026-04-21
+**Reason:** The tournament-specific rules page should show the actual computed lock date, not the generic fallback.
+**Change:** `Rules` component gains `lockDate?: string` prop. When provided, it is passed as the `date` param to `qualifiedTeamsPredictionTime` / `podiumPredictionTime` constraint strings. Falls back to `lockDateFallback` when absent.
+
+### Amendment 6: `rules/page.tsx` fetches `firstGameDate` to compute `lockDate`
+**Date:** 2026-04-21
+**Reason:** To pass the actual lock date to `Rules` component (Amendment 5), the page must know the first game date.
+**Change:** `rules/page.tsx` now fetches `[tournament, firstGame]` in parallel using `Promise.all`. Computes `lockDate` = first game date + 5 days, formatted via `Intl.DateTimeFormat`. Passes `lockDate={lockDate}` to `<Rules />`. Gracefully handles missing first game (lockDate remains undefined, Rules uses fallback).
+
+### Amendment 7: Scoring rules box icon changed to `AddCircleOutline`
+**Date:** 2026-04-21
+**Reason:** User feedback — the original scoreboard icon was confused with a game score, not a scoring-rules concept. `AddCircleOutline` ("+") better represents "points you can earn."
+**Change:** `PredictionTrackCard`'s scoring rules box header uses `AddCircleOutlineIcon` instead of a scoreboard-style icon.
+
+---
+
 ## Validation Checklist
 
 - [ ] `npm run test` — all tests pass (existing + new)
