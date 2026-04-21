@@ -6,8 +6,8 @@
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-360
 - **Branch:** feature/story-360
 - **Base Branch:** feature/story-354
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 362
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/362
 
 ## State
 - **Current Phase:** planning
