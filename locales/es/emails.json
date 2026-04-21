@@ -1,30 +1,30 @@
 {
-  "senderName": "La Maquina Prode Mundial",
+  "senderName": "Prode Mundial",
   "verification": {
-    "subject": "Verificación de Cuenta - La Maquina Prode",
+    "subject": "Verificación de Cuenta - Prode Mundial",
     "title": "Verifica tu dirección de correo electrónico",
     "greeting": "¡Gracias por registrarte!",
     "button": "Verificar correo electrónico",
     "expiration": "Este enlace expirará en 24 horas.",
-    "signature": "El equipo de La Maquina Prode"
+    "signature": "El equipo de Prode Mundial"
   },
   "passwordReset": {
-    "subject": "Recuperación de contraseña - La Maquina Prode",
+    "subject": "Recuperación de contraseña - Prode Mundial",
     "title": "Restablecer contraseña",
     "button": "Restablecer contraseña",
     "expiration": "Este enlace expirará en 1 hora.",
-    "signature": "El equipo de La Maquina Prode"
+    "signature": "El equipo de Prode Mundial"
   },
   "otp": {
-    "subject": "Tu código de acceso - La Maquina Prode",
+    "subject": "Tu código de acceso - Prode Mundial",
     "title": "Tu código de acceso",
-    "greeting": "Has solicitado un código para iniciar sesión en La Maquina Prode.",
+    "greeting": "Has solicitado un código para iniciar sesión en Prode Mundial.",
     "validity": "⏱️ Válido por 3 minutos",
     "attempts": "Tienes máximo 3 intentos para ingresar este código.",
     "securityTitle": "⚠️ Seguridad:",
     "securityTips": {
       "tip1": "No compartas este código con nadie",
-      "tip2": "La Maquina Prode nunca te pedirá este código por teléfono o email",
+      "tip2": "Prode Mundial nunca te pedirá este código por teléfono o email",
       "tip3": "Si no solicitaste este código, puedes ignorar este mensaje"
     },
     "requestedFor": "Este código fue solicitado para:",
@@ -36,7 +36,7 @@
     "senderAttribution": "{senderDisplayName} te invitó a unirse a {groupName}",
     "button": "Unirte al grupo",
     "customMessageIntro": "Mensaje personal:",
-    "signature": "El equipo de La Maquina Prode"
+    "signature": "El equipo de Prode Mundial"
   },
   "joinRequest": {
     "adminNotification": {
@@ -47,7 +47,7 @@
       "requestedOn": "Solicitado el: {date}",
       "personalMessage": "Mensaje personal de {userName}:",
       "viewButton": "Ver Solicitud",
-      "signature": "El equipo de La Maquina Prode"
+      "signature": "El equipo de Prode Mundial"
     },
     "userApproved": {
       "subject": "¡Has sido aceptado en {groupName}!",
@@ -55,7 +55,7 @@
       "greeting": "¡Buenas noticias, {userName}!",
       "message": "Tu solicitud para unirte a \"{groupName}\" ha sido aprobada.",
       "viewButton": "Ver Grupo",
-      "signature": "El equipo de La Maquina Prode"
+      "signature": "El equipo de Prode Mundial"
     },
     "userRejected": {
       "subject": "Tu solicitud para unirte a {groupName} no fue aprobada",

@@ -44,7 +44,7 @@ export async function sendEmail({
     } catch (translationError) {
       // Fallback to hardcoded default if translations fail
       console.error('Failed to get email sender translation:', translationError);
-      from = `"La Maquina Prode Mundial" <${emailAddress}>`;
+      from = `"Prode Mundial" <${emailAddress}>`;
     }
 
     // Determine which email provider to use based on environment variable
