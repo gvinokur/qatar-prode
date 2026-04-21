@@ -166,3 +166,12 @@ No call graph changes. No new cross-layer calls are introduced. One existing cal
 - Run `npm run test` — should pass with updated test assertions
 - Run `npm run lint` and `npm run build` — no new errors
 - SonarCloud: 0 new issues (small targeted change)
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: TournamentHubPage signature simplified further than planned
+**Date:** 2026-04-21
+**Reason:** After removing the auth redirect, lint revealed that `locale`, `id`, `getLocale`, `toLocale`, and the `Props` type were now unused — they had only been used to construct the redirect URL. A follow-up cleanup commit removed them.
+**Change:** `TournamentHubPage(props: Props): Promise<JSX.Element>` (Calls: getLocale, toLocale) → `TournamentHubPage(): JSX.Element` (no params, no calls). The CODE-STRUCTURE pages.md entry was updated accordingly.
