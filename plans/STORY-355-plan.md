@@ -62,7 +62,7 @@ When tournament is ongoing and user is established → Banner Area renders nothi
 
 ### Logged Off Banner (extracted from `PublicCTABar`)
 
-- `backgroundColor: '#1e1b4b'`, `color: 'white'`, `borderRadius: 1`, `p: 2`
+- `backgroundColor: 'primary.main'`, `color: 'primary.contrastText'`, `borderRadius: 1`, `p: 2`
 - Row layout: `Info` icon + message (left), two buttons (right)
 - `sticky` prop: when `true` adds `position: sticky, top: 0, zIndex: 1000` (used by games page)
 - Default (`sticky=false`): non-sticky, used by dashboard banner area
@@ -89,10 +89,10 @@ Same content as current compact `TutorialCTACard`. When `fullWidth=true`: `Paper
 **Changed components:**
 
 - **`LoggedOffBanner({ sticky?: boolean })`**: `JSX.Element` *(was: `PublicCTABar()` with no props)*
-  Renamed export. When `sticky=true`, applies `position: sticky, top: 0, zIndex: 1000` (current games-page usage). When omitted, non-sticky for dashboard banner area. Background changes from `primary.main` to `#1e1b4b`.
+  Renamed export. When `sticky=true`, applies `position: sticky, top: 0, zIndex: 1000` (current games-page usage). When omitted, non-sticky for dashboard banner area. Background stays `primary.main` (no custom color).
   Calls: `LoginOrSignupDialog`, `OnboardingDialogClient`
   Tests:
-  - renders with background color `#1e1b4b`
+  - renders with `primary.main` background color
   - applies sticky positioning when `sticky=true`
   - does not apply sticky positioning when `sticky` is omitted
   - "Learn How" button opens `OnboardingDialogClient`
