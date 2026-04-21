@@ -5,8 +5,8 @@
 - **Story Title:** [Story 2] Dashboard: Refined Banners & Logic
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-355
 - **Branch:** feature/story-355
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 363
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/363
 
 ## State
 - **Current Phase:** planning
