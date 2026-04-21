@@ -14,4 +14,4 @@
 - **Task File:** (fill when implementation starts)
 
 ## Quick Summary
-Establishes the new hub dashboard architecture: creates a reusable `DashboardCard` primitive (MUI Card with standardized header, icon avatar, title, action slot, and content area), refactors `page.tsx` to split the layout into a full-width Banner Area (Stack) and a responsive 2-column Widget Grid (CSS Grid with `repeat(auto-fit, minmax(340px, 1fr))`). Also backs up the current `tournament-hub` components to `app/components/hub_backup/` as a reference for later deletion as the new hub iteration progresses.
+Establishes the new hub dashboard architecture: creates a reusable `DashboardCard` primitive (MUI Card with standardized header, icon avatar, title, action slot, and content area), rewrites `page.tsx` with a clean two-zone mock layout — full-width Banner Area (Stack with dashed Paper) and a responsive Widget Grid (CSS Grid, `repeat(auto-fit, minmax(340px, 1fr))`) showing 4 mock DashboardCard instances. No old hub components are used.

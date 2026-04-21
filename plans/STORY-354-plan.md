@@ -194,6 +194,18 @@ Utilities: `renderWithTheme` from test utilities. No `testFactories` needed — 
 - `urgent=true` card shows red border
 - Banner area is clearly full-width above the grid
 
+## Implementation Amendments
+
+### Amendment 1: Test utility — plain `render` instead of `renderWithTheme`
+**Date:** 2026-04-21
+**Reason:** `DashboardCard` is a pure presentational Server Component with no `useTheme` hook or theme-dependent logic. `renderWithTheme` is unnecessary overhead; plain `render` from `@testing-library/react` is cleaner and sufficient.
+**Change:** `dashboard-card.test.tsx` uses `render` directly instead of `renderWithTheme`.
+
+### Amendment 2: pages.md added to modified files
+**Date:** 2026-04-21
+**Reason:** The "Files to Create/Modify" table omitted `docs/code-structure/pages.md`, though it was correctly listed in Wave 3 implementation steps and was updated as part of the story.
+**Change:** `docs/code-structure/pages.md` updated to reflect simplified `TournamentHubPage` (no old hub component calls).
+
 ## Validation
 
 - `npm run test` — must pass; coverage ≥80% on new DashboardCard
