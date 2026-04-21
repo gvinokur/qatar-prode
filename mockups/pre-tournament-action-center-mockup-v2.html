@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tournament Hub — Pre-Tournament Redesign</title>
+  <title>Pre-Tournament Action Center — Mockup</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   
@@ -32,13 +32,11 @@
     import htm from 'htm';
     import { 
       ThemeProvider, createTheme, CssBaseline, 
-      Container, Box, Stack, Grid,
+      Container, Box, Stack,
       Card, CardContent, CardHeader, CardActions,
       Typography, Button, IconButton, Chip,
-      TextField, Divider, Avatar, List, ListItem,
-      ListItemText, ListItemAvatar, ListItemSecondaryAction,
-      Skeleton, Alert, Badge, Tooltip, LinearProgress, CircularProgress,
-      Paper, Icon
+      Divider, Avatar, LinearProgress, CircularProgress,
+      Paper, useTheme
     } from '@mui/material';
 
     const html = htm.bind(React.createElement);
@@ -48,18 +46,20 @@
         mode: 'dark',
         background: {
           default: '#0a0a0a',
-          paper:   '#1a1a1a',
+          paper: '#1a1a1a',
         },
-        primary:  { main: '#a78bfa' },
-        secondary: { main: '#3b82f6' },
-        error:    { main: '#f44336' },
-        success:  { main: '#4caf50' },
-        warning:  { main: '#ff9800' },
-        divider:  'rgba(255,255,255,0.08)',
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
+        },
+        secondary: {
+          main: '#f43f5e', // Reddish for countdown
+        },
         text: {
-          primary:   '#e5e7eb',
+          primary: '#e5e7eb',
           secondary: '#9ca3af',
         },
+        divider: 'rgba(255, 255, 255, 0.08)'
       },
       typography: {
         fontFamily: "'Archivo', Roboto, sans-serif",
@@ -67,73 +67,89 @@
       shape: { borderRadius: 12 },
       components: {
         MuiCard: {
-          defaultProps: { elevation: 0 },
           styleOverrides: {
-            root: { border: '1px solid rgba(255,255,255,0.08)' },
-          },
+            root: {
+              backgroundImage: 'none',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }
+          }
         },
-      },
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              textTransform: 'none',
+              fontWeight: 600,
+            }
+          }
+        }
+      }
     });
 
-    function CountdownHero() {
+    function StateToggle({ states, current, onChange }) {
+      const chips = states.map(s => html`
+        <${Chip}
+          key=${s}
+          label=${s.toUpperCase()}
+          size="small"
+          onClick=${() => onChange(s)}
+          variant=${current === s ? 'filled' : 'outlined'}
+          color=${current === s ? 'primary' : 'default'}
+          sx=${{ px: 1 }}
+        />
+      `);
+
       return html`
-        <${Paper} 
-          sx=${{ 
-            p: 4, 
-            textAlign: 'center', 
-            background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
-            border: '1px solid rgba(167, 139, 250, 0.3)',
-            borderRadius: 4,
-            mb: 4,
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          <${Typography} variant="overline" color="primary" sx=${{ letterSpacing: 2, fontWeight: 700 }}>
-            TOURNAMENT KICKOFF
+        <${Stack} direction="row" spacing=${1} sx=${{ mb: 3, justifyContent: 'center' }}>
+          ${chips}
+        <//>
+      `;
+    }
+
+    function Countdown() {
+      return html`
+        <${Box} sx=${{ textAlign: 'center', py: 4 }}>
+          <${Stack} direction="row" spacing=${3} justifyContent="center" alignItems="center">
+            <${Box}>
+              <${Typography} variant="h3" sx=${{ fontWeight: 700, color: 'secondary.main' }}>51<//>
+              <${Typography} variant="caption" color="text.secondary">Días<//>
+            <//>
+            <${Box}>
+              <${Typography} variant="h3" sx=${{ fontWeight: 700, color: 'secondary.main' }}>21<//>
+              <${Typography} variant="caption" color="text.secondary">Horas<//>
+            <//>
+            <${Box}>
+              <${Typography} variant="h3" sx=${{ fontWeight: 700, color: 'secondary.main' }}>53<//>
+              <${Typography} variant="caption" color="text.secondary">Min<//>
+            <//>
           <//>
-          
-          <${Stack} direction="row" justifyContent="center" spacing=${{ xs: 2, sm: 4 }} sx=${{ mt: 2, mb: 1 }}>
-            <${Box}>
-              <${Typography} variant="h3" fontWeight=${800} sx=${{ color: 'primary.main' }}>52<//>
-              <${Typography} variant="caption" color="text.secondary">DAYS<//>
-            <//>
-            <${Typography} variant="h3" fontWeight=${300} color="text.disabled">:<//>
-            <${Box}>
-              <${Typography} variant="h3" fontWeight=${800} sx=${{ color: 'primary.main' }}>14<//>
-              <${Typography} variant="caption" color="text.secondary">HOURS<//>
-            <//>
-            <${Typography} variant="h3" fontWeight=${300} color="text.disabled">:<//>
-            <${Box}>
-              <${Typography} variant="h3" fontWeight=${800} sx=${{ color: 'primary.main' }}>28<//>
-              <${Typography} variant="caption" color="text.secondary">MINS<//>
-            <//>
+          <${Typography} variant="body2" color="text.secondary" sx=${{ mt: 2 }}>
+            Para que empiece el Mundial 2026
           <//>
         <//>
       `;
     }
 
-    function TournamentOpenerCard() {
+    function TutorialSection() {
       return html`
-        <${Card} variant="outlined" sx=${{ mb: 4, bgcolor: 'rgba(255,255,255,0.02)' }}>
+        <${Card} sx=${{ 
+          mb: 4, 
+          background: 'linear-gradient(45deg, #1a1a1a 30%, #2e2443 90%)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
           <${CardContent} sx=${{ py: 3 }}>
-            <${Typography} variant="overline" color="text.secondary" sx=${{ display: 'block', textAlign: 'center', mb: 2 }}>
-              Opening Match • June 11, 20:00
-            <//>
-            <${Stack} direction="row" justifyContent="space-around" alignItems="center">
-              <${Stack} alignItems="center" spacing=${1} sx=${{ flex: 1 }}>
-                <${Avatar} sx=${{ width: 56, height: 56, fontSize: '2rem' }}>🇲🇽<//>
-                <${Typography} variant="subtitle1" fontWeight=${700}>Mexico<//>
+            <${Stack} direction="row" spacing=${2} alignItems="center">
+              <${Avatar} sx=${{ bgcolor: 'primary.main', width: 48, height: 48 }}>
+                <span className="material-icons">help_outline</span>
               <//>
-              <${Typography} variant="h5" color="text.disabled" sx=${{ px: 2 }}>VS<//>
-              <${Stack} alignItems="center" spacing=${1} sx=${{ flex: 1 }}>
-                <${Avatar} sx=${{ width: 56, height: 56, fontSize: '2rem' }}>🇫🇷<//>
-                <${Typography} variant="subtitle1" fontWeight=${700}>France<//>
+              <${Box} sx=${{ flexGrow: 1 }}>
+                <${Typography} variant="h6" sx=${{ fontWeight: 600 }}>¿Nuevo en el Prode?<//>
+                <${Typography} variant="body2" color="text.secondary">
+                  Aprendé cómo sumar puntos y ganar el torneo de tus amigos.
+                <//>
               <//>
-            <//>
-            <${Box} sx=${{ mt: 3, textAlign: 'center' }}>
-              <${Button} variant="contained" color="primary" disableElevation startIcon=${html`<${Icon}>edit<//>`}>
-                Predict Opener
+              <${Button} variant="contained" color="primary" sx=${{ borderRadius: 50 }}>
+                Ver Tutorial
               <//>
             <//>
           <//>
@@ -141,110 +157,199 @@
       `;
     }
 
-    function PredictionProgressGrid() {
+    function TrackCard({ title, icon, description, scoring, progress, total, cta, complete }) {
+      const percentage = Math.round((progress / total) * 100);
       return html`
-        <${Box} sx=${{ mb: 4 }}>
-          <${Typography} variant="overline" color="text.secondary" sx=${{ mb: 2, display: 'block' }}>
-            Tournament Predictions
-          <//>
-          <${Grid} container spacing=${2}>
-            <${Grid} size=${{ xs: 12, sm: 6 }}>
-              <${Card} variant="outlined" sx=${{ height: '100%' }}>
-                <${CardContent}>
-                  <${Stack} direction="row" spacing=${2} alignItems="center">
-                    <${Icon} color="primary">groups<//>
-                    <${Box} sx=${{ flexGrow: 1 }}>
-                      <${Typography} variant="subtitle2" fontWeight=${700}>Qualified Teams<//>
-                      <${Typography} variant="caption" color="text.secondary" sx=${{ display: 'block', mb: 1 }}>
-                        Top 2 of each group
-                      <//>
-                      <${LinearProgress} variant="determinate" value=${30} sx=${{ height: 6, borderRadius: 3, mb: 0.5 }} />
-                      <${Typography} variant="caption" color="primary" fontWeight=${600}>3/12 Groups<//>
-                    <//>
-                  <//>
-                <//>
+        <${Card} sx=${{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <${CardContent} sx=${{ flexGrow: 1 }}>
+            <${Stack} direction="row" justifyContent="space-between" alignItems="flex-start" sx=${{ mb: 2 }}>
+              <${Box} sx=${{ 
+                width: 40, height: 40, borderRadius: 2, 
+                bgcolor: 'rgba(167, 139, 250, 0.1)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'primary.main'
+              }}>
+                <span className="material-icons">${icon}</span>
+              <//>
+              <${Box} sx=${{ textAlign: 'right' }}>
+                <${Typography} variant="h6" sx=${{ fontWeight: 700 }}>${percentage}%<//>
+                <${Typography} variant="caption" color="text.secondary">${progress} de ${total}<//>
               <//>
             <//>
-            <${Grid} size=${{ xs: 12, sm: 6 }}>
-              <${Card} variant="outlined" sx=${{ height: '100%' }}>
-                <${CardContent}>
-                  <${Stack} direction="row" spacing=${2} alignItems="center">
-                    <${Icon} color="primary">emoji_events<//>
-                    <${Box} sx=${{ flexGrow: 1 }}>
-                      <${Typography} variant="subtitle2" fontWeight=${700}>Individual Awards<//>
-                      <${Typography} variant="caption" color="text.secondary" sx=${{ display: 'block', mb: 1 }}>
-                        Golden Boot, MVP, etc.
-                      <//>
-                      <${LinearProgress} variant="determinate" value=${0} sx=${{ height: 6, borderRadius: 3, mb: 0.5 }} />
-                      <${Typography} variant="caption" color="warning.main" fontWeight=${600}>Pending<//>
-                    <//>
-                  <//>
-                <//>
+            
+            <${Typography} variant="h6" gutterBottom sx=${{ fontWeight: 600 }}>${title}<//>
+            <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 2, minHeight: 40 }}>
+              ${description}
+            <//>
+
+            <${Box} sx=${{ mb: 2, p: 1.5, borderRadius: 1.5, bgcolor: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+              <${Typography} variant="caption" color="primary.main" sx=${{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+                REGLAS DE PUNTAJE:
+              <//>
+              <${Typography} variant="caption" color="text.primary">
+                ${scoring}
               <//>
             <//>
+
+            <${LinearProgress} 
+              variant="determinate" 
+              value=${percentage} 
+              sx=${{ height: 8, borderRadius: 4, mb: 1, bgcolor: 'rgba(255,255,255,0.05)' }} 
+              color=${complete ? 'success' : 'primary'}
+            />
           <//>
-          <${Box} sx=${{ mt: 2, p: 2, borderRadius: 2, bgcolor: 'rgba(167, 139, 250, 0.05)', border: '1px dashed rgba(167, 139, 250, 0.2)' }}>
-            <${Stack} direction="row" justifyContent="space-between" alignItems="center">
-              <${Box}>
-                <${Typography} variant="body2" fontWeight=${600}>Overall Completion<//>
-                <${Typography} variant="caption" color="text.secondary">12 of 104 games predicted<//>
-              <//>
-              <${CircularProgress} variant="determinate" value=${12} size=${32} thickness=${5} />
+          <${CardActions} sx=${{ p: 2, pt: 0 }}>
+            <${Button} 
+              fullWidth 
+              variant=${complete ? 'outlined' : 'contained'} 
+              color=${complete ? 'inherit' : 'primary'}
+            >
+              ${complete ? 'Revisar' : cta}
             <//>
           <//>
         <//>
       `;
     }
 
-    function SocialHubLeaderboardReplacement() {
-      return html`
-        <${Box} sx=${{ mt: 6 }}>
-          <${Typography} variant="h6" sx=${{ mb: 1, textAlign: 'center' }}>Your Standings<//>
-          <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 2, textAlign: 'center' }}>
-            Compete with friends and colleagues
+    function FriendGroupsSection({ isEmpty }) {
+      if (isEmpty) {
+        return html`
+          <${Box} sx=${{ mt: 4, textAlign: 'center' }}>
+            <${Typography} variant="h5" align="center" gutterBottom sx=${{ fontWeight: 700 }}>Tus Posiciones<//>
+            <${Typography} variant="body2" color="text.secondary" align="center" sx=${{ mb: 3 }}>
+              Tus 3 grupos más activos
+            <//>
+            <${Paper} sx=${{ 
+              p: 4, textAlign: 'center', 
+              border: '2px dashed rgba(255, 255, 255, 0.05)',
+              bgcolor: 'transparent'
+            }}>
+              <${Box} sx=${{ color: 'secondary.main', mb: 2 }}>
+                <span className="material-icons" style=${{ fontSize: 48 }}>group_add</span>
+              <//>
+              <${Typography} variant="h6" gutterBottom>¡No juegues solo!<//>
+              <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 3, maxWidth: 300, mx: 'auto' }}>
+                La mejor manera de disfrutar el Mundial es en grupo. Creá el tuyo e invitá a tus amigos.
+              <//>
+              <${Stack} direction="row" spacing={2} justifyContent="center" sx=${{ mb: 2 }}>
+                <${Button} variant="contained" color="primary">Crear Grupo<//>
+                <${Button} variant="outlined" color="primary">Encontrar Público<//>
+              <//>
+              <${Button} variant="text" size="small" sx=${{ color: 'text.secondary' }}>
+                Más información sobre los grupos
+              <//>
+            <//>
           <//>
-          <${Paper} 
-            sx=${{ 
-              p: 4, 
-              textAlign: 'center', 
-              bgcolor: 'rgba(59, 130, 246, 0.05)', 
-              border: '1px dashed rgba(59, 130, 246, 0.3)',
-              borderRadius: 3
-            }}
-          >
-            <${Icon} sx=${{ fontSize: 48, color: 'secondary.main', mb: 2 }}>group_add<//>
-            <${Typography} variant="h6" gutterBottom>Don't play alone!<//>
-            <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 3, maxWidth: 300, mx: 'auto' }}>
-              The best way to enjoy the World Cup is in a group. Create yours now and invite your friends.
-            <//>
-            <${Stack} direction="row" spacing={2} justifyContent="center">
-              <${Button} variant="contained" color="secondary" disableElevation>Create Group<//>
-              <${Button} variant="outlined" color="secondary">Find Public Group<//>
-            <//>
+        `;
+      }
+
+      return html`
+        <${Box} sx=${{ mt: 4 }}>
+          <${Typography} variant="h5" align="center" gutterBottom sx=${{ fontWeight: 700 }}>Tus Posiciones<//>
+          <${Typography} variant="body2" color="text.secondary" align="center" sx=${{ mb: 3 }}>
+            Tus 3 grupos más activos
+          <//>
+          <${Card} sx=${{ p: 2, bgcolor: 'rgba(255,255,255,0.03)' }}>
+             <${Stack} direction="row" spacing=${1} justifyContent="center" sx=${{ mb: 2 }}>
+                <${Typography} variant="body2">Estás en<//>
+                <${Chip} label="Grupo Publico #1" size="small" variant="outlined" />
+                <${Chip} label="El grupo de Vino" size="small" variant="outlined" />
+                <${Typography} variant="body2" color="text.secondary">y 1 más.<//>
+             <//>
+             <${Box} sx=${{ textAlign: 'center', py: 2 }}>
+                <span className="material-icons" style=${{ color: '#FFD700', fontSize: 32 }}>emoji_events</span>
+                <${Typography} variant="body2" sx=${{ mt: 1 }}>
+                  Los rankings estarán disponibles una vez que comience el campeonato
+                <//>
+             <//>
+             <${Stack} direction="row" spacing=${1} justifyContent="center" sx=${{ mt: 2 }}>
+                <${Button} size="small" variant="outlined">Tus Grupos<//>
+                <${Button} size="small" variant="outlined">Crear Grupo<//>
+                <${Button} size="small" variant="outlined">Descubrir Grupos<//>
+             <//>
           <//>
         <//>
       `;
     }
 
     function MockupApp() {
+      const [state, setState] = React.useState('incomplete');
+
+      const tracks = {
+        incomplete: [
+          { 
+            title: 'Partidos', icon: 'sports_soccer', 
+            description: 'Pronosticá el resultado de los 104 partidos del mundial.',
+            scoring: '1pto por acierto de Ganador/Empate, +2ptos extra por resultado exacto.',
+            progress: 12, total: 104, cta: 'Empezar a Pronosticar'
+          },
+          { 
+            title: 'Equipos Clasificados', icon: 'account_tree', 
+            description: 'Armá tu llave. Elegí quiénes pasan de ronda y quién gana la final.',
+            scoring: '1pto por equipo clasificado, +1pto extra por posición exacta en el grupo.',
+            progress: 0, total: 32, cta: 'Armar mi Llave'
+          },
+          { 
+            title: 'Premios', icon: 'military_tech', 
+            description: 'Elegí al Campeón, Goleador, Mejor Arquero y más premios individuales.',
+            scoring: '1pto por cada premio correcto (Goleador, Guante de Oro, etc).',
+            progress: 1, total: 7, cta: 'Elegir Premios'
+          }
+        ],
+        complete: [
+          { 
+            title: 'Partidos', icon: 'sports_soccer', 
+            description: 'Pronosticá el resultado de los 104 partidos del mundial.',
+            scoring: '1pto por acierto de Ganador/Empate, +2ptos extra por resultado exacto.',
+            progress: 104, total: 104, cta: 'Revisar', complete: true
+          },
+          { 
+            title: 'Equipos Clasificados', icon: 'account_tree', 
+            description: 'Armá tu llave. Elegí quiénes pasan de ronda y quién gana la final.',
+            scoring: '1pto por equipo clasificado, +1pto extra por posición exacta en el grupo.',
+            progress: 32, total: 32, cta: 'Revisar', complete: true
+          },
+          { 
+            title: 'Premios', icon: 'military_tech', 
+            description: 'Elegí al Campeón, Goleador, Mejor Arquero y más premios individuales.',
+            scoring: '1pto por cada premio correcto (Goleador, Guante de Oro, etc).',
+            progress: 7, total: 7, cta: 'Revisar', complete: true
+          }
+        ]
+      };
+
+      const trackCards = tracks[state].map((track, i) => html`
+        <${TrackCard} key=${i} ...${track} />
+      `);
+
       return html`
         <${ThemeProvider} theme=${theme}>
           <${CssBaseline} />
-          <${Box} sx=${{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
-            <${Container} maxWidth="sm">
-              <${Box} sx=${{ mb: 4, textAlign: 'center' }}>
-                <${Typography} variant="h5" fontWeight=${700} color="primary" gutterBottom>
-                  Action Center & Social Hub Redesign
-                <//>
+          <${Container} maxWidth="sm" sx=${{ py: 2, pb: 10 }}>
+
+            <${StateToggle}
+              states=${['incomplete', 'complete']}
+              current=${state}
+              onChange=${setState}
+            />
+
+            <${Countdown} />
+
+            <${TutorialSection} />
+
+            <${Box} sx=${{ mb: 2, textAlign: 'center' }}>
+              <${Typography} variant="h5" sx=${{ fontWeight: 700 }}>Centro de Acción<//>
+              <${Typography} variant="body2" color="text.secondary">
+                Todo al día — esto viene próximamente
               <//>
-
-              <${CountdownHero} />
-              <${TournamentOpenerCard} />
-              <${PredictionProgressGrid} />
-              
-              <${SocialHubLeaderboardReplacement} />
-
             <//>
+
+            <${Stack} spacing=${3}>
+              ${trackCards}
+            <//>
+
+            <${FriendGroupsSection} isEmpty=${state === 'incomplete'} />
+
           <//>
         <//>
       `;

@@ -11,6 +11,7 @@ import { findTournamentById } from '@/app/db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '@/app/db/game-guess-repository';
 import { redirect, notFound } from 'next/navigation';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
+import { findUserById } from '@/app/db/users-repository';
 
 // Mock server actions
 vi.mock('@/app/actions/tournament-actions', () => ({
@@ -50,6 +51,10 @@ vi.mock('@/app/db/tournament-repository', () => ({
 
 vi.mock('@/app/db/game-guess-repository', () => ({
   getGameGuessStatisticsForUsers: vi.fn()
+}));
+
+vi.mock('@/app/db/users-repository', () => ({
+  findUserById: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
@@ -133,6 +138,9 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     });
     (findTournamentById as any).mockResolvedValue(mockTournamentData.tournament);
     (getGameGuessStatisticsForUsers as any).mockResolvedValue([]);
+    (findUserById as any).mockResolvedValue({ email_verified: true });
+    // Default: verification not required
+    vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'false');
   });
 
   it('renders tournament layout with all header components', async () => {
@@ -147,7 +155,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     expect(screen.getByTestId('child-content')).toBeInTheDocument();
   });
 
-  it('includes La Maquina logo button for home navigation', async () => {
+  it('includes Prode Mundial logo button for home navigation', async () => {
     const params = Promise.resolve({ id: 'tournament-1' });
     const children = <div>Content</div>;
 
@@ -155,7 +163,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     renderWithTheme(result as React.ReactElement);
 
     // Find logo by alt text
-    const logo = screen.getByAltText('La Maquina');
+    const logo = screen.getByAltText('Prode Mundial');
     expect(logo).toBeInTheDocument();
     expect(logo.tagName).toBe('IMG');
 
@@ -275,6 +283,80 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     // Verify tournament data was fetched correctly
     expect(getTournamentAndGroupsData).toHaveBeenCalledWith('tournament-1');
     expect(getTournamentStartDate).toHaveBeenCalledWith('tournament-1');
+  });
+
+  describe('Email verification overlay', () => {
+    it('renders VerificationBanner below AppBar when user is unverified and verification required', async () => {
+      vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'true');
+      (getLoggedInUser as any).mockResolvedValue({ ...mockUser, emailVerified: null });
+      (findUserById as any).mockResolvedValue({ email_verified: null });
+
+      const params = Promise.resolve({ id: 'tournament-1' });
+      const children = <div>Content</div>;
+
+      const result = await TournamentLayout({ params, children });
+      renderWithTheme(result as React.ReactElement);
+
+      expect(screen.getByText('Email Not Verified')).toBeInTheDocument();
+    });
+
+    it('does not render VerificationBanner when user is verified', async () => {
+      vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'true');
+      (getLoggedInUser as any).mockResolvedValue({ ...mockUser, emailVerified: new Date() });
+      (findUserById as any).mockResolvedValue({ email_verified: true });
+
+      const params = Promise.resolve({ id: 'tournament-1' });
+      const children = <div>Content</div>;
+
+      const result = await TournamentLayout({ params, children });
+      renderWithTheme(result as React.ReactElement);
+
+      expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument();
+    });
+
+    it('does not render VerificationBanner when REQUIRE_EMAIL_VERIFICATION is false', async () => {
+      vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'false');
+      (getLoggedInUser as any).mockResolvedValue({ ...mockUser, emailVerified: null });
+      (findUserById as any).mockResolvedValue({ email_verified: null });
+
+      const params = Promise.resolve({ id: 'tournament-1' });
+      const children = <div>Content</div>;
+
+      const result = await TournamentLayout({ params, children });
+      renderWithTheme(result as React.ReactElement);
+
+      expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument();
+    });
+
+    it('does not render VerificationBanner when no user is logged in', async () => {
+      vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'true');
+      (getLoggedInUser as any).mockResolvedValue(null);
+
+      const params = Promise.resolve({ id: 'tournament-1' });
+      const children = <div>Content</div>;
+
+      const result = await TournamentLayout({ params, children });
+      renderWithTheme(result as React.ReactElement);
+
+      expect(screen.queryByText('Email Not Verified')).not.toBeInTheDocument();
+    });
+
+    it('AppBar is rendered outside the pointer-events:none wrapper (always interactive)', async () => {
+      vi.stubEnv('REQUIRE_EMAIL_VERIFICATION', 'true');
+      (getLoggedInUser as any).mockResolvedValue({ ...mockUser, emailVerified: null });
+      (findUserById as any).mockResolvedValue({ email_verified: null });
+
+      const params = Promise.resolve({ id: 'tournament-1' });
+      const children = <div data-testid="child-content">Content</div>;
+
+      const result = await TournamentLayout({ params, children });
+      renderWithTheme(result as React.ReactElement);
+
+      // AppBar should be present (always interactive — not wrapped in pointer-events:none)
+      const appBar = screen.getByRole('banner');
+      expect(appBar).toBeInTheDocument();
+      expect(appBar).not.toHaveStyle({ pointerEvents: 'none' });
+    });
   });
 
   it('shows dev tournament badge when tournament is dev_only', async () => {
