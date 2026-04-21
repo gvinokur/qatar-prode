@@ -32,11 +32,11 @@ describe('GroupSelector i18n', () => {
     expect(screen.getByRole('tab', { name: /awards/i })).toBeInTheDocument()
   })
 
-  it('hub tab is disabled when user is not provided', () => {
+  it('hub tab is enabled when user is not provided', () => {
     renderWithTheme(<GroupSelector {...defaultProps} />)
 
     const hubTab = screen.getByRole('tab', { name: /hub/i })
-    expect(hubTab).toHaveAttribute('aria-disabled', 'true')
+    expect(hubTab).not.toHaveAttribute('aria-disabled', 'true')
   })
 
   it('hub tab is enabled when user is provided', () => {
@@ -45,6 +45,42 @@ describe('GroupSelector i18n', () => {
 
     const hubTab = screen.getByRole('tab', { name: /hub/i })
     expect(hubTab).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('qualified-teams tab is disabled when user is not provided', () => {
+    renderWithTheme(<GroupSelector {...defaultProps} />)
+
+    const qualifiedTab = screen.getByRole('tab', { name: /qualified/i })
+    expect(qualifiedTab).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('awards tab is disabled when user is not provided', () => {
+    renderWithTheme(<GroupSelector {...defaultProps} />)
+
+    const awardsTab = screen.getByRole('tab', { name: /awards/i })
+    expect(awardsTab).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('qualified-teams tab is enabled when user is provided', () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test' }
+    renderWithTheme(<GroupSelector {...defaultProps} user={mockUser as any} />)
+
+    const qualifiedTab = screen.getByRole('tab', { name: /qualified/i })
+    expect(qualifiedTab).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('awards tab is enabled when user is provided', () => {
+    const mockUser = { id: 'user-1', email: 'test@example.com', name: 'Test' }
+    renderWithTheme(<GroupSelector {...defaultProps} user={mockUser as any} />)
+
+    const awardsTab = screen.getByRole('tab', { name: /awards/i })
+    expect(awardsTab).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('all four tabs are rendered regardless of auth state', () => {
+    renderWithTheme(<GroupSelector {...defaultProps} />)
+
+    expect(screen.getAllByRole('tab')).toHaveLength(4)
   })
 
   it('translates aria-label for accessibility', () => {
