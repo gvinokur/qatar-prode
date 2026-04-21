@@ -103,6 +103,18 @@ const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData 
   qualifiersCompleted: 0,
   qualifiersTotal: 32,
   tournamentJustStarted: false,
+  scoringConfig: {
+    game_exact_score_points: 2,
+    game_correct_outcome_points: 1,
+    champion_points: 5,
+    runner_up_points: 3,
+    third_place_points: 1,
+    individual_award_points: 3,
+    qualified_team_points: 1,
+    exact_position_qualified_points: 2,
+    max_silver_games: 0,
+    max_golden_games: 0,
+  },
   ...overrides,
 })
 

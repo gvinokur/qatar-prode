@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser } from '../hub-actions'
+import type { ActionCenterData } from '../hub-actions'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
 import * as teamRepository from '@/app/db/team-repository'
@@ -954,5 +955,110 @@ describe('getRecentResultsData', () => {
 
       expect(result.individualAwardsCorrect).toEqual(['bestPlayer', 'bestGoalkeeper'])
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// computeIsIncompleteUser
+// ---------------------------------------------------------------------------
+
+const defaultScoringConfig = {
+  game_exact_score_points: 2,
+  game_correct_outcome_points: 1,
+  champion_points: 5,
+  runner_up_points: 3,
+  third_place_points: 1,
+  individual_award_points: 3,
+  qualified_team_points: 1,
+  exact_position_qualified_points: 2,
+  max_silver_games: 0,
+  max_golden_games: 0,
+}
+
+const makeData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData => ({
+  games: [],
+  gameGuesses: {},
+  teamsMap: {},
+  tournamentMaxSilver: 0,
+  tournamentMaxGolden: 0,
+  mode: 'empty',
+  qtAndAwardsOpen: true,
+  msUntilPredictionLock: 5 * 24 * 60 * 60 * 1000,
+  tournamentFinished: false,
+  firstGameDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+  tournamentHasStarted: false,
+  tournamentName: null,
+  openerBackfill: false,
+  totalGames: 64,
+  predictedGames: 0,
+  awardsCompleted: 0,
+  awardsTotal: 7,
+  qualifiersCompleted: 0,
+  qualifiersTotal: 32,
+  tournamentJustStarted: false,
+  scoringConfig: defaultScoringConfig,
+  ...overrides,
+})
+
+describe('computeIsIncompleteUser', () => {
+  it('returns true when pre-tournament with qtAndAwardsOpen and low games progress', async () => {
+    const data = makeData({ predictedGames: 5, totalGames: 64 })
+    expect(await computeIsIncompleteUser(data)).toBe(true)
+  })
+
+  it('returns true when games >= 30% but awards < 90%', async () => {
+    const data = makeData({
+      predictedGames: 25, totalGames: 64,
+      awardsCompleted: 5, awardsTotal: 7,
+    })
+    expect(await computeIsIncompleteUser(data)).toBe(true)
+  })
+
+  it('returns true when games >= 30% and awards >= 90% but QT < 90%', async () => {
+    const data = makeData({
+      predictedGames: 25, totalGames: 64,
+      awardsCompleted: 7, awardsTotal: 7,
+      qualifiersCompleted: 20, qualifiersTotal: 32,
+    })
+    expect(await computeIsIncompleteUser(data)).toBe(true)
+  })
+
+  it('returns false when all tracks are at or above their thresholds', async () => {
+    const data = makeData({
+      predictedGames: 25, totalGames: 64,
+      awardsCompleted: 7, awardsTotal: 7,
+      qualifiersCompleted: 30, qualifiersTotal: 32,
+    })
+    expect(await computeIsIncompleteUser(data)).toBe(false)
+  })
+
+  it('returns false when tournament has already started', async () => {
+    expect(await computeIsIncompleteUser(makeData({ tournamentHasStarted: true }))).toBe(false)
+  })
+
+  it('returns false when qtAndAwardsOpen is false', async () => {
+    expect(await computeIsIncompleteUser(makeData({ qtAndAwardsOpen: false }))).toBe(false)
+  })
+
+  it('returns false when firstGameDate is null', async () => {
+    expect(await computeIsIncompleteUser(makeData({ firstGameDate: null }))).toBe(false)
+  })
+
+  it('returns false when awardsTotal is 0 (not configured)', async () => {
+    const data = makeData({
+      predictedGames: 25, totalGames: 64,
+      awardsCompleted: 0, awardsTotal: 0,
+      qualifiersCompleted: 30, qualifiersTotal: 32,
+    })
+    expect(await computeIsIncompleteUser(data)).toBe(false)
+  })
+
+  it('returns false when qualifiersTotal is 0 (not configured)', async () => {
+    const data = makeData({
+      predictedGames: 25, totalGames: 64,
+      awardsCompleted: 7, awardsTotal: 7,
+      qualifiersCompleted: 0, qualifiersTotal: 0,
+    })
+    expect(await computeIsIncompleteUser(data)).toBe(false)
   })
 })

@@ -81,6 +81,46 @@
     "createGroup": "Crear Grupo",
     "findGroup": "Encontrar Grupo Público"
   },
+  "newUser": {
+    "tutorial": {
+      "title": "¿Nuevo en el Prode?",
+      "subtitle": "Aprendé cómo sumar puntos y ganarle el torneo a tus amigos.",
+      "cta": "Ver Tutorial"
+    },
+    "tracks": {
+      "matches": {
+        "title": "Partidos",
+        "description": "Pronosticá los resultados de los partidos del torneo. Hacé lo que puedas ahora — siempre podés volver a editar antes de que empiece cada uno.",
+        "cta": "Empezar a Pronosticar",
+        "ctaKeep": "Seguir Pronosticando",
+        "ctaFinish": "Terminar tus Pronósticos",
+        "ctaReview": "Revisar tus Pronósticos"
+      },
+      "qualifiedTeams": {
+        "title": "Equipos Clasificados",
+        "description": "Elegí quién pasa de cada grupo y quién gana la final.",
+        "cta": "Pronosticar quien avanza",
+        "ctaKeep": "Seguir pronosticando",
+        "ctaFinish": "Terminar tus pronósticos",
+        "ctaReview": "Revisar tus Pronósticos"
+      },
+      "awards": {
+        "title": "Premios",
+        "description": "Elegí al Campeón, Goleador, Mejor Arquero y más premios individuales.",
+        "cta": "Elegir Premios",
+        "ctaKeep": "Seguir Eligiendo",
+        "ctaFinish": "Terminar de Elegir",
+        "ctaReview": "Revisar tus Pronósticos"
+      },
+      "deadline": {
+        "label": "Fecha límite:"
+      },
+      "scoringLabel": "Puntuación:"
+    },
+    "socialHub": {
+      "learnMore": "Más información sobre los grupos"
+    }
+  },
   "groupsPreview": {
     "youreIn": "Estás en",
     "andOthers": "y {count} más.",

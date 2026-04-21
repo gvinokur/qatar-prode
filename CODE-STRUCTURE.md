@@ -597,36 +597,31 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift + incomplete user routing)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
       → redirects to /games server-side when user is not logged in
-      → renders TournamentHubActionCenter (Story #317)
-      → renders TournamentHubRecentResults (Story #318)
+      → getActionCenterGames(tournamentId, locale)  [lifted from TournamentHubActionCenter in Story #349]
+      → computeIsIncompleteUser(actionCenterData)
+      → renders TournamentHubActionCenter(data=actionCenterData) (Story #317)
+      → renders TournamentHubRecentResults (Story #318) [hidden when isIncompleteUser=true]
       → renders TournamentHubLeaderboardPeek (Story #319)
 
-30. Action Center data flow (Story #317; updated #342)
-    TournamentHubActionCenter (Server) → getActionCenterGames(tournamentId, locale)
-      → getLoggedInUser
-      → findGamesForDashboard(tournamentId)
-      → findGameGuessesByUserId(userId, tournamentId)
-      → findTeamInTournament(tournamentId)
-      → findTournamentById(tournamentId)
-      → findFirstGameInTournament(tournamentId) + findLastGameInTournament(tournamentId)
-      → getGameCountsForTournament(tournamentId)
-      → findTournamentGuessByUserIdTournament(userId, tournamentId)
-      → findFirstGameFullData(tournamentId) [conditional: only when mode=empty and tournament not started]
-      → applyLocalizationBatch (teams + games + openerGame)
-      → returns ActionCenterData { games, gameGuesses, teamsMap, boostLimits, mode,
-                                    firstGameDate, openerGame, totalGames, predictedGames,
-                                    hasAwardsPredictions, tournamentJustStarted }
-    → ActionCenterCarousel [Client]
-        → TournamentStartBanner [Client] (conditional: tournamentJustStarted=true, shown above carousel)
-        → GuessesContextProvider (gameGuesses, autoSave=true, boost limits)
-        → [branch: isPreTournament] PreTournamentHero [Client]
-            → FlippableGameCard (opener game)
-            → CircularProgress ×3 (QT, Awards, Overall)
-        → [branch: active] ScrollShadowContainer (direction="horizontal")
-            → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
+30. Action Center data flow (Story #317; updated #342, #349)
+    TournamentHubActionCenter (Server) — uses pre-fetched ActionCenterData from page (Story #349)
+      → computeIsIncompleteUser(data)
+      → [branch: isIncompleteUser && pre-tournament] PreTournamentNewUserActionCenter [Server] (Story #349)
+          → PreTournamentCountdown [Client] (conditional: firstGameDate set)
+          → TutorialCTACard [Client]
+              → OnboardingDialogClient [Client] (conditional: open=true)
+          → PredictionTrackCard ×3 (Matches, QT, Awards) with getRulesBySection rules
+      → [branch: complete user] ActionCenterCarousel [Client]
+          → TournamentStartBanner [Client] (conditional: tournamentJustStarted=true, shown above carousel)
+          → GuessesContextProvider (gameGuesses, autoSave=true, boost limits)
+          → [branch: isPreTournament] PreTournamentHero [Client]
+              → FlippableGameCard (opener game)
+              → CircularProgress ×3 (QT, Awards, Overall)
+          → [branch: active] ScrollShadowContainer (direction="horizontal")
+              → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
 
 31. Recent Results data flow (Story #318)
     TournamentHubRecentResults (Server) → getRecentResultsData(tournamentId, locale)

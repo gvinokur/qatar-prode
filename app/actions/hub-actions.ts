@@ -12,6 +12,7 @@ import { getTournamentPredictionCompletion } from '../db/tournament-prediction-c
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch, applyLocalization } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
+import { type ScoringConfig, DEFAULT_SCORING } from '../utils/scoring-config'
 import { ExtendedGameData } from '../definitions'
 import { GameGuessNew, Team } from '../db/tables-definition'
 import type { Locale } from '../../i18n.config'
@@ -68,6 +69,47 @@ export interface ActionCenterData {
   qualifiersTotal: number
   /** True when the first game kicked off within the last 48h (celebration banner period) */
   tournamentJustStarted: boolean
+  /** Tournament-specific scoring configuration (falls back to DEFAULT_SCORING when unavailable) */
+  scoringConfig: ScoringConfig
+}
+
+/** Builds a ScoringConfig from a tournament row, falling back to defaults for absent fields. */
+function buildScoringConfig(
+  tournament: Awaited<ReturnType<typeof findTournamentById>> | undefined | null
+): ScoringConfig {
+  if (!tournament) return DEFAULT_SCORING
+  return {
+    game_exact_score_points: tournament.game_exact_score_points ?? DEFAULT_SCORING.game_exact_score_points,
+    game_correct_outcome_points: tournament.game_correct_outcome_points ?? DEFAULT_SCORING.game_correct_outcome_points,
+    champion_points: tournament.champion_points ?? DEFAULT_SCORING.champion_points,
+    runner_up_points: tournament.runner_up_points ?? DEFAULT_SCORING.runner_up_points,
+    third_place_points: tournament.third_place_points ?? DEFAULT_SCORING.third_place_points,
+    individual_award_points: tournament.individual_award_points ?? DEFAULT_SCORING.individual_award_points,
+    qualified_team_points: tournament.qualified_team_points ?? DEFAULT_SCORING.qualified_team_points,
+    exact_position_qualified_points: tournament.exact_position_qualified_points ?? DEFAULT_SCORING.exact_position_qualified_points,
+    max_silver_games: tournament.max_silver_games ?? DEFAULT_SCORING.max_silver_games,
+    max_golden_games: tournament.max_golden_games ?? DEFAULT_SCORING.max_golden_games,
+  }
+}
+
+/**
+ * Returns true when the user is in the "incomplete" pre-tournament state:
+ * tournament hasn't started, prediction window is open, and at least one
+ * prediction track is below its completion threshold.
+ *
+ * Zero-total sections (not yet configured) are treated as complete (100%)
+ * to avoid false positives when sections haven't been set up yet.
+ */
+export async function computeIsIncompleteUser(data: ActionCenterData): Promise<boolean> {
+  if (data.tournamentHasStarted) return false
+  if (!data.qtAndAwardsOpen) return false
+  if (data.firstGameDate === null) return false
+
+  const gamesProgress = data.totalGames > 0 ? (data.predictedGames / data.totalGames) * 100 : 100
+  const awardsProgress = data.awardsTotal > 0 ? (data.awardsCompleted / data.awardsTotal) * 100 : 100
+  const qtProgress = data.qualifiersTotal > 0 ? (data.qualifiersCompleted / data.qualifiersTotal) * 100 : 100
+
+  return gamesProgress < 30 || awardsProgress < 90 || qtProgress < 90
 }
 
 const MAX_URGENT_CARDS = 4
@@ -216,6 +258,7 @@ export async function getActionCenterGames(
       qualifiersCompleted,
       qualifiersTotal,
       tournamentJustStarted,
+      scoringConfig: buildScoringConfig(tournament),
     }
   }
 
@@ -285,6 +328,7 @@ export async function getActionCenterGames(
     qualifiersCompleted,
     qualifiersTotal,
     tournamentJustStarted,
+    scoringConfig: buildScoringConfig(tournament),
   }
 }
 

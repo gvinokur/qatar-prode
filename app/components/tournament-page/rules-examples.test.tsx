@@ -81,7 +81,7 @@ describe('Rules Examples Components', () => {
 
     it('renders QualifiedTeamsPredictionTimeExample in Spanish', () => {
       renderWithProviders(<QualifiedTeamsPredictionTimeExample />)
-      expect(screen.getByText(/Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 3 de junio/i)).toBeInTheDocument()
+      expect(screen.getByText(/Si el torneo comienza el 1 de junio, puedes modificar tus pronósticos de equipos clasificados hasta el 6 de junio/i)).toBeInTheDocument()
     })
   })
 
@@ -151,7 +151,7 @@ describe('Rules Examples Components', () => {
 
     it('renders QualifiedTeamsPredictionTimeExample in English', () => {
       renderWithProviders(<QualifiedTeamsPredictionTimeExample />, { locale: 'en' })
-      expect(screen.getByText(/Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 3rd/i)).toBeInTheDocument()
+      expect(screen.getByText(/Example: If the tournament starts on June 1st, you can modify your qualified teams predictions until June 6th/i)).toBeInTheDocument()
     })
   })
 

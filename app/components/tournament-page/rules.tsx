@@ -27,38 +27,14 @@ import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time
 import SinglePredictionExample from './rules-examples/single-prediction';
 import GroupPositionExample from './rules-examples/group-position';
 import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time';
+import { DEFAULT_SCORING, type ScoringConfig } from '../../utils/scoring-config';
+
+export type { ScoringConfig } from '../../utils/scoring-config';
 
 interface Rule {
   label: string;
   component?: React.ReactNode;
 }
-
-export interface ScoringConfig {
-  game_exact_score_points: number;
-  game_correct_outcome_points: number;
-  champion_points: number;
-  runner_up_points: number;
-  third_place_points: number;
-  individual_award_points: number;
-  qualified_team_points: number;
-  exact_position_qualified_points: number;
-  max_silver_games: number;
-  max_golden_games: number;
-}
-
-// Default scoring config for display when no tournament-specific config is provided
-const DEFAULT_SCORING: ScoringConfig = {
-  game_exact_score_points: 2,
-  game_correct_outcome_points: 1,
-  champion_points: 5,
-  runner_up_points: 3,
-  third_place_points: 1,
-  individual_award_points: 3,
-  qualified_team_points: 1,
-  exact_position_qualified_points: 2,
-  max_silver_games: 0,
-  max_golden_games: 0,
-};
 
 interface RulesProps {
   readonly expanded?: boolean;
@@ -66,9 +42,11 @@ interface RulesProps {
   readonly scoringConfig?: ScoringConfig;
   readonly tournamentId?: string;
   readonly isActive?: boolean;
+  /** Pre-formatted QT/Awards lock date (e.g. "June 16, 2026"). When omitted, falls back to "5 days after the tournament starts". */
+  readonly lockDate?: string;
 }
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false }: RulesProps) {
+export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false, lockDate }: RulesProps) {
   const locale = useLocale();
   const theme = useTheme();
   const t = useTranslations('rules');
@@ -164,18 +142,20 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
     return baseRules;
   };
 
-  // Constraints with i18n
+  // Constraints with i18n — use the specific lock date when available, otherwise fall back to
+  // the generic "5 days after the tournament starts" phrase so the text is always complete.
+  const date = lockDate || tConstraints('lockDateFallback');
   const constraints: Rule[] = [
     {
       label: tConstraints('matchPredictionTime'),
       component: <MatchPredictionTimeExample />
     },
     {
-      label: tConstraints('podiumPredictionTime'),
+      label: tConstraints('podiumPredictionTime', { date }),
       component: <PodiumPredictionTimeExample />
     },
     {
-      label: tConstraints('qualifiedTeamsPredictionTime'),
+      label: tConstraints('qualifiedTeamsPredictionTime', { date }),
       component: <QualifiedTeamsPredictionTimeExample />
     },
     {

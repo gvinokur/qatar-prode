@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-04-21
 
 ---
 
@@ -223,7 +223,7 @@ Read-only game card with optional CTA overlay for authentication.
 Comprehensive rules and constraints display with expandable sections and example components.
 
 - **ScoringConfig**: `interface` — Configuration object for tournament-specific point values.
-- **Rules(props: RulesProps)**: `JSX.Element` — [Client] Collapsible card with scoring rules and constraints, supports fullpage and sidebar modes with tooltip/expand examples.
+- **Rules(props: RulesProps)**: `JSX.Element` — [Client] Collapsible card with scoring rules and constraints, supports fullpage and sidebar modes with tooltip/expand examples. Accepts optional `lockDate?: string` prop — a pre-formatted date string for the QT/Awards lock constraint (e.g. "June 6, 2026"); falls back to `lockDateFallback` i18n string when absent.
   Uses: useState, useTheme, useLocale, useTranslations
   Renders: WinnerDrawExample, ExactScoreExample, RoundOf16Example, ChampionExample, RunnerUpExample, ThirdPlaceExample, IndividualAwardsExample, MatchPredictionTimeExample, PodiumPredictionTimeExample, SinglePredictionExample, GroupPositionExample, QualifiedTeamsPredictionTimeExample, ExpandMore
 
