@@ -9,6 +9,9 @@ import NewTournamentSnackbar from "../../../components/tournament/new-tournament
 import {getGroupsForUser} from "../../../actions/prode-group-actions";
 import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../../actions/user-actions";
+import {findUserById} from "../../../db/users-repository";
+import VerificationBanner from "../../../components/verification/verification-banner";
+import {VerificationOverlay} from "../../../components/verification/verification-overlay";
 import Link from "next/link";
 import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notification";
 import {getPlayersInTournament} from "../../../db/player-repository";
@@ -113,6 +116,11 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const children = props.children
   const locale = await getLocale()
   const user = await getLoggedInUser()
+  const isVerified = user &&
+    (user.emailVerified || (await findUserById(user.id))?.email_verified)
+  const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true'
+  const isUnverified = requireEmailVerification && !!user && !isVerified
+
   const layoutData = await getTournamentAndGroupsData(params.id)
 
   // Get all active tournaments for switcher
@@ -196,12 +204,12 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 justifyContent: 'space-between',
                 gap: 1
               }}>
-            {/* La Maquina logo button (home navigation) */}
+            {/* Logo button (home navigation) */}
             <Link href={`/${locale}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Avatar
                 variant="rounded"
                 src="/logo.png"
-                alt="La Maquina"
+                alt="Prode Mundial"
                 sx={{
                   width: { xs: 32, md: 48 },
                   height: { xs: 32, md: 48 },
@@ -306,39 +314,44 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Box>
         </Box>
       </AppBar>
+      {isUnverified && <VerificationBanner />}
       {/* Main content area */}
-      <Box sx={{
-        display: 'flow-root',
-        flexGrow: 1,
-        minHeight: 0,
-        px: 2
-      }}>
-        {/* Centered max-width container */}
+      <Box position="relative" sx={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {isUnverified && <VerificationOverlay />}
         <Box sx={{
-          maxWidth: '1200px',
-          mx: 'auto',
-          height: '100%'
+          ...(isUnverified ? { pointerEvents: 'none', userSelect: 'none' } : {}),
+          display: 'flow-root',
+          flexGrow: 1,
+          minHeight: 0,
+          px: 2
         }}>
-          <Grid container spacing={2} sx={{ height: '100%' }}>
-            {/* Main content - 9/12 on desktop, full on mobile */}
-            <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
-              <ScrollableContentArea>
-                {children}
-              </ScrollableContentArea>
-            </Grid>
+          {/* Centered max-width container */}
+          <Box sx={{
+            maxWidth: '1200px',
+            mx: 'auto',
+            height: '100%'
+          }}>
+            <Grid container spacing={2} sx={{ height: '100%' }}>
+              {/* Main content - 9/12 on desktop, full on mobile */}
+              <Grid size={{ xs: 12, md: 9 }} sx={{ height: '100%' }}>
+                <ScrollableContentArea>
+                  {children}
+                </ScrollableContentArea>
+              </Grid>
 
-            {/* Sidebar - 4/12 on desktop, hidden on mobile */}
-            <TournamentSidebar
-              tournamentId={params.id}
-              scoringConfig={scoringConfig}
-              userGameStatistics={userGameStatistics?.[0]}
-              tournamentGuess={tournamentGuesses || undefined}
-              groupStandings={groupStandings}
-              prodeGroups={prodeGroups}
-              user={user ?? undefined}
-              groupRanks={groupRanks}
-            />
-          </Grid>
+              {/* Sidebar - 4/12 on desktop, hidden on mobile */}
+              <TournamentSidebar
+                tournamentId={params.id}
+                scoringConfig={scoringConfig}
+                userGameStatistics={userGameStatistics?.[0]}
+                tournamentGuess={tournamentGuesses || undefined}
+                groupStandings={groupStandings}
+                prodeGroups={prodeGroups}
+                user={user ?? undefined}
+                groupRanks={groupRanks}
+              />
+            </Grid>
+          </Box>
         </Box>
       </Box>
       {user &&

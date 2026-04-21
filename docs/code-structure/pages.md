@@ -26,10 +26,9 @@ Dynamic XML sitemap via Next.js MetadataRoute. Fetches active tournaments and pu
   Calls: findAllActiveTournaments, findAllPublicGroupsForSitemap
 
 ### app/template.tsx
-Template component that applies email verification overlay and banner logic across all routes.
+Pure passthrough template. Renders children unconditionally with no verification logic.
 
-- **Template({ children })**: `JSX.Element` — [Server] Wraps children with verification banner and overlay based on user verification status and email verification requirement config.
-  Calls: getLoggedInUser, findUserById
+- **Template({ children })**: `JSX.Element` — [Server] Returns children directly with no side effects.
 
 ### app/transition.tsx
 Client-side page transition animation component using Framer Motion.
@@ -164,9 +163,9 @@ Tournament context layout with header, sidebar, and bottom navigation.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
 - **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
-- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. After `getGroupsForUser`, fetches ranks for all user groups in parallel via `getGroupRankingForUser`, derives `groupRanks: Record<string, number>`, and passes `prodeGroups` (including `favoriteGroupIds` and `mainGroupId`) to `TournamentSidebar → FriendGroupsList`.
-  Calls: getLocale, getLoggedInUser, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd, getGroupRankingForUser
-  Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar
+- **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. Also renders `VerificationBanner` between AppBar and main content (below header, always interactive), and wraps main content with `VerificationOverlay` + `pointerEvents:none` when user is unverified and `REQUIRE_EMAIL_VERIFICATION=true`.
+  Calls: getLocale, getLoggedInUser, findUserById, getTournamentAndGroupsData, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getPlayersInTournament, findTournamentById, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd, getGroupRankingForUser
+  Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar, VerificationBanner, VerificationOverlay
 
 ### app/[locale]/tournaments/[id]/hub/page.tsx
 Backward-compatibility redirect for the old `/hub` route. Redirects to the tournament root.

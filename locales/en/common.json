@@ -1,12 +1,12 @@
 {
   "app": {
     "name": "World Cup Predictions",
-    "title": "La Maquina Prode",
-    "logoAlt": "La Maquina Prode",
+    "title": "Prode Mundial",
+    "logoAlt": "Prode Mundial",
     "description": "Sports prediction platform",
     "loading": "Loading...",
     "error": "An error occurred",
-    "fullName": "La Maquina World Cup Predictions"
+    "fullName": "Prode Mundial"
   },
   "theme": {
     "switchTo": "Switch to {mode} mode",

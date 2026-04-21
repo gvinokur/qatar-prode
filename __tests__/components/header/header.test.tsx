@@ -55,8 +55,8 @@ vi.mock('next-intl/server', () => ({
     getTranslations: vi.fn(() => Promise.resolve((key: string) => {
         // Return realistic values for common translations used in Header
         const translations: Record<string, string> = {
-            'app.title': 'La Maquina Prode',
-            'app.logoAlt': 'la-maquina-prode',
+            'app.title': 'Prode Mundial',
+            'app.logoAlt': 'prode-mundial',
         };
         return translations[key] || key;
     })),
@@ -121,8 +121,8 @@ describe('Header', () => {
             await renderHeader();
 
             expect(screen.getByRole('banner')).toBeInTheDocument();
-            expect(screen.getByAltText('la-maquina-prode')).toBeInTheDocument();
-            expect(screen.getByText('La Maquina Prode')).toBeInTheDocument();
+            expect(screen.getByAltText('prode-mundial')).toBeInTheDocument();
+            expect(screen.getByText('Prode Mundial')).toBeInTheDocument();
             expect(screen.getByTestId('theme-switcher')).toBeInTheDocument();
             expect(screen.getByTestId('user-actions')).toBeInTheDocument();
         });
@@ -130,15 +130,15 @@ describe('Header', () => {
         it('renders the logo with correct src and alt attributes', async () => {
             await renderHeader();
 
-            const logo = screen.getByAltText('la-maquina-prode');
+            const logo = screen.getByAltText('prode-mundial');
             expect(logo).toHaveAttribute('src', '/logo.png');
-            expect(logo).toHaveAttribute('alt', 'la-maquina-prode');
+            expect(logo).toHaveAttribute('alt', 'prode-mundial');
         });
 
         it('renders the title with correct text', async () => {
             await renderHeader();
 
-            const title = screen.getByText('La Maquina Prode');
+            const title = screen.getByText('Prode Mundial');
             expect(title).toBeInTheDocument();
         });
 
@@ -156,21 +156,21 @@ describe('Header', () => {
         it('renders logo as clickable link to home', async () => {
             await renderHeader();
 
-            const logoLink = screen.getByAltText('la-maquina-prode').closest('a');
+            const logoLink = screen.getByAltText('prode-mundial').closest('a');
             expect(logoLink).toHaveAttribute('href', '/es');
         });
 
         it('renders title as clickable link to home', async () => {
             await renderHeader();
 
-            const titleLink = screen.getByText('La Maquina Prode').closest('a');
+            const titleLink = screen.getByText('Prode Mundial').closest('a');
             expect(titleLink).toHaveAttribute('href', '/es');
         });
 
         it('applies correct styles to logo', async () => {
             await renderHeader();
 
-            const logo = screen.getByAltText('la-maquina-prode');
+            const logo = screen.getByAltText('prode-mundial');
             expect(logo).toHaveAttribute('src', '/logo.png');
             // Avatar should have variant="rounded"
             expect(logo.closest('.MuiAvatar-root')).toHaveClass('MuiAvatar-rounded');
@@ -263,7 +263,7 @@ describe('Header', () => {
         it('renders left section with logo', async () => {
             await renderHeader();
 
-            const logo = screen.getByAltText('la-maquina-prode');
+            const logo = screen.getByAltText('prode-mundial');
             expect(logo).toBeInTheDocument();
             expect(logo.closest('a')).toHaveAttribute('href', '/es');
         });
@@ -271,7 +271,7 @@ describe('Header', () => {
         it('renders center section with title', async () => {
             await renderHeader();
 
-            const title = screen.getByText('La Maquina Prode');
+            const title = screen.getByText('Prode Mundial');
             expect(title).toBeInTheDocument();
         });
 
@@ -299,8 +299,8 @@ describe('Header', () => {
             await renderHeader();
 
             // All main elements should be present and spaced correctly
-            expect(screen.getByAltText('la-maquina-prode')).toBeInTheDocument();
-            expect(screen.getByText('La Maquina Prode')).toBeInTheDocument();
+            expect(screen.getByAltText('prode-mundial')).toBeInTheDocument();
+            expect(screen.getByText('Prode Mundial')).toBeInTheDocument();
             expect(screen.getByTestId('theme-switcher')).toBeInTheDocument();
             expect(screen.getByTestId('user-actions')).toBeInTheDocument();
         });
@@ -421,15 +421,15 @@ describe('Header', () => {
         it('has accessible logo with alt text', async () => {
             await renderHeader();
 
-            const logo = screen.getByAltText('la-maquina-prode');
+            const logo = screen.getByAltText('prode-mundial');
             expect(logo).toBeInTheDocument();
         });
 
         it('has accessible navigation links', async () => {
             await renderHeader();
 
-            const logoLink = screen.getByAltText('la-maquina-prode').closest('a');
-            const titleLink = screen.getByText('La Maquina Prode').closest('a');
+            const logoLink = screen.getByAltText('prode-mundial').closest('a');
+            const titleLink = screen.getByText('Prode Mundial').closest('a');
 
             expect(logoLink).toHaveAttribute('href', '/es');
             expect(titleLink).toHaveAttribute('href', '/es');
@@ -483,7 +483,7 @@ describe('Header', () => {
             await renderHeader();
 
             expect(screen.getByRole('banner')).toBeInTheDocument();
-            expect(screen.getByText('La Maquina Prode')).toBeInTheDocument();
+            expect(screen.getByText('Prode Mundial')).toBeInTheDocument();
         });
 
         it('handles server-side rendering with user data', async () => {
