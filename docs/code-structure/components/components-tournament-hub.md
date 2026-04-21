@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-21
 
 ---
 
@@ -18,12 +18,12 @@ Thin Server Component wrapper for the hub's Action Center widget. Calls the serv
 ### app/components/tournament-hub/pre-tournament-new-user-action-center.tsx
 Server Component rendering the full "incomplete user" Action Center layout for pre-tournament users with low prediction progress.
 
-- **PreTournamentNewUserActionCenter({ data, tournamentId, locale })**: `JSX.Element` — [Server] Calls `getTranslations('hub')` and `getTranslations('rules.rules')`, then `getRulesBySection(data.scoringConfig, tRules)` to get rule labels per section. Computes per-track progress percentages and `isComplete` flags. Renders: (1) `PreTournamentCountdown` when `data.firstGameDate !== null`; (2) `TutorialCTACard`; (3) three `PredictionTrackCard` sub-components (Matches, Qualified Teams, Awards), each with their section's rule labels, progress bar, and CTA link.
-  Calls: getTranslations, getRulesBySection
+- **PreTournamentNewUserActionCenter({ data, tournamentId, locale })**: `JSX.Element` — [Server] Calls `getTranslations('hub')`, `getTranslations('rules.rules')`, and `getTranslations('rules.constraints')`. Calls `getRulesBySection(data.scoringConfig, tRules)` for scoring rule labels and `getConstraintsBySection(tConstraints, lockDate)` for per-section deadline strings. `lockDate` is computed from `data.firstGameDate + 5 days` formatted via `Intl.DateTimeFormat`. Computes per-track progress percentages and 4-state CTA labels (cta / ctaKeep / ctaFinish / ctaReview) keyed by progress thresholds. Renders: (1) `PreTournamentCountdown` when `data.firstGameDate !== null`; (2) `TutorialCTACard`; (3) three `PredictionTrackCard` sub-components (Matches, Qualified Teams, Awards).
+  Calls: getTranslations, getRulesBySection, getConstraintsBySection
   Renders: PreTournamentCountdown, TutorialCTACard, PredictionTrackCard
 
-- **PredictionTrackCard(props)**: `JSX.Element` — Server-compatible sub-component (not exported). Renders an outlined Paper card with: icon + title + completed/total count row, description, dashed-border scoring rules box (scoringLabel header + one rule per line), LinearProgress bar, CTA Button (Link). `isComplete=true` switches CTA to outlined variant and progress bar to 'success' color.
-  Icon usage: `SportsSoccerIcon` (Matches), `AccountTreeIcon` (Qualified Teams, matching `action-center-carousel.tsx`), `EmojiEventsIcon` (Awards).
+- **PredictionTrackCard(props)**: `JSX.Element` — Server-compatible sub-component (not exported). Props include `deadline: string | null` and `deadlineLabel: string` in addition to icon, title, description, rules, progress, CTA, etc. Renders an outlined Paper card with: icon + title + completed/total count row; description; dashed-border deadline box (`ScheduleIcon` + label + date text, omitted when `deadline === null`); dashed-border scoring rules box (`AddCircleOutlineIcon` + scoringLabel header + one rule per line); `LinearProgress` bar; CTA `Button` (Link). `isComplete=true` switches CTA to outlined variant with `CelebrationIcon`, progress bar color to 'success'.
+  Icon usage: `SportsSoccerIcon` (Matches), `AccountTreeIcon` (Qualified Teams), `EmojiEventsIcon` (Awards), `ScheduleIcon` (deadline), `AddCircleOutlineIcon` (scoring rules).
 
 ### app/components/tournament-hub/tutorial-cta-card.tsx
 Client Component for the "New to Prode?" tutorial CTA. Opens the onboarding dialog on button click.

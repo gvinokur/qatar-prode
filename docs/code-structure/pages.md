@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-04-21
 
 ---
 
@@ -194,8 +194,8 @@ Tournament-specific rules page with scoring configuration.
 
 - **generateMetadata({ params }: { params: Promise<{ id: string }> })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{rules.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentRulesPage(props: Props)**: `JSX.Element` — [Server] Fetches tournament (via cache) and renders scoring config rules with BreadcrumbList JSON-LD.
-  Calls: findTournamentByIdCached, getLocale, getTranslations, buildBreadcrumbListJsonLd
+- **TournamentRulesPage(props: Props)**: `JSX.Element` — [Server] Fetches tournament and first game in parallel (`Promise.all`). Computes `lockDate` = first game date + 5 days formatted via `Intl.DateTimeFormat` (undefined when no first game). Passes `lockDate` to `<Rules />` so constraint strings show the actual date rather than the generic fallback.
+  Calls: findTournamentByIdCached, findFirstGameInTournament, getLocale, getTranslations, buildBreadcrumbListJsonLd
   Renders: JsonLd, Rules
 
 ### app/[locale]/tournaments/[id]/stats/page.tsx

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-21
 
 ---
 
@@ -19,7 +19,10 @@ Pure utility that organises scoring rule labels into the three prediction tracks
 
 - **getRulesBySection(config: ScoringConfig, tRules: (key: string, params?: Record<string, unknown>) => string)**: `ScoringRulesBySection` — Maps `ScoringConfig` values to the three prediction track sections. `matches` = winnerDraw + exactScore + optional boost entries (same condition as `rules.tsx`). `qualifiedTeams` = qualifiedTeam + exactPosition. `awards` = champion + runnerUp + thirdPlace + individualAwards. Accepts translator bound to `rules.rules` namespace so it works in both server (`getTranslations`) and client (`useTranslations`) contexts.
   Calls: *(none — pure function)*
+- **getConstraintsBySection(tConstraints: (key: string, params?: Record<string, unknown>) => string, lockDate: string | null)**: `ConstraintsBySection` — Returns per-section prediction deadline constraint strings sourced from `rules.constraints` namespace. `matches` = `matchPredictionTime`. `qualifiedTeams` = `qualifiedTeamsPredictionTime({date})`. `awards` = `podiumPredictionTime({date})`. When `lockDate` is null, falls back to `tConstraints('lockDateFallback')` as the date value.
+  Calls: *(none — pure function)*
 - **ScoringRulesBySection**: TypeScript interface — `{ matches: string[], qualifiedTeams: string[], awards: string[] }`.
+- **ConstraintsBySection**: TypeScript interface — `{ matches: string, qualifiedTeams: string, awards: string }`.
 
 ### app/utils/json-ld-utils.ts
 Pure builder functions for schema.org JSON-LD structured data objects.
