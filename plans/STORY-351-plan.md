@@ -22,23 +22,26 @@ Two bugs:
 
 **Root Cause:** `app/template.tsx` wraps ALL nested content — including the tournament layout's `AppBar` — with `pointerEvents: none`, making the header non-interactive for unverified users.
 
-**Fix strategy (simplified per user feedback):**
-1. **Remove the overlay entirely from `app/template.tsx`** — keep the `VerificationBanner` (globally useful) but delete the `<Box position="relative">` / `VerificationOverlay` / `pointerEvents: none` wrapping.
-2. **Create `app/[locale]/tournaments/[id]/template.tsx`** — server component that applies the overlay ONLY to `children` (the page content). Since `template.tsx` wraps only the page slot and NOT the layout's `AppBar`, the header remains fully interactive.
+**Fix strategy (final per user feedback):**
+1. **Remove everything verification-related from `app/template.tsx`** — both the `VerificationBanner` AND the overlay/`pointerEvents` wrapping. The template becomes a simple passthrough.
+2. **Add banner + overlay inside the tournament layout** (`app/[locale]/tournaments/[id]/layout.tsx`): render `VerificationBanner` between the `AppBar` and the main content area, and wrap the main content area with `VerificationOverlay` + `pointerEvents: none` when the user is unverified.
 
-No `VerificationGate` client component needed.
+This keeps both elements entirely within the tournament context, below the header.
 
 **Next.js rendering order (why this works):**
 ```
 app/layout.tsx
-  app/template.tsx              ← banner only (no overlay)
+  app/template.tsx              ← passthrough only (no verification)
     app/[locale]/layout.tsx     ← locale header/footer
-      app/[locale]/tournaments/[id]/layout.tsx  ← tournament AppBar (HEADER IS HERE)
-        app/[locale]/tournaments/[id]/template.tsx  ← overlay wraps ONLY page content
-          page.tsx              ← actual tournament page
+      app/[locale]/tournaments/[id]/layout.tsx
+        ┣ AppBar (header — always interactive)
+        ┣ VerificationBanner (if unverified — below header)
+        ┗ Main content Box
+            ┣ VerificationOverlay (if unverified)
+            ┗ children (page content, pointer-events:none if unverified)
 ```
 
-The tournament template wraps only the page, never the `AppBar`.
+No new files needed — changes are confined to `app/template.tsx` (simplify) and `app/[locale]/tournaments/[id]/layout.tsx` (add verification).
 
 ### Fix 2: Branding Updates
 
@@ -63,11 +66,9 @@ Update locale strings and the hardcoded `alt` attribute:
 
 ## Files to Create / Modify
 
-**Create:**
-- `app/[locale]/tournaments/[id]/template.tsx` — new tournament-level template
-
 **Modify:**
-- `app/template.tsx` — remove overlay/pointer-events wrapping; keep banner only
+- `app/template.tsx` — remove all verification logic (becomes a simple passthrough)
+- `app/[locale]/tournaments/[id]/layout.tsx` — add `VerificationBanner` (below AppBar) + overlay wrapping on main content area
 - `locales/en/common.json` — branding strings
 - `locales/es/common.json` — branding strings
 - `locales/en/onboarding.json` — welcome string
@@ -84,42 +85,50 @@ Update locale strings and the hardcoded `alt` attribute:
 
 ### Call Graph Changes
 
-No call graph changes. No new cross-layer flows. The verification logic already exists; we are only restructuring which template renders it.
-
----
-
-### `app/[locale]/tournaments/[id]/template.tsx` *(new)*
-
-**`TournamentTemplate({ children: ReactNode }): Promise<JSX.Element>`**
-Server component. Fetches user + email verification status (same logic as `app/template.tsx`). If unverified and verification required: wraps `children` (page content only, NOT layout header) with `VerificationOverlay` + `pointerEvents: none`. Otherwise renders children normally.
-
-Calls: `getLoggedInUser`, `findUserById`
-
-Tests:
-- renders children unmodified when `REQUIRE_EMAIL_VERIFICATION` is false
-- renders children unmodified when user is not logged in
-- renders children unmodified when user is email-verified
-- wraps children with overlay and `pointerEvents: none` when user is unverified and verification required
-- `VerificationOverlay` is rendered as sibling to (not parent of) children when unverified
+No call graph changes. No new cross-layer flows. The verification logic already exists; we are only restructuring where it renders.
 
 ---
 
 ### `app/template.tsx` *(modified)*
 
 **`Template({ children: ReactNode }): Promise<JSX.Element>`**
-Remove the `<Box position="relative">` / `VerificationOverlay` / `pointerEvents: none` wrapping entirely. Keep only the `VerificationBanner` (unverified users still see the banner). Always render `children` directly.
+Remove all verification logic. Becomes a simple passthrough that renders `children` unconditionally. Remove imports: `getLoggedInUser`, `findUserById`, `VerificationBanner`, `VerificationOverlay`.
 
-```typescript
-// Before: unverified users got overlay + pointer-events: none
-// After: unverified users see only the banner; children always rendered normally
+Tests:
+- renders children unconditionally (no verification logic)
+- does not render `VerificationBanner`
+- does not render `VerificationOverlay`
+
+---
+
+### `app/[locale]/tournaments/[id]/layout.tsx` *(modified)*
+
+**`TournamentLayout(props): Promise<JSX.Element>`** *(add verification rendering)*
+Fetch user + email verification status (reuse the same `getLoggedInUser` + `findUserById` already called). Render `VerificationBanner` between the `AppBar` and the main content `Box`. Wrap the main content `Box` with `VerificationOverlay` + `pointerEvents: none` when user is unverified and `REQUIRE_EMAIL_VERIFICATION` is true.
+
+Calls: `getLoggedInUser` (already called), `findUserById` (new call — same pattern as template.tsx)
+
+Layout structure change:
+```tsx
+<Box> {/* outer flex column */}
+  <AppBar> ... </AppBar>         {/* unchanged — always interactive */}
+  {isUnverified && <VerificationBanner />}   {/* NEW — below header */}
+  <Box position="relative">      {/* NEW wrapper when unverified */}
+    {isUnverified && <VerificationOverlay />}
+    <Box sx={isUnverified ? { pointerEvents: 'none', userSelect: 'none' } : {}}>
+      {/* existing main content area */}
+    </Box>
+  </Box>
+</Box>
 ```
 
 Tests:
-- renders `VerificationBanner` when user is unverified and verification required
-- renders children directly (no overlay Box) when user is unverified and verification required
-- renders children directly when `REQUIRE_EMAIL_VERIFICATION` is false
-- renders children directly when user is verified
-- renders children directly when no user is logged in
+- renders `VerificationBanner` below `AppBar` when user is unverified and verification required
+- renders `VerificationOverlay` in main content area when user is unverified
+- main content `Box` has `pointerEvents: none` when user is unverified
+- does not render `VerificationBanner` when user is verified
+- does not render `VerificationOverlay` when `REQUIRE_EMAIL_VERIFICATION` is false
+- `AppBar` is rendered outside the `pointerEvents: none` wrapper (always interactive)
 
 ---
 
@@ -132,10 +141,10 @@ Tests:
 - Mock `getLoggedInUser` and `findUserById` via `vi.mock()`
 
 **What to test:**
-1. **New: `TournamentTemplate`** — 5 test cases (see Mid-Level Design)
-2. **Modified: `app/template.tsx`** — 5 test cases (see Mid-Level Design above), replacing the existing inline logic tests
+1. **Modified: `app/template.tsx`** — 3 test cases (passthrough, no banner, no overlay)
+2. **Modified: `app/[locale]/tournaments/[id]/layout.tsx`** — 6 test cases covering banner placement, overlay, pointer-events, and header always accessible
 3. **Update existing tests** — fix expected branding strings in `header.test.tsx` and `layout.test.tsx`
-4. **Branding locale verification** — assert both `locales/en/common.json` and `locales/es/common.json` contain no "La Maquina" string (can be a simple grep-based snapshot test or manual Vercel verification)
+4. **Branding locale verification** — assert both `locales/en/common.json` and `locales/es/common.json` contain no "La Maquina" string
 
 **Manual verification** (Vercel Preview):
 - Log in with unverified email, navigate to tournament page
