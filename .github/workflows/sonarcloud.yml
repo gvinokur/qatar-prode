@@ -6,6 +6,7 @@ on:
   pull_request:
     types: [ opened, reopened, ready_for_review, synchronize ]
     branches: [ main ]
+  workflow_dispatch:
 
 # Cancel in-progress runs when new commits are pushed
 concurrency:
@@ -16,8 +17,8 @@ jobs:
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    # Skip if PR is in draft mode
-    if: github.event.pull_request.draft == false
+    # Skip if PR is in draft mode (allow workflow_dispatch to bypass)
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
     
     steps:
     - name: Checkout code
