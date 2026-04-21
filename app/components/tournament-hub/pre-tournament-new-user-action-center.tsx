@@ -2,10 +2,10 @@ import React from 'react'
 import { Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material'
 import {
   AccountTree as AccountTreeIcon,
+  AddCircleOutline as AddCircleOutlineIcon,
   Celebration as CelebrationIcon,
   EmojiEvents as EmojiEventsIcon,
   Schedule as ScheduleIcon,
-  Scoreboard as ScoreboardIcon,
   SportsSoccer as SportsSoccerIcon,
 } from '@mui/icons-material'
 import { getTranslations } from 'next-intl/server'
@@ -107,7 +107,7 @@ function PredictionTrackCard({
             }}
           >
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-              <ScoreboardIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <AddCircleOutlineIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
               <Typography variant="caption" color="text.secondary" fontWeight="bold">
                 {scoringLabel}
               </Typography>

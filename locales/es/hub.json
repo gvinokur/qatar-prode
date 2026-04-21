@@ -90,7 +90,7 @@
     "tracks": {
       "matches": {
         "title": "Partidos",
-        "description": "Pronosticá el resultado de los {total} partidos del torneo.",
+        "description": "Pronosticá los resultados de los partidos del torneo. Hacé lo que puedas ahora — siempre podés volver a editar antes de que empiece cada uno.",
         "cta": "Empezar a Pronosticar",
         "ctaKeep": "Seguir Pronosticando",
         "ctaFinish": "Terminar tus Pronósticos",
@@ -100,8 +100,8 @@
         "title": "Equipos Clasificados",
         "description": "Elegí quién pasa de cada grupo y quién gana la final.",
         "cta": "Pronosticar quien avanza",
-        "ctaKeep": "Seguir",
-        "ctaFinish": "Terminar tus Picks",
+        "ctaKeep": "Seguir pronosticando",
+        "ctaFinish": "Terminar tus pronósticos",
         "ctaReview": "Revisar tus Pronósticos"
       },
       "awards": {
@@ -113,9 +113,9 @@
         "ctaReview": "Revisar tus Pronósticos"
       },
       "deadline": {
-        "label": "VENCIMIENTO:"
+        "label": "Fecha límite:"
       },
-      "scoringLabel": "REGLAS DE PUNTUACIÓN:"
+      "scoringLabel": "Puntuación:"
     },
     "socialHub": {
       "learnMore": "Más información sobre los grupos"

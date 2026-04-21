@@ -90,7 +90,7 @@
     "tracks": {
       "matches": {
         "title": "Matches",
-        "description": "Predict the result of all {total} tournament matches.",
+        "description": "Predict the results of each tournament match. Do what you can now — you can always come back and edit before each one starts.",
         "cta": "Start Predicting",
         "ctaKeep": "Keep Predicting",
         "ctaFinish": "Finish Your Predictions",
@@ -113,9 +113,9 @@
         "ctaReview": "Review Your Predictions"
       },
       "deadline": {
-        "label": "PREDICTION DEADLINE:"
+        "label": "Prediction deadline:"
       },
-      "scoringLabel": "SCORING RULES:"
+      "scoringLabel": "Scoring:"
     },
     "socialHub": {
       "learnMore": "Learn more about groups"
