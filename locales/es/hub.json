@@ -92,19 +92,30 @@
         "title": "Partidos",
         "description": "Pronosticá el resultado de los {total} partidos del torneo.",
         "cta": "Empezar a Pronosticar",
-        "ctaReview": "Revisar"
+        "ctaKeep": "Seguir Pronosticando",
+        "ctaFinish": "Terminar tus Pronósticos",
+        "ctaReview": "Revisar tus Pronósticos"
       },
       "qualifiedTeams": {
         "title": "Equipos Clasificados",
         "description": "Elegí quién pasa de cada grupo y quién gana la final.",
         "cta": "Pronosticar quien avanza",
-        "ctaReview": "Revisar"
+        "ctaKeep": "Seguir",
+        "ctaFinish": "Terminar tus Picks",
+        "ctaReview": "Revisar tus Pronósticos"
       },
       "awards": {
         "title": "Premios",
         "description": "Elegí al Campeón, Goleador, Mejor Arquero y más premios individuales.",
         "cta": "Elegir Premios",
-        "ctaReview": "Revisar"
+        "ctaKeep": "Seguir Eligiendo",
+        "ctaFinish": "Terminar de Elegir",
+        "ctaReview": "Revisar tus Pronósticos"
+      },
+      "deadline": {
+        "label": "VENCIMIENTO:",
+        "matchesText": "Los pronósticos se bloquean 1 hora antes de cada partido",
+        "qtAndAwardsText": "Cierra el {date}"
       },
       "scoringLabel": "REGLAS DE PUNTUACIÓN:"
     },

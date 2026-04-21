@@ -2,7 +2,10 @@ import React from 'react'
 import { Box, Button, LinearProgress, Paper, Stack, Typography } from '@mui/material'
 import {
   AccountTree as AccountTreeIcon,
+  Celebration as CelebrationIcon,
   EmojiEvents as EmojiEventsIcon,
+  Schedule as ScheduleIcon,
+  Scoreboard as ScoreboardIcon,
   SportsSoccer as SportsSoccerIcon,
 } from '@mui/icons-material'
 import { getTranslations } from 'next-intl/server'
@@ -25,6 +28,8 @@ interface PredictionTrackCardProps {
   readonly description: string
   readonly rules: string[]
   readonly scoringLabel: string
+  readonly deadline: string | null
+  readonly deadlineLabel: string
   readonly progress: number
   readonly completed: number
   readonly total: number
@@ -39,6 +44,8 @@ function PredictionTrackCard({
   description,
   rules,
   scoringLabel,
+  deadline,
+  deadlineLabel,
   progress,
   completed,
   total,
@@ -67,6 +74,28 @@ function PredictionTrackCard({
           {description}
         </Typography>
 
+        {/* Deadline box */}
+        {deadline !== null && (
+          <Box
+            sx={{
+              border: '1px dashed',
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 1,
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
+              <ScheduleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                {deadlineLabel}
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="text.secondary" display="block">
+              {deadline}
+            </Typography>
+          </Box>
+        )}
+
         {/* Scoring rules box */}
         {rules.length > 0 && (
           <Box
@@ -77,15 +106,12 @@ function PredictionTrackCard({
               p: 1,
             }}
           >
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              fontWeight="bold"
-              display="block"
-              sx={{ mb: 0.5 }}
-            >
-              {scoringLabel}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
+              <ScoreboardIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                {scoringLabel}
+              </Typography>
+            </Stack>
             {rules.map((rule, i) => (
               <Typography key={i} variant="caption" color="text.secondary" display="block">
                 • {rule}
@@ -110,6 +136,7 @@ function PredictionTrackCard({
           color="primary"
           size="small"
           fullWidth
+          startIcon={isComplete ? <CelebrationIcon /> : undefined}
         >
           {cta}
         </Button>
@@ -135,20 +162,67 @@ export async function PreTournamentNewUserActionCenter({
   const qualifiedTeamsUrl = `/${locale}/tournaments/${tournamentId}/qualified-teams`
   const awardsUrl = `/${locale}/tournaments/${tournamentId}/awards`
 
+  // Progress: treat total=0 as 100% (nothing to predict = section is complete),
+  // consistent with computeIsIncompleteUser's zero-total handling.
   const gamesProgress =
-    data.totalGames === 0 ? 0 : Math.round((data.predictedGames / data.totalGames) * 100)
+    data.totalGames === 0 ? 100 : Math.round((data.predictedGames / data.totalGames) * 100)
   const awardsProgress =
-    data.awardsTotal === 0 ? 0 : Math.round((data.awardsCompleted / data.awardsTotal) * 100)
+    data.awardsTotal === 0 ? 100 : Math.round((data.awardsCompleted / data.awardsTotal) * 100)
   const qtProgress =
     data.qualifiersTotal === 0
-      ? 0
+      ? 100
       : Math.round((data.qualifiersCompleted / data.qualifiersTotal) * 100)
 
-  const matchesComplete = data.totalGames > 0 && data.predictedGames >= data.totalGames
-  const awardsComplete = data.awardsTotal > 0 && data.awardsCompleted >= data.awardsTotal
-  const qtComplete = data.qualifiersTotal > 0 && data.qualifiersCompleted >= data.qualifiersTotal
+  const matchesComplete = gamesProgress >= 100
+  const awardsComplete = awardsProgress >= 100
+  const qtComplete = qtProgress >= 100
 
   const scoringLabel = t('newUser.tracks.scoringLabel')
+  const deadlineLabel = t('newUser.tracks.deadline.label')
+
+  // QT/Awards lock 5 days after the first game
+  const qtLockDate = data.firstGameDate
+    ? new Date(data.firstGameDate.getTime() + 5 * 24 * 60 * 60 * 1000)
+    : null
+  const qtLockDateFormatted = qtLockDate
+    ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
+        qtLockDate
+      )
+    : null
+  const qtAwardsDeadline = qtLockDateFormatted
+    ? t('newUser.tracks.deadline.qtAndAwardsText', { date: qtLockDateFormatted })
+    : null
+
+  const matchesDeadline = t('newUser.tracks.deadline.matchesText')
+
+  // 4-state CTA: none → keep → finish → review
+  // Matches threshold: 30% | QT & Awards threshold: 90%
+  const matchesCTA =
+    gamesProgress >= 100
+      ? t('newUser.tracks.matches.ctaReview')
+      : gamesProgress >= 30
+        ? t('newUser.tracks.matches.ctaFinish')
+        : gamesProgress > 0
+          ? t('newUser.tracks.matches.ctaKeep')
+          : t('newUser.tracks.matches.cta')
+
+  const qtCTA =
+    qtProgress >= 100
+      ? t('newUser.tracks.qualifiedTeams.ctaReview')
+      : qtProgress >= 90
+        ? t('newUser.tracks.qualifiedTeams.ctaFinish')
+        : qtProgress > 0
+          ? t('newUser.tracks.qualifiedTeams.ctaKeep')
+          : t('newUser.tracks.qualifiedTeams.cta')
+
+  const awardsCTA =
+    awardsProgress >= 100
+      ? t('newUser.tracks.awards.ctaReview')
+      : awardsProgress >= 90
+        ? t('newUser.tracks.awards.ctaFinish')
+        : awardsProgress > 0
+          ? t('newUser.tracks.awards.ctaKeep')
+          : t('newUser.tracks.awards.cta')
 
   return (
     <Stack spacing={2}>
@@ -170,10 +244,12 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.matches.description', { total: data.totalGames })}
         rules={rulesBySection.matches}
         scoringLabel={scoringLabel}
+        deadline={matchesDeadline}
+        deadlineLabel={deadlineLabel}
         progress={gamesProgress}
         completed={data.predictedGames}
         total={data.totalGames}
-        cta={matchesComplete ? t('newUser.tracks.matches.ctaReview') : t('newUser.tracks.matches.cta')}
+        cta={matchesCTA}
         href={gamesUrl}
         isComplete={matchesComplete}
       />
@@ -185,10 +261,12 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.qualifiedTeams.description')}
         rules={rulesBySection.qualifiedTeams}
         scoringLabel={scoringLabel}
+        deadline={qtAwardsDeadline}
+        deadlineLabel={deadlineLabel}
         progress={qtProgress}
         completed={data.qualifiersCompleted}
         total={data.qualifiersTotal}
-        cta={qtComplete ? t('newUser.tracks.qualifiedTeams.ctaReview') : t('newUser.tracks.qualifiedTeams.cta')}
+        cta={qtCTA}
         href={qualifiedTeamsUrl}
         isComplete={qtComplete}
       />
@@ -200,10 +278,12 @@ export async function PreTournamentNewUserActionCenter({
         description={t('newUser.tracks.awards.description')}
         rules={rulesBySection.awards}
         scoringLabel={scoringLabel}
+        deadline={qtAwardsDeadline}
+        deadlineLabel={deadlineLabel}
         progress={awardsProgress}
         completed={data.awardsCompleted}
         total={data.awardsTotal}
-        cta={awardsComplete ? t('newUser.tracks.awards.ctaReview') : t('newUser.tracks.awards.cta')}
+        cta={awardsCTA}
         href={awardsUrl}
         isComplete={awardsComplete}
       />

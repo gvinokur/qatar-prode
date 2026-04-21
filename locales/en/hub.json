@@ -92,19 +92,30 @@
         "title": "Matches",
         "description": "Predict the result of all {total} tournament matches.",
         "cta": "Start Predicting",
-        "ctaReview": "Review"
+        "ctaKeep": "Keep Predicting",
+        "ctaFinish": "Finish Your Predictions",
+        "ctaReview": "Review Your Predictions"
       },
       "qualifiedTeams": {
         "title": "Qualified Teams",
         "description": "Build your bracket. Choose who advances from each group and who wins the final.",
-        "cta": "Predict who advances",
-        "ctaReview": "Review"
+        "cta": "Predict Who Advances",
+        "ctaKeep": "Keep Going",
+        "ctaFinish": "Finish Your Picks",
+        "ctaReview": "Review Your Predictions"
       },
       "awards": {
         "title": "Awards",
         "description": "Choose the Champion, Top Scorer, Best Goalkeeper and more individual awards.",
         "cta": "Choose Awards",
-        "ctaReview": "Review"
+        "ctaKeep": "Keep Choosing",
+        "ctaFinish": "Finish Choosing",
+        "ctaReview": "Review Your Predictions"
+      },
+      "deadline": {
+        "label": "PREDICTION DEADLINE:",
+        "matchesText": "Predictions lock 1 hour before each match kickoff",
+        "qtAndAwardsText": "Closes on {date}"
       },
       "scoringLabel": "SCORING RULES:"
     },
