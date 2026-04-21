@@ -20,27 +20,21 @@ Two bugs:
 
 ### Fix 1: Verification Overlay
 
-**Root Cause:** `app/template.tsx` (a Next.js [Server Component template](https://nextjs.org/docs/app/api-reference/file-conventions/template)) wraps ALL nested content — including the tournament layout's `AppBar` — with:
-```tsx
-<Box position="relative">
-  <VerificationOverlay />
-  <Box sx={{ pointerEvents: 'none', userSelect: 'none' }}>
-    {children}  {/* ← tournament layout incl. header is inside here */}
-  </Box>
-</Box>
-```
+**Root Cause:** `app/template.tsx` wraps ALL nested content — including the tournament layout's `AppBar` — with `pointerEvents: none`, making the header non-interactive for unverified users.
 
-**Fix strategy:**
-1. Extract the `pointerEvents` gate into a new **client component** `VerificationGate` that reads `usePathname()`. On tournament pages it skips the overlay (delegates to the tournament template). On all other pages it applies the existing overlay.
-2. Create `app/[locale]/tournaments/[id]/template.tsx` — a **server component** that fetches the same user/verification data and applies the overlay only to `children` (the page content). Since `template.tsx` wraps only the page slot and NOT the layout's `AppBar`, the header remains fully interactive.
+**Fix strategy (simplified per user feedback):**
+1. **Remove the overlay entirely from `app/template.tsx`** — keep the `VerificationBanner` (globally useful) but delete the `<Box position="relative">` / `VerificationOverlay` / `pointerEvents: none` wrapping.
+2. **Create `app/[locale]/tournaments/[id]/template.tsx`** — server component that applies the overlay ONLY to `children` (the page content). Since `template.tsx` wraps only the page slot and NOT the layout's `AppBar`, the header remains fully interactive.
+
+No `VerificationGate` client component needed.
 
 **Next.js rendering order (why this works):**
 ```
 app/layout.tsx
-  app/template.tsx              ← wraps all content (uses VerificationGate)
+  app/template.tsx              ← banner only (no overlay)
     app/[locale]/layout.tsx     ← locale header/footer
       app/[locale]/tournaments/[id]/layout.tsx  ← tournament AppBar (HEADER IS HERE)
-        app/[locale]/tournaments/[id]/template.tsx  ← wraps ONLY page content
+        app/[locale]/tournaments/[id]/template.tsx  ← overlay wraps ONLY page content
           page.tsx              ← actual tournament page
 ```
 
@@ -70,13 +64,10 @@ Update locale strings and the hardcoded `alt` attribute:
 ## Files to Create / Modify
 
 **Create:**
-- `app/components/verification/verification-gate.tsx` — new client component
-
-**Create:**
 - `app/[locale]/tournaments/[id]/template.tsx` — new tournament-level template
 
 **Modify:**
-- `app/template.tsx` — use `VerificationGate` instead of inline Box
+- `app/template.tsx` — remove overlay/pointer-events wrapping; keep banner only
 - `locales/en/common.json` — branding strings
 - `locales/es/common.json` — branding strings
 - `locales/en/onboarding.json` — welcome string
@@ -93,26 +84,7 @@ Update locale strings and the hardcoded `alt` attribute:
 
 ### Call Graph Changes
 
-No call graph changes. No new cross-layer flows. The verification logic already exists; we are only restructuring which template renders it for which routes.
-
----
-
-### `app/components/verification/verification-gate.tsx` *(new)*
-
-**`VerificationGate({ children: ReactNode }): JSX.Element`**
-Client component. Reads `usePathname()` to determine if the current route is a tournament page (`/[locale]/tournaments/...`). On tournament pages, renders children unmodified (the tournament template handles the overlay). On all other pages, applies the existing `VerificationOverlay` + `pointerEvents: none` wrapper.
-
-```typescript
-'use client'
-// Props: children: React.ReactNode
-// Returns: children wrapped in overlay (non-tournament) or as-is (tournament)
-```
-
-Tests:
-- renders children with overlay wrapper on non-tournament route (`/en/groups`)
-- renders children without overlay or pointer-events on tournament route (`/en/tournaments/fifa-2026`)
-- overlay Box has `position: relative` on non-tournament pages
-- does not render `VerificationOverlay` on tournament pages
+No call graph changes. No new cross-layer flows. The verification logic already exists; we are only restructuring which template renders it.
 
 ---
 
@@ -134,25 +106,17 @@ Tests:
 
 ### `app/template.tsx` *(modified)*
 
-**`Template({ children: ReactNode }): Promise<JSX.Element>`** *(was: inline conditional)*
-Replace inline `<Box position="relative">` block with `<VerificationGate>`. The banner logic is unchanged.
+**`Template({ children: ReactNode }): Promise<JSX.Element>`**
+Remove the `<Box position="relative">` / `VerificationOverlay` / `pointerEvents: none` wrapping entirely. Keep only the `VerificationBanner` (unverified users still see the banner). Always render `children` directly.
 
 ```typescript
-// Before (inline):
-{isUnverified ? (
-  <Box position="relative">
-    <VerificationOverlay />
-    <Box sx={{ pointerEvents: 'none', ... }}>{children}</Box>
-  </Box>
-) : children}
-
-// After (uses VerificationGate):
-{isUnverified ? <VerificationGate>{children}</VerificationGate> : children}
+// Before: unverified users got overlay + pointer-events: none
+// After: unverified users see only the banner; children always rendered normally
 ```
 
 Tests:
-- renders `VerificationGate` (not inline Box) when user is unverified and verification required
 - renders `VerificationBanner` when user is unverified and verification required
+- renders children directly (no overlay Box) when user is unverified and verification required
 - renders children directly when `REQUIRE_EMAIL_VERIFICATION` is false
 - renders children directly when user is verified
 - renders children directly when no user is logged in
@@ -166,14 +130,12 @@ Tests:
 - Use `testFactories.createUser({ emailVerified: null })` for unverified users
 - Use `testFactories.createUser({ emailVerified: new Date() })` for verified users
 - Mock `getLoggedInUser` and `findUserById` via `vi.mock()`
-- Mock `next/navigation` `usePathname` for `VerificationGate` tests
 
 **What to test:**
-1. **New: `VerificationGate`** — 4 test cases (see Mid-Level Design)
-2. **New: `TournamentTemplate`** — 5 test cases (see Mid-Level Design)
-3. **Modified: `app/template.tsx`** — 5 test cases (see Mid-Level Design above), replacing the existing inline logic tests
-4. **Update existing tests** — fix expected branding strings in `header.test.tsx` and `layout.test.tsx`
-5. **Branding locale verification** — assert both `locales/en/common.json` and `locales/es/common.json` contain no "La Maquina" string (can be a simple grep-based snapshot test or manual Vercel verification)
+1. **New: `TournamentTemplate`** — 5 test cases (see Mid-Level Design)
+2. **Modified: `app/template.tsx`** — 5 test cases (see Mid-Level Design above), replacing the existing inline logic tests
+3. **Update existing tests** — fix expected branding strings in `header.test.tsx` and `layout.test.tsx`
+4. **Branding locale verification** — assert both `locales/en/common.json` and `locales/es/common.json` contain no "La Maquina" string (can be a simple grep-based snapshot test or manual Vercel verification)
 
 **Manual verification** (Vercel Preview):
 - Log in with unverified email, navigate to tournament page
