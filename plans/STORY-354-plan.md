@@ -92,6 +92,36 @@ Split the single vertical `Box` into two zones:
 - `TournamentHubRecentResults` and `TournamentHubLeaderboardPeek` move into the widget grid, where future stories will wrap them in `DashboardCard`.
 - The outer `Box` with `flexDirection: 'column'` preserves the existing top-level spacing.
 
+**Layout Placeholder Strategy (visual testability):**
+
+To make the two-zone layout clearly testable in Vercel preview, the page will include placeholder `DashboardCard` instances alongside the existing components in the widget grid. These demonstrate the `DashboardCard` design and grid behavior (2-column on desktop, 1 on mobile) using static content — they are clearly commented as placeholders to be replaced in subsequent stories.
+
+Banner area gets a visible `DashboardBannerPlaceholder` — a simple outlined `Paper` with a label — stacked above `TournamentHubActionCenter`. This makes the full-width banner zone unmistakably visible.
+
+Widget grid gets two placeholder `DashboardCard` instances (e.g., "Games" with `SportsSoccerIcon` and "Standings" with `EmojiEventsIcon`) with simple Typography content, placed alongside the existing `TournamentHubRecentResults` and `TournamentHubLeaderboardPeek`.
+
+```tsx
+{/* PLACEHOLDER — Banner Zone Demo */}
+<Paper variant="outlined" sx={{ p: 2, textAlign: 'center', borderStyle: 'dashed', color: 'text.secondary' }}>
+  Banner Area — full-width (e.g. Hero, Onboarding)
+</Paper>
+<TournamentHubActionCenter ... />
+
+{/* PLACEHOLDER — Widget Grid Demo */}
+<Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 2 }}>
+  <DashboardCard title="Games" icon={<SportsSoccerIcon />} count="3 pending">
+    <Typography variant="body2" color="text.secondary">Placeholder widget content</Typography>
+  </DashboardCard>
+  <DashboardCard title="Standings" icon={<EmojiEventsIcon />}>
+    <Typography variant="body2" color="text.secondary">Placeholder widget content</Typography>
+  </DashboardCard>
+  {!isIncompleteUser && <TournamentHubRecentResults ... />}
+  <TournamentHubLeaderboardPeek ... />
+</Box>
+```
+
+These placeholders are **temporary** and will be removed/replaced when real widgets are implemented in subsequent hub iteration stories.
+
 ## Files to Create/Modify
 
 | Action | File |
@@ -147,7 +177,7 @@ No new functions. Structural JSX change only:
 4. Create `app/components/tournament-hub/__tests__/dashboard-card.test.tsx`
 
 ### Wave 3 — page.tsx Refactor (depends on Wave 2 existing)
-5. Modify `app/[locale]/tournaments/[id]/page.tsx` — add Stack import, apply two-zone layout
+5. Modify `app/[locale]/tournaments/[id]/page.tsx` — add Stack import, apply two-zone layout with placeholder content (see below)
 
 ### Wave 4 — Documentation
 6. Update `docs/code-structure/components/components-tournament-hub.md` with `DashboardCard` entry
