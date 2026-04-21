@@ -1,11 +1,11 @@
 import { Avatar, Card, CardContent, CardHeader, Typography } from '@mui/material'
 
 type Props = {
-  title: string
-  icon: React.ReactNode
-  count?: React.ReactNode
-  children?: React.ReactNode
-  urgent?: boolean
+  readonly title: string
+  readonly icon: React.ReactNode
+  readonly count?: React.ReactNode
+  readonly children?: React.ReactNode
+  readonly urgent?: boolean
 }
 
 export function DashboardCard({ title, icon, count, children, urgent }: Props) {
@@ -39,11 +39,11 @@ export function DashboardCard({ title, icon, count, children, urgent }: Props) {
           </Typography>
         }
         action={
-          count !== undefined ? (
+          count === undefined ? undefined : (
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mt: 1, mr: 1 }}>
               {count}
             </Typography>
-          ) : undefined
+          )
         }
         sx={{ pb: 1 }}
       />
