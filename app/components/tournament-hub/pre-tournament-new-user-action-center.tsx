@@ -51,7 +51,7 @@ function PredictionTrackCard({
       <Stack spacing={1.5}>
         {/* Header row: icon + title + progress count */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
+          <Box sx={{ color: 'secondary.main', display: 'flex' }}>{icon}</Box>
           <Typography variant="subtitle1" fontWeight="bold" flexGrow={1}>
             {title}
           </Typography>
@@ -98,7 +98,7 @@ function PredictionTrackCard({
         <LinearProgress
           variant="determinate"
           value={progress}
-          color={isComplete ? 'success' : 'primary'}
+          color={isComplete ? 'success' : 'secondary'}
           sx={{ borderRadius: 1, height: 6 }}
         />
 
