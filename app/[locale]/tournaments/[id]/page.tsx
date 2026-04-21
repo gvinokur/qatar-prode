@@ -1,14 +1,15 @@
 'use server'
 
-import { Box } from '@mui/material'
+import { Box, Paper, Stack, Typography } from '@mui/material'
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
+import GroupsIcon from '@mui/icons-material/Groups'
+import HistoryIcon from '@mui/icons-material/History'
 import { getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import { toLocale } from '@/app/utils/locale-utils'
 import { getLoggedInUser } from '@/app/actions/user-actions'
-import { getActionCenterGames, computeIsIncompleteUser } from '@/app/actions/hub-actions'
-import { TournamentHubActionCenter } from '@/app/components/tournament-hub/tournament-hub-action-center'
-import { TournamentHubLeaderboardPeek } from '@/app/components/tournament-hub/tournament-hub-leaderboard-peek'
-import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
+import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 
 type Props = {
   readonly params: Promise<{
@@ -18,24 +19,50 @@ type Props = {
 
 export default async function TournamentHubPage(props: Props) {
   const { id } = await props.params
-  const rawLocale = await getLocale()
-  const locale = toLocale(rawLocale)
+  const locale = toLocale(await getLocale())
 
   const user = await getLoggedInUser()
   if (!user) {
     redirect(`/${locale}/tournaments/${id}/games`)
   }
 
-  const actionCenterData = await getActionCenterGames(id, locale)
-  const isIncompleteUser = await computeIsIncompleteUser(actionCenterData)
-
   return (
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <TournamentHubActionCenter tournamentId={id} locale={locale} data={actionCenterData} />
 
-      {!isIncompleteUser && <TournamentHubRecentResults tournamentId={id} locale={locale} />}
+      {/* Banner Area — full-width Stack */}
+      <Stack gap={2}>
+        <Paper
+          variant="outlined"
+          sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', color: 'text.secondary' }}
+        >
+          <Typography variant="body2">Banner Area — full-width (Hero, Onboarding, etc.)</Typography>
+        </Paper>
+      </Stack>
 
-      <TournamentHubLeaderboardPeek tournamentId={id} locale={locale} />
+      {/* Widget Grid — CSS Grid */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 2 }}>
+        <DashboardCard title="Games" icon={<SportsSoccerIcon />} count="3 pending" urgent>
+          <Typography variant="body2" color="text.secondary">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </Typography>
+        </DashboardCard>
+        <DashboardCard title="Standings" icon={<EmojiEventsIcon />}>
+          <Typography variant="body2" color="text.secondary">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </Typography>
+        </DashboardCard>
+        <DashboardCard title="Groups" icon={<GroupsIcon />} count="2 groups">
+          <Typography variant="body2" color="text.secondary">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </Typography>
+        </DashboardCard>
+        <DashboardCard title="Results" icon={<HistoryIcon />}>
+          <Typography variant="body2" color="text.secondary">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </Typography>
+        </DashboardCard>
+      </Box>
+
     </Box>
   )
 }

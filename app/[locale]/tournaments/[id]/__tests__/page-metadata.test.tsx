@@ -26,38 +26,11 @@ vi.mock('@/app/actions/user-actions', () => ({
   getLoggedInUser: () => mockGetLoggedInUser(),
 }));
 
-// Mock hub-actions (data lift means page.tsx now calls these directly)
-vi.mock('@/app/actions/hub-actions', () => ({
-  getActionCenterGames: vi.fn().mockResolvedValue({
-    games: [], gameGuesses: {}, teamsMap: {}, tournamentMaxSilver: 0, tournamentMaxGolden: 0,
-    mode: 'empty', qtAndAwardsOpen: true, msUntilPredictionLock: 0,
-    tournamentFinished: false, firstGameDate: null, tournamentHasStarted: true,
-    tournamentName: null, openerBackfill: false, totalGames: 64, predictedGames: 64,
-    awardsCompleted: 7, awardsTotal: 7, qualifiersCompleted: 32, qualifiersTotal: 32,
-    tournamentJustStarted: false, scoringConfig: {
-      game_exact_score_points: 2, game_correct_outcome_points: 1, champion_points: 5,
-      runner_up_points: 3, third_place_points: 1, individual_award_points: 3,
-      qualified_team_points: 1, exact_position_qualified_points: 2,
-      max_silver_games: 0, max_golden_games: 0,
-    },
-  }),
-  computeIsIncompleteUser: vi.fn().mockReturnValue(false),
-}));
-
-// Mock TournamentHubActionCenter
-vi.mock('@/app/components/tournament-hub/tournament-hub-action-center', () => ({
-  TournamentHubActionCenter: () => <div data-testid="action-center">Action Center</div>,
-}));
-
-// Mock TournamentHubLeaderboardPeek
-vi.mock('@/app/components/tournament-hub/tournament-hub-leaderboard-peek', () => ({
-  TournamentHubLeaderboardPeek: () => <div data-testid="leaderboard-peek">Leaderboard Peek Widget</div>,
-}));
-
-// Mock TournamentHubRecentResults
-vi.mock('@/app/components/tournament-hub/tournament-hub-recent-results', () => ({
-  TournamentHubRecentResults: () => <div data-testid="recent-results">Recent Results Widget</div>,
-}));
+// Mock MUI icons used in page.tsx
+vi.mock('@mui/icons-material/SportsSoccer', () => ({ default: () => <span data-testid="icon-soccer" /> }))
+vi.mock('@mui/icons-material/EmojiEvents', () => ({ default: () => <span data-testid="icon-events" /> }))
+vi.mock('@mui/icons-material/Groups', () => ({ default: () => <span data-testid="icon-groups" /> }))
+vi.mock('@mui/icons-material/History', () => ({ default: () => <span data-testid="icon-history" /> }))
 
 describe('TournamentHubPage (root landing page)', () => {
   const mockParams = Promise.resolve({ id: 'tournament-1' });
@@ -77,21 +50,21 @@ describe('TournamentHubPage (root landing page)', () => {
     expect(result).toBeTruthy();
   });
 
-  it('renders the Action Center widget when logged in', async () => {
-    const React = (await import('react')).default;
+  it('renders the Banner Area placeholder when logged in', async () => {
     const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
+    render(page as Parameters<typeof render>[0]);
 
-    expect(screen.getByTestId('action-center')).toBeInTheDocument();
+    expect(screen.getByText(/Banner Area/)).toBeInTheDocument();
   });
 
-  it('renders Recent Results widget and Leaderboard Peek widget when logged in', async () => {
-    const React = (await import('react')).default;
+  it('renders all four mock DashboardCard titles when logged in', async () => {
     const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
+    render(page as Parameters<typeof render>[0]);
 
-    expect(screen.getByTestId('recent-results')).toBeInTheDocument();
-    expect(screen.getByTestId('leaderboard-peek')).toBeInTheDocument();
+    expect(screen.getByText('Games')).toBeInTheDocument();
+    expect(screen.getByText('Standings')).toBeInTheDocument();
+    expect(screen.getByText('Groups')).toBeInTheDocument();
+    expect(screen.getByText('Results')).toBeInTheDocument();
   });
 
   it('redirects to /games when user is not logged in', async () => {

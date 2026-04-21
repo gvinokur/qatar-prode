@@ -8,6 +8,12 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
+### app/components/tournament-hub/dashboard-card.tsx
+Reusable presentational Server Component establishing the standard card layout for all hub widgets.
+
+- **DashboardCard({ title, icon, count, children, urgent })**: `JSX.Element` — [Server] Renders MUI `Card variant="outlined"` with a standardized `CardHeader` (32×32 Avatar with purple tint containing `icon`, `Typography subtitle1 fontWeight:700` title, optional `count` Typography caption in action slot) and `CardContent` with `flexGrow:1`. `borderColor` switches to `error.main` when `urgent=true`, otherwise `divider`.
+  Calls: (none — pure MUI composition)
+
 ### app/components/tournament-hub/tournament-hub-action-center.tsx
 Thin Server Component wrapper for the hub's Action Center widget. Calls the server action and delegates rendering to the client carousel.
 
