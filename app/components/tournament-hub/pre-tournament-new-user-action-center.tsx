@@ -112,8 +112,8 @@ function PredictionTrackCard({
                 {scoringLabel}
               </Typography>
             </Stack>
-            {rules.map((rule, i) => (
-              <Typography key={i} variant="caption" color="text.secondary" display="block">
+            {rules.map((rule) => (
+              <Typography key={rule} variant="caption" color="text.secondary" display="block">
                 • {rule}
               </Typography>
             ))}
@@ -154,11 +154,12 @@ export async function PreTournamentNewUserActionCenter({
   const tRulesRaw = await getTranslations('rules.rules')
   const tConstraintsRaw = await getTranslations('rules.constraints')
   // Wrap with typed adapters so the utils can use plain string keys
+  // The key casts widen `string` to next-intl's internal MessageKey union; both are required by TS.
   const tRules = (key: string, params?: Record<string, unknown>) =>
-    tRulesRaw(key as Parameters<typeof tRulesRaw>[0], params as Parameters<typeof tRulesRaw>[1])
+    tRulesRaw(key as Parameters<typeof tRulesRaw>[0], params as Parameters<typeof tRulesRaw>[1]) // NOSONAR
   const tConstraints = (key: string, params?: Record<string, unknown>) =>
     tConstraintsRaw(
-      key as Parameters<typeof tConstraintsRaw>[0],
+      key as Parameters<typeof tConstraintsRaw>[0], // NOSONAR
       params as Parameters<typeof tConstraintsRaw>[1]
     )
 
@@ -198,32 +199,20 @@ export async function PreTournamentNewUserActionCenter({
 
   // 4-state CTA: none → keep → finish → review
   // Matches threshold: 30% | QT & Awards threshold: 90%
-  const matchesCTA =
-    gamesProgress >= 100
-      ? t('newUser.tracks.matches.ctaReview')
-      : gamesProgress >= 30
-        ? t('newUser.tracks.matches.ctaFinish')
-        : gamesProgress > 0
-          ? t('newUser.tracks.matches.ctaKeep')
-          : t('newUser.tracks.matches.cta')
+  let matchesCTA = t('newUser.tracks.matches.cta')
+  if (gamesProgress >= 100) matchesCTA = t('newUser.tracks.matches.ctaReview')
+  else if (gamesProgress >= 30) matchesCTA = t('newUser.tracks.matches.ctaFinish')
+  else if (gamesProgress > 0) matchesCTA = t('newUser.tracks.matches.ctaKeep')
 
-  const qtCTA =
-    qtProgress >= 100
-      ? t('newUser.tracks.qualifiedTeams.ctaReview')
-      : qtProgress >= 90
-        ? t('newUser.tracks.qualifiedTeams.ctaFinish')
-        : qtProgress > 0
-          ? t('newUser.tracks.qualifiedTeams.ctaKeep')
-          : t('newUser.tracks.qualifiedTeams.cta')
+  let qtCTA = t('newUser.tracks.qualifiedTeams.cta')
+  if (qtProgress >= 100) qtCTA = t('newUser.tracks.qualifiedTeams.ctaReview')
+  else if (qtProgress >= 90) qtCTA = t('newUser.tracks.qualifiedTeams.ctaFinish')
+  else if (qtProgress > 0) qtCTA = t('newUser.tracks.qualifiedTeams.ctaKeep')
 
-  const awardsCTA =
-    awardsProgress >= 100
-      ? t('newUser.tracks.awards.ctaReview')
-      : awardsProgress >= 90
-        ? t('newUser.tracks.awards.ctaFinish')
-        : awardsProgress > 0
-          ? t('newUser.tracks.awards.ctaKeep')
-          : t('newUser.tracks.awards.cta')
+  let awardsCTA = t('newUser.tracks.awards.cta')
+  if (awardsProgress >= 100) awardsCTA = t('newUser.tracks.awards.ctaReview')
+  else if (awardsProgress >= 90) awardsCTA = t('newUser.tracks.awards.ctaFinish')
+  else if (awardsProgress > 0) awardsCTA = t('newUser.tracks.awards.ctaKeep')
 
   return (
     <Stack spacing={2}>

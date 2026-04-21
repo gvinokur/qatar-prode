@@ -27,9 +27,9 @@ import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time
 import SinglePredictionExample from './rules-examples/single-prediction';
 import GroupPositionExample from './rules-examples/group-position';
 import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time';
-import { type ScoringConfig, DEFAULT_SCORING } from '../../utils/scoring-config';
+import { DEFAULT_SCORING, type ScoringConfig } from '../../utils/scoring-config';
 
-export type { ScoringConfig };
+export type { ScoringConfig } from '../../utils/scoring-config';
 
 interface Rule {
   label: string;
