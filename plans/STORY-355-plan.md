@@ -4,21 +4,23 @@
 
 Story 354 (complete) established the new dashboard layout: a two-zone page with a full-width **Banner Area** (placeholder dashed Paper) and a **Widget Grid** (4 mock DashboardCards). This story (Story 355) replaces the placeholder with real banner logic.
 
-Currently `page.tsx` redirects non-logged-in users to `/games`. The new design removes that redirect and instead shows one of three banners based on user state, in priority order:
+Currently `page.tsx` redirects non-logged-in users to `/games`. The new design removes that redirect. Instead, the Banner Area renders a **vertical stack** of banners — hero banners always display first (when applicable), and a secondary CTA banner is appended below:
 
-1. **Logged Off** — user is unauthenticated
-2. **New User** — user is authenticated but incomplete (`computeIsIncompleteUser = true`)
-3. **Hero** — countdown before tournament starts, or 48 h celebration after
+| Layer | Condition | Banner |
+|-------|-----------|--------|
+| Hero | Tournament not started, `firstGameDate` set | `PreTournamentCountdown` |
+| Hero | Tournament just started (≤48 h) | `TournamentStartBanner` |
+| Secondary | User is unauthenticated | `LoggedOffBanner` |
+| Secondary | User is authenticated but incomplete | `TutorialCTACard fullWidth` |
+
+Hero and secondary are independent — a logged-off user who visits pre-tournament sees **both** the countdown and the login prompt.
 
 ---
 
-## Worktree Setup (before coding)
+## Worktree Setup (already done)
 
-```bash
-./scripts/github-projects-helper story start 355 --project 1
-# Creates /Users/gvinokur/Personal/qatar-prode-story-355
-# Branch: feature/story-355
-```
+Worktree: `/Users/gvinokur/Personal/qatar-prode-story-355`
+Branch: `feature/story-355`
 
 ---
 
@@ -26,57 +28,48 @@ Currently `page.tsx` redirects non-logged-in users to `/games`. The new design r
 
 | File | Purpose |
 |------|---------|
-| `app/components/tournament-hub/dashboard-banner.tsx` | Server Component: selects & renders the right banner |
-| `app/components/tournament-hub/logged-off-banner.tsx` | Client Component: ported from `PublicCTABar`, with `#1e1b4b` bg |
+| `app/components/tournament-hub/dashboard-banner.tsx` | Server Component: stacks hero + secondary banners |
 | `app/components/tournament-hub/__tests__/dashboard-banner.test.tsx` | Unit tests |
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `app/[locale]/tournaments/[id]/page.tsx` | Remove redirect + placeholder; render `DashboardBanner` |
+| `app/[locale]/tournaments/[id]/page.tsx` | Remove redirect; fetch `ActionCenterData`; pass to `DashboardBanner` |
+| `app/components/tournament-page/public-cta-bar.tsx` | Add `sticky?: boolean` prop; rename export to `LoggedOffBanner`; update internal styles to use `#1e1b4b` |
+| `app/components/tournament-page/public-games-page.tsx` | Update import from `LoggedOffBanner` (extracted from `PublicCTABar`) |
 | `app/components/tournament-hub/tutorial-cta-card.tsx` | Add `fullWidth` prop for the New User Banner variant |
-| `docs/code-structure/components/components-tournament-hub.md` | Document new components |
+| `docs/code-structure/components/components-tournament-hub.md` | Document new `DashboardBanner` component |
 
 ---
 
 ## Visual Design
 
-### Logged Off Banner — `#1e1b4b` deep-indigo background
+### Banner Area Stack
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  ℹ  Join the prediction game — sign up to compete with      │
-│     friends                      [Learn How] [Login / Sign Up]│
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  ⏳  Tournament starts in: 12d  3h  22m              │  ← Hero (countdown)
+│       FIFA 2026 kicks off soon!                      │
+└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  ℹ  Join the game — sign up to predict with friends  │  ← Secondary (logged-off)
+│                          [Learn How]  [Login / Sign Up] │
+└──────────────────────────────────────────────────────┘
 ```
 
-- Full-width, non-sticky `Box`
-- `backgroundColor: '#1e1b4b'`, `color: 'white'`
-- `borderRadius: 1`, `p: 2`
-- Row layout: icon + message on left, two buttons on right
-- Buttons: "Learn How" (outlined, white border) opens `OnboardingDialogClient`;
-  "Login / Sign Up" (contained, white bg, dark text) opens `LoginOrSignupDialog`
+When tournament is ongoing and user is established → Banner Area renders nothing (null).
+
+### Logged Off Banner (extracted from `PublicCTABar`)
+
+- `backgroundColor: '#1e1b4b'`, `color: 'white'`, `borderRadius: 1`, `p: 2`
+- Row layout: `Info` icon + message (left), two buttons (right)
+- `sticky` prop: when `true` adds `position: sticky, top: 0, zIndex: 1000` (used by games page)
+- Default (`sticky=false`): non-sticky, used by dashboard banner area
 
 ### New User Banner — full-width `TutorialCTACard`
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  [?]  New here? Learn how to predict  │  [View Tutorial]     │
-└──────────────────────────────────────────────────────────────┘
-```
-
-- Same content as current `TutorialCTACard`
-- When `fullWidth` prop is passed: width 100%, slightly taller padding
-- Existing compact card (used in `PreTournamentNewUserActionCenter`) unchanged
-
-### Hero Banner
-
-- **Countdown** (`PreTournamentCountdown`) — shown when tournament hasn't started  
-  Already exists; reused directly  
-- **Celebration** (`TournamentStartBanner`) — shown 48 h after first game  
-  Already exists; reused directly  
-- **null** — no banner when tournament is ongoing past the 48 h window
+Same content as current compact `TutorialCTACard`. When `fullWidth=true`: `Paper` stretches full width with slightly taller padding.
 
 ---
 
@@ -84,26 +77,26 @@ Currently `page.tsx` redirects non-logged-in users to `/games`. The new design r
 
 ### Call Graph Changes
 
-**Modified flow:**
-- `TournamentHubPage` → `DashboardBanner` → `getActionCenterGames` (only when user is logged in) → `computeIsIncompleteUser`
-
-No other call-graph flows affected.
+**Modified flows:**
+- `TournamentHubPage` → `getActionCenterGames` (new: data fetched at page level, not inside DashboardBanner)
+- `TournamentHubPage` → `DashboardBanner` (receives `data` prop, no internal fetch)
+- `DashboardBanner` → `computeIsIncompleteUser` (still called inside banner component)
 
 ---
 
-### `app/components/tournament-hub/logged-off-banner.tsx` *(new)*
+### `app/components/tournament-page/public-cta-bar.tsx` *(modified)*
 
-**New components:**
+**Changed components:**
 
-- **`LoggedOffBanner()`**: `JSX.Element`
-  Client Component. Sticky (top-level) banner for unauthenticated users.
-  Renders an `Info` icon, a localized message, and two action buttons.
-  Uses `useState` for dialog visibility.
+- **`LoggedOffBanner({ sticky?: boolean })`**: `JSX.Element` *(was: `PublicCTABar()` with no props)*
+  Renamed export. When `sticky=true`, applies `position: sticky, top: 0, zIndex: 1000` (current games-page usage). When omitted, non-sticky for dashboard banner area. Background changes from `primary.main` to `#1e1b4b`.
   Calls: `LoginOrSignupDialog`, `OnboardingDialogClient`
   Tests:
-  - renders with correct background color `#1e1b4b`
-  - "Learn How" button opens OnboardingDialogClient when clicked
-  - "Login / Sign Up" button opens LoginOrSignupDialog when clicked
+  - renders with background color `#1e1b4b`
+  - applies sticky positioning when `sticky=true`
+  - does not apply sticky positioning when `sticky` is omitted
+  - "Learn How" button opens `OnboardingDialogClient`
+  - "Login / Sign Up" button opens `LoginOrSignupDialog`
 
 ---
 
@@ -112,12 +105,12 @@ No other call-graph flows affected.
 **Changed components:**
 
 - **`TutorialCTACard({ fullWidth?: boolean })`**: `JSX.Element` *(was: no props)*
-  When `fullWidth=true`, uses `Paper` with full-width layout (existing row layout, slightly larger padding).
-  When `fullWidth=false` (default), renders identically to current component.
+  When `fullWidth=true`, renders `Paper` at full width with slightly taller padding.
+  When omitted (default), renders identically to current compact card.
   Tests:
   - renders tutorial title and CTA button when `fullWidth` is omitted (default behavior unchanged)
   - renders tutorial title and CTA button when `fullWidth=true`
-  - clicking the CTA button opens OnboardingDialogClient in both variants
+  - clicking the CTA button opens `OnboardingDialogClient` in both variants
 
 ---
 
@@ -125,62 +118,58 @@ No other call-graph flows affected.
 
 **New components:**
 
-- **`DashboardBanner({ tournamentId, locale, user })`**: `Promise<JSX.Element | null>`
-  Server Component. Orchestrates banner priority logic.
-  Props: `{ tournamentId: string; locale: Locale; user: User | null }`
-  - Returns `<LoggedOffBanner />` when `user` is `null`
-  - Calls `getActionCenterGames`, then `computeIsIncompleteUser`; returns `<TutorialCTACard fullWidth />` when incomplete
-  - Returns `<TournamentStartBanner />` when `data.tournamentJustStarted`
-  - Returns `<PreTournamentCountdown firstGameDate={data.firstGameDate} tournamentName={data.tournamentName} />` when not started and firstGameDate is set
-  - Returns `null` otherwise
-  Calls: `getActionCenterGames`, `computeIsIncompleteUser`, `LoggedOffBanner`, `TutorialCTACard`, `TournamentStartBanner`, `PreTournamentCountdown`
+- **`DashboardBanner({ user, data })`**: `Promise<JSX.Element | null>`
+  Server Component. Receives pre-fetched data from the page; stacks hero banner (if any) and secondary CTA banner (if any).
+  Props: `{ user: User | null; data: ActionCenterData | null }`
+  Logic:
+  - Hero: `TournamentStartBanner` if `data.tournamentJustStarted`; else `PreTournamentCountdown` if `!data.tournamentHasStarted && data.firstGameDate !== null`; else null
+  - Secondary: `<LoggedOffBanner />` if `!user`; else `<TutorialCTACard fullWidth />` if `await computeIsIncompleteUser(data)`; else null
+  - Returns null if both hero and secondary are null
+  - Returns a `Stack gap={2}` wrapping whichever banners are non-null
+  Calls: `computeIsIncompleteUser`, `LoggedOffBanner`, `TutorialCTACard`, `TournamentStartBanner`, `PreTournamentCountdown`
   Tests:
-  - returns LoggedOffBanner when user is null (no data fetch)
-  - returns TutorialCTACard with fullWidth when computeIsIncompleteUser is true
-  - returns TournamentStartBanner when tournamentJustStarted is true and user is complete
-  - returns PreTournamentCountdown when tournament hasn't started, firstGameDate is set, and user is complete
-  - returns null when tournament has started more than 48 h ago (ongoing, user is complete)
-  - returns null when firstGameDate is null and tournament hasn't started (no games configured)
-  
-  **Error handling:** If `getActionCenterGames` throws (Unauthorized or DB error), the error propagates to the Next.js error boundary — no silent fallback, since this indicates a real server error.
-  Additional tests:
-  - re-throws when `getActionCenterGames` throws an Unauthorized error
-  - re-throws when `getActionCenterGames` throws a DB error
+  - renders only LoggedOffBanner when user is null and data is null (no hero, no data)
+  - renders PreTournamentCountdown + LoggedOffBanner when tournament hasn't started and user is null
+  - renders PreTournamentCountdown + TutorialCTACard when tournament hasn't started and user is incomplete
+  - renders only PreTournamentCountdown when tournament hasn't started and user is complete
+  - renders TournamentStartBanner + LoggedOffBanner when tournament just started and user is null
+  - renders only TournamentStartBanner when tournament just started and user is complete
+  - returns null when tournament is ongoing (past 48 h) and user is complete (no banner needed)
+  - returns null when firstGameDate is null and user is complete
 
 ---
 
 ### `app/[locale]/tournaments/[id]/page.tsx` *(modified)*
 
 **Changed behavior:**
-- Remove `redirect(/${locale}/tournaments/${id}/games)` for unauthenticated users
-- Import and render `<DashboardBanner tournamentId={id} locale={locale} user={user} />` in place of the placeholder `Stack + Paper`
+- Remove `if (!user) redirect(...)` (non-logged-in users now see the dashboard with `LoggedOffBanner`)
+- Fetch: `const data = user ? await getActionCenterGames(tournamentId, locale) : null`
+- Render `<DashboardBanner user={user} data={data} />` replacing the placeholder `Stack + Paper`
 
 ---
 
 ## Testing Strategy
 
-Run unit tests in `__tests__/dashboard-banner.test.tsx`:
-- Use `renderWithTheme` (from `app/components/test-utils`) for all component renders
-- Use `testFactories.actionCenterData(overrides)` to build `ActionCenterData` fixtures
-- Mock `getActionCenterGames` and `computeIsIncompleteUser` via `vi.mock`
-- Test all 6 code paths in `DashboardBanner` (logged-off, new-user, tournament-just-started, pre-tournament, ongoing, null firstGameDate)
-- `logged-off-banner.test.tsx`: dialog interaction tests using `renderWithTheme` + `fireEvent` for button clicks
+Run unit tests with:
+- `renderWithTheme` (from `app/components/test-utils`) for all component renders
+- `testFactories.actionCenterData(overrides)` to build `ActionCenterData` fixtures
+- `vi.mock` to mock `computeIsIncompleteUser`
 
-Coverage: new components + modified TutorialCTACard → target ≥ 80%
+Coverage: all new/modified components → target ≥ 80%
 
 ---
 
 ## Implementation Waves
 
 **Wave 1 (parallel):**
-- Create `logged-off-banner.tsx` + its test
-- Modify `tutorial-cta-card.tsx` (add `fullWidth` prop) + update its test
+- Extract `LoggedOffBanner` from `public-cta-bar.tsx` (add `sticky` prop, update bg color) + update `public-games-page.tsx` import + add/update tests
+- Modify `tutorial-cta-card.tsx` (add `fullWidth` prop) + update tests
 
 **Wave 2:**
 - Create `dashboard-banner.tsx` + `dashboard-banner.test.tsx`
 
 **Wave 3:**
-- Modify `page.tsx` (remove redirect, add DashboardBanner)
+- Modify `page.tsx` (remove redirect, fetch data, add `DashboardBanner`)
 - Update `docs/code-structure/components/components-tournament-hub.md`
 
 ---
@@ -193,9 +182,10 @@ npm run lint
 npm run build
 ```
 
-Then deploy to Vercel Preview and verify:
-1. Visit dashboard while logged out → Logged Off Banner shown, no redirect
-2. Log in as new/incomplete user → New User Banner (full-width tutorial CTA) shown
-3. Log in as established user, tournament not started → Countdown banner shown
-4. Log in as established user, tournament just started → Celebration banner shown
-5. Widget Grid (4 mock cards) still renders correctly in all states
+Then verify in Vercel Preview:
+1. Visit dashboard while logged out (pre-tournament) → Countdown + LoggedOff Banner stacked
+2. Visit dashboard while logged out (tournament ongoing) → LoggedOff Banner only
+3. Log in as new/incomplete user (pre-tournament) → Countdown + New User Banner stacked
+4. Log in as established user (pre-tournament) → Countdown only
+5. Log in as established user (tournament just started) → Celebration Banner only
+6. Widget Grid (4 mock cards) renders correctly in all states
