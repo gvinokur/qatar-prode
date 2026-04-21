@@ -51,17 +51,15 @@ describe('TournamentHubPage (root landing page)', () => {
   });
 
   it('renders the Banner Area placeholder when logged in', async () => {
-    const React = (await import('react')).default;
     const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
+    render(page as Parameters<typeof render>[0]);
 
     expect(screen.getByText(/Banner Area/)).toBeInTheDocument();
   });
 
   it('renders all four mock DashboardCard titles when logged in', async () => {
-    const React = (await import('react')).default;
     const page = await TournamentHubPage({ params: mockParams });
-    render(page as React.ReactElement);
+    render(page as Parameters<typeof render>[0]);
 
     expect(screen.getByText('Games')).toBeInTheDocument();
     expect(screen.getByText('Standings')).toBeInTheDocument();
