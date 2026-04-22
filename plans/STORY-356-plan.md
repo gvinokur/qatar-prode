@@ -45,24 +45,24 @@ Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashb
 
 ### Component Architecture
 
+Two self-contained widgets + a thin orchestrator. Each widget owns its `DashboardCard` and its own translations.
+
 ```
-GamesPredictionWidget (Server Component)
-  ├── [logged-off] → DashboardCard + GamesWidgetStaticContent (inline server helper)
-  │                  CTA button = Link to /games (games page has its own auth prompts)
-  ├── [pre-start]  → DashboardCard + GamesWidgetStaticContent (inline server helper)
-  │                  CTA button = Link to /games
-  └── [active]     → DashboardCard
-                       └── GuessesContextProvider (Client Provider)
-                             └── GamesWidgetActiveClient (Client Component)
-                                   ├── [currentIndex state]
-                                   ├── [editingGameId state]
-                                   ├── ← ChevronLeft arrow (disabled at index 0)
-                                   ├── FlippableGameCard (reads guesses from GuessesContext)
-                                   ├── → ChevronRight arrow (disabled at last index)
-                                   └── "View All Matches" Button (Link to /games)
+page.tsx
+  └── GamesPredictionWidget (thin async orchestrator — fetches data, routes)
+        ├── [!user]           → GamesInfoWidget (async Server, isLoggedOff=true)
+        ├── [user + !started] → GamesInfoWidget (async Server, isLoggedOff=false)
+        └── [user + started]  → GamesActiveWidget (async Server)
+                                      └── DashboardCard
+                                            └── GuessesContextProvider (Client Provider)
+                                                  └── GamesActiveClient (Client Component)
+                                                        ├── ← ChevronLeft (disabled at index 0)
+                                                        ├── FlippableGameCard
+                                                        ├── → ChevronRight (disabled at last index)
+                                                        └── "View All Matches" Button
 ```
 
-`GamesWidgetStaticContent` is an inline server-compatible helper function in `games-prediction-widget.tsx` (no hooks, returns JSX). Not a separate file since it's only used internally.
+`GamesPredictionWidget` has no UI of its own — it only fetches data and decides which widget to render. `GamesInfoWidget` and `GamesActiveWidget` are independently testable with pre-fetched data props.
 
 ### page.tsx Changes
 
@@ -92,16 +92,16 @@ export default async function TournamentHubPage({ params }: Props) {
 
 ### GuessesContextProvider in Active State
 
-`GamesPredictionWidget` (Server) wraps `GamesWidgetActiveClient` with `GuessesContextProvider`:
+`GamesActiveWidget` (Server) wraps `GamesActiveClient` with `GuessesContextProvider` inside a `DashboardCard`:
 ```tsx
-<DashboardCard ...>
+<DashboardCard title={t('...')} count={count} urgent={data.mode === 'urgent'} icon={<SportsSoccerIcon />}>
   <GuessesContextProvider
     gameGuesses={data.gameGuesses}
     autoSave={true}
     tournamentMaxSilver={data.tournamentMaxSilver}
     tournamentMaxGolden={data.tournamentMaxGolden}
   >
-    <GamesWidgetActiveClient
+    <GamesActiveClient
       games={data.games}
       teamsMap={data.teamsMap}
       tournamentId={tournamentId}
@@ -112,13 +112,11 @@ export default async function TournamentHubPage({ params }: Props) {
 </DashboardCard>
 ```
 
-`GamesWidgetActiveClient` reads `gameGuesses` from `GuessesContext` via `useContext(GuessesContext)` to pass as `homeScore`, `awayScore` etc. to `FlippableGameCard`.
+`GamesActiveClient` reads `gameGuesses` from `GuessesContext` via `useContext(GuessesContext)` to pass as `homeScore`, `awayScore` etc. to `FlippableGameCard`.
 
 ### Scoring Rules Display
 
-Both `GamesWidgetStaticContent` (pre-start and logged-off) display scoring rules. Use `getRulesBySection(scoringConfig, tRules)` from `app/utils/scoring-rules-utils.ts` (same as `PreTournamentNewUserActionCenter`). Pass the games/matches section rules to the static content helper.
-
-Translation note: `getTranslations('rules.rules')` for `tRules`, `getTranslations('hub')` for widget-specific strings.
+`GamesInfoWidget` displays scoring rules. Uses `getRulesBySection(scoringConfig, tRules)` from `app/utils/scoring-rules-utils.ts` — same pattern as `PreTournamentNewUserActionCenter`. The widget calls `getTranslations('rules.rules')` itself for `tRules` and `getTranslations('hub')` for widget-specific strings.
 
 ### Translation Keys
 
@@ -213,17 +211,17 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 ### Call Graph Changes
 
 **New flows:**
-- **Flow 18 (Games Prediction Widget — Active):**
+- **Flow 18 (Games Prediction Widget):**
   ```
   TournamentHubPage (Server)
-    └── GamesPredictionWidget [renders] (Server)
+    └── GamesPredictionWidget [renders] (Server, thin orchestrator)
           ├── getLoggedInUser
-          ├── [if !user] getGamesWidgetConfig [server action]
-          │     └── findTournamentById
-          ├── [if user] getActionCenterGames [server action] (existing flow, now also used here)
-          └── GuessesContextProvider [Provider]
-                └── GamesWidgetActiveClient [renders]
-                      └── FlippableGameCard [renders]
+          ├── [if !user]          → getGamesWidgetConfig → GamesInfoWidget [renders]
+          ├── [if user, !started] → getActionCenterGames → GamesInfoWidget [renders]
+          └── [if user, started]  → getActionCenterGames → GamesActiveWidget [renders]
+                                          └── GuessesContextProvider [Provider]
+                                                └── GamesActiveClient [renders]
+                                                      └── FlippableGameCard [renders]
   ```
 
 ---
@@ -249,33 +247,81 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 **New functions:**
 
 - **GamesPredictionWidget({ tournamentId, locale })**: `Promise<JSX.Element | null>`
-  [Server] Async Server Component. Calls `getLoggedInUser()`. Branches: (1) no user → calls `getGamesWidgetConfig`, renders `DashboardCard` wrapping `GamesWidgetStaticContent` with `isLoggedOff=true`; (2) user + `!tournamentHasStarted` → calls `getActionCenterGames`, renders `DashboardCard` with count + `GamesWidgetStaticContent` with `isLoggedOff=false`; (3) user + started → renders `DashboardCard` (urgent when `mode==='urgent'`) wrapping `GuessesContextProvider` + `GamesWidgetActiveClient`; (4) `tournamentFinished` → returns `null`.
-  Calls: getLoggedInUser, getGamesWidgetConfig (conditional), getActionCenterGames (conditional), getRulesBySection, getTranslations
+  [Server] Thin async orchestrator. No UI. Calls `getLoggedInUser()`. Branches: (1) no user → calls `getGamesWidgetConfig`, renders `GamesInfoWidget` with `isLoggedOff=true`; (2) user + `!tournamentHasStarted` → calls `getActionCenterGames`, renders `GamesInfoWidget` with `isLoggedOff=false`; (3) user + started → renders `GamesActiveWidget`; (4) `tournamentFinished` → returns `null`.
+  Calls: getLoggedInUser, getGamesWidgetConfig (conditional), getActionCenterGames (conditional)
+  Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
   Tests:
-  - renders DashboardCard with no count when user is null
-  - renders DashboardCard with count when user is authenticated and pre-start
-  - renders null when tournamentFinished is true
-  - passes isLoggedOff=true to static content when user is null
-  - passes isLoggedOff=false to static content when user is authenticated and pre-start
-  - renders urgent DashboardCard (error border) when mode is 'urgent'
-  - renders non-urgent DashboardCard when mode is 'fallback'
-
-- **GamesWidgetStaticContent(props)**: `JSX.Element`
-  [Server-compatible inline helper, not exported] Renders: description paragraph; dashed-border deadline box (ScheduleIcon + deadline label + deadline text); dashed-border scoring rules box (AddCircleOutlineIcon + scoring label + rule strings); `LinearProgress` bar when `!isLoggedOff && totalGames > 0`; CTA `Button component={Link}` — "Sign In to Predict" when `isLoggedOff`, "Start Predicting" otherwise.
-  Props: `{ isLoggedOff, description, rules, scoringLabel, deadlineLabel, deadlineText, ctaText, ctaHref, predictedGames, totalGames }`
-  Calls: (none — pure MUI composition)
-  Tests: (covered by GamesPredictionWidget tests above)
+  - renders GamesInfoWidget with isLoggedOff=true when user is null
+  - renders GamesInfoWidget with isLoggedOff=false when user is authenticated and tournament not started
+  - renders GamesActiveWidget when user is authenticated and tournament has started
+  - returns null when tournamentFinished is true
+  - passes scoringConfig from getGamesWidgetConfig to GamesInfoWidget when logged-off
+  - passes scoringConfig from ActionCenterData to GamesInfoWidget when pre-start
+  - (error propagation) errors from getActionCenterGames are not caught — they propagate to the page-level Next.js error boundary; no defensive try-catch in orchestrator
 
 ---
 
-### `app/components/tournament-hub/games-prediction-widget-client.tsx` *(new)*
+### `app/components/tournament-hub/games-info-widget.tsx` *(new)*
 
 **New functions:**
 
-- **GamesWidgetActiveClient({ games, teamsMap, tournamentId, gamesHref, mode })**: `JSX.Element`
+- **GamesInfoWidget({ isLoggedOff, scoringConfig, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>`
+  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` and `getTranslations('rules.rules')`, builds rules via `getRulesBySection(scoringConfig, tRules)`. Renders `DashboardCard` with: `title=t('newUser.tracks.matches.title')`, `icon=SportsSoccerIcon`, `count="${predictedGames}/${totalGames}"` (omitted when `isLoggedOff`). Inside: description paragraph; dashed-border deadline box (ScheduleIcon); dashed-border scoring rules box (AddCircleOutlineIcon + rule strings); `LinearProgress` bar when `!isLoggedOff && totalGames > 0`; CTA `Button component={Link}` — text from `t('gamesWidget.ctaLogin')` when `isLoggedOff`, else `t('newUser.tracks.matches.cta')`.
+  Props:
+  ```typescript
+  interface GamesInfoWidgetProps {
+    readonly isLoggedOff: boolean
+    readonly scoringConfig: ScoringConfig
+    readonly gamesHref: string
+    readonly predictedGames: number
+    readonly totalGames: number
+  }
+  ```
+  Calls: getTranslations, getRulesBySection
+  Tests:
+  - renders DashboardCard with no count when isLoggedOff is true
+  - renders DashboardCard with predictedGames/totalGames count when isLoggedOff is false
+  - renders "Sign In to Predict" CTA text when isLoggedOff is true
+  - renders "Start Predicting" CTA text when isLoggedOff is false
+  - renders LinearProgress bar when isLoggedOff is false and totalGames > 0
+  - does not render LinearProgress bar when isLoggedOff is true
+  - renders scoring rules from getRulesBySection in the scoring rules box
+  - renders deadline box with ScheduleIcon
+
+---
+
+### `app/components/tournament-hub/games-active-widget.tsx` *(new)*
+
+**New functions:**
+
+- **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>`
+  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` for the card title. Renders `DashboardCard` with count `"${data.predictedGames}/${data.totalGames}"`, `urgent={data.mode === 'urgent'}`, icon=SportsSoccerIcon. Inside: `GuessesContextProvider` wrapping `GamesActiveClient`.
+  Props:
+  ```typescript
+  interface GamesActiveWidgetProps {
+    readonly data: ActionCenterData
+    readonly tournamentId: string
+    readonly gamesHref: string
+  }
+  ```
+  Calls: getTranslations
+  Renders: GuessesContextProvider, GamesActiveClient
+  Tests:
+  - renders DashboardCard with correct predictedGames/totalGames count
+  - renders urgent DashboardCard (error border) when data.mode is 'urgent'
+  - renders non-urgent DashboardCard when data.mode is 'fallback'
+  - passes game data to GamesActiveClient
+
+---
+
+### `app/components/tournament-hub/games-active-client.tsx` *(new)*
+
+**New functions:**
+
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, mode })**: `JSX.Element`
   [Client] Manages `currentIndex: number` (useState, 0-based) and `editingGameId: string | null` (useState). Reads `gameGuesses` from `GuessesContext` via `useContext`. Renders a row of: `IconButton ChevronLeft` (disabled when `currentIndex === 0`), `FlippableGameCard` for `games[currentIndex]` (full width, grows with `flexGrow: 1`), `IconButton ChevronRight` (disabled when `currentIndex === games.length - 1`). Below the row: `Button component={Link} variant="text"` linking to `gamesHref`. Props:
   ```typescript
-  interface GamesWidgetActiveClientProps {
+  interface GamesActiveClientProps {
     readonly games: ExtendedGameData[]
     readonly teamsMap: Record<string, Team>
     readonly tournamentId: string
@@ -314,15 +360,18 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 | Action | File | Notes |
 |--------|------|-------|
-| Create | `app/components/tournament-hub/games-prediction-widget.tsx` | Server Component |
-| Create | `app/components/tournament-hub/games-prediction-widget-client.tsx` | Client Component |
-| Create | `app/components/tournament-hub/__tests__/games-prediction-widget-client.test.tsx` | Unit tests |
+| Create | `app/components/tournament-hub/games-prediction-widget.tsx` | Orchestrator Server Component |
+| Create | `app/components/tournament-hub/games-info-widget.tsx` | Info state Server Component |
+| Create | `app/components/tournament-hub/games-active-widget.tsx` | Active state Server Component |
+| Create | `app/components/tournament-hub/games-active-client.tsx` | Active state Client Component |
+| Create | `app/components/tournament-hub/__tests__/games-info-widget.test.tsx` | Unit tests |
+| Create | `app/components/tournament-hub/__tests__/games-active-client.test.tsx` | Unit tests |
 | Modify | `app/actions/hub-actions.ts` | Add `getGamesWidgetConfig` |
 | Modify | `app/actions/__tests__/hub-actions.test.ts` | Tests for `getGamesWidgetConfig` |
 | Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, use `GamesPredictionWidget` |
 | Modify | `locales/en/hub.json` | Add `gamesWidget` sub-object |
 | Modify | `locales/es/hub.json` | Add `gamesWidget` sub-object |
-| Update | `docs/code-structure/components/components-tournament-hub.md` | Add `GamesPredictionWidget`, `GamesWidgetActiveClient` entries |
+| Update | `docs/code-structure/components/components-tournament-hub.md` | Add all 4 new component entries |
 | Update | `docs/code-structure/actions.md` | Add `getGamesWidgetConfig` entry |
 | Update | `docs/code-structure/pages.md` | Update `TournamentHubPage` to reflect params re-addition |
 
@@ -335,18 +384,23 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 2. Add unit tests in `app/actions/__tests__/hub-actions.test.ts`
 3. Update `docs/code-structure/actions.md`
 
-### Wave 2 — New Components (depends on Wave 1)
+### Wave 2 — Leaf Components (depends on Wave 1; parallel)
 4. Add translation keys to `locales/en/hub.json` and `locales/es/hub.json`
-5. Create `app/components/tournament-hub/games-prediction-widget-client.tsx`
-6. Create `app/components/tournament-hub/__tests__/games-prediction-widget-client.test.tsx`
-7. Create `app/components/tournament-hub/games-prediction-widget.tsx`
+5. Create `app/components/tournament-hub/games-active-client.tsx`
+6. Create `app/components/tournament-hub/__tests__/games-active-client.test.tsx`
+7. Create `app/components/tournament-hub/games-info-widget.tsx`
+8. Create `app/components/tournament-hub/__tests__/games-info-widget.test.tsx`
 
-### Wave 3 — Page Integration (depends on Wave 2)
-8. Modify `app/[locale]/tournaments/[id]/page.tsx` — re-add params, replace Games mock card
+### Wave 3 — Active Widget + Orchestrator (depends on Wave 2)
+9. Create `app/components/tournament-hub/games-active-widget.tsx`
+10. Create `app/components/tournament-hub/games-prediction-widget.tsx`
 
-### Wave 4 — Documentation
-9. Update `docs/code-structure/components/components-tournament-hub.md`
-10. Update `docs/code-structure/pages.md`
+### Wave 4 — Page Integration (depends on Wave 3)
+11. Modify `app/[locale]/tournaments/[id]/page.tsx` — re-add params, replace Games mock card
+
+### Wave 5 — Documentation
+12. Update `docs/code-structure/components/components-tournament-hub.md`
+13. Update `docs/code-structure/pages.md`
 
 ---
 
@@ -365,7 +419,11 @@ No new test utilities need to be created.
 
 Use `testFactories.tournament()` for mock data and `createMockSelectQuery()` for Kysely mocking. No auth mock needed (function does not call `getLoggedInUser`).
 
-### Unit Tests: `GamesWidgetActiveClient` (`games-prediction-widget-client.test.tsx`)
+### Unit Tests: `GamesInfoWidget` (`games-info-widget.test.tsx`)
+
+Server Component test. Mock `getTranslations` (next-intl/server) and `getRulesBySection`. Use `testFactories.tournament()` to build a `scoringConfig`. Test both `isLoggedOff=true` and `isLoggedOff=false` branches, and progress bar presence/absence.
+
+### Unit Tests: `GamesActiveClient` (`games-active-client.test.tsx`)
 
 Use `renderWithProviders()`. Wrap with `GuessesContextProvider` seeded with mock guesses via `testFactories.gameGuess()`. Mock `FlippableGameCard` (`vi.mock('../flippable-game-card', ...)`) to render a `data-testid="game-card"` with `data-game-id` attribute — enables asserting which game is displayed without rendering the complex flip component. Simulate arrow button clicks with `userEvent.click`.
 
