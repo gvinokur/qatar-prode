@@ -42,6 +42,15 @@ const game2 = testFactories.game({ id: 'game-2', home_team: 'team-1', away_team:
 const game3 = testFactories.game({ id: 'game-3', home_team: 'team-1', away_team: 'team-2' })
 const games = [game1, game2, game3] as any
 
+// Playoff game fixture — used for penalty-winner completeness tests
+const playoffGame1 = testFactories.game({
+  id: 'pg-1',
+  home_team: 'team-1',
+  away_team: 'team-2',
+  game_type: 'playoff',
+  playoffStage: { tournament_playoff_round_id: 'r-1', round_name: 'QF', is_final: false, is_third_place: false },
+} as any)
+
 const defaultContextValue = {
   gameGuesses: {} as Record<string, GameGuessNew>,
   boostCounts: { silver: { used: 0, max: 0 }, golden: { used: 0, max: 0 } },
@@ -161,6 +170,78 @@ describe('GamesActiveClient', () => {
       )
       // delta = 0 - 1 = -1 → 31 - 1 = 30
       expect(screen.getByText('30/64')).toBeInTheDocument()
+    })
+  })
+
+  describe('completeness check (scores + playoff penalty)', () => {
+    it('does not increment count for a partial guess missing away_score', () => {
+      const partialGuess = testFactories.gameGuess({ game_id: 'game-1', home_score: 2, away_score: undefined as any }) as any
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...defaultProps} />,
+        { gameGuesses: {} }
+      )
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: { 'game-1': partialGuess } }}>
+          <GamesActiveClient {...defaultProps} />
+        </GuessesContext.Provider>
+      )
+      // partial guess is not complete → delta stays 0
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+    })
+
+    it('does not count a tied playoff game without a penalty winner', () => {
+      const tiedGuess = testFactories.gameGuess({
+        game_id: 'pg-1',
+        home_score: 1,
+        away_score: 1,
+        home_penalty_winner: false,
+        away_penalty_winner: false,
+      }) as any
+      const playoffProps = {
+        ...defaultProps,
+        games: [playoffGame1] as any,
+        urgentGameIds: ['pg-1'],
+      }
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...playoffProps} />,
+        { gameGuesses: {} }
+      )
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: { 'pg-1': tiedGuess } }}>
+          <GamesActiveClient {...playoffProps} />
+        </GuessesContext.Provider>
+      )
+      // tied playoff without penalty winner → not complete → count stays at 30
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+    })
+
+    it('counts a tied playoff game once penalty winner is selected', () => {
+      const completeGuess = testFactories.gameGuess({
+        game_id: 'pg-1',
+        home_score: 1,
+        away_score: 1,
+        home_penalty_winner: true,
+        away_penalty_winner: false,
+      }) as any
+      const playoffProps = {
+        ...defaultProps,
+        games: [playoffGame1] as any,
+        urgentGameIds: ['pg-1'],
+      }
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...playoffProps} />,
+        { gameGuesses: {} }
+      )
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: { 'pg-1': completeGuess } }}>
+          <GamesActiveClient {...playoffProps} />
+        </GuessesContext.Provider>
+      )
+      // tied playoff with penalty winner → complete → count = 31
+      expect(screen.getByText('31/64')).toBeInTheDocument()
     })
   })
 

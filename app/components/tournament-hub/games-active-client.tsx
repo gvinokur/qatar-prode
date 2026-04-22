@@ -16,7 +16,26 @@ import FlippableGameCard from '../flippable-game-card'
 import { DashboardCard } from './dashboard-card'
 import { GuessesContext } from '../context-providers/guesses-context-provider'
 import type { ExtendedGameData } from '../../definitions'
-import type { Team } from '../../db/tables-definition'
+import type { Team, GameGuessNew } from '../../db/tables-definition'
+
+/** Mirrors the server-side completion check in getTournamentPredictionCompletion. */
+function isGuessComplete(guess: GameGuessNew | undefined, isPlayoff: boolean): boolean {
+  if (!guess) return false
+  if (guess.home_score === null || guess.home_score === undefined) return false
+  if (guess.away_score === null || guess.away_score === undefined) return false
+  // Tied playoff games require a penalty winner to be truly complete
+  if (isPlayoff && guess.home_score === guess.away_score) {
+    return !!(guess.home_penalty_winner || guess.away_penalty_winner)
+  }
+  return true
+}
+
+function countCompleteInWindow(
+  guessMap: Record<string, GameGuessNew>,
+  windowGames: ExtendedGameData[]
+): number {
+  return windowGames.filter((g) => isGuessComplete(guessMap[g.id], !!g.playoffStage)).length
+}
 
 type UrgencyLevel = 'critical' | 'high' | 'medium' | 'safe' | 'empty'
 
@@ -52,18 +71,22 @@ export function GamesActiveClient({
   // Snapshot initial guesses on first render — used as baseline for delta tracking
   const initialGuessesRef = useRef(gameGuesses)
 
-  // Delta: net change in predicted count among window games only.
-  // initialPredicted (server) already includes all tournament predictions, so adding the
-  // delta gives an accurate live count without re-fetching.
-  const initialWindowPredicted = Object.keys(initialGuessesRef.current).length
-  const currentWindowPredicted = Object.keys(gameGuesses).length
+  // Delta: net change in COMPLETE predictions among window games.
+  // Uses the same completion criteria as the server: both scores present, and for tied
+  // playoff games a penalty winner must be selected. initialPredicted (server) already
+  // includes all tournament predictions, so adding the delta gives an accurate live count.
+  const initialWindowPredicted = countCompleteInWindow(initialGuessesRef.current, games)
+  const currentWindowPredicted = countCompleteInWindow(gameGuesses, games)
   const delta = currentWindowPredicted - initialWindowPredicted
 
   const adjustedPredicted = initialPredicted + delta
   const adjustedUnpredicted = totalGames - adjustedPredicted
 
-  // When all originally-urgent games become predicted, transition the widget to safe mode
-  const urgentRemaining = urgentGameIds.filter((id) => !gameGuesses[id]).length
+  // When all originally-urgent games become completely predicted, transition to safe mode
+  const urgentRemaining = urgentGameIds.filter((id) => {
+    const game = games.find((g) => g.id === id)
+    return !isGuessComplete(gameGuesses[id], !!game?.playoffStage)
+  }).length
   const effectiveIsUrgent = urgentGameIds.length > 0 && urgentRemaining > 0
   const effectiveUrgencyLevel: UrgencyLevel = effectiveIsUrgent
     ? urgencyLevel
@@ -73,6 +96,7 @@ export function GamesActiveClient({
 
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined
+  const isCurrentGameComplete = isGuessComplete(guess, !!currentGame?.playoffStage)
 
   const handleLeft = () => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1)
@@ -97,8 +121,8 @@ export function GamesActiveClient({
       icon = <InfoOutlinedIcon color="info" fontSize="small" />
       message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
     } else {
-      // safe — only show when the current game is already predicted
-      if (!guess) return null
+      // safe — only show when the current game has a complete prediction
+      if (!isCurrentGameComplete) return null
       message = t('gamesWidget.safeMessage')
     }
 
