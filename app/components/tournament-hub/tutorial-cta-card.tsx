@@ -12,13 +12,17 @@ const OnboardingDialogClient = dynamic(
   { ssr: false }
 )
 
-export function TutorialCTACard() {
+interface TutorialCTACardProps {
+  readonly fullWidth?: boolean
+}
+
+export function TutorialCTACard({ fullWidth }: TutorialCTACardProps) {
   const t = useTranslations('hub.newUser.tutorial')
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <Paper variant="outlined" sx={{ p: 2 }}>
+      <Paper variant="outlined" sx={{ p: fullWidth ? 3 : 2, width: fullWidth ? '100%' : undefined }}>
         <Stack direction="row" alignItems="center" spacing={2}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40, flexShrink: 0 }}>
             <HelpOutlineIcon fontSize="small" />

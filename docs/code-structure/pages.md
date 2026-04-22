@@ -142,11 +142,11 @@ Offline fallback page shown when service worker catches offline navigation.
   Calls: getLocale
 
 ### app/[locale]/tournaments/[id]/page.tsx
-Tournament Hub landing page — two-zone layout foundation (Story #354 UX Audit 2026 iteration).
+Tournament Hub landing page — two-zone layout with real banner logic (Story #355 UX Audit 2026 iteration).
 
-- **TournamentHubPage()**: `JSX.Element` — [Server] Hub landing page. Renders for all users (authenticated and guest) — no auth redirect, no params needed. Renders a full-width Banner Area (dashed `Paper` placeholder in a `Stack`) and a CSS Grid Widget Area with four mock `DashboardCard` instances. No old hub component imports.
-  Calls: (none)
-  Renders: DashboardCard (×4)
+- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub landing page. Resolves `id` from params, derives locale via `toLocale`. No redirect for unauthenticated users (removed in Story #355). Fetches `timing` (always, via `getPublicTournamentTiming`) and `data` (only when user is logged in, via `getActionCenterGames`) in parallel via `Promise.all`. Renders `DashboardBanner` (stacked hero + secondary CTA banners) and a CSS Grid Widget Area with four mock `DashboardCard` instances.
+  Calls: getLocale, toLocale, getLoggedInUser, getPublicTournamentTiming, getActionCenterGames (conditional)
+  Renders: DashboardBanner, DashboardCard (×4)
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
 Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.

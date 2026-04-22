@@ -7,7 +7,11 @@ import { useTranslations } from 'next-intl'
 import LoginOrSignupDialog from '../auth/login-or-signup-dialog'
 import OnboardingDialogClient from '../onboarding/onboarding-dialog-client'
 
-export default function PublicCTABar() {
+interface LoggedOffBannerProps {
+  readonly sticky?: boolean
+}
+
+export function LoggedOffBanner({ sticky }: LoggedOffBannerProps) {
   const t = useTranslations('tournament.public')
   const [openAuthDialog, setOpenAuthDialog] = useState(false)
   const [openOnboarding, setOpenOnboarding] = useState(false)
@@ -24,9 +28,7 @@ export default function PublicCTABar() {
     <>
       <Box
         sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 1000,
+          ...(sticky && { position: 'sticky', top: 0, zIndex: 1000 }),
           backgroundColor: 'primary.main',
           color: 'primary.contrastText',
           py: 1.5,
@@ -100,4 +102,9 @@ export default function PublicCTABar() {
       )}
     </>
   )
+}
+
+/** @deprecated Use LoggedOffBanner instead */
+export default function PublicCTABar() {
+  return <LoggedOffBanner sticky />
 }

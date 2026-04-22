@@ -597,14 +597,20 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift + incomplete user routing)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
-      → redirects to /games server-side when user is not logged in
-      → getActionCenterGames(tournamentId, locale)  [lifted from TournamentHubActionCenter in Story #349]
-      → computeIsIncompleteUser(actionCenterData)
-      → renders TournamentHubActionCenter(data=actionCenterData) (Story #317)
-      → renders TournamentHubRecentResults (Story #318) [hidden when isIncompleteUser=true]
-      → renders TournamentHubLeaderboardPeek (Story #319)
+      → getLoggedInUser()  [no redirect for unauthenticated users since Story #355]
+      → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer]
+      → getActionCenterGames(id, locale)  [only when user is logged in; null otherwise]
+      → renders DashboardBanner(user, timing, data) [Story #355: hero + secondary banner stack]
+          DashboardBanner (Server)
+            → [hero reads from timing — available for all users]
+            → [hero] TournamentStartBanner [Client] (when timing.tournamentJustStarted)
+            → [hero] PreTournamentCountdown [Client] (when !timing.tournamentHasStarted && timing.firstGameDate set)
+            → [secondary] LoggedOffBanner [Client] (when !user)
+            → computeIsIncompleteUser(data)  [only when user is logged in and data is non-null]
+            → [secondary] TutorialCTACard fullWidth [Client] (when user && computeIsIncompleteUser)
+      → renders DashboardCard ×4 (Widget Grid placeholder)
 
 30. Action Center data flow (Story #317; updated #342, #349)
     TournamentHubActionCenter (Server) — uses pre-fetched ActionCenterData from page (Story #349)

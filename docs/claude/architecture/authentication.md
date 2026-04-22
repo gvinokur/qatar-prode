@@ -75,7 +75,7 @@ export async function UnifiedGamesPage({ tournamentId }) {
 **Location:** `app/components/tournament-page/`
 
 - `PublicGamesPage` / `PublicGamesPageClient` - Read-only tournament view
-- `PublicCTABar` - Sticky conversion CTA for unauthenticated users
+- `LoggedOffBanner` - Conversion CTA for unauthenticated users (sticky on games page, non-sticky on dashboard)
 - `ReadOnlyGameCard` - Non-interactive game cards with lock icons
 
 ### Middleware Protection
