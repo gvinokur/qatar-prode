@@ -91,15 +91,15 @@ Client Component for a single group card in the Leaderboard Peek widget. Tappabl
   Renders: LeaderboardCard (compact=true)
 
 ### app/components/tournament-hub/tournament-hub-recent-results.tsx
-Async Server Component for the Recent Results widget. Fetches recent prediction outcome data and delegates rendering to the client widget.
+Async Server Component for the Recent Results widget. Fetches prediction outcome data and the card title translation in parallel, then wraps the result in DashboardCard.
 
-- **TournamentHubRecentResults({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getRecentResultsData`; computes `statsHref`, `resultsHref`, `qualifiedTeamsHref`, `awardsHref` from `/${locale}/tournaments/${tournamentId}/[suffix]`; passes result and all hrefs to `RecentResultsWidget`.
+- **TournamentHubRecentResults({ tournamentId, locale })**: `Promise<JSX.Element>` — [Server] Fetches `getRecentResultsData` and `getTranslations('hub.recentResults')` in parallel via `Promise.all`. Computes `statsHref`, `resultsHref`, `qualifiedTeamsHref`, `awardsHref` from `/${locale}/tournaments/${tournamentId}/[suffix]`. Wraps `RecentResultsWidget` inside `DashboardCard` using `t('title')` and `HistoryIcon`.
   Calls: getRecentResultsData
-  Renders: RecentResultsWidget
+  Renders: DashboardCard, RecentResultsWidget
 
 ### app/components/tournament-hub/recent-results-widget.tsx
-Client Component for the Recent Results widget. Renders 3-section card (recent games, qualified teams, tournament awards) with empty state when no data is available.
+Client Component for the Recent Results widget content. Renders directly inside DashboardCard's CardContent (no own Paper or title wrapper).
 
-- **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Renders section title and a MUI `Paper` card. Shows empty state (soccer icon + message) when all data is absent. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`; award items show specific correct positions/awards from `honorRollCorrect`/`individualAwardsCorrect`). "View full statistics" button below card links to `statsHref`.
+- **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when all data arrays are empty/zero/null. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`). "View full statistics" button uses `mt: 'auto'` to anchor to the bottom of DashboardCard's flex column.
   Uses: useTranslations('hub.recentResults')
   Renders: GameItem (inline sub-component), AwardItem (inline sub-component), BoostBadge
