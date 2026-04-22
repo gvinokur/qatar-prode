@@ -16,14 +16,15 @@ Story branches from `main` (Stories #354 and #360 are merged). Current `page.tsx
 
 ## Objective
 
-Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashboard with a real `GamesPredictionWidget`. The widget must handle three distinct states based on auth status and tournament phase, reusing `getActionCenterGames` for authenticated users and introducing a lightweight new action for guests.
+Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashboard with a real `GamesPredictionWidget`. The widget must handle three distinct states based on auth status and tournament phase. Shared tournament data (scoring config, game count, tournament status) is fetched once at the page level and passed to all widgets — eliminating redundant per-widget fetches as more dashboard widgets are built.
 
 ---
 
 ## Acceptance Criteria
 
 - [ ] **Flippable Card**: Active state implements the single flippable quick-edit card for upcoming games with left/right navigation arrows.
-- [ ] **State Parity**: Logged-Off view mirrors Pre-Start view (scoring rules, description, deadline info) but changes CTA from "Start Predicting" to "Sign In to Predict".
+- [ ] **State Parity**: Logged-Off view mirrors Pre-Start view (scoring rules, description, deadline info, progress bar, count) but shows `0/${totalGames}` count and "Sign In to Predict" CTA instead of the real count and "Start Predicting".
+- [ ] **Urgency Message**: Active state shows an inline status message above the game card, with a time-based icon (Error/Warning/Info) for unpredicted games, or a plain message when all games are predicted.
 
 ---
 
@@ -33,40 +34,46 @@ Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashb
 
 | State | Condition | Content | DashboardCard count |
 |-------|-----------|---------|---------------------|
-| **Logged-Off** | `!user` | Description + deadline box + scoring rules + CTA: "Sign In to Predict" | none |
-| **Pre-Start** | `user && !tournamentHasStarted && !tournamentFinished` | Description + deadline box + scoring rules + progress bar + CTA: "Start Predicting" | `${predictedGames}/${totalGames}` |
-| **Active** | `user && tournamentHasStarted && !tournamentFinished` | Single `FlippableGameCard` + left/right arrows + "View All Matches" button | `${predictedGames}/${totalGames}`, `urgent={mode==='urgent'}` |
-| **Finished** | `data.tournamentFinished` | `null` (returns nothing) | — |
+| **Logged-Off** | `!user` | Description + deadline box + scoring rules + empty progress bar + CTA: "Sign In to Predict" | `0/${totalGames}` |
+| **Pre-Start** | `user && !isStarted` | Description + deadline box + scoring rules + progress bar + CTA: "Start Predicting" | `${predictedGames}/${totalGames}` |
+| **Active** | `user && isStarted && !isFinished` | Urgency message + single `FlippableGameCard` + left/right arrows + "View All Matches" button | `${predictedGames}/${totalGames}`, `urgent={mode==='urgent'}` |
+| **Finished** | `isFinished` | `null` (returns nothing) | — |
 
 ### Data Flow
 
-- **Logged-Off**: `getGamesWidgetConfig(tournamentId)` — new minimal action, no auth required. Returns `scoringConfig` only.
-- **Pre-Start / Active**: `getActionCenterGames(tournamentId, locale)` — existing action, already handles both tournament phases via `tournamentHasStarted` flag. Returns full `ActionCenterData`.
+**Page-level (shared, no auth):** `getTournamentHubPageData(tournamentId)` — fetched once by `TournamentHubPage`, passed to all widgets. Returns `{ scoringConfig, totalGames, isStarted, isFinished }`. Future Standings, Groups, and Awards widgets will receive the same data from the page.
+
+**Widget-level (auth-specific):** `getActionCenterGames(tournamentId, locale)` — called by `GamesPredictionWidget` only when the user is authenticated. Returns full `ActionCenterData` with per-user prediction state.
+
+`GamesPredictionWidget` uses `isStarted`/`isFinished` from the page-level props to decide routing — it does not need to wait for `getActionCenterGames` to learn tournament phase.
 
 ### Component Architecture
 
 Two self-contained widgets + a thin orchestrator. Each widget owns its `DashboardCard` and its own translations.
 
 ```
-page.tsx
-  └── GamesPredictionWidget (thin async orchestrator — fetches data, routes)
-        ├── [!user]           → GamesInfoWidget (async Server, isLoggedOff=true)
-        ├── [user + !started] → GamesInfoWidget (async Server, isLoggedOff=false)
-        └── [user + started]  → GamesActiveWidget (async Server)
-                                      └── DashboardCard
-                                            └── GuessesContextProvider (Client Provider)
-                                                  └── GamesActiveClient (Client Component)
-                                                        ├── ← ChevronLeft (disabled at index 0)
-                                                        ├── FlippableGameCard
-                                                        ├── → ChevronRight (disabled at last index)
-                                                        └── "View All Matches" Button
+TournamentHubPage (Server, async)
+  └── getTournamentHubPageData(id) → { scoringConfig, totalGames, isStarted, isFinished }
+  └── GamesPredictionWidget (thin async orchestrator — no UI, routes by state)
+        ├── [isFinished]              → null
+        ├── [!user]                   → GamesInfoWidget (isLoggedOff=true, predictedGames=0)
+        ├── [user + !isStarted]       → getActionCenterGames → GamesInfoWidget (isLoggedOff=false)
+        └── [user + isStarted]        → getActionCenterGames → GamesActiveWidget
+                                              └── DashboardCard
+                                                    └── GuessesContextProvider (Client Provider)
+                                                          └── GamesActiveClient (Client Component)
+                                                                ├── [Icon] Status message
+                                                                ├── ← ChevronLeft (disabled at index 0)
+                                                                ├── FlippableGameCard
+                                                                ├── → ChevronRight (disabled at last index)
+                                                                └── "View All Matches" Button
 ```
 
-`GamesPredictionWidget` has no UI of its own — it only fetches data and decides which widget to render. `GamesInfoWidget` and `GamesActiveWidget` are independently testable with pre-fetched data props.
+`GamesPredictionWidget` has no UI of its own. `GamesInfoWidget` and `GamesActiveWidget` are independently testable with pre-fetched data props.
 
 ### page.tsx Changes
 
-`page.tsx` must re-add params to get `tournamentId` for the widget. The locale comes from `getLocale()` from `next-intl/server`.
+`page.tsx` re-adds params, becomes async, and fetches shared data up front:
 
 ```tsx
 type Props = { params: Promise<{ id: string }> }
@@ -74,13 +81,22 @@ type Props = { params: Promise<{ id: string }> }
 export default async function TournamentHubPage({ params }: Props) {
   const { id } = await params
   const locale = toLocale(await getLocale())
+  const hubData = await getTournamentHubPageData(id)
+
   return (
     <Box sx={{ ... }}>
       <Stack gap={2}>
         {/* Banner placeholder unchanged */}
       </Stack>
       <Box sx={{ display: 'grid', ... }}>
-        <GamesPredictionWidget tournamentId={id} locale={locale} />
+        <GamesPredictionWidget
+          tournamentId={id}
+          locale={locale}
+          scoringConfig={hubData.scoringConfig}
+          totalGames={hubData.totalGames}
+          isStarted={hubData.isStarted}
+          isFinished={hubData.isFinished}
+        />
         {/* Other placeholder DashboardCards unchanged */}
       </Box>
     </Box>
@@ -88,11 +104,26 @@ export default async function TournamentHubPage({ params }: Props) {
 }
 ```
 
-`SportsSoccerIcon` import removed (no longer used directly in page.tsx). `GamesPredictionWidget` import added. `DashboardCard` remains imported for the other 3 placeholder cards.
+`SportsSoccerIcon` import removed from page. `GamesPredictionWidget` import added. `DashboardCard` remains for the other 3 placeholders.
+
+### Urgency Message in Active State
+
+`GamesActiveWidget` (Server) computes two values from `data` before rendering `GamesActiveClient`:
+- `urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | null`
+  - `mode !== 'urgent'` → `'safe'` (all predicted, some closing) or `null` (empty)
+  - nearest deadline < 2h → `'critical'` (Error icon, red)
+  - nearest deadline < 24h → `'high'` (WarningAmber icon, yellow)
+  - nearest deadline ≤ 48h → `'medium'` (InfoOutlined icon, blue)
+- `unpredictedCount: number` = `data.games.length` when `mode === 'urgent'`, else `0`
+
+`GamesActiveClient` renders inline status row above the card:
+- `urgencyLevel in ['critical','high','medium']`: `{Icon} "Predict {N} games before it's too late!"`
+- `urgencyLevel === 'safe'`: (no icon) `"Some games are closing soon, you can still change their scores."`
+- `urgencyLevel === null` (empty): no message
 
 ### GuessesContextProvider in Active State
 
-`GamesActiveWidget` (Server) wraps `GamesActiveClient` with `GuessesContextProvider` inside a `DashboardCard`:
+`GamesActiveWidget` (Server) wraps `GamesActiveClient` inside `DashboardCard`:
 ```tsx
 <DashboardCard title={t('...')} count={count} urgent={data.mode === 'urgent'} icon={<SportsSoccerIcon />}>
   <GuessesContextProvider
@@ -107,16 +138,18 @@ export default async function TournamentHubPage({ params }: Props) {
       tournamentId={tournamentId}
       gamesHref={gamesHref}
       mode={data.mode}
+      urgencyLevel={urgencyLevel}
+      unpredictedCount={unpredictedCount}
     />
   </GuessesContextProvider>
 </DashboardCard>
 ```
 
-`GamesActiveClient` reads `gameGuesses` from `GuessesContext` via `useContext(GuessesContext)` to pass as `homeScore`, `awayScore` etc. to `FlippableGameCard`.
+`GamesActiveClient` reads `gameGuesses` from `GuessesContext` via `useContext(GuessesContext)` to pass `homeScore`, `awayScore` etc. to `FlippableGameCard`.
 
 ### Scoring Rules Display
 
-`GamesInfoWidget` displays scoring rules. Uses `getRulesBySection(scoringConfig, tRules)` from `app/utils/scoring-rules-utils.ts` — same pattern as `PreTournamentNewUserActionCenter`. The widget calls `getTranslations('rules.rules')` itself for `tRules` and `getTranslations('hub')` for widget-specific strings.
+`GamesInfoWidget` uses `getRulesBySection(scoringConfig, tRules)` from `app/utils/scoring-rules-utils.ts` — same pattern as `PreTournamentNewUserActionCenter`. Calls `getTranslations('rules.rules')` itself.
 
 ### Translation Keys
 
@@ -127,19 +160,20 @@ Reuse existing `hub.newUser.tracks.matches.*` keys wherever possible. Add minima
 | `hub.gamesWidget.ctaLogin` | "Sign In to Predict" | "Iniciar sesión para pronosticar" |
 | `hub.gamesWidget.ctaViewAll` | "View All Matches" | "Ver todos los partidos" |
 | `hub.gamesWidget.deadlineText` | "Changes allowed up to 1 hour before each match." | "Cambios permitidos hasta 1 hora antes de cada partido." |
+| `hub.gamesWidget.urgentMessage` | "Predict {count} games before it's too late!" | "¡Predice {count} partidos antes de que sea tarde!" |
+| `hub.gamesWidget.safeMessage` | "Some games are closing soon, you can still change their scores." | "Algunos partidos están por cerrar, aún puedes cambiar tus resultados." |
 
-Reused keys from `hub.newUser.tracks.matches`: `title`, `description`, `cta` (pre-start CTA).
-Reused keys from `hub.newUser.tracks`: `deadline.label`, `scoringLabel`.
+Reused keys: `hub.newUser.tracks.matches.title`, `description`, `cta` (pre-start CTA), `hub.newUser.tracks.deadline.label`, `scoringLabel`.
 
 ---
 
 ## Visual Prototypes
 
-### State 1: Logged-Off (no user)
+### State 1: Logged-Off (no user) — 0/N count, empty progress bar
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [👤]  Matches                                      │  ← DashboardCard header
+│  [⚽]  Matches                     0/104            │  ← DashboardCard header
 │─────────────────────────────────────────────────────│
 │  Predict the results of each tournament match.       │
 │  Do what you can now — you can always come back.     │
@@ -158,11 +192,12 @@ Reused keys from `hub.newUser.tracks`: `deadline.label`, `scoringLabel`.
 │  │     • Golden boost: 3x (10 games)              │  │
 │  └─────────────────────────────────────────────── ┘  │
 │                                                     │
+│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  0% (empty bar)      │
 │  [ SIGN IN TO PREDICT                           ]   │  ← Button (contained)
 └─────────────────────────────────────────────────────┘
 ```
 
-### State 2: Pre-Start (authenticated, tournament not started)
+### State 2: Pre-Start (authenticated, tournament not started) — vertical stacking
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -171,38 +206,64 @@ Reused keys from `hub.newUser.tracks`: `deadline.label`, `scoringLabel`.
 │  Predict the results of each tournament match.       │
 │  Do what you can now — you can always come back.     │
 │                                                     │
-│  ┌ · · · deadline box · · ·┐  ┌ · · · scoring · ·┐ │
-│  │ 🕐 Prediction deadline: │  │ ⊕ Scoring:        │ │
-│  │    Changes until 1h     │  │   • 1 pt winner   │ │
-│  │    before each match.   │  │   • +1 exact      │ │
-│  └─────────────────────────┘  └──────────────────┘ │
+│  ┌ · · · · · · · · · · · · · · · · · · · · · · ·┐  │
+│  │  🕐  Prediction deadline:                      │  │
+│  │      Changes allowed up to 1 hour before       │  │
+│  │      each match.                               │  │
+│  └─────────────────────────────────────────────── ┘  │
+│                                                     │
+│  ┌ · · · · · · · · · · · · · · · · · · · · · · ·┐  │
+│  │  ⊕  Scoring:                                   │  │
+│  │     • 1 point — correct winner/draw            │  │
+│  │     • 1 bonus point — exact score              │  │
+│  │     • Silver boost: 2x (20 games)              │  │
+│  │     • Golden boost: 3x (10 games)              │  │
+│  └─────────────────────────────────────────────── ┘  │
 │                                                     │
 │  ████████░░░░░░░░░░░░░░░░░░░░░  40% (progress bar)  │
 │  [ START PREDICTING                             ]   │  ← Button (contained)
 └─────────────────────────────────────────────────────┘
 ```
 
-### State 3: Active (authenticated, tournament underway)
+### State 3: Active (authenticated, tournament underway) — with urgency message
 
+**Variant A — unpredicted games, warning urgency (< 24h):**
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [⚽]  Matches                     85/104  ← urgent│  ← DashboardCard header (red border)
+│  [⚽]  Matches                     85/104  urgent   │  ← DashboardCard header (red border)
 │─────────────────────────────────────────────────────│
 │                                                     │
+│  ⚠️  Predict 3 games before it's too late!          │  ← warning icon (yellow)
+│                                                     │
 │  [<]  ┌─────────────────────────────────────┐  [>] │
-│       │  Jun 11 14:00 • Closes in 51 days   │       │
+│       │  Jun 11 14:00 • Closes in 18 hours  │       │
 │       │  ──────────────────────────────── ✏ │       │
 │       │  MEXICO        2 – 4    SOUTH AFRICA │       │
-│       │  ────────────────────────────────   │       │
-│       │  Estadio Azteca (Mexico City)        │       │
 │       └─────────────────────────────────────┘       │
 │                                                     │
-│  [ VIEW ALL MATCHES                             ]   │  ← Button (text variant)
+│  [ VIEW ALL MATCHES                             ]   │
+└─────────────────────────────────────────────────────┘
+```
+
+**Variant B — all games predicted, some closing soon (fallback mode):**
+```
+┌─────────────────────────────────────────────────────┐
+│  [⚽]  Matches                     104/104          │  ← DashboardCard (no red border)
+│─────────────────────────────────────────────────────│
+│                                                     │
+│  Some games are closing soon, you can still change   │
+│  their scores.                                      │  ← no icon
+│                                                     │
+│  [<]  ┌─────────────────────────────────────┐  [>] │
+│       │  Jun 11 14:00 • Closes in 2 days    │       │
+│       └─────────────────────────────────────┘       │
+│                                                     │
+│  [ VIEW ALL MATCHES                             ]   │
 └─────────────────────────────────────────────────────┘
 ```
 
 Navigation: `<` arrow disabled at index 0; `>` arrow disabled at last index.
-Red border only when `mode === 'urgent'` (unpredicted games with open deadlines).
+Red border only when `mode === 'urgent'`.
 
 ---
 
@@ -210,13 +271,14 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 ### Call Graph Changes
 
-**New flows:**
-- **Flow 18 (Games Prediction Widget):**
+**Modified flows:**
+- **Flow 18 (Games Prediction Widget):** *(was: GamesPredictionWidget fetches scoringConfig itself)*
   ```
   TournamentHubPage (Server)
+    ├── getTournamentHubPageData         ← NEW: page-level shared fetch
     └── GamesPredictionWidget [renders] (Server, thin orchestrator)
           ├── getLoggedInUser
-          ├── [if !user]          → getGamesWidgetConfig → GamesInfoWidget [renders]
+          ├── [if !user]          → GamesInfoWidget [renders] (scoringConfig+totalGames from props)
           ├── [if user, !started] → getActionCenterGames → GamesInfoWidget [renders]
           └── [if user, started]  → getActionCenterGames → GamesActiveWidget [renders]
                                           └── GuessesContextProvider [Provider]
@@ -226,19 +288,34 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 ---
 
+### `app/db/game-repository.ts` *(modified)*
+
+**New functions:**
+
+- **countGamesByTournament(tournamentId: string)**: `Promise<number>`
+  Returns total count of games for the given tournament.
+  Tests:
+  - returns 0 when tournament has no games
+  - returns correct count when tournament has games
+  - returns count for the correct tournament (not another tournament's games)
+
+---
+
 ### `app/actions/hub-actions.ts` *(modified)*
 
 **New functions:**
 
-- **getGamesWidgetConfig(tournamentId: string)**: `Promise<{ scoringConfig: ScoringConfig }>`
-  Server Action. Returns tournament scoring config for the widget. Does NOT require authentication — safe to call for logged-off users.
-  Calls: findTournamentById, buildScoringConfig
+- **getTournamentHubPageData(tournamentId: string)**: `Promise<{ scoringConfig: ScoringConfig, totalGames: number, isStarted: boolean, isFinished: boolean }>`
+  Server Action. Returns shared tournament data needed by all dashboard widgets. Does NOT require authentication.
+  Calls: findTournamentById, buildScoringConfig, countGamesByTournament
   Tests:
   - returns DEFAULT_SCORING when tournament is not found
   - returns custom scoring config when tournament has custom scoring fields
+  - returns DEFAULT_SCORING when all tournament scoring fields are null
+  - returns correct totalGames count from game repository
   - succeeds without authentication (no getLoggedInUser call)
-  - returns DEFAULT_SCORING when tournament scoring fields are all null
-  - returns DEFAULT_SCORING when findTournamentById throws (error propagation: wraps in try-catch at call site)
+  - returns isStarted=true when tournament has a startedAt date
+  - returns isFinished=true when tournament has a finishedAt date
 
 ---
 
@@ -246,18 +323,29 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 **New functions:**
 
-- **GamesPredictionWidget({ tournamentId, locale })**: `Promise<JSX.Element | null>`
-  [Server] Thin async orchestrator. No UI. Calls `getLoggedInUser()`. Branches: (1) no user → calls `getGamesWidgetConfig`, renders `GamesInfoWidget` with `isLoggedOff=true`; (2) user + `!tournamentHasStarted` → calls `getActionCenterGames`, renders `GamesInfoWidget` with `isLoggedOff=false`; (3) user + started → renders `GamesActiveWidget`; (4) `tournamentFinished` → returns `null`.
-  Calls: getLoggedInUser, getGamesWidgetConfig (conditional), getActionCenterGames (conditional)
+- **GamesPredictionWidget({ tournamentId, locale, scoringConfig, totalGames, isStarted, isFinished })**: `Promise<JSX.Element | null>`
+  [Server] Thin async orchestrator. No UI. Receives shared tournament data from page. Calls `getLoggedInUser()`. Branches: (1) `isFinished` → returns `null`; (2) no user → renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0`; (3) user → calls `getActionCenterGames`, then (a) `!data.tournamentHasStarted` → renders `GamesInfoWidget` with `isLoggedOff=false`; (b) started → renders `GamesActiveWidget`. Does not catch errors from `getActionCenterGames` — they propagate to the page-level Next.js error boundary.
+  Props:
+  ```typescript
+  interface GamesPredictionWidgetProps {
+    readonly tournamentId: string
+    readonly locale: Locale
+    readonly scoringConfig: ScoringConfig
+    readonly totalGames: number
+    readonly isStarted: boolean
+    readonly isFinished: boolean
+  }
+  ```
+  Calls: getLoggedInUser, getActionCenterGames (conditional)
   Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
   Tests:
-  - renders GamesInfoWidget with isLoggedOff=true when user is null
+  - renders GamesInfoWidget with isLoggedOff=true and predictedGames=0 when user is null
   - renders GamesInfoWidget with isLoggedOff=false when user is authenticated and tournament not started
   - renders GamesActiveWidget when user is authenticated and tournament has started
-  - returns null when tournamentFinished is true
-  - passes scoringConfig from getGamesWidgetConfig to GamesInfoWidget when logged-off
-  - passes scoringConfig from ActionCenterData to GamesInfoWidget when pre-start
-  - (error propagation) errors from getActionCenterGames are not caught — they propagate to the page-level Next.js error boundary; no defensive try-catch in orchestrator
+  - returns null when isFinished is true
+  - passes scoringConfig and totalGames props to GamesInfoWidget when logged-off
+  - passes scoringConfig from props and predictedGames from ActionCenterData to GamesInfoWidget when pre-start
+  - (error propagation) errors from getActionCenterGames are not caught — they propagate to the page-level Next.js error boundary
 
 ---
 
@@ -266,7 +354,7 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 **New functions:**
 
 - **GamesInfoWidget({ isLoggedOff, scoringConfig, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>`
-  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` and `getTranslations('rules.rules')`, builds rules via `getRulesBySection(scoringConfig, tRules)`. Renders `DashboardCard` with: `title=t('newUser.tracks.matches.title')`, `icon=SportsSoccerIcon`, `count="${predictedGames}/${totalGames}"` (omitted when `isLoggedOff`). Inside: description paragraph; dashed-border deadline box (ScheduleIcon); dashed-border scoring rules box (AddCircleOutlineIcon + rule strings); `LinearProgress` bar when `!isLoggedOff && totalGames > 0`; CTA `Button component={Link}` — text from `t('gamesWidget.ctaLogin')` when `isLoggedOff`, else `t('newUser.tracks.matches.cta')`.
+  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` and `getTranslations('rules.rules')`, builds rules via `getRulesBySection(scoringConfig, tRules)`. Renders `DashboardCard` with: `title=t('newUser.tracks.matches.title')`, `icon=SportsSoccerIcon`, `count="${predictedGames}/${totalGames}"` (always shown, even for logged-off where predictedGames=0). Inside: description paragraph; dashed-border deadline box (ScheduleIcon) stacked vertically above dashed-border scoring rules box (AddCircleOutlineIcon); `LinearProgress` bar (value={(predictedGames/totalGames)*100}, shown when `totalGames > 0`); CTA `Button component={Link}` — `t('gamesWidget.ctaLogin')` when `isLoggedOff`, else `t('newUser.tracks.matches.cta')`.
   Props:
   ```typescript
   interface GamesInfoWidgetProps {
@@ -279,14 +367,15 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
   ```
   Calls: getTranslations, getRulesBySection
   Tests:
-  - renders DashboardCard with no count when isLoggedOff is true
+  - renders DashboardCard with "0/${totalGames}" count when isLoggedOff is true (predictedGames=0)
   - renders DashboardCard with predictedGames/totalGames count when isLoggedOff is false
   - renders "Sign In to Predict" CTA text when isLoggedOff is true
   - renders "Start Predicting" CTA text when isLoggedOff is false
-  - renders LinearProgress bar when isLoggedOff is false and totalGames > 0
-  - does not render LinearProgress bar when isLoggedOff is true
+  - renders LinearProgress with value=0 (empty) when isLoggedOff is true and totalGames > 0
+  - renders LinearProgress with non-zero value when isLoggedOff is false and predictedGames > 0
+  - does not render LinearProgress when totalGames is 0
   - renders scoring rules from getRulesBySection in the scoring rules box
-  - renders deadline box with ScheduleIcon
+  - renders deadline box with ScheduleIcon vertically stacked above scoring rules box
 
 ---
 
@@ -295,7 +384,10 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 **New functions:**
 
 - **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>`
-  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` for the card title. Renders `DashboardCard` with count `"${data.predictedGames}/${data.totalGames}"`, `urgent={data.mode === 'urgent'}`, icon=SportsSoccerIcon. Inside: `GuessesContextProvider` wrapping `GamesActiveClient`.
+  [Server] Async Server Component. Calls `getTranslations('hub')` for the card title. Computes `urgencyLevel` and `unpredictedCount` from `data.games` and `data.mode`:
+  - `unpredictedCount = data.mode === 'urgent' ? data.games.length : 0`
+  - `urgencyLevel`: if `mode !== 'urgent'` → `mode === 'fallback' ? 'safe' : null`; else find min deadline across `data.games` → `< 2h → 'critical'`, `< 24h → 'high'`, `≤ 48h → 'medium'`
+  Renders `DashboardCard` with count `"${data.predictedGames}/${data.totalGames}"`, `urgent={data.mode === 'urgent'}`, icon=SportsSoccerIcon. Inside: `GuessesContextProvider` wrapping `GamesActiveClient`.
   Props:
   ```typescript
   interface GamesActiveWidgetProps {
@@ -310,7 +402,12 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
   - renders DashboardCard with correct predictedGames/totalGames count
   - renders urgent DashboardCard (error border) when data.mode is 'urgent'
   - renders non-urgent DashboardCard when data.mode is 'fallback'
-  - passes game data to GamesActiveClient
+  - passes urgencyLevel='critical' when nearest game deadline is under 2 hours
+  - passes urgencyLevel='high' when nearest game deadline is under 24 hours
+  - passes urgencyLevel='medium' when nearest game deadline is under 48 hours
+  - passes urgencyLevel='safe' when mode is 'fallback'
+  - passes unpredictedCount equal to data.games.length when mode is 'urgent'
+  - passes unpredictedCount=0 when mode is 'fallback'
 
 ---
 
@@ -318,8 +415,12 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 **New functions:**
 
-- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, mode })**: `JSX.Element`
-  [Client] Manages `currentIndex: number` (useState, 0-based) and `editingGameId: string | null` (useState). Reads `gameGuesses` from `GuessesContext` via `useContext`. Renders a row of: `IconButton ChevronLeft` (disabled when `currentIndex === 0`), `FlippableGameCard` for `games[currentIndex]` (full width, grows with `flexGrow: 1`), `IconButton ChevronRight` (disabled when `currentIndex === games.length - 1`). Below the row: `Button component={Link} variant="text"` linking to `gamesHref`. Props:
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, mode, urgencyLevel, unpredictedCount })**: `JSX.Element`
+  [Client] Manages `currentIndex: number` (useState, 0-based) and `editingGameId: string | null` (useState). Reads `gameGuesses` from `GuessesContext` via `useContext`. Renders:
+  1. Status row (when `urgencyLevel !== null`): icon (Error/WarningAmber/InfoOutlined based on urgencyLevel, or none for 'safe') + Typography with `t('gamesWidget.urgentMessage', { count: unpredictedCount })` or `t('gamesWidget.safeMessage')`
+  2. Navigation row: `IconButton ChevronLeft` (disabled when `currentIndex === 0`), `FlippableGameCard` (flexGrow:1), `IconButton ChevronRight` (disabled when `currentIndex === games.length - 1`)
+  3. `Button component={Link} variant="text"` linking to `gamesHref`
+  Props:
   ```typescript
   interface GamesActiveClientProps {
     readonly games: ExtendedGameData[]
@@ -327,10 +428,11 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
     readonly tournamentId: string
     readonly gamesHref: string
     readonly mode: 'urgent' | 'fallback' | 'empty'
+    readonly urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | null
+    readonly unpredictedCount: number
   }
   ```
   Uses: useContext(GuessesContext), useState, useTranslations('hub')
-  Calls: (none — interacts via context)
   Tests:
   - renders FlippableGameCard for the first game initially (currentIndex starts at 0)
   - left arrow button is disabled when currentIndex is 0
@@ -342,6 +444,11 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
   - reads gameGuesses from GuessesContext and passes home_score/away_score as props to FlippableGameCard
   - renders "View All Matches" link button with correct gamesHref
   - renders single-game view when games array has length 1 (both arrows disabled)
+  - renders urgency message with Error icon when urgencyLevel is 'critical'
+  - renders urgency message with WarningAmber icon when urgencyLevel is 'high'
+  - renders urgency message with Info icon when urgencyLevel is 'medium'
+  - renders safe message without icon when urgencyLevel is 'safe'
+  - renders no status message when urgencyLevel is null
 
 ---
 
@@ -349,9 +456,9 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 **Changed component:**
 
-- **TournamentHubPage({ params })**: `Promise<JSX.Element>` *(was: TournamentHubPage(): JSX.Element with no params)*
-  Now async, reads `{ id }` from `params` and `locale` via `getLocale()`. Passes `tournamentId={id}` and `locale={locale}` to `GamesPredictionWidget`. Other 3 placeholder `DashboardCard` instances ("Standings", "Groups", "Results") unchanged.
-  Calls: getLocale, toLocale — (re-added from Story 360 cleanup)
+- **TournamentHubPage({ params })**: `Promise<JSX.Element>` *(was: TournamentHubPage(): JSX.Element — static, no params)*
+  Now async, reads `{ id }` from `params`, calls `getTournamentHubPageData(id)` for shared data, passes it to `GamesPredictionWidget`. Other 3 placeholder `DashboardCard` instances unchanged.
+  Calls: getLocale, toLocale, getTournamentHubPageData
   Tests: (Server Component; covered by manual acceptance testing in Vercel Preview)
 
 ---
@@ -362,45 +469,46 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 |--------|------|-------|
 | Create | `app/components/tournament-hub/games-prediction-widget.tsx` | Orchestrator Server Component |
 | Create | `app/components/tournament-hub/games-info-widget.tsx` | Info state Server Component |
-| Create | `app/components/tournament-hub/games-active-widget.tsx` | Active state Server Component |
-| Create | `app/components/tournament-hub/games-active-client.tsx` | Active state Client Component |
+| Create | `app/components/tournament-hub/games-active-widget.tsx` | Active state Server Component (computes urgencyLevel) |
+| Create | `app/components/tournament-hub/games-active-client.tsx` | Active state Client Component (status message + nav) |
 | Create | `app/components/tournament-hub/__tests__/games-info-widget.test.tsx` | Unit tests |
 | Create | `app/components/tournament-hub/__tests__/games-active-client.test.tsx` | Unit tests |
-| Modify | `app/actions/hub-actions.ts` | Add `getGamesWidgetConfig` |
-| Modify | `app/actions/__tests__/hub-actions.test.ts` | Tests for `getGamesWidgetConfig` |
-| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, use `GamesPredictionWidget` |
-| Modify | `locales/en/hub.json` | Add `gamesWidget` sub-object |
-| Modify | `locales/es/hub.json` | Add `gamesWidget` sub-object |
+| Modify | `app/actions/hub-actions.ts` | Add `getTournamentHubPageData` |
+| Modify | `app/actions/__tests__/hub-actions.test.ts` | Tests for `getTournamentHubPageData` |
+| Modify | `app/db/game-repository.ts` | Add `countGamesByTournament` |
+| Modify | `app/db/__tests__/game-repository.test.ts` | Tests for `countGamesByTournament` |
+| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, fetch shared data, use `GamesPredictionWidget` |
+| Modify | `locales/en/hub.json` | Add `gamesWidget` sub-object (5 keys) |
+| Modify | `locales/es/hub.json` | Add `gamesWidget` sub-object (5 keys) |
 | Update | `docs/code-structure/components/components-tournament-hub.md` | Add all 4 new component entries |
-| Update | `docs/code-structure/actions.md` | Add `getGamesWidgetConfig` entry |
-| Update | `docs/code-structure/pages.md` | Update `TournamentHubPage` to reflect params re-addition |
+| Update | `docs/code-structure/actions.md` | Add `getTournamentHubPageData` entry |
+| Update | `docs/code-structure/db.md` | Add `countGamesByTournament` entry |
+| Update | `docs/code-structure/pages.md` | Update `TournamentHubPage` (now async with params) |
 
 ---
 
 ## Implementation Steps
 
-### Wave 1 — Server Action (no dependencies)
-1. Add `getGamesWidgetConfig` to `app/actions/hub-actions.ts`
-2. Add unit tests in `app/actions/__tests__/hub-actions.test.ts`
-3. Update `docs/code-structure/actions.md`
+### Wave 1 — Data Layer (no dependencies, parallel)
+1. Add `countGamesByTournament` to `app/db/game-repository.ts` + tests in `game-repository.test.ts`
+2. Add `getTournamentHubPageData` to `app/actions/hub-actions.ts` + tests in `hub-actions.test.ts`
+3. Update `docs/code-structure/db.md` and `docs/code-structure/actions.md`
 
-### Wave 2 — Leaf Components (depends on Wave 1; parallel)
+### Wave 2 — Leaf Components (depends on Wave 1, parallel within wave)
 4. Add translation keys to `locales/en/hub.json` and `locales/es/hub.json`
-5. Create `app/components/tournament-hub/games-active-client.tsx`
-6. Create `app/components/tournament-hub/__tests__/games-active-client.test.tsx`
-7. Create `app/components/tournament-hub/games-info-widget.tsx`
-8. Create `app/components/tournament-hub/__tests__/games-info-widget.test.tsx`
+5. Create `app/components/tournament-hub/games-active-client.tsx` + `__tests__/games-active-client.test.tsx`
+6. Create `app/components/tournament-hub/games-info-widget.tsx` + `__tests__/games-info-widget.test.tsx`
 
-### Wave 3 — Active Widget + Orchestrator (depends on Wave 2)
-9. Create `app/components/tournament-hub/games-active-widget.tsx`
-10. Create `app/components/tournament-hub/games-prediction-widget.tsx`
+### Wave 3 — Composite Widgets + Orchestrator (depends on Wave 2)
+7. Create `app/components/tournament-hub/games-active-widget.tsx`
+8. Create `app/components/tournament-hub/games-prediction-widget.tsx`
 
 ### Wave 4 — Page Integration (depends on Wave 3)
-11. Modify `app/[locale]/tournaments/[id]/page.tsx` — re-add params, replace Games mock card
+9. Modify `app/[locale]/tournaments/[id]/page.tsx` — add params, fetch shared data, use `GamesPredictionWidget`
 
 ### Wave 5 — Documentation
-12. Update `docs/code-structure/components/components-tournament-hub.md`
-13. Update `docs/code-structure/pages.md`
+10. Update `docs/code-structure/components/components-tournament-hub.md`
+11. Update `docs/code-structure/pages.md`
 
 ---
 
@@ -408,34 +516,36 @@ Red border only when `mode === 'urgent'` (unpredicted games with open deadlines)
 
 ### Test Infrastructure
 
-All three utilities already exist and are used across the test suite:
-- `testFactories.*` — from `__tests__/db/test-factories.ts` (includes `tournament()`, `gameGuess()`, `game()`, `team()`)
+All three utilities already exist:
+- `testFactories.*` — from `__tests__/db/test-factories.ts`
 - `createMockSelectQuery()` — from `__tests__/db/mock-helpers.ts`
 - `renderWithProviders()` — from `__tests__/utils/test-utils.tsx`
 
-No new test utilities need to be created.
+### Unit Tests: `countGamesByTournament` (`game-repository.test.ts`)
 
-### Unit Tests: `getGamesWidgetConfig` (`hub-actions.test.ts`)
+Use `createMockSelectQuery()` for Kysely mocking. Test zero-games and multi-games cases, plus tournament isolation.
 
-Use `testFactories.tournament()` for mock data and `createMockSelectQuery()` for Kysely mocking. No auth mock needed (function does not call `getLoggedInUser`).
+### Unit Tests: `getTournamentHubPageData` (`hub-actions.test.ts`)
+
+Use `testFactories.tournament()` for mock data. No auth mock needed. Cover scoring config variants (default, custom, null fields) and `isStarted`/`isFinished` flag derivation.
 
 ### Unit Tests: `GamesInfoWidget` (`games-info-widget.test.tsx`)
 
-Server Component test. Mock `getTranslations` (next-intl/server) and `getRulesBySection`. Use `testFactories.tournament()` to build a `scoringConfig`. Test both `isLoggedOff=true` and `isLoggedOff=false` branches, and progress bar presence/absence.
+Server Component test. Mock `getTranslations` and `getRulesBySection`. Use `testFactories.tournament()` to build a `scoringConfig`. Test `isLoggedOff=true` (0/N count, empty bar) and `isLoggedOff=false` (real count, real bar), plus progress bar presence/absence.
 
 ### Unit Tests: `GamesActiveClient` (`games-active-client.test.tsx`)
 
-Use `renderWithProviders()`. Wrap with `GuessesContextProvider` seeded with mock guesses via `testFactories.gameGuess()`. Mock `FlippableGameCard` (`vi.mock('../flippable-game-card', ...)`) to render a `data-testid="game-card"` with `data-game-id` attribute — enables asserting which game is displayed without rendering the complex flip component. Simulate arrow button clicks with `userEvent.click`.
+Use `renderWithProviders()`. Wrap with `GuessesContextProvider` seeded with mock guesses via `testFactories.gameGuess()`. Mock `FlippableGameCard` to render `data-testid="game-card"` with `data-game-id` attribute. Test arrow navigation, boundary guards, context integration, and all urgency message variants (critical/high/medium/safe/null).
 
 Coverage requirement: ≥80% on new code.
 
 ### Manual Verification (Vercel Preview)
 
-- **Logged-off** (incognito): Hub page shows Games widget with scoring rules, no progress bar, "Sign In to Predict" CTA linking to `/games`.
-- **Pre-start** (authenticated, before tournament): Games widget shows scoring rules + progress bar + "Start Predicting" button.
-- **Active** (after tournament starts): Single flippable game card appears; left/right arrows navigate between games; flip works for quick editing; "View All Matches" links to `/games` page.
-- **Urgent border**: Red card border when there are unpredicted games (`mode==='urgent'`).
-- **Mobile**: Arrows layout stacks cleanly; card is full width.
+- **Logged-off** (incognito): Games widget shows `0/104`, empty progress bar, scoring rules, "Sign In to Predict" CTA.
+- **Pre-start** (authenticated): Games widget shows `N/104`, filled progress bar, scoring rules, "Start Predicting".
+- **Active — urgent**: Red border, urgency message with colored icon, single game card, arrow navigation, "View All Matches" link.
+- **Active — fallback**: No red border, plain "closing soon" message, game card with navigation.
+- **Mobile**: Arrows + card layout stacks cleanly.
 
 ---
 
