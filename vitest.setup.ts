@@ -1,5 +1,16 @@
 import { vi } from 'vitest';
 
+// Expose Web Streams globals into the vmForks VM context.
+// In vmForks, Node.js 18+ global Web APIs (ReadableStream, etc.) are not
+// automatically available in isolated VM contexts. undici (used by fetch)
+// references them at module load time, before jsdom can polyfill them.
+import { ReadableStream, WritableStream, TransformStream } from 'node:stream/web'
+if (typeof globalThis.ReadableStream === 'undefined') {
+  globalThis.ReadableStream = ReadableStream as any
+  globalThis.WritableStream = WritableStream as any
+  globalThis.TransformStream = TransformStream as any
+}
+
 // Stub VAPID environment variables to prevent web-push initialization errors
 // This must be done before any modules are loaded
 vi.stubEnv('NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'BIgIOpCSB_MFNpSkPb4V_eM4SkemKR1l1XmmYFsewYF-XD0T0LZA8A79eerSnzNP00dIcixBZ_TD3SrSRkiQAlI');
