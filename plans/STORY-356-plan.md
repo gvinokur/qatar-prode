@@ -43,9 +43,11 @@ Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashb
 
 **Page-level (shared, no auth):** `getTournamentHubPageData(tournamentId)` — fetched once by `TournamentHubPage`. Returns `{ scoringConfig, totalGames, isStarted, isFinished }`. The page also calls `getTranslations('rules.rules')` + `getRulesBySection(scoringConfig, tRules)` to produce `scoringRules: ScoringRulesBySection`, which is passed to all widgets that display scoring info. Future Standings, Groups, and Awards widgets will receive the same page-level data.
 
-**Widget-level (auth-specific):** `getActionCenterGames(tournamentId, locale)` — called by `GamesPredictionWidget` only when the user is authenticated. Returns full `ActionCenterData` with per-user prediction state.
+**Page-level (auth-conditional):** `getActionCenterGames(tournamentId, locale)` — called by `TournamentHubPage` when the user is authenticated and the tournament is not finished. Returns full `ActionCenterData`, which includes `totalGames`, `predictedGames`, `awardsCompleted/Total`, `qualifiersCompleted/Total`, game carousel data, and guesses. Passed as `actionCenterData: ActionCenterData | null` to all dashboard widgets — `null` means logged-off or tournament finished. Story 357's status widgets will consume the same `actionCenterData` prop from the page, avoiding a second call to `getActionCenterGames`.
 
-`GamesPredictionWidget` uses `isStarted`/`isFinished` from the page-level props to decide routing — it does not need to wait for `getActionCenterGames` to learn tournament phase.
+> **Note:** `getActionCenterGames` is a misleading name once its data is shared across all widgets. Rename to `getTournamentDashboardData` or similar in a future refactor story.
+
+`GamesPredictionWidget` is a zero-fetch orchestrator — it only routes based on `isFinished`, `actionCenterData`, and `isStarted`.
 
 ### Component Architecture
 
@@ -53,23 +55,30 @@ Two self-contained widgets + a thin orchestrator. Each widget owns its `Dashboar
 
 ```
 TournamentHubPage (Server, async)
-  └── getTournamentHubPageData(id) → { scoringConfig, totalGames, isStarted, isFinished }
-  └── GamesPredictionWidget (thin async orchestrator — no UI, routes by state)
-        ├── [isFinished]              → null
-        ├── [!user]                   → GamesInfoWidget (isLoggedOff=true, predictedGames=0)
-        ├── [user + !isStarted]       → getActionCenterGames → GamesInfoWidget (isLoggedOff=false)
-        └── [user + isStarted]        → getActionCenterGames → GamesActiveWidget
-                                              └── DashboardCard
-                                                    └── GuessesContextProvider (Client Provider)
-                                                          └── GamesActiveClient (Client Component)
-                                                                ├── [Icon] Status message
-                                                                ├── ← ChevronLeft (disabled at index 0)
-                                                                ├── FlippableGameCard
-                                                                ├── → ChevronRight (disabled at last index)
-                                                                └── "View All Matches" Button
+  ├── [parallel] getTournamentHubPageData(id) + getLoggedInUser()
+  ├── getTranslations('rules.rules') → getRulesBySection() → scoringRules
+  ├── [if user && !isFinished] getActionCenterGames(id, locale) → actionCenterData
+  │
+  └── GamesPredictionWidget (zero-fetch orchestrator — no data calls, pure routing)
+        ├── [isFinished]                   → null
+        ├── [!actionCenterData]            → GamesInfoWidget (isLoggedOff=true, predictedGames=0)
+        ├── [actionCenterData + !isStarted] → GamesInfoWidget (isLoggedOff=false)
+        └── [actionCenterData + isStarted]  → GamesActiveWidget
+                                                  └── DashboardCard
+                                                        └── GuessesContextProvider (Client Provider)
+                                                              └── GamesActiveClient (Client Component)
+                                                                    ├── [Icon] Status message
+                                                                    ├── ← ChevronLeft (disabled at index 0)
+                                                                    ├── FlippableGameCard
+                                                                    ├── → ChevronRight (disabled at last index)
+                                                                    └── "View All Matches" Button
+
+  // Story 357 status widgets will also receive actionCenterData from the page
+  └── <StatusWidget1 actionCenterData={actionCenterData} hubData={hubData} />
+  └── <StatusWidget2 actionCenterData={actionCenterData} hubData={hubData} />
 ```
 
-`GamesPredictionWidget` has no UI of its own. `GamesInfoWidget` and `GamesActiveWidget` are independently testable with pre-fetched data props.
+`GamesPredictionWidget` has no UI and makes no data calls. `GamesInfoWidget` and `GamesActiveWidget` are independently testable with pre-fetched data props.
 
 ### page.tsx Changes
 
@@ -81,9 +90,17 @@ type Props = { params: Promise<{ id: string }> }
 export default async function TournamentHubPage({ params }: Props) {
   const { id } = await params
   const locale = toLocale(await getLocale())
-  const hubData = await getTournamentHubPageData(id)
+  const gamesHref = `/${locale}/tournaments/${id}/games`
+
+  const [hubData, user] = await Promise.all([
+    getTournamentHubPageData(id),
+    getLoggedInUser(),
+  ])
   const tRules = await getTranslations('rules.rules')
   const scoringRules = getRulesBySection(hubData.scoringConfig, tRules)
+  const actionCenterData = (!hubData.isFinished && user)
+    ? await getActionCenterGames(id, locale)
+    : null
 
   return (
     <Box sx={{ ... }}>
@@ -93,11 +110,12 @@ export default async function TournamentHubPage({ params }: Props) {
       <Box sx={{ display: 'grid', ... }}>
         <GamesPredictionWidget
           tournamentId={id}
-          locale={locale}
           scoringRules={scoringRules}
           totalGames={hubData.totalGames}
           isStarted={hubData.isStarted}
           isFinished={hubData.isFinished}
+          actionCenterData={actionCenterData}
+          gamesHref={gamesHref}
         />
         {/* Other placeholder DashboardCards unchanged */}
       </Box>
@@ -273,18 +291,20 @@ Red border only when `mode === 'urgent'`.
 ### Call Graph Changes
 
 **Modified flows:**
-- **Flow 18 (Games Prediction Widget):** *(was: GamesPredictionWidget fetches scoringConfig itself)*
+- **Flow 18 (Games Prediction Widget):** *(was: GamesPredictionWidget fetched all data itself)*
   ```
   TournamentHubPage (Server)
-    ├── getTournamentHubPageData         ← NEW: page-level shared fetch
-    └── GamesPredictionWidget [renders] (Server, thin orchestrator)
-          ├── getLoggedInUser
-          ├── [if !user]          → GamesInfoWidget [renders] (scoringConfig+totalGames from props)
-          ├── [if user, !started] → getActionCenterGames → GamesInfoWidget [renders]
-          └── [if user, started]  → getActionCenterGames → GamesActiveWidget [renders]
-                                          └── GuessesContextProvider [Provider]
-                                                └── GamesActiveClient [renders]
-                                                      └── FlippableGameCard [renders]
+    ├── getTournamentHubPageData + getLoggedInUser  ← parallel, page-level
+    ├── getRulesBySection                           ← page-level, shared scoringRules
+    ├── getActionCenterGames                        ← page-level, auth-conditional
+    └── GamesPredictionWidget [renders] (zero-fetch orchestrator)
+          ├── [isFinished]                   → null
+          ├── [!actionCenterData]            → GamesInfoWidget [renders]
+          ├── [actionCenterData, !isStarted] → GamesInfoWidget [renders]
+          └── [actionCenterData, isStarted]  → GamesActiveWidget [renders]
+                                                    └── GuessesContextProvider [Provider]
+                                                          └── GamesActiveClient [renders]
+                                                                └── FlippableGameCard [renders]
   ```
 
 ---
@@ -311,29 +331,29 @@ Red border only when `mode === 'urgent'`.
 
 **New functions:**
 
-- **GamesPredictionWidget({ tournamentId, locale, scoringRules, totalGames, isStarted, isFinished })**: `Promise<JSX.Element | null>`
-  [Server] Thin async orchestrator. No UI. Receives shared tournament data (including pre-computed scoring rules) from page. Calls `getLoggedInUser()`. Branches: (1) `isFinished` → returns `null`; (2) no user → renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0`; (3) user → calls `getActionCenterGames`, then (a) `!data.tournamentHasStarted` → renders `GamesInfoWidget` with `isLoggedOff=false`; (b) started → renders `GamesActiveWidget`. Does not catch errors from `getActionCenterGames` — they propagate to the page-level Next.js error boundary.
+- **GamesPredictionWidget({ tournamentId, scoringRules, totalGames, isStarted, isFinished, actionCenterData, gamesHref })**: `JSX.Element | null`
+  [Server] Zero-fetch routing component. No async, no data calls — all data arrives as props from the page. Branches: (1) `isFinished` → returns `null`; (2) `!actionCenterData` → renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0`; (3) `actionCenterData && !isStarted` → renders `GamesInfoWidget` with `isLoggedOff=false`; (4) `actionCenterData && isStarted` → renders `GamesActiveWidget`.
   Props:
   ```typescript
   interface GamesPredictionWidgetProps {
     readonly tournamentId: string
-    readonly locale: Locale
     readonly scoringRules: ScoringRulesBySection
     readonly totalGames: number
     readonly isStarted: boolean
     readonly isFinished: boolean
+    readonly actionCenterData: ActionCenterData | null
+    readonly gamesHref: string
   }
   ```
-  Calls: getLoggedInUser, getActionCenterGames (conditional)
+  Calls: (none)
   Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
   Tests:
-  - renders GamesInfoWidget with isLoggedOff=true and predictedGames=0 when user is null
-  - renders GamesInfoWidget with isLoggedOff=false when user is authenticated and tournament not started
-  - renders GamesActiveWidget when user is authenticated and tournament has started
+  - renders GamesInfoWidget with isLoggedOff=true and predictedGames=0 when actionCenterData is null
+  - renders GamesInfoWidget with isLoggedOff=false when actionCenterData is present and isStarted is false
+  - renders GamesActiveWidget when actionCenterData is present and isStarted is true
   - returns null when isFinished is true
   - passes scoringRules and totalGames props to GamesInfoWidget when logged-off
-  - passes scoringRules from props and predictedGames from ActionCenterData to GamesInfoWidget when pre-start
-  - (error propagation) errors from getActionCenterGames are not caught — they propagate to the page-level Next.js error boundary
+  - passes scoringRules and predictedGames from actionCenterData to GamesInfoWidget when pre-start
 
 ---
 
@@ -446,8 +466,8 @@ Red border only when `mode === 'urgent'`.
 **Changed component:**
 
 - **TournamentHubPage({ params })**: `Promise<JSX.Element>` *(was: TournamentHubPage(): JSX.Element — static, no params)*
-  Now async, reads `{ id }` from `params`, calls `getTournamentHubPageData(id)`, calls `getTranslations('rules.rules')`, computes `scoringRules = getRulesBySection(hubData.scoringConfig, tRules)`, passes all to `GamesPredictionWidget`. Other 3 placeholder `DashboardCard` instances unchanged.
-  Calls: getLocale, toLocale, getTournamentHubPageData, getTranslations, getRulesBySection
+  Now async. Reads `{ id }` and `locale`. Runs `getTournamentHubPageData(id)` + `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `getActionCenterGames(id, locale)` when `user && !isFinished`. Passes all to `GamesPredictionWidget`. Story 357 status widgets will also receive `actionCenterData` from this page — no additional data fetching needed.
+  Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getActionCenterGames (conditional)
   Tests: (Server Component; covered by manual acceptance testing in Vercel Preview)
 
 ---
@@ -464,7 +484,7 @@ Red border only when `mode === 'urgent'`.
 | Create | `app/components/tournament-hub/__tests__/games-active-client.test.tsx` | Unit tests |
 | Modify | `app/actions/hub-actions.ts` | Add `getTournamentHubPageData` (inline game count, no new DB function) |
 | Modify | `app/actions/__tests__/hub-actions.test.ts` | Tests for `getTournamentHubPageData` |
-| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, fetch shared data + scoringRules, use `GamesPredictionWidget` |
+| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params; parallel getTournamentHubPageData+getLoggedInUser; scoringRules; conditional getActionCenterGames; use `GamesPredictionWidget` |
 | Modify | `locales/en/hub.json` | Add `gamesWidget` sub-object (5 keys) |
 | Modify | `locales/es/hub.json` | Add `gamesWidget` sub-object (5 keys) |
 | Update | `docs/code-structure/components/components-tournament-hub.md` | Add all 4 new component entries |
