@@ -600,13 +600,15 @@ Key flows:
 29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
       → getLoggedInUser()  [no redirect for unauthenticated users since Story #355]
+      → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer]
       → getActionCenterGames(id, locale)  [only when user is logged in; null otherwise]
-      → renders DashboardBanner(user, data) [Story #355: hero + secondary banner stack]
+      → renders DashboardBanner(user, timing, data) [Story #355: hero + secondary banner stack]
           DashboardBanner (Server)
-            → computeIsIncompleteUser(data)  [only when user is logged in]
-            → [hero] TournamentStartBanner [Client] (when tournamentJustStarted)
-            → [hero] PreTournamentCountdown [Client] (when !tournamentHasStarted && firstGameDate set)
+            → [hero reads from timing — available for all users]
+            → [hero] TournamentStartBanner [Client] (when timing.tournamentJustStarted)
+            → [hero] PreTournamentCountdown [Client] (when !timing.tournamentHasStarted && timing.firstGameDate set)
             → [secondary] LoggedOffBanner [Client] (when !user)
+            → computeIsIncompleteUser(data)  [only when user is logged in and data is non-null]
             → [secondary] TutorialCTACard fullWidth [Client] (when user && computeIsIncompleteUser)
       → renders DashboardCard ×4 (Widget Grid placeholder)
 

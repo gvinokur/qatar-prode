@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-22
 
 ---
 
@@ -11,7 +11,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/tournament-hub/dashboard-banner.tsx
 Server Component stacking hero + secondary CTA banners in the dashboard Banner Area.
 
-- **DashboardBanner({ user, data })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `ActionCenterData | null` from the page. Hero layer: renders `TournamentStartBanner` when `data.tournamentJustStarted`; else `PreTournamentCountdown` when `!data.tournamentHasStarted && data.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else `TutorialCTACard fullWidth` when `computeIsIncompleteUser(data)` returns true; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
+- **DashboardBanner({ user, timing, data })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `TournamentTiming | null` (always available, even for guests) and `ActionCenterData | null` (auth-gated, null for guests). Hero layer reads from `timing`: renders `TournamentStartBanner` when `timing?.tournamentJustStarted`; else `PreTournamentCountdown` when `timing && !timing.tournamentHasStarted && timing.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else `TutorialCTACard fullWidth` when `data && computeIsIncompleteUser(data)` returns true; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
   Calls: computeIsIncompleteUser
   Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), LoggedOffBanner (conditional), TutorialCTACard (conditional)
 

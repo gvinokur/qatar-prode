@@ -174,6 +174,18 @@ Coverage: all new/modified components → target ≥ 80%
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: TournamentTiming + getPublicTournamentTiming (hub-actions.ts)
+**Date:** 2026-04-22
+**Reason:** Hero banners were not appearing for logged-out users because the hero layer read from `ActionCenterData`, which is auth-gated and returns null for guests.
+**Change:** Added `TournamentTiming` interface and `getPublicTournamentTiming(tournamentId, locale)` to `hub-actions.ts`. This function calls `findTournamentById` and `findFirstGameInTournament` without an auth check, returning the minimal timing fields needed for hero banners.
+
+### Amendment 2: DashboardBanner now receives timing prop
+**Date:** 2026-04-22
+**Reason:** Part of the same logged-out hero banner fix.
+**Change:** `DashboardBanner` props expanded from `{ user, data }` to `{ user, timing, data }`. Hero layer now reads from `timing: TournamentTiming | null` (always available) instead of `data` (auth-gated). `page.tsx` always calls `getPublicTournamentTiming` via `Promise.all` regardless of auth state.
+
 ## Validation
 
 ```bash
