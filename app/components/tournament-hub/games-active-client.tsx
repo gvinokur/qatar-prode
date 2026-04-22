@@ -96,7 +96,6 @@ export function GamesActiveClient({
 
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined
-  const isCurrentGameComplete = isGuessComplete(guess, !!currentGame?.playoffStage)
 
   const handleLeft = () => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1)
@@ -121,8 +120,8 @@ export function GamesActiveClient({
       icon = <InfoOutlinedIcon color="info" fontSize="small" />
       message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
     } else {
-      // safe — only show when the current game has a complete prediction
-      if (!isCurrentGameComplete) return null
+      // safe — show regardless of which card is currently visible;
+      // the message reflects the overall list state, not the current card
       message = t('gamesWidget.safeMessage')
     }
 
