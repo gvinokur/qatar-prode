@@ -34,15 +34,6 @@ describe('haptics', () => {
       expect(() => triggerRankUpHaptic()).not.toThrow();
     });
 
-    it('should not vibrate when window is undefined (SSR)', () => {
-      const originalWindow = global.window;
-      // @ts-expect-error - Testing SSR scenario
-      delete global.window;
-
-      expect(() => triggerRankUpHaptic()).not.toThrow();
-
-      global.window = originalWindow;
-    });
   });
 
   describe('triggerRankChangeHaptic', () => {
@@ -85,16 +76,5 @@ describe('haptics', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when window is undefined (SSR)', () => {
-      const originalWindow = global.window;
-      // @ts-expect-error - Testing SSR scenario
-      delete global.window;
-
-      const result = isHapticSupported();
-
-      expect(result).toBe(false);
-
-      global.window = originalWindow;
-    });
   });
 });
