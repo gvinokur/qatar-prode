@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
 import { GuessesContextProvider, GuessesContext } from '../guesses-context-provider'
+import type { GameGuessNew } from '../../../db/tables-definition'
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
@@ -215,5 +217,80 @@ describe('GuessesContextProvider - Analytics Tracking', () => {
       expect.any(Array),
       'en' // locale from useLocale mock
     )
+  })
+})
+
+describe('GuessesContextProvider - Server props sync', () => {
+  function GuessCountDisplay() {
+    return (
+      <GuessesContext.Consumer>
+        {({ gameGuesses }) => (
+          <span data-testid="guess-count">{Object.keys(gameGuesses).length}</span>
+        )}
+      </GuessesContext.Consumer>
+    )
+  }
+
+  function GuessScoreDisplay({ gameId }: { gameId: string }) {
+    return (
+      <GuessesContext.Consumer>
+        {({ gameGuesses }) => {
+          const g = gameGuesses[gameId]
+          return <span data-testid="home-score">{g?.home_score ?? 'none'}</span>
+        }}
+      </GuessesContext.Consumer>
+    )
+  }
+
+  const makeGuess = (gameId: string, homeScore: number, awayScore: number): GameGuessNew => ({
+    game_id: gameId,
+    user_id: 'u-1',
+    game_number: 1,
+    home_score: homeScore,
+    away_score: awayScore,
+    home_penalty_winner: false,
+    away_penalty_winner: false,
+    boost_type: null,
+  } as any)
+
+  it('updates state when serverGameGuesses prop changes to include new games (simulates router.refresh)', async () => {
+    const { rerender } = render(
+      <GuessesContextProvider gameGuesses={{}}>
+        <GuessCountDisplay />
+      </GuessesContextProvider>
+    )
+    expect(screen.getByTestId('guess-count').textContent).toBe('0')
+
+    rerender(
+      <GuessesContextProvider gameGuesses={{ 'game-4': makeGuess('game-4', 1, 0) }}>
+        <GuessCountDisplay />
+      </GuessesContextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('guess-count').textContent).toBe('1')
+    })
+  })
+
+  it('clears stale client state when server reports a deleted guess (simulates navigation after deletion)', async () => {
+    const initialGuesses = { 'game-1': makeGuess('game-1', 2, 1) }
+
+    const { rerender } = render(
+      <GuessesContextProvider gameGuesses={initialGuesses}>
+        <GuessScoreDisplay gameId="game-1" />
+      </GuessesContextProvider>
+    )
+    expect(screen.getByTestId('home-score').textContent).toBe('2')
+
+    // Server re-renders with empty guesses (guess was deleted elsewhere)
+    rerender(
+      <GuessesContextProvider gameGuesses={{}}>
+        <GuessScoreDisplay gameId="game-1" />
+      </GuessesContextProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('home-score').textContent).toBe('none')
+    })
   })
 })

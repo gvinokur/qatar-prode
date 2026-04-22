@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useCallback, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import { useLocale } from 'next-intl';
 import { toLocale } from '../../utils/locale-utils';
 import {
@@ -46,6 +46,14 @@ export function GuessesContextProvider ({children,
                                         }: GuessesContextProviderProps) {
   const locale = toLocale(useLocale());
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
+
+  // Sync state with server-provided guesses when they change (e.g., after router.refresh() or
+  // soft navigation). This is needed because useState only initializes once — subsequent prop
+  // changes (new fallback games with their guesses, or deleted guesses after navigation) are
+  // ignored without this effect.
+  useEffect(() => {
+    setGameGuesses(serverGameGuesses)
+  }, [serverGameGuesses])
 
   // Calculate boost counts from game guesses
   const boostCounts = useMemo(() => {
