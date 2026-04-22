@@ -1,6 +1,6 @@
 import { Stack } from '@mui/material'
 import { computeIsIncompleteUser } from '../../actions/hub-actions'
-import type { ActionCenterData } from '../../actions/hub-actions'
+import type { ActionCenterData, TournamentTiming } from '../../actions/hub-actions'
 import { LoggedOffBanner } from '../tournament-page/public-cta-bar'
 import { TutorialCTACard } from './tutorial-cta-card'
 import { TournamentStartBanner } from './tournament-start-banner'
@@ -8,19 +8,20 @@ import { PreTournamentCountdown } from './pre-tournament-hero'
 
 interface DashboardBannerProps {
   readonly user: { id?: string } | null | undefined
+  readonly timing: TournamentTiming | null
   readonly data: ActionCenterData | null
 }
 
-export async function DashboardBanner({ user, data }: DashboardBannerProps) {
-  // Hero layer: shown when tournament is about to start or just started
+export async function DashboardBanner({ user, timing, data }: DashboardBannerProps) {
+  // Hero layer: uses public timing data so it shows even for logged-out users
   let hero: React.ReactNode = null
-  if (data?.tournamentJustStarted) {
+  if (timing?.tournamentJustStarted) {
     hero = <TournamentStartBanner />
-  } else if (data && !data.tournamentHasStarted && data.firstGameDate !== null) {
+  } else if (timing && !timing.tournamentHasStarted && timing.firstGameDate !== null) {
     hero = (
       <PreTournamentCountdown
-        firstGameDate={data.firstGameDate}
-        tournamentName={data.tournamentName}
+        firstGameDate={timing.firstGameDate}
+        tournamentName={timing.tournamentName}
       />
     )
   }

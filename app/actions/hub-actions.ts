@@ -168,6 +168,43 @@ function computeTournamentName(
   ]).short_name
 }
 
+/** Minimal public tournament timing fields needed for hero banners. */
+export interface TournamentTiming {
+  firstGameDate: Date | null
+  tournamentHasStarted: boolean
+  tournamentJustStarted: boolean
+  tournamentName: string | null
+}
+
+/**
+ * Fetches public tournament timing data without requiring authentication.
+ * Used to render hero banners (countdown / celebration) for all users including guests.
+ */
+export async function getPublicTournamentTiming(
+  tournamentId: string,
+  locale: Locale
+): Promise<TournamentTiming> {
+  const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
+  const [tournament, firstGame] = await Promise.all([
+    findTournamentById(tournamentId),
+    findFirstGameInTournament(tournamentId),
+  ])
+  const now = Date.now()
+  const firstGameDate = firstGame?.game_date ?? null
+  const tournamentHasStarted = firstGameDate !== null && firstGameDate.getTime() <= now
+  const tournamentJustStarted = !!(
+    firstGameDate &&
+    firstGameDate.getTime() < now &&
+    now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
+  )
+  return {
+    firstGameDate,
+    tournamentHasStarted,
+    tournamentJustStarted,
+    tournamentName: computeTournamentName(tournament, locale),
+  }
+}
+
 /**
  * Fetches and ranks upcoming games for the Tournament Hub Action Center.
  * Returns up to 4 unpredicted open games (urgent mode), or 3 upcoming games

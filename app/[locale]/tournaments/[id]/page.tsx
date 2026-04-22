@@ -8,7 +8,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import { getLocale } from 'next-intl/server'
 import { toLocale } from '@/app/utils/locale-utils'
 import { getLoggedInUser } from '@/app/actions/user-actions'
-import { getActionCenterGames } from '@/app/actions/hub-actions'
+import { getActionCenterGames, getPublicTournamentTiming } from '@/app/actions/hub-actions'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
 
@@ -23,13 +23,16 @@ export default async function TournamentHubPage(props: Props) {
   const locale = toLocale(await getLocale())
 
   const user = await getLoggedInUser()
-  const data = user ? await getActionCenterGames(id, locale) : null
+  const [timing, data] = await Promise.all([
+    getPublicTournamentTiming(id, locale),
+    user ? getActionCenterGames(id, locale) : Promise.resolve(null),
+  ])
 
   return (
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
       {/* Banner Area */}
-      <DashboardBanner user={user} data={data} />
+      <DashboardBanner user={user} timing={timing} data={data} />
 
       {/* Widget Grid — CSS Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 2 }}>

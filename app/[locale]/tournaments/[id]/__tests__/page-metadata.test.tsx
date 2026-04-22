@@ -5,6 +5,7 @@ import TournamentHubPage from '../page';
 
 const mockGetLoggedInUser = vi.fn()
 const mockGetActionCenterGames = vi.fn()
+const mockGetPublicTournamentTiming = vi.fn()
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -29,6 +30,7 @@ vi.mock('@/app/actions/user-actions', () => ({
 // Mock hub-actions
 vi.mock('@/app/actions/hub-actions', () => ({
   getActionCenterGames: () => mockGetActionCenterGames(),
+  getPublicTournamentTiming: () => mockGetPublicTournamentTiming(),
 }));
 
 // Mock DashboardBanner so it doesn't need real data
@@ -50,6 +52,7 @@ describe('TournamentHubPage (root landing page)', () => {
     vi.clearAllMocks();
     mockGetLoggedInUser.mockResolvedValue(mockUser);
     mockGetActionCenterGames.mockResolvedValue(null);
+    mockGetPublicTournamentTiming.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -99,5 +102,13 @@ describe('TournamentHubPage (root landing page)', () => {
     await TournamentHubPage({ params: mockParams });
 
     expect(mockGetActionCenterGames).toHaveBeenCalled();
+  });
+
+  it('always calls getPublicTournamentTiming regardless of auth state', async () => {
+    mockGetLoggedInUser.mockResolvedValue(null);
+
+    await TournamentHubPage({ params: mockParams });
+
+    expect(mockGetPublicTournamentTiming).toHaveBeenCalled();
   });
 });

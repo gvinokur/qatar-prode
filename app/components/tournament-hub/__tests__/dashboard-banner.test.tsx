@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { DashboardBanner } from '../dashboard-banner'
-import type { ActionCenterData } from '@/app/actions/hub-actions'
+import type { ActionCenterData, TournamentTiming } from '@/app/actions/hub-actions'
 
 vi.mock('@/app/actions/hub-actions', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/app/actions/hub-actions')>()
@@ -46,6 +46,14 @@ const defaultScoringConfig = {
   max_golden_games: 0,
 }
 
+const buildTiming = (overrides: Partial<TournamentTiming> = {}): TournamentTiming => ({
+  firstGameDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+  tournamentHasStarted: false,
+  tournamentJustStarted: false,
+  tournamentName: null,
+  ...overrides,
+})
+
 const buildData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData => ({
   games: [],
   gameGuesses: {},
@@ -78,8 +86,8 @@ beforeEach(() => {
 })
 
 describe('DashboardBanner', () => {
-  it('renders only LoggedOffBanner when user is null and data is null', async () => {
-    const result = await DashboardBanner({ user: null, data: null })
+  it('renders only LoggedOffBanner when user is null and timing is null', async () => {
+    const result = await DashboardBanner({ user: null, timing: null, data: null })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('logged-off-banner')).toBeInTheDocument()
@@ -89,8 +97,8 @@ describe('DashboardBanner', () => {
   })
 
   it('renders PreTournamentCountdown + LoggedOffBanner when tournament has not started and user is null', async () => {
-    const data = buildData({ tournamentHasStarted: false, firstGameDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) })
-    const result = await DashboardBanner({ user: null, data })
+    const timing = buildTiming({ tournamentHasStarted: false, firstGameDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) })
+    const result = await DashboardBanner({ user: null, timing, data: null })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('pre-tournament-countdown')).toBeInTheDocument()
@@ -100,8 +108,9 @@ describe('DashboardBanner', () => {
 
   it('renders PreTournamentCountdown + TutorialCTACard when tournament has not started and user is incomplete', async () => {
     vi.mocked(hubActions.computeIsIncompleteUser).mockResolvedValue(true)
+    const timing = buildTiming({ tournamentHasStarted: false })
     const data = buildData({ tournamentHasStarted: false })
-    const result = await DashboardBanner({ user: mockUser, data })
+    const result = await DashboardBanner({ user: mockUser, timing, data })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('pre-tournament-countdown')).toBeInTheDocument()
@@ -113,8 +122,9 @@ describe('DashboardBanner', () => {
 
   it('renders only PreTournamentCountdown when tournament has not started and user is complete', async () => {
     vi.mocked(hubActions.computeIsIncompleteUser).mockResolvedValue(false)
+    const timing = buildTiming({ tournamentHasStarted: false })
     const data = buildData({ tournamentHasStarted: false })
-    const result = await DashboardBanner({ user: mockUser, data })
+    const result = await DashboardBanner({ user: mockUser, timing, data })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('pre-tournament-countdown')).toBeInTheDocument()
@@ -123,8 +133,8 @@ describe('DashboardBanner', () => {
   })
 
   it('renders TournamentStartBanner + LoggedOffBanner when tournament just started and user is null', async () => {
-    const data = buildData({ tournamentJustStarted: true, tournamentHasStarted: true })
-    const result = await DashboardBanner({ user: null, data })
+    const timing = buildTiming({ tournamentJustStarted: true, tournamentHasStarted: true })
+    const result = await DashboardBanner({ user: null, timing, data: null })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('tournament-start-banner')).toBeInTheDocument()
@@ -134,8 +144,9 @@ describe('DashboardBanner', () => {
 
   it('renders only TournamentStartBanner when tournament just started and user is complete', async () => {
     vi.mocked(hubActions.computeIsIncompleteUser).mockResolvedValue(false)
+    const timing = buildTiming({ tournamentJustStarted: true, tournamentHasStarted: true })
     const data = buildData({ tournamentJustStarted: true, tournamentHasStarted: true })
-    const result = await DashboardBanner({ user: mockUser, data })
+    const result = await DashboardBanner({ user: mockUser, timing, data })
     render(result as React.ReactElement)
 
     expect(screen.getByTestId('tournament-start-banner')).toBeInTheDocument()
@@ -145,16 +156,18 @@ describe('DashboardBanner', () => {
 
   it('returns null when tournament is ongoing (past 48h) and user is complete', async () => {
     vi.mocked(hubActions.computeIsIncompleteUser).mockResolvedValue(false)
+    const timing = buildTiming({ tournamentHasStarted: true, tournamentJustStarted: false })
     const data = buildData({ tournamentHasStarted: true, tournamentJustStarted: false })
-    const result = await DashboardBanner({ user: mockUser, data })
+    const result = await DashboardBanner({ user: mockUser, timing, data })
 
     expect(result).toBeNull()
   })
 
   it('returns null when firstGameDate is null and user is complete', async () => {
     vi.mocked(hubActions.computeIsIncompleteUser).mockResolvedValue(false)
+    const timing = buildTiming({ firstGameDate: null, tournamentHasStarted: false })
     const data = buildData({ firstGameDate: null, tournamentHasStarted: false })
-    const result = await DashboardBanner({ user: mockUser, data })
+    const result = await DashboardBanner({ user: mockUser, timing, data })
 
     expect(result).toBeNull()
   })
