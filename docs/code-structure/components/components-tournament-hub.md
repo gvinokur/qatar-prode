@@ -103,3 +103,31 @@ Client Component for the Recent Results widget content. Renders directly inside 
 - **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when all data arrays are empty/zero/null. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`). "View full statistics" button uses `mt: 'auto'` to anchor to the bottom of DashboardCard's flex column.
   Uses: useTranslations('hub.recentResults')
   Renders: GameItem (inline sub-component), AwardItem (inline sub-component), BoostBadge
+
+### app/components/tournament-hub/games-prediction-widget.tsx
+Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.
+
+- **GamesPredictionWidget({ tournamentId, scoringRules, totalGames, isStarted, isFinished, actionCenterData, gamesHref })**: `JSX.Element | null` — [Server] Pure routing component — no async, no data calls. Returns `null` when `isFinished`. Renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0` when `!actionCenterData`. Renders `GamesInfoWidget` with `isLoggedOff=false` when `actionCenterData && !isStarted`. Renders `GamesActiveWidget` when `actionCenterData && isStarted`.
+  Calls: (none)
+  Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
+
+### app/components/tournament-hub/games-info-widget.tsx
+Async Server Component for the Games widget in Logged-Off and Pre-Start states.
+
+- **GamesInfoWidget({ isLoggedOff, scoringRules, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Renders `DashboardCard` with title `newUser.tracks.matches.title`, `SportsSoccerIcon`, and count `"${predictedGames}/${totalGames}"`. Inside: description paragraph; dashed deadline box (ScheduleIcon, `deadlineText` key); dashed scoring rules box (AddCircleOutlineIcon, `scoringRules.matches` strings); `LinearProgress` (value=predictedGames/totalGames×100, hidden when `totalGames===0`); CTA Button — `gamesWidget.ctaLogin` when `isLoggedOff`, else `newUser.tracks.matches.cta`.
+  Calls: getTranslations('hub')
+  Renders: DashboardCard
+
+### app/components/tournament-hub/games-active-widget.tsx
+Async Server Component for the Games widget in Active state. Computes urgency level and wraps the client carousel.
+
+- **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Computes `urgencyLevel` ('critical'/'high'/'medium'/'safe'/'empty') by finding the minimum deadline across `data.games` when `mode==='urgent'`, else 'safe' for fallback or 'empty'. Computes `unpredictedCount = data.totalGames - data.predictedGames` when urgent, else 0. Renders `DashboardCard` with `urgent={data.mode==='urgent'}`. Inside: `GuessesContextProvider` wrapping `GamesActiveClient`.
+  Calls: getTranslations('hub'), calculateDeadline
+  Renders: DashboardCard, GuessesContextProvider, GamesActiveClient
+
+### app/components/tournament-hub/games-active-client.tsx
+Client Component managing navigation through the single-card game carousel with urgency status display.
+
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, mode, urgencyLevel, unpredictedCount })**: `JSX.Element` — [Client] Manages `currentIndex: number` (useState, 0) and `editingGameId: string | null` (useState). Reads `gameGuesses` from `GuessesContext` via `useContext`. Renders: (1) status row when `urgencyLevel !== 'empty'` — icon (ErrorIcon/WarningAmberIcon/InfoOutlinedIcon based on level) + urgentMessage with count, or safeMessage without icon for 'safe'; (2) navigation row with `ChevronLeft` IconButton (disabled at 0) + `FlippableGameCard` + `ChevronRight` IconButton (disabled at last); (3) "View All Matches" Button/Link.
+  Uses: useContext(GuessesContext), useState, useTranslations('hub')
+  Renders: FlippableGameCard

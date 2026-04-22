@@ -1,5 +1,6 @@
 'use server'
 
+import { db } from '../db/database'
 import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
@@ -89,6 +90,42 @@ function buildScoringConfig(
     exact_position_qualified_points: tournament.exact_position_qualified_points ?? DEFAULT_SCORING.exact_position_qualified_points,
     max_silver_games: tournament.max_silver_games ?? DEFAULT_SCORING.max_silver_games,
     max_golden_games: tournament.max_golden_games ?? DEFAULT_SCORING.max_golden_games,
+  }
+}
+
+export interface TournamentHubPageData {
+  scoringConfig: ScoringConfig
+  totalGames: number
+  isStarted: boolean
+  isFinished: boolean
+}
+
+/**
+ * Returns shared tournament data needed by all dashboard widgets.
+ * Does NOT require authentication — safe to call for logged-off users.
+ */
+export async function getTournamentHubPageData(tournamentId: string): Promise<TournamentHubPageData> {
+  const [tournament, firstGame, lastGame, totalGamesResult] = await Promise.all([
+    findTournamentById(tournamentId),
+    findFirstGameInTournament(tournamentId),
+    findLastGameInTournament(tournamentId),
+    db
+      .selectFrom('games')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('tournament_id', '=', tournamentId)
+      .executeTakeFirst(),
+  ])
+
+  const now = Date.now()
+  const totalGames = Number(totalGamesResult?.count ?? 0)
+  const isStarted = !!firstGame && firstGame.game_date.getTime() <= now
+  const isFinished = !!lastGame && lastGame.game_date.getTime() < now
+
+  return {
+    scoringConfig: buildScoringConfig(tournament),
+    totalGames,
+    isStarted,
+    isFinished,
   }
 }
 

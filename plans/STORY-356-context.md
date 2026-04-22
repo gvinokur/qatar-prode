@@ -9,9 +9,9 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/366
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** implementing
 - **Plan File:** plans/STORY-356-plan.md
-- **Task File:** (fill when implementation starts)
+- **Task File:** plans/STORY-356-tasks.md
 
 ## Quick Summary
 Replaces the mock "Games" DashboardCard placeholder in the tournament hub dashboard with a real

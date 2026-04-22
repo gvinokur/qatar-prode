@@ -128,5 +128,12 @@
     "goToGroups": "Tus Grupos",
     "createGroup": "Crear Grupo",
     "discoverGroups": "Descubrir Grupos"
+  },
+  "gamesWidget": {
+    "ctaLogin": "Iniciar sesión para pronosticar",
+    "ctaViewAll": "Ver todos los partidos",
+    "deadlineText": "Cambios permitidos hasta 1 hora antes de cada partido.",
+    "urgentMessage": "¡Predice {count} partidos antes de que sea tarde!",
+    "safeMessage": "Algunos partidos están por cerrar, aún puedes cambiar tus resultados."
   }
 }
