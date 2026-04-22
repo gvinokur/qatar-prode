@@ -5,8 +5,8 @@
 - **Story Title:** [Story 4] Dashboard: Games Prediction Widget
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-356
 - **Branch:** feature/story-356
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 366
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/366
 
 ## State
 - **Current Phase:** planning
