@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Tab, Badge } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { useTranslations } from 'next-intl';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Leaderboard as LeaderboardIcon, Settings as SettingsIcon, Timeline as TimelineIcon } from '@mui/icons-material';
 
 type Props = {
@@ -19,6 +19,7 @@ export default function AdminTabs({ isAdmin, standingsContent, historyContent, a
   const t = useTranslations('groups.tabs');
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const tabFromUrl = searchParams.get('tab');
   let initialTab = 'standings';
@@ -36,8 +37,7 @@ export default function AdminTabs({ isAdmin, standingsContent, historyContent, a
 
   const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
-    const currentPath = globalThis.location.pathname;
-    const newUrl = newValue === 'standings' ? currentPath : `${currentPath}?tab=${newValue}`;
+    const newUrl = newValue === 'standings' ? pathname : `${pathname}?tab=${newValue}`;
     router.replace(newUrl, { scroll: false });
   };
 

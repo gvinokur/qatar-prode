@@ -80,7 +80,7 @@ export default function TournamentGroupsList({ groups, tournamentId, pendingRequ
     try {
       await createDbGroup(group.name);
       // Refresh the page to show the new group
-      globalThis.location.reload();
+      router.refresh();
     } catch (error) {
       console.error('Error creating group:', error);
     } finally {

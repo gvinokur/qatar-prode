@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import AdminTabs from '../../../app/components/friend-groups/admin-tabs';
 import { renderWithTheme } from '../../utils/test-utils';
 import { createMockRouter, createMockSearchParams } from '../../mocks/next-navigation.mocks';
@@ -10,6 +10,7 @@ import { createMockRouter, createMockSearchParams } from '../../mocks/next-navig
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
   useSearchParams: vi.fn(),
+  usePathname: vi.fn(),
 }));
 
 const standingsContent = <div>Standings Content</div>;
@@ -26,6 +27,7 @@ describe('AdminTabs', () => {
     mockSearchParams = createMockSearchParams();
     vi.mocked(useRouter).mockReturnValue(mockRouter);
     vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
+    vi.mocked(usePathname).mockReturnValue('/test-group');
   });
 
   describe('Tab visibility', () => {
@@ -162,7 +164,6 @@ describe('AdminTabs', () => {
 
   describe('URL sync', () => {
     it('clicking Historial updates URL to ?tab=history', () => {
-      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
 
       renderWithTheme(
         <AdminTabs
@@ -177,7 +178,6 @@ describe('AdminTabs', () => {
     });
 
     it('clicking Administración updates URL to ?tab=admin', () => {
-      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
 
       renderWithTheme(
         <AdminTabs
@@ -193,7 +193,6 @@ describe('AdminTabs', () => {
     });
 
     it('clicking Clasificación clears URL param', () => {
-      Object.defineProperty(window, 'location', { value: { pathname: '/test-group' }, writable: true });
 
       mockSearchParams = createMockSearchParams({ tab: 'history' });
       vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
