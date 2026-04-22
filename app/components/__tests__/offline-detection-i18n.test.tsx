@@ -18,19 +18,18 @@ describe('OfflineDetection i18n', () => {
     })
   })
 
-  it('uses pwa namespace', () => {
+  it('uses pwa namespace', async () => {
     renderWithTheme(<OfflineDetection />)
 
     // The translation mock returns keys as-is, so we should see "offline.message"
-    // in the rendered output
-    expect(screen.getByText(/offline\.message/i)).toBeInTheDocument()
+    // in the rendered output. findByText retries until the Snackbar renders.
+    expect(await screen.findByText(/offline\.message/i)).toBeInTheDocument()
   })
 
-  it('renders offline message with translation key', () => {
+  it('renders offline message with translation key', async () => {
     renderWithTheme(<OfflineDetection />)
 
-    // Verify the translation key is being used
-    const messageElement = screen.getByText(/offline\.message/i)
+    const messageElement = await screen.findByText(/offline\.message/i)
     expect(messageElement).toBeInTheDocument()
   })
 })
