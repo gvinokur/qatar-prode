@@ -97,19 +97,20 @@ export async function TournamentHubRecentResults({ tournamentId, locale }) {
 
 **3. `app/[locale]/tournaments/[id]/page.tsx`**
 
-Replace the placeholder Results `DashboardCard` with `TournamentHubRecentResults`:
+Replace the placeholder Results `DashboardCard` with `TournamentHubRecentResults`, but **only render it when `timing.tournamentHasStarted === true`**. When the tournament hasn't started, the grid omits the widget entirely.
+
+`timing` is already fetched at the top of `TournamentHubPage` via `getPublicTournamentTiming` — no new data fetching needed.
 
 ```tsx
 import { Suspense } from 'react'
 import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
 
 // In the grid:
-<Suspense fallback={<DashboardCard title="..." icon={<HistoryIcon />} />}>
-  <TournamentHubRecentResults tournamentId={id} locale={locale} />
-</Suspense>
-```
-
-The Suspense fallback uses the same DashboardCard shell with a skeleton appearance (empty children = empty card).
+{timing.tournamentHasStarted && (
+  <Suspense fallback={<DashboardCard title="..." icon={<HistoryIcon />} />}>
+    <TournamentHubRecentResults tournamentId={id} locale={locale} />
+  </Suspense>
+)}
 
 ## Visual Prototype
 
@@ -201,7 +202,7 @@ No new cross-layer flows. `TournamentHubRecentResults` already calls `getRecentR
 **Changed functions:**
 
 - **TournamentHubPage(props: Props)**: `Promise<JSX.Element>`
-  Replace the placeholder `<DashboardCard title="Results" ...>Lorem ipsum</DashboardCard>` with `<Suspense><TournamentHubRecentResults tournamentId={id} locale={locale} /></Suspense>`. Remove unused `HistoryIcon` import if it moves into tournament-hub-recent-results.
+  Replace the placeholder `<DashboardCard title="Results" ...>Lorem ipsum</DashboardCard>` with a conditional: `{timing.tournamentHasStarted && <Suspense><TournamentHubRecentResults /></Suspense>}`. Widget is hidden entirely before tournament start. Remove unused `HistoryIcon` import if it moves into tournament-hub-recent-results.
   Calls: getLoggedInUser, getPublicTournamentTiming, getActionCenterGames, TournamentHubRecentResults
   Tests: (page-level, not unit-tested)
 
