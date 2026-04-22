@@ -63,9 +63,11 @@ const defaultProps = {
   teamsMap,
   tournamentId: 't-1',
   gamesHref: '/en/tournaments/t-1/games',
-  mode: 'urgent' as const,
   urgencyLevel: 'high' as const,
-  unpredictedCount: 3,
+  cardTitle: 'Matches',
+  initialPredicted: 30,
+  totalGames: 64,
+  urgentGameIds: ['game-1', 'game-2', 'game-3'],
 }
 
 beforeEach(() => {
@@ -81,9 +83,19 @@ describe('GamesActiveClient', () => {
     })
 
     it('renders single game with both arrows disabled when games.length is 1', () => {
-      renderWithContext(<GamesActiveClient {...defaultProps} games={[game1] as any} />)
+      renderWithContext(<GamesActiveClient {...defaultProps} games={[game1] as any} urgentGameIds={['game-1']} />)
       expect(screen.getByLabelText('previous game')).toBeDisabled()
       expect(screen.getByLabelText('next game')).toBeDisabled()
+    })
+
+    it('renders the card title', () => {
+      renderWithContext(<GamesActiveClient {...defaultProps} />)
+      expect(screen.getByText('Matches')).toBeInTheDocument()
+    })
+
+    it('renders initial predicted count', () => {
+      renderWithContext(<GamesActiveClient {...defaultProps} />)
+      expect(screen.getByText('30/64')).toBeInTheDocument()
     })
   })
 
@@ -94,7 +106,6 @@ describe('GamesActiveClient', () => {
     })
 
     it('right arrow button is disabled at the last game', () => {
-      // Click right twice to reach last game (index 2 of 3)
       renderWithContext(<GamesActiveClient {...defaultProps} />)
       fireEvent.click(screen.getByLabelText('next game'))
       fireEvent.click(screen.getByLabelText('next game'))
@@ -114,23 +125,59 @@ describe('GamesActiveClient', () => {
       fireEvent.click(screen.getByLabelText('previous game'))
       expect(screen.getByTestId('game-card-game-1')).toBeInTheDocument()
     })
+  })
 
-    it('clicking left from index 0 does not decrement below 0', () => {
-      renderWithContext(<GamesActiveClient {...defaultProps} />)
-      // Button is disabled at 0, but verify boundary via state
-      const leftBtn = screen.getByLabelText('previous game')
-      expect(leftBtn).toBeDisabled()
-      // Still shows game-1
-      expect(screen.getByTestId('game-card-game-1')).toBeInTheDocument()
+  describe('reactive counter (delta tracking)', () => {
+    it('increments displayed count when a new guess is added to context', () => {
+      const guess = testFactories.gameGuess({ game_id: 'game-1' }) as any
+      // First render with empty guesses — useRef snapshot is captured here
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...defaultProps} />,
+        { gameGuesses: {} }
+      )
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+      // Context updates (user predicts game-1)
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: { 'game-1': guess } }}>
+          <GamesActiveClient {...defaultProps} />
+        </GuessesContext.Provider>
+      )
+      // delta = 1 (one new guess vs empty snapshot) → 30 + 1 = 31
+      expect(screen.getByText('31/64')).toBeInTheDocument()
     })
 
-    it('clicking right from last index does not increment beyond games.length-1', () => {
-      renderWithContext(<GamesActiveClient {...defaultProps} />)
-      fireEvent.click(screen.getByLabelText('next game'))
-      fireEvent.click(screen.getByLabelText('next game'))
-      const rightBtn = screen.getByLabelText('next game')
-      expect(rightBtn).toBeDisabled()
-      expect(screen.getByTestId('game-card-game-3')).toBeInTheDocument()
+    it('decrements displayed count when a guess is removed from context', () => {
+      const guess = testFactories.gameGuess({ game_id: 'game-1' }) as any
+      // Start with one guess in context (initial snapshot captures it)
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...defaultProps} initialPredicted={31} />,
+        { gameGuesses: { 'game-1': guess } }
+      )
+      // Now context loses the guess (user deleted it) — but initial snapshot still has it
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: {} }}>
+          <GamesActiveClient {...defaultProps} initialPredicted={31} />
+        </GuessesContext.Provider>
+      )
+      // delta = 0 - 1 = -1 → 31 - 1 = 30
+      expect(screen.getByText('30/64')).toBeInTheDocument()
+    })
+  })
+
+  describe('urgency → safe transition', () => {
+    it('transitions to safe urgency when all urgentGameIds are predicted in context', () => {
+      const guesses = {
+        'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
+        'game-2': testFactories.gameGuess({ game_id: 'game-2' }) as any,
+        'game-3': testFactories.gameGuess({ game_id: 'game-3' }) as any,
+      }
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="high" urgentGameIds={['game-1', 'game-2', 'game-3']} />,
+        { gameGuesses: guesses }
+      )
+      // All urgent games predicted → effectiveIsUrgent=false, safe message shown (current game-1 is predicted)
+      expect(screen.getByText('gamesWidget.safeMessage')).toBeInTheDocument()
+      expect(screen.queryByText(/gamesWidget.urgentMessage/)).not.toBeInTheDocument()
     })
   })
 
@@ -156,24 +203,26 @@ describe('GamesActiveClient', () => {
   })
 
   describe('urgency messages', () => {
-    it('renders urgency message with Error icon when urgencyLevel is "critical"', () => {
+    it('renders urgency message when urgencyLevel is "critical" and urgent games remain unpredicted', () => {
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="critical" unpredictedCount={5} />
-      )
-      // Error icon renders with data-testid or role; check for message text
-      expect(screen.getByText(/gamesWidget.urgentMessage/)).toBeInTheDocument()
-    })
-
-    it('renders urgency message with WarningAmber icon when urgencyLevel is "high"', () => {
-      renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="high" unpredictedCount={3} />
+        <GamesActiveClient {...defaultProps} urgencyLevel="critical" />,
+        { gameGuesses: {} }
       )
       expect(screen.getByText(/gamesWidget.urgentMessage/)).toBeInTheDocument()
     })
 
-    it('renders urgency message with Info icon when urgencyLevel is "medium"', () => {
+    it('renders urgency message when urgencyLevel is "high" and urgent games remain unpredicted', () => {
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="medium" unpredictedCount={2} />
+        <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
+        { gameGuesses: {} }
+      )
+      expect(screen.getByText(/gamesWidget.urgentMessage/)).toBeInTheDocument()
+    })
+
+    it('renders urgency message when urgencyLevel is "medium" and urgent games remain unpredicted', () => {
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="medium" />,
+        { gameGuesses: {} }
       )
       expect(screen.getByText(/gamesWidget.urgentMessage/)).toBeInTheDocument()
     })
@@ -181,7 +230,8 @@ describe('GamesActiveClient', () => {
     it('renders safe message when urgencyLevel is "safe" and current game is predicted', () => {
       const guessForGame1 = testFactories.gameGuess({ game_id: 'game-1' }) as any
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="safe" unpredictedCount={0} />,
+        // No urgentGameIds → effectiveIsUrgent=false → effectiveUrgencyLevel='safe'
+        <GamesActiveClient {...defaultProps} urgencyLevel="safe" urgentGameIds={[]} />,
         { gameGuesses: { 'game-1': guessForGame1 } }
       )
       expect(screen.getByText('gamesWidget.safeMessage')).toBeInTheDocument()
@@ -190,7 +240,7 @@ describe('GamesActiveClient', () => {
 
     it('renders no status message when urgencyLevel is "safe" and current game is not predicted', () => {
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="safe" unpredictedCount={0} />,
+        <GamesActiveClient {...defaultProps} urgencyLevel="safe" urgentGameIds={[]} />,
         { gameGuesses: {} }
       )
       expect(screen.queryByText('gamesWidget.safeMessage')).not.toBeInTheDocument()
@@ -199,7 +249,7 @@ describe('GamesActiveClient', () => {
 
     it('renders no status message when urgencyLevel is "empty"', () => {
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="empty" unpredictedCount={0} />
+        <GamesActiveClient {...defaultProps} urgencyLevel="empty" urgentGameIds={[]} />
       )
       expect(screen.queryByText(/gamesWidget.urgentMessage/)).not.toBeInTheDocument()
       expect(screen.queryByText('gamesWidget.safeMessage')).not.toBeInTheDocument()

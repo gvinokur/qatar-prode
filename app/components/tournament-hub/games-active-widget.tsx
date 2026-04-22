@@ -1,6 +1,4 @@
 import { getTranslations } from 'next-intl/server'
-import { SportsSoccer as SportsSoccerIcon } from '@mui/icons-material'
-import { DashboardCard } from './dashboard-card'
 import { GamesActiveClient } from './games-active-client'
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider'
 import { calculateDeadline } from '../../utils/countdown-utils'
@@ -38,31 +36,28 @@ export async function GamesActiveWidget({ data, tournamentId, gamesHref }: Games
   const t = await getTranslations('hub')
 
   const urgencyLevel = computeUrgencyLevel(data)
-  const unpredictedCount = data.mode === 'urgent' ? data.totalGames - data.predictedGames : 0
+  // IDs of urgent games at server render time — used by the client for the urgent→safe transition
+  const urgentGameIds = data.mode === 'urgent' ? data.games.map((g) => g.id) : []
 
   return (
-    <DashboardCard
-      title={t('newUser.tracks.matches.title')}
-      icon={<SportsSoccerIcon />}
-      count={`${data.predictedGames}/${data.totalGames}`}
-      urgent={data.mode === 'urgent'}
+    <GuessesContextProvider
+      gameGuesses={data.gameGuesses}
+      autoSave={true}
+      tournamentMaxSilver={data.tournamentMaxSilver}
+      tournamentMaxGolden={data.tournamentMaxGolden}
     >
-      <GuessesContextProvider
-        gameGuesses={data.gameGuesses}
-        autoSave={true}
-        tournamentMaxSilver={data.tournamentMaxSilver}
-        tournamentMaxGolden={data.tournamentMaxGolden}
-      >
-        <GamesActiveClient
-          games={data.games}
-          teamsMap={data.teamsMap}
-          tournamentId={tournamentId}
-          gamesHref={gamesHref}
-          mode={data.mode}
-          urgencyLevel={urgencyLevel}
-          unpredictedCount={unpredictedCount}
-        />
-      </GuessesContextProvider>
-    </DashboardCard>
+      <GamesActiveClient
+        games={data.games}
+        teamsMap={data.teamsMap}
+        tournamentId={tournamentId}
+        gamesHref={gamesHref}
+        urgencyLevel={urgencyLevel}
+        cardTitle={t('newUser.tracks.matches.title')}
+        initialPredicted={data.predictedGames}
+        totalGames={data.totalGames}
+        urgentGameIds={urgentGameIds}
+      />
+    </GuessesContextProvider>
   )
 }
+

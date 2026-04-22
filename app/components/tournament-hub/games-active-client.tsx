@@ -1,29 +1,36 @@
 'use client'
 
-import React, { useContext, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material'
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Error as ErrorIcon,
   InfoOutlined as InfoOutlinedIcon,
+  SportsSoccer as SportsSoccerIcon,
   WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import FlippableGameCard from '../flippable-game-card'
+import { DashboardCard } from './dashboard-card'
 import { GuessesContext } from '../context-providers/guesses-context-provider'
 import type { ExtendedGameData } from '../../definitions'
 import type { Team } from '../../db/tables-definition'
+
+type UrgencyLevel = 'critical' | 'high' | 'medium' | 'safe' | 'empty'
 
 interface GamesActiveClientProps {
   readonly games: ExtendedGameData[]
   readonly teamsMap: Record<string, Team>
   readonly tournamentId: string
   readonly gamesHref: string
-  readonly mode: 'urgent' | 'fallback' | 'empty'
-  readonly urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | 'empty'
-  readonly unpredictedCount: number
+  readonly urgencyLevel: UrgencyLevel
+  readonly cardTitle: string
+  readonly initialPredicted: number
+  readonly totalGames: number
+  /** IDs of games that were in urgent mode at server render time */
+  readonly urgentGameIds: string[]
 }
 
 export function GamesActiveClient({
@@ -32,12 +39,37 @@ export function GamesActiveClient({
   tournamentId,
   gamesHref,
   urgencyLevel,
-  unpredictedCount,
+  cardTitle,
+  initialPredicted,
+  totalGames,
+  urgentGameIds,
 }: GamesActiveClientProps) {
   const t = useTranslations('hub')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
   const { gameGuesses } = useContext(GuessesContext)
+
+  // Snapshot initial guesses on first render — used as baseline for delta tracking
+  const initialGuessesRef = useRef(gameGuesses)
+
+  // Delta: net change in predicted count among window games only.
+  // initialPredicted (server) already includes all tournament predictions, so adding the
+  // delta gives an accurate live count without re-fetching.
+  const initialWindowPredicted = Object.keys(initialGuessesRef.current).length
+  const currentWindowPredicted = Object.keys(gameGuesses).length
+  const delta = currentWindowPredicted - initialWindowPredicted
+
+  const adjustedPredicted = initialPredicted + delta
+  const adjustedUnpredicted = totalGames - adjustedPredicted
+
+  // When all originally-urgent games become predicted, transition the widget to safe mode
+  const urgentRemaining = urgentGameIds.filter((id) => !gameGuesses[id]).length
+  const effectiveIsUrgent = urgentGameIds.length > 0 && urgentRemaining > 0
+  const effectiveUrgencyLevel: UrgencyLevel = effectiveIsUrgent
+    ? urgencyLevel
+    : urgencyLevel !== 'empty'
+      ? 'safe'
+      : 'empty'
 
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined
@@ -50,20 +82,20 @@ export function GamesActiveClient({
   }
 
   const renderStatusRow = () => {
-    if (urgencyLevel === 'empty') return null
+    if (effectiveUrgencyLevel === 'empty') return null
 
     let icon: React.ReactNode = null
     let message: string
 
-    if (urgencyLevel === 'critical') {
+    if (effectiveUrgencyLevel === 'critical') {
       icon = <ErrorIcon color="error" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: unpredictedCount })
-    } else if (urgencyLevel === 'high') {
+      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
+    } else if (effectiveUrgencyLevel === 'high') {
       icon = <WarningAmberIcon color="warning" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: unpredictedCount })
-    } else if (urgencyLevel === 'medium') {
+      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
+    } else if (effectiveUrgencyLevel === 'medium') {
       icon = <InfoOutlinedIcon color="info" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: unpredictedCount })
+      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
     } else {
       // safe — only show when the current game is already predicted
       if (!guess) return null
@@ -83,56 +115,63 @@ export function GamesActiveClient({
   if (!currentGame) return null
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      {renderStatusRow()}
+    <DashboardCard
+      title={cardTitle}
+      icon={<SportsSoccerIcon />}
+      count={`${adjustedPredicted}/${totalGames}`}
+      urgent={effectiveIsUrgent}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {renderStatusRow()}
 
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <IconButton
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <IconButton
+            size="small"
+            onClick={handleLeft}
+            disabled={currentIndex === 0}
+            aria-label="previous game"
+          >
+            <ChevronLeftIcon />
+          </IconButton>
+
+          <Box sx={{ flexGrow: 1 }}>
+            <FlippableGameCard
+              game={currentGame}
+              teamsMap={teamsMap}
+              isPlayoffs={!!currentGame.playoffStage}
+              tournamentId={tournamentId}
+              homeScore={guess?.home_score}
+              awayScore={guess?.away_score}
+              homePenaltyWinner={guess?.home_penalty_winner}
+              awayPenaltyWinner={guess?.away_penalty_winner}
+              boostType={guess?.boost_type}
+              initialBoostType={guess?.boost_type}
+              isEditing={editingGameId === currentGame.id}
+              onEditStart={() => setEditingGameId(currentGame.id)}
+              onEditEnd={() => setEditingGameId(null)}
+            />
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={handleRight}
+            disabled={currentIndex === games.length - 1}
+            aria-label="next game"
+          >
+            <ChevronRightIcon />
+          </IconButton>
+        </Stack>
+
+        <Button
+          component={Link}
+          href={gamesHref}
+          variant="text"
           size="small"
-          onClick={handleLeft}
-          disabled={currentIndex === 0}
-          aria-label="previous game"
+          fullWidth
         >
-          <ChevronLeftIcon />
-        </IconButton>
-
-        <Box sx={{ flexGrow: 1 }}>
-          <FlippableGameCard
-            game={currentGame}
-            teamsMap={teamsMap}
-            isPlayoffs={!!currentGame.playoffStage}
-            tournamentId={tournamentId}
-            homeScore={guess?.home_score}
-            awayScore={guess?.away_score}
-            homePenaltyWinner={guess?.home_penalty_winner}
-            awayPenaltyWinner={guess?.away_penalty_winner}
-            boostType={guess?.boost_type}
-            initialBoostType={guess?.boost_type}
-            isEditing={editingGameId === currentGame.id}
-            onEditStart={() => setEditingGameId(currentGame.id)}
-            onEditEnd={() => setEditingGameId(null)}
-          />
-        </Box>
-
-        <IconButton
-          size="small"
-          onClick={handleRight}
-          disabled={currentIndex === games.length - 1}
-          aria-label="next game"
-        >
-          <ChevronRightIcon />
-        </IconButton>
-      </Stack>
-
-      <Button
-        component={Link}
-        href={gamesHref}
-        variant="text"
-        size="small"
-        fullWidth
-      >
-        {t('gamesWidget.ctaViewAll')}
-      </Button>
-    </Box>
+          {t('gamesWidget.ctaViewAll')}
+        </Button>
+      </Box>
+    </DashboardCard>
   )
 }
