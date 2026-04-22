@@ -231,6 +231,43 @@ describe('getActionCenterGames', () => {
       expect(result.games.map((g) => g.id)).toContain('game-unpredicted')
     })
 
+    it('keeps a game in urgent mode when its guess is partial (missing away_score)', async () => {
+      const partialGame = testFactories.game({ id: 'game-partial', game_date: future2h })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([partialGame] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: 'game-partial', home_score: 1, away_score: null as any }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('urgent')
+      expect(result.games.map((g) => g.id)).toContain('game-partial')
+    })
+
+    it('keeps a tied playoff game in urgent mode when penalty winner is missing', async () => {
+      const playoffGame = testFactories.game({
+        id: 'game-playoff',
+        game_date: future2h,
+        game_type: 'playoff',
+        playoffStage: { tournament_playoff_round_id: 'r-1', round_name: 'QF', is_final: false, is_third_place: false },
+      } as any)
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([playoffGame] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({
+          game_id: 'game-playoff',
+          home_score: 1,
+          away_score: 1,
+          home_penalty_winner: false,
+          away_penalty_winner: false,
+        }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('urgent')
+      expect(result.games.map((g) => g.id)).toContain('game-playoff')
+    })
+
     it('includes only guesses for the selected carousel games', async () => {
       const carouselGame = testFactories.game({ id: 'game-carousel', game_date: future2h })
       const otherGame = testFactories.game({

@@ -336,15 +336,23 @@ export async function getActionCenterGames(
     }
   }
 
-  // Build a set of game IDs the user has already guessed
-  const guessedGameIds = new Set(guessesArray.map((g) => g.game_id))
   const guessesMapAll = Object.fromEntries(guessesArray.map((g) => [g.game_id, g]))
 
-  // Urgent mode: unpredicted games with deadline still open, sorted by deadline asc
+  // Urgent mode: games with no *complete* prediction and an open deadline.
+  // Mirrors the client-side isGuessComplete and server-side getTournamentPredictionCompletion:
+  // a guess with missing scores, or a tied playoff without a penalty winner, is NOT complete.
   const urgentGames = games
     .filter((g) => {
       const deadline = calculateDeadline(g.game_date)
-      return deadline > now && !guessedGameIds.has(g.id)
+      if (deadline <= now) return false
+      const guess = guessesMapAll[g.id]
+      if (!guess) return true
+      if (guess.home_score === null || guess.home_score === undefined) return true
+      if (guess.away_score === null || guess.away_score === undefined) return true
+      if (!!g.playoffStage && guess.home_score === guess.away_score) {
+        return !(guess.home_penalty_winner || guess.away_penalty_winner)
+      }
+      return false
     })
     .sort((a, b) => calculateDeadline(a.game_date) - calculateDeadline(b.game_date))
     .slice(0, MAX_URGENT_CARDS)
