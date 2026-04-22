@@ -53,7 +53,7 @@ export default async function TournamentHubPage(props: Props) {
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </Typography>
         </DashboardCard>
-        {timing.tournamentHasStarted && (
+        {timing?.tournamentHasStarted && (
           <Suspense fallback={<DashboardCard title="Results" icon={<HistoryIcon fontSize="small" />} />}>
             <TournamentHubRecentResults tournamentId={id} locale={locale} />
           </Suspense>
