@@ -41,7 +41,7 @@ Replace the mock "Games" `DashboardCard` placeholder in the tournament hub dashb
 
 ### Data Flow
 
-**Page-level (shared, no auth):** `getTournamentHubPageData(tournamentId)` — fetched once by `TournamentHubPage`, passed to all widgets. Returns `{ scoringConfig, totalGames, isStarted, isFinished }`. Future Standings, Groups, and Awards widgets will receive the same data from the page.
+**Page-level (shared, no auth):** `getTournamentHubPageData(tournamentId)` — fetched once by `TournamentHubPage`. Returns `{ scoringConfig, totalGames, isStarted, isFinished }`. The page also calls `getTranslations('rules.rules')` + `getRulesBySection(scoringConfig, tRules)` to produce `scoringRules: ScoringRulesBySection`, which is passed to all widgets that display scoring info. Future Standings, Groups, and Awards widgets will receive the same page-level data.
 
 **Widget-level (auth-specific):** `getActionCenterGames(tournamentId, locale)` — called by `GamesPredictionWidget` only when the user is authenticated. Returns full `ActionCenterData` with per-user prediction state.
 
@@ -82,6 +82,8 @@ export default async function TournamentHubPage({ params }: Props) {
   const { id } = await params
   const locale = toLocale(await getLocale())
   const hubData = await getTournamentHubPageData(id)
+  const tRules = await getTranslations('rules.rules')
+  const scoringRules = getRulesBySection(hubData.scoringConfig, tRules)
 
   return (
     <Box sx={{ ... }}>
@@ -92,7 +94,7 @@ export default async function TournamentHubPage({ params }: Props) {
         <GamesPredictionWidget
           tournamentId={id}
           locale={locale}
-          scoringConfig={hubData.scoringConfig}
+          scoringRules={scoringRules}
           totalGames={hubData.totalGames}
           isStarted={hubData.isStarted}
           isFinished={hubData.isFinished}
@@ -109,17 +111,16 @@ export default async function TournamentHubPage({ params }: Props) {
 ### Urgency Message in Active State
 
 `GamesActiveWidget` (Server) computes two values from `data` before rendering `GamesActiveClient`:
-- `urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | null`
-  - `mode !== 'urgent'` → `'safe'` (all predicted, some closing) or `null` (empty)
-  - nearest deadline < 2h → `'critical'` (Error icon, red)
-  - nearest deadline < 24h → `'high'` (WarningAmber icon, yellow)
-  - nearest deadline ≤ 48h → `'medium'` (InfoOutlined icon, blue)
-- `unpredictedCount: number` = `data.games.length` when `mode === 'urgent'`, else `0`
+- `urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | 'empty'`
+  - `mode === 'empty'` → `'empty'` (no upcoming games — no message shown)
+  - `mode === 'fallback'` → `'safe'` (all predicted, some closing)
+  - `mode === 'urgent'`: find nearest deadline across `data.games` → `< 2h → 'critical'`, `< 24h → 'high'`, `≤ 48h → 'medium'`
+- `unpredictedCount: number` = `data.totalGames - data.predictedGames` (not `data.games.length`, which is the filtered carousel slice)
 
 `GamesActiveClient` renders inline status row above the card:
 - `urgencyLevel in ['critical','high','medium']`: `{Icon} "Predict {N} games before it's too late!"`
 - `urgencyLevel === 'safe'`: (no icon) `"Some games are closing soon, you can still change their scores."`
-- `urgencyLevel === null` (empty): no message
+- `urgencyLevel === 'empty'`: no message rendered
 
 ### GuessesContextProvider in Active State
 
@@ -288,31 +289,18 @@ Red border only when `mode === 'urgent'`.
 
 ---
 
-### `app/db/game-repository.ts` *(modified)*
-
-**New functions:**
-
-- **countGamesByTournament(tournamentId: string)**: `Promise<number>`
-  Returns total count of games for the given tournament.
-  Tests:
-  - returns 0 when tournament has no games
-  - returns correct count when tournament has games
-  - returns count for the correct tournament (not another tournament's games)
-
----
-
 ### `app/actions/hub-actions.ts` *(modified)*
 
 **New functions:**
 
 - **getTournamentHubPageData(tournamentId: string)**: `Promise<{ scoringConfig: ScoringConfig, totalGames: number, isStarted: boolean, isFinished: boolean }>`
-  Server Action. Returns shared tournament data needed by all dashboard widgets. Does NOT require authentication.
-  Calls: findTournamentById, buildScoringConfig, countGamesByTournament
+  Server Action. Returns shared tournament data needed by all dashboard widgets. Does NOT require authentication. Counts total games inline via Kysely (`db.selectFrom('games').select(eb.fn.countAll()).where('tournament_id', '=', tournamentId)`) — reusing the same pattern already used in `tournament-prediction-completion-repository.ts`. No new DB function needed.
+  Calls: findTournamentById, buildScoringConfig
   Tests:
   - returns DEFAULT_SCORING when tournament is not found
   - returns custom scoring config when tournament has custom scoring fields
   - returns DEFAULT_SCORING when all tournament scoring fields are null
-  - returns correct totalGames count from game repository
+  - returns correct totalGames count (inline game count query)
   - succeeds without authentication (no getLoggedInUser call)
   - returns isStarted=true when tournament has a startedAt date
   - returns isFinished=true when tournament has a finishedAt date
@@ -323,14 +311,14 @@ Red border only when `mode === 'urgent'`.
 
 **New functions:**
 
-- **GamesPredictionWidget({ tournamentId, locale, scoringConfig, totalGames, isStarted, isFinished })**: `Promise<JSX.Element | null>`
-  [Server] Thin async orchestrator. No UI. Receives shared tournament data from page. Calls `getLoggedInUser()`. Branches: (1) `isFinished` → returns `null`; (2) no user → renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0`; (3) user → calls `getActionCenterGames`, then (a) `!data.tournamentHasStarted` → renders `GamesInfoWidget` with `isLoggedOff=false`; (b) started → renders `GamesActiveWidget`. Does not catch errors from `getActionCenterGames` — they propagate to the page-level Next.js error boundary.
+- **GamesPredictionWidget({ tournamentId, locale, scoringRules, totalGames, isStarted, isFinished })**: `Promise<JSX.Element | null>`
+  [Server] Thin async orchestrator. No UI. Receives shared tournament data (including pre-computed scoring rules) from page. Calls `getLoggedInUser()`. Branches: (1) `isFinished` → returns `null`; (2) no user → renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0`; (3) user → calls `getActionCenterGames`, then (a) `!data.tournamentHasStarted` → renders `GamesInfoWidget` with `isLoggedOff=false`; (b) started → renders `GamesActiveWidget`. Does not catch errors from `getActionCenterGames` — they propagate to the page-level Next.js error boundary.
   Props:
   ```typescript
   interface GamesPredictionWidgetProps {
     readonly tournamentId: string
     readonly locale: Locale
-    readonly scoringConfig: ScoringConfig
+    readonly scoringRules: ScoringRulesBySection
     readonly totalGames: number
     readonly isStarted: boolean
     readonly isFinished: boolean
@@ -343,8 +331,8 @@ Red border only when `mode === 'urgent'`.
   - renders GamesInfoWidget with isLoggedOff=false when user is authenticated and tournament not started
   - renders GamesActiveWidget when user is authenticated and tournament has started
   - returns null when isFinished is true
-  - passes scoringConfig and totalGames props to GamesInfoWidget when logged-off
-  - passes scoringConfig from props and predictedGames from ActionCenterData to GamesInfoWidget when pre-start
+  - passes scoringRules and totalGames props to GamesInfoWidget when logged-off
+  - passes scoringRules from props and predictedGames from ActionCenterData to GamesInfoWidget when pre-start
   - (error propagation) errors from getActionCenterGames are not caught — they propagate to the page-level Next.js error boundary
 
 ---
@@ -353,19 +341,19 @@ Red border only when `mode === 'urgent'`.
 
 **New functions:**
 
-- **GamesInfoWidget({ isLoggedOff, scoringConfig, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>`
-  [Server] Async Server Component. Self-contained — calls `getTranslations('hub')` and `getTranslations('rules.rules')`, builds rules via `getRulesBySection(scoringConfig, tRules)`. Renders `DashboardCard` with: `title=t('newUser.tracks.matches.title')`, `icon=SportsSoccerIcon`, `count="${predictedGames}/${totalGames}"` (always shown, even for logged-off where predictedGames=0). Inside: description paragraph; dashed-border deadline box (ScheduleIcon) stacked vertically above dashed-border scoring rules box (AddCircleOutlineIcon); `LinearProgress` bar (value={(predictedGames/totalGames)*100}, shown when `totalGames > 0`); CTA `Button component={Link}` — `t('gamesWidget.ctaLogin')` when `isLoggedOff`, else `t('newUser.tracks.matches.cta')`.
+- **GamesInfoWidget({ isLoggedOff, scoringRules, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>`
+  [Server] Async Server Component. Calls `getTranslations('hub')` only (scoring rules are pre-computed at page level and passed as `scoringRules: ScoringRulesBySection`). Renders `DashboardCard` with: `title=t('newUser.tracks.matches.title')`, `icon=SportsSoccerIcon`, `count="${predictedGames}/${totalGames}"` (always shown, even for logged-off where predictedGames=0). Inside: description paragraph; dashed-border deadline box (ScheduleIcon) stacked vertically above dashed-border scoring rules box (AddCircleOutlineIcon + rule strings from `scoringRules`); `LinearProgress` bar (value={(predictedGames/totalGames)*100}, shown when `totalGames > 0`); CTA `Button component={Link}` — `t('gamesWidget.ctaLogin')` when `isLoggedOff`, else `t('newUser.tracks.matches.cta')`.
   Props:
   ```typescript
   interface GamesInfoWidgetProps {
     readonly isLoggedOff: boolean
-    readonly scoringConfig: ScoringConfig
+    readonly scoringRules: ScoringRulesBySection
     readonly gamesHref: string
     readonly predictedGames: number
     readonly totalGames: number
   }
   ```
-  Calls: getTranslations, getRulesBySection
+  Calls: getTranslations('hub')
   Tests:
   - renders DashboardCard with "0/${totalGames}" count when isLoggedOff is true (predictedGames=0)
   - renders DashboardCard with predictedGames/totalGames count when isLoggedOff is false
@@ -374,7 +362,7 @@ Red border only when `mode === 'urgent'`.
   - renders LinearProgress with value=0 (empty) when isLoggedOff is true and totalGames > 0
   - renders LinearProgress with non-zero value when isLoggedOff is false and predictedGames > 0
   - does not render LinearProgress when totalGames is 0
-  - renders scoring rules from getRulesBySection in the scoring rules box
+  - renders scoring rule strings from scoringRules prop in the scoring rules box
   - renders deadline box with ScheduleIcon vertically stacked above scoring rules box
 
 ---
@@ -406,7 +394,8 @@ Red border only when `mode === 'urgent'`.
   - passes urgencyLevel='high' when nearest game deadline is under 24 hours
   - passes urgencyLevel='medium' when nearest game deadline is under 48 hours
   - passes urgencyLevel='safe' when mode is 'fallback'
-  - passes unpredictedCount equal to data.games.length when mode is 'urgent'
+  - passes urgencyLevel='empty' when mode is 'empty'
+  - passes unpredictedCount equal to data.totalGames - data.predictedGames when mode is 'urgent'
   - passes unpredictedCount=0 when mode is 'fallback'
 
 ---
@@ -428,7 +417,7 @@ Red border only when `mode === 'urgent'`.
     readonly tournamentId: string
     readonly gamesHref: string
     readonly mode: 'urgent' | 'fallback' | 'empty'
-    readonly urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | null
+    readonly urgencyLevel: 'critical' | 'high' | 'medium' | 'safe' | 'empty'
     readonly unpredictedCount: number
   }
   ```
@@ -448,7 +437,7 @@ Red border only when `mode === 'urgent'`.
   - renders urgency message with WarningAmber icon when urgencyLevel is 'high'
   - renders urgency message with Info icon when urgencyLevel is 'medium'
   - renders safe message without icon when urgencyLevel is 'safe'
-  - renders no status message when urgencyLevel is null
+  - renders no status message when urgencyLevel is 'empty'
 
 ---
 
@@ -457,8 +446,8 @@ Red border only when `mode === 'urgent'`.
 **Changed component:**
 
 - **TournamentHubPage({ params })**: `Promise<JSX.Element>` *(was: TournamentHubPage(): JSX.Element — static, no params)*
-  Now async, reads `{ id }` from `params`, calls `getTournamentHubPageData(id)` for shared data, passes it to `GamesPredictionWidget`. Other 3 placeholder `DashboardCard` instances unchanged.
-  Calls: getLocale, toLocale, getTournamentHubPageData
+  Now async, reads `{ id }` from `params`, calls `getTournamentHubPageData(id)`, calls `getTranslations('rules.rules')`, computes `scoringRules = getRulesBySection(hubData.scoringConfig, tRules)`, passes all to `GamesPredictionWidget`. Other 3 placeholder `DashboardCard` instances unchanged.
+  Calls: getLocale, toLocale, getTournamentHubPageData, getTranslations, getRulesBySection
   Tests: (Server Component; covered by manual acceptance testing in Vercel Preview)
 
 ---
@@ -473,26 +462,22 @@ Red border only when `mode === 'urgent'`.
 | Create | `app/components/tournament-hub/games-active-client.tsx` | Active state Client Component (status message + nav) |
 | Create | `app/components/tournament-hub/__tests__/games-info-widget.test.tsx` | Unit tests |
 | Create | `app/components/tournament-hub/__tests__/games-active-client.test.tsx` | Unit tests |
-| Modify | `app/actions/hub-actions.ts` | Add `getTournamentHubPageData` |
+| Modify | `app/actions/hub-actions.ts` | Add `getTournamentHubPageData` (inline game count, no new DB function) |
 | Modify | `app/actions/__tests__/hub-actions.test.ts` | Tests for `getTournamentHubPageData` |
-| Modify | `app/db/game-repository.ts` | Add `countGamesByTournament` |
-| Modify | `app/db/__tests__/game-repository.test.ts` | Tests for `countGamesByTournament` |
-| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, fetch shared data, use `GamesPredictionWidget` |
+| Modify | `app/[locale]/tournaments/[id]/page.tsx` | Re-add params, fetch shared data + scoringRules, use `GamesPredictionWidget` |
 | Modify | `locales/en/hub.json` | Add `gamesWidget` sub-object (5 keys) |
 | Modify | `locales/es/hub.json` | Add `gamesWidget` sub-object (5 keys) |
 | Update | `docs/code-structure/components/components-tournament-hub.md` | Add all 4 new component entries |
 | Update | `docs/code-structure/actions.md` | Add `getTournamentHubPageData` entry |
-| Update | `docs/code-structure/db.md` | Add `countGamesByTournament` entry |
-| Update | `docs/code-structure/pages.md` | Update `TournamentHubPage` (now async with params) |
+| Update | `docs/code-structure/pages.md` | Update `TournamentHubPage` (now async, fetches shared data + scoringRules) |
 
 ---
 
 ## Implementation Steps
 
-### Wave 1 — Data Layer (no dependencies, parallel)
-1. Add `countGamesByTournament` to `app/db/game-repository.ts` + tests in `game-repository.test.ts`
-2. Add `getTournamentHubPageData` to `app/actions/hub-actions.ts` + tests in `hub-actions.test.ts`
-3. Update `docs/code-structure/db.md` and `docs/code-structure/actions.md`
+### Wave 1 — Data Layer (no dependencies)
+1. Add `getTournamentHubPageData` to `app/actions/hub-actions.ts` + tests in `hub-actions.test.ts`
+2. Update `docs/code-structure/actions.md`
 
 ### Wave 2 — Leaf Components (depends on Wave 1, parallel within wave)
 4. Add translation keys to `locales/en/hub.json` and `locales/es/hub.json`
@@ -520,10 +505,6 @@ All three utilities already exist:
 - `testFactories.*` — from `__tests__/db/test-factories.ts`
 - `createMockSelectQuery()` — from `__tests__/db/mock-helpers.ts`
 - `renderWithProviders()` — from `__tests__/utils/test-utils.tsx`
-
-### Unit Tests: `countGamesByTournament` (`game-repository.test.ts`)
-
-Use `createMockSelectQuery()` for Kysely mocking. Test zero-games and multi-games cases, plus tournament isolation.
 
 ### Unit Tests: `getTournamentHubPageData` (`hub-actions.test.ts`)
 
