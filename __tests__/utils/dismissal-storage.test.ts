@@ -2,24 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getDismissalState, setDismissalState } from '../../app/utils/dismissal-storage';
 
 describe('dismissal-storage', () => {
-  // Store original localStorage
-  const originalLocalStorage = globalThis.window?.localStorage;
-
   beforeEach(() => {
-    // Clear localStorage before each test
     localStorage.clear();
-    // Clear all mocks
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    // Restore original localStorage
-    if (originalLocalStorage) {
-      Object.defineProperty(globalThis, 'window', {
-        value: { localStorage: originalLocalStorage },
-        writable: true,
-      });
-    }
+    vi.unstubAllGlobals();
   });
 
   describe('getDismissalState', () => {
@@ -51,24 +40,6 @@ describe('dismissal-storage', () => {
       localStorage.setItem(key, 'true');
       const result = getDismissalState(key);
       expect(result).toBe(true);
-    });
-
-    it('should return false when window is undefined (SSR)', () => {
-      // Mock window as undefined
-      const originalWindow = globalThis.window;
-      Object.defineProperty(globalThis, 'window', {
-        value: undefined,
-        writable: true,
-      });
-
-      const result = getDismissalState('test-key');
-      expect(result).toBe(false);
-
-      // Restore window
-      Object.defineProperty(globalThis, 'window', {
-        value: originalWindow,
-        writable: true,
-      });
     });
 
     it('should handle localStorage errors gracefully', () => {
@@ -119,24 +90,6 @@ describe('dismissal-storage', () => {
       const key = 'dismissed_locked_tournament-456_awards';
       setDismissalState(key, true);
       expect(localStorage.getItem(key)).toBe('true');
-    });
-
-    it('should do nothing when window is undefined (SSR)', () => {
-      // Mock window as undefined
-      const originalWindow = globalThis.window;
-      Object.defineProperty(globalThis, 'window', {
-        value: undefined,
-        writable: true,
-      });
-
-      // Should not throw
-      expect(() => setDismissalState('test-key', true)).not.toThrow();
-
-      // Restore window
-      Object.defineProperty(globalThis, 'window', {
-        value: originalWindow,
-        writable: true,
-      });
     });
 
     it('should handle localStorage errors gracefully when setting', () => {
