@@ -19,6 +19,11 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({ refresh: mockRefresh })),
+}))
+
 // Mock FlippableGameCard with a testable implementation
 const mockFlippableGameCard = vi.fn()
 vi.mock('@/app/components/flippable-game-card', () => ({
@@ -102,8 +107,8 @@ describe('GamesActiveClient', () => {
       expect(screen.getByText('Matches')).toBeInTheDocument()
     })
 
-    it('renders initial predicted count', () => {
-      renderWithContext(<GamesActiveClient {...defaultProps} />)
+    it('renders tournament-wide predicted count from server', () => {
+      renderWithContext(<GamesActiveClient {...defaultProps} />, { gameGuesses: {} })
       expect(screen.getByText('30/64')).toBeInTheDocument()
     })
   })
@@ -137,7 +142,7 @@ describe('GamesActiveClient', () => {
   })
 
   describe('reactive counter (delta tracking)', () => {
-    it('increments displayed count when a new guess is added to context', () => {
+    it('increments displayed count when a new complete guess is added to context', () => {
       const guess = testFactories.gameGuess({ game_id: 'game-1' }) as any
       // First render with empty guesses — useRef snapshot is captured here
       const { rerender } = renderWithContext(
@@ -151,7 +156,7 @@ describe('GamesActiveClient', () => {
           <GamesActiveClient {...defaultProps} />
         </GuessesContext.Provider>
       )
-      // delta = 1 (one new guess vs empty snapshot) → 30 + 1 = 31
+      // delta = 1 → 30 + 1 = 31
       expect(screen.getByText('31/64')).toBeInTheDocument()
     })
 
@@ -213,7 +218,7 @@ describe('GamesActiveClient', () => {
           <GamesActiveClient {...playoffProps} />
         </GuessesContext.Provider>
       )
-      // tied playoff without penalty winner → not complete → count stays at 30
+      // tied playoff without penalty winner → not complete → delta stays 0
       expect(screen.getByText('30/64')).toBeInTheDocument()
     })
 
@@ -240,7 +245,7 @@ describe('GamesActiveClient', () => {
           <GamesActiveClient {...playoffProps} />
         </GuessesContext.Provider>
       )
-      // tied playoff with penalty winner → complete → count = 31
+      // tied playoff with penalty winner → complete → delta = 1 → 31/64
       expect(screen.getByText('31/64')).toBeInTheDocument()
     })
   })
@@ -256,9 +261,62 @@ describe('GamesActiveClient', () => {
         <GamesActiveClient {...defaultProps} urgencyLevel="high" urgentGameIds={['game-1', 'game-2', 'game-3']} />,
         { gameGuesses: guesses }
       )
-      // All urgent games predicted → effectiveIsUrgent=false, safe message shown (current game-1 is predicted)
+      // All urgent games predicted → effectiveIsUrgent=false, safe message shown
       expect(screen.getByText('gamesWidget.safeMessage')).toBeInTheDocument()
       expect(screen.queryByText(/gamesWidget.urgentMessage/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('router refresh', () => {
+    it('triggers router.refresh() when all urgentGameIds become complete', () => {
+      const guesses = {
+        'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
+        'game-2': testFactories.gameGuess({ game_id: 'game-2' }) as any,
+        'game-3': testFactories.gameGuess({ game_id: 'game-3' }) as any,
+      }
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
+        { gameGuesses: guesses }
+      )
+      expect(mockRefresh).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not trigger router.refresh() when urgentGameIds is empty', () => {
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="safe" urgentGameIds={[]} />,
+        { gameGuesses: {} }
+      )
+      expect(mockRefresh).not.toHaveBeenCalled()
+    })
+
+    it('does not trigger router.refresh() when some urgent games remain unpredicted', () => {
+      const partialGuesses = {
+        'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
+        // game-2 and game-3 not predicted
+      }
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
+        { gameGuesses: partialGuesses }
+      )
+      expect(mockRefresh).not.toHaveBeenCalled()
+    })
+
+    it('triggers router.refresh() only once even after re-renders with all games complete', () => {
+      const guesses = {
+        'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
+        'game-2': testFactories.gameGuess({ game_id: 'game-2' }) as any,
+        'game-3': testFactories.gameGuess({ game_id: 'game-3' }) as any,
+      }
+      const { rerender } = renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
+        { gameGuesses: guesses }
+      )
+      rerender(
+        <GuessesContext.Provider value={{ ...defaultContextValue, gameGuesses: guesses }}>
+          <GamesActiveClient {...defaultProps} urgencyLevel="high" />
+        </GuessesContext.Provider>
+      )
+      expect(mockRefresh).toHaveBeenCalledTimes(1)
     })
   })
 

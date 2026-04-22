@@ -1,15 +1,16 @@
 'use client'
 
-import React, { useContext, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material'
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Error as ErrorIcon,
-  InfoOutlined as InfoOutlinedIcon,
+  Info as InfoIcon,
   SportsSoccer as SportsSoccerIcon,
   WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import FlippableGameCard from '../flippable-game-card'
@@ -64,25 +65,22 @@ export function GamesActiveClient({
   urgentGameIds,
 }: GamesActiveClientProps) {
   const t = useTranslations('hub')
+  const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
   const { gameGuesses } = useContext(GuessesContext)
 
-  // Snapshot initial guesses on first render — used as baseline for delta tracking
+  // Snapshot initial guesses on first render — used as baseline for delta tracking.
+  // The header counter tracks tournament-wide completion: initialPredicted (server) + delta
+  // from predictions made/removed during this session.
   const initialGuessesRef = useRef(gameGuesses)
-
-  // Delta: net change in COMPLETE predictions among window games.
-  // Uses the same completion criteria as the server: both scores present, and for tied
-  // playoff games a penalty winner must be selected. initialPredicted (server) already
-  // includes all tournament predictions, so adding the delta gives an accurate live count.
   const initialWindowPredicted = countCompleteInWindow(initialGuessesRef.current, games)
   const currentWindowPredicted = countCompleteInWindow(gameGuesses, games)
   const delta = currentWindowPredicted - initialWindowPredicted
-
   const adjustedPredicted = initialPredicted + delta
-  const adjustedUnpredicted = totalGames - adjustedPredicted
 
-  // When all originally-urgent games become completely predicted, transition to safe mode
+  // When all originally-urgent games become completely predicted, transition to safe mode.
+  // urgentRemaining is also used for the urgency message count (scoped to the carousel window).
   const urgentRemaining = urgentGameIds.filter((id) => {
     const game = games.find((g) => g.id === id)
     return !isGuessComplete(gameGuesses[id], !!game?.playoffStage)
@@ -93,6 +91,16 @@ export function GamesActiveClient({
     : urgencyLevel !== 'empty'
       ? 'safe'
       : 'empty'
+
+  // Once all urgent games are complete, refresh the server component so the
+  // widget can load the next batch of upcoming games.
+  const refreshTriggeredRef = useRef(false)
+  useEffect(() => {
+    if (urgentGameIds.length > 0 && urgentRemaining === 0 && !refreshTriggeredRef.current) {
+      refreshTriggeredRef.current = true
+      router.refresh()
+    }
+  }, [urgentRemaining, urgentGameIds, router])
 
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined
@@ -112,13 +120,13 @@ export function GamesActiveClient({
 
     if (effectiveUrgencyLevel === 'critical') {
       icon = <ErrorIcon color="error" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
+      message = t('gamesWidget.urgentMessage', { count: urgentRemaining })
     } else if (effectiveUrgencyLevel === 'high') {
       icon = <WarningAmberIcon color="warning" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
+      message = t('gamesWidget.urgentMessage', { count: urgentRemaining })
     } else if (effectiveUrgencyLevel === 'medium') {
-      icon = <InfoOutlinedIcon color="info" fontSize="small" />
-      message = t('gamesWidget.urgentMessage', { count: adjustedUnpredicted })
+      icon = <InfoIcon color="info" fontSize="small" />
+      message = t('gamesWidget.urgentMessage', { count: urgentRemaining })
     } else {
       // safe — show regardless of which card is currently visible;
       // the message reflects the overall list state, not the current card
@@ -126,9 +134,9 @@ export function GamesActiveClient({
     }
 
     return (
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} sx={{ my: 1 }}>
         {icon}
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" textAlign="center">
           {message}
         </Typography>
       </Stack>
