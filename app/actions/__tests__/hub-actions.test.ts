@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser, getPublicTournamentTiming } from '../hub-actions'
 import type { ActionCenterData } from '../hub-actions'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
@@ -1060,5 +1060,63 @@ describe('computeIsIncompleteUser', () => {
       qualifiersCompleted: 0, qualifiersTotal: 0,
     })
     expect(await computeIsIncompleteUser(data)).toBe(false)
+  })
+})
+
+describe('getPublicTournamentTiming', () => {
+  const FORTY_NINE_HOURS_MS = 49 * 60 * 60 * 1000
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
+      testFactories.tournament({ id: TOURNAMENT_ID })
+    )
+  })
+
+  it('returns null firstGameDate and both started flags false when no first game exists', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(undefined)
+
+    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
+
+    expect(result.firstGameDate).toBeNull()
+    expect(result.tournamentHasStarted).toBe(false)
+    expect(result.tournamentJustStarted).toBe(false)
+  })
+
+  it('returns tournamentHasStarted false and tournamentJustStarted false when first game is in the future', async () => {
+    const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: futureDate })
+    )
+
+    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
+
+    expect(result.firstGameDate).toEqual(futureDate)
+    expect(result.tournamentHasStarted).toBe(false)
+    expect(result.tournamentJustStarted).toBe(false)
+  })
+
+  it('returns tournamentHasStarted true and tournamentJustStarted true when first game kicked off within last 48h', async () => {
+    const recentDate = new Date(Date.now() - 24 * 60 * 60 * 1000) // 24h ago
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: recentDate })
+    )
+
+    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
+
+    expect(result.tournamentHasStarted).toBe(true)
+    expect(result.tournamentJustStarted).toBe(true)
+  })
+
+  it('returns tournamentHasStarted true and tournamentJustStarted false when first game kicked off more than 48h ago', async () => {
+    const oldDate = new Date(Date.now() - FORTY_NINE_HOURS_MS)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: oldDate })
+    )
+
+    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
+
+    expect(result.tournamentHasStarted).toBe(true)
+    expect(result.tournamentJustStarted).toBe(false)
   })
 })

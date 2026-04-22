@@ -393,6 +393,40 @@ describe('PublicGamesPageClient', () => {
       expect(screen.getByTestId('game-2-group-playoff')).toHaveTextContent('Final')
     })
 
+    it('falls back to translated "playoff" key when playoff round_name is null', () => {
+      const games: ExtendedGameData[] = [
+        {
+          ...testFactories.game({
+            id: 'game-1',
+            game_number: 1,
+            tournament_id: tournament.id,
+            home_team: 'team-1',
+            away_team: 'team-2',
+          }),
+          group: null,
+          playoffStage: {
+            tournament_playoff_round_id: 'round-1',
+            round_name: null as unknown as string,
+            is_final: false,
+            is_third_place: false,
+          },
+          gameResult: null,
+        },
+      ]
+
+      renderWithLocale(
+        <PublicGamesPageClient
+          games={games}
+          teamsMap={teamsMap}
+          groups={groups}
+          rounds={rounds}
+        />,
+        'en'
+      )
+
+      expect(screen.getByTestId('game-1-group-playoff')).toHaveTextContent('Playoff')
+    })
+
     it('handles games with neither group nor playoff stage', () => {
       const games: ExtendedGameData[] = [
         {
@@ -549,6 +583,43 @@ describe('PublicGamesPageClient', () => {
       expect(screen.getByTestId('game-card-1')).toBeInTheDocument()
       expect(screen.getByTestId('game-1-home')).toHaveTextContent('')
       expect(screen.getByTestId('game-1-away')).toHaveTextContent('')
+    })
+
+    it('falls back to short_name when team name is empty string', () => {
+      const teamsList = createMany(testFactories.team, 2, (i) => ({
+        id: `team-${i}`,
+        name: '',
+        short_name: `T${i}`,
+      }))
+      const localTeamsMap = Object.fromEntries(teamsList.map((team) => [team.id, team]))
+
+      const games: ExtendedGameData[] = [
+        {
+          ...testFactories.game({
+            id: 'game-1',
+            game_number: 1,
+            tournament_id: tournament.id,
+            home_team: 'team-1',
+            away_team: 'team-2',
+          }),
+          group: null,
+          playoffStage: null,
+          gameResult: null,
+        },
+      ]
+
+      renderWithLocale(
+        <PublicGamesPageClient
+          games={games}
+          teamsMap={localTeamsMap}
+          groups={groups}
+          rounds={rounds}
+        />,
+        'en'
+      )
+
+      expect(screen.getByTestId('game-1-home')).toHaveTextContent('T1')
+      expect(screen.getByTestId('game-1-away')).toHaveTextContent('T2')
     })
 
     it('handles null home_team and away_team values', () => {
