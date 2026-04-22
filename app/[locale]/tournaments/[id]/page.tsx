@@ -1,25 +1,35 @@
 'use server'
 
-import { Box, Paper, Stack, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import GroupsIcon from '@mui/icons-material/Groups'
 import HistoryIcon from '@mui/icons-material/History'
+import { getLocale } from 'next-intl/server'
+import { toLocale } from '@/app/utils/locale-utils'
+import { getLoggedInUser } from '@/app/actions/user-actions'
+import { getActionCenterGames } from '@/app/actions/hub-actions'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
+import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
 
-export default async function TournamentHubPage() {
+type Props = {
+  readonly params: Promise<{
+    id: string
+  }>
+}
+
+export default async function TournamentHubPage(props: Props) {
+  const { id } = await props.params
+  const locale = toLocale(await getLocale())
+
+  const user = await getLoggedInUser()
+  const data = user ? await getActionCenterGames(id, locale) : null
+
   return (
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-      {/* Banner Area — full-width Stack */}
-      <Stack gap={2}>
-        <Paper
-          variant="outlined"
-          sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', color: 'text.secondary' }}
-        >
-          <Typography variant="body2">Banner Area — full-width (Hero, Onboarding, etc.)</Typography>
-        </Paper>
-      </Stack>
+      {/* Banner Area */}
+      <DashboardBanner user={user} data={data} />
 
       {/* Widget Grid — CSS Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 2 }}>

@@ -8,6 +8,13 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
+### app/components/tournament-hub/dashboard-banner.tsx
+Server Component stacking hero + secondary CTA banners in the dashboard Banner Area.
+
+- **DashboardBanner({ user, data })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `ActionCenterData | null` from the page. Hero layer: renders `TournamentStartBanner` when `data.tournamentJustStarted`; else `PreTournamentCountdown` when `!data.tournamentHasStarted && data.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else `TutorialCTACard fullWidth` when `computeIsIncompleteUser(data)` returns true; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
+  Calls: computeIsIncompleteUser
+  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), LoggedOffBanner (conditional), TutorialCTACard (conditional)
+
 ### app/components/tournament-hub/dashboard-card.tsx
 Reusable presentational Server Component establishing the standard card layout for all hub widgets.
 
@@ -34,7 +41,7 @@ Server Component rendering the full "incomplete user" Action Center layout for p
 ### app/components/tournament-hub/tutorial-cta-card.tsx
 Client Component for the "New to Prode?" tutorial CTA. Opens the onboarding dialog on button click.
 
-- **TutorialCTACard()**: `JSX.Element` — [Client] Renders an outlined Paper card with `HelpOutlineIcon` avatar, title + subtitle text, and a "View Tutorial" Button. Manages `const [open, setOpen] = useState(false)`. On click sets `open=true` and renders `{open && <OnboardingDialogClient initialOpen={true} onClose={() => setOpen(false)} />}` — same conditional render pattern as `user-actions.tsx`. Uses `dynamic` import for `OnboardingDialogClient` (ssr: false) to avoid bundle impact.
+- **TutorialCTACard({ fullWidth?: boolean })**: `JSX.Element` — [Client] Renders an outlined Paper card with `HelpOutlineIcon` avatar, title + subtitle text, and a "View Tutorial" Button. When `fullWidth=true`, Paper is full-width with `p: 3` (default `p: 2`). Manages `const [open, setOpen] = useState(false)`. On click sets `open=true` and renders `{open && <OnboardingDialogClient initialOpen={true} onClose={() => setOpen(false)} />}`. Uses `dynamic` import for `OnboardingDialogClient` (ssr: false) to avoid bundle impact.
   Uses: useState, useTranslations, Paper, Stack, Typography, Button, Avatar, HelpOutlineIcon
   Renders: OnboardingDialogClient (conditional)
 

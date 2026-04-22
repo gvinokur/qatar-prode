@@ -9,8 +9,9 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/363
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** implementing
 - **Plan File:** plans/STORY-355-plan.md
+- **Task File:** plans/STORY-355-tasks.md
 
 ## Quick Summary
 Replaces the placeholder Banner Area in the new dashboard layout (Story 354) with real priority-based banner logic: Logged Off Banner (for unauthenticated users), New User Banner (full-width TutorialCTACard for incomplete users), and Hero Banner (countdown/celebration). Removes the hard redirect for logged-off users.

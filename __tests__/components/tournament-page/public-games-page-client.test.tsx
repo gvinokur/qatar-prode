@@ -9,6 +9,7 @@ import type { Team, TournamentGroup, PlayoffRound } from '@/app/db/tables-defini
 
 // Mock child components
 vi.mock('@/app/components/tournament-page/public-cta-bar', () => ({
+  LoggedOffBanner: () => <div data-testid="public-cta-bar">Public CTA Bar</div>,
   default: () => <div data-testid="public-cta-bar">Public CTA Bar</div>,
 }))
 

@@ -53,4 +53,22 @@ describe('TutorialCTACard', () => {
     fireEvent.click(screen.getByTestId('close-dialog'))
     expect(screen.queryByTestId('onboarding-dialog')).not.toBeInTheDocument()
   })
+
+  it('renders tutorial title and CTA button when fullWidth is omitted', () => {
+    render(<TutorialCTACard />)
+    expect(screen.getByText('title')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'cta' })).toBeInTheDocument()
+  })
+
+  it('renders tutorial title and CTA button when fullWidth=true', () => {
+    render(<TutorialCTACard fullWidth />)
+    expect(screen.getByText('title')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'cta' })).toBeInTheDocument()
+  })
+
+  it('opens OnboardingDialogClient when CTA is clicked in fullWidth variant', () => {
+    render(<TutorialCTACard fullWidth />)
+    fireEvent.click(screen.getByRole('button', { name: 'cta' }))
+    expect(screen.getByTestId('onboarding-dialog')).toBeInTheDocument()
+  })
 })

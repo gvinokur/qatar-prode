@@ -163,18 +163,18 @@ Wrapper component providing scrollable content area with background color and sc
   Renders: ScrollShadowContainer
 
 ### app/components/tournament-page/public-cta-bar.tsx
-Sticky CTA bar for public tournament view with login/signup and onboarding options.
+CTA bar for logged-off users with login/signup and onboarding options. Used in both games page (sticky) and dashboard banner area (non-sticky).
 
-- **PublicCTABar()**: `JSX.Element` — [Client] Displays sticky bar with info icon, CTA message, and action buttons, manages auth and onboarding dialogs.
+- **LoggedOffBanner({ sticky?: boolean })**: `JSX.Element` — [Client] Renders `primary.main` background bar with info icon, CTA message, and two action buttons. When `sticky=true`, applies `position: sticky, top: 0, zIndex: 1000` (games page usage); omitting `sticky` renders non-sticky (dashboard banner usage). Manages `openAuthDialog` and `openOnboarding` state.
   Uses: useState, useTranslations
-  Renders: LoginOrSignupDialog, OnboardingDialogClient
+  Renders: LoginOrSignupDialog, OnboardingDialogClient (conditional)
 
 ### app/components/tournament-page/public-games-page-client.tsx
 Client component displaying games list for public tournament view with optional CTA overlays.
 
 - **PublicGamesPageClient({ games, teamsMap, groups, rounds }: PublicGamesPageClientProps)**: `JSX.Element` — [Client] Sorts and displays games with CTA overlay on every 5th card.
   Uses: useMemo, useTranslations
-  Renders: PublicCTABar, ReadOnlyGameCard
+  Renders: LoggedOffBanner, ReadOnlyGameCard
 
 ### app/components/tournament-page/public-games-page.tsx
 Server component fetching and passing game data to PublicGamesPageClient.
