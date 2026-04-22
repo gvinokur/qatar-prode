@@ -178,11 +178,22 @@ describe('GamesActiveClient', () => {
       expect(screen.getByText(/gamesWidget.urgentMessage/)).toBeInTheDocument()
     })
 
-    it('renders safe message without urgentMessage when urgencyLevel is "safe"', () => {
+    it('renders safe message when urgencyLevel is "safe" and current game is predicted', () => {
+      const guessForGame1 = testFactories.gameGuess({ game_id: 'game-1' }) as any
       renderWithContext(
-        <GamesActiveClient {...defaultProps} urgencyLevel="safe" unpredictedCount={0} />
+        <GamesActiveClient {...defaultProps} urgencyLevel="safe" unpredictedCount={0} />,
+        { gameGuesses: { 'game-1': guessForGame1 } }
       )
       expect(screen.getByText('gamesWidget.safeMessage')).toBeInTheDocument()
+      expect(screen.queryByText(/gamesWidget.urgentMessage/)).not.toBeInTheDocument()
+    })
+
+    it('renders no status message when urgencyLevel is "safe" and current game is not predicted', () => {
+      renderWithContext(
+        <GamesActiveClient {...defaultProps} urgencyLevel="safe" unpredictedCount={0} />,
+        { gameGuesses: {} }
+      )
+      expect(screen.queryByText('gamesWidget.safeMessage')).not.toBeInTheDocument()
       expect(screen.queryByText(/gamesWidget.urgentMessage/)).not.toBeInTheDocument()
     })
 

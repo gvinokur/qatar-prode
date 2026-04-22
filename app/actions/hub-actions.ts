@@ -356,12 +356,13 @@ export async function getActionCenterGames(
     selectedGames = urgentGames
     mode = 'urgent'
   } else {
-    // Fallback: next 3 games by game_date asc (open or already predicted)
+    // Fallback: next 3 games whose prediction deadline hasn't passed, sorted by game_date asc
     const upcomingGames = [...games]
+      .filter((g) => calculateDeadline(g.game_date) > now)
       .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
       .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
-    mode = 'fallback'
+    mode = upcomingGames.length > 0 ? 'fallback' : 'empty'
   }
 
   // Localize teams and games

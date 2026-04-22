@@ -65,7 +65,8 @@ export function GamesActiveClient({
       icon = <InfoOutlinedIcon color="info" fontSize="small" />
       message = t('gamesWidget.urgentMessage', { count: unpredictedCount })
     } else {
-      // safe — no icon
+      // safe — only show when the current game is already predicted
+      if (!guess) return null
       message = t('gamesWidget.safeMessage')
     }
 

@@ -1,12 +1,12 @@
-import { Box, Button, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, LinearProgress, Stack, Typography } from '@mui/material'
 import {
   AddCircleOutline as AddCircleOutlineIcon,
   Schedule as ScheduleIcon,
   SportsSoccer as SportsSoccerIcon,
 } from '@mui/icons-material'
 import { getTranslations } from 'next-intl/server'
-import Link from 'next/link'
 import { DashboardCard } from './dashboard-card'
+import { GamesInfoWidgetCta } from './games-info-widget-cta'
 import type { ScoringRulesBySection } from '../../utils/scoring-rules-utils'
 
 interface GamesInfoWidgetProps {
@@ -27,7 +27,11 @@ export async function GamesInfoWidget({
   const t = await getTranslations('hub')
 
   const progressValue = totalGames > 0 ? (predictedGames / totalGames) * 100 : 0
-  const ctaText = isLoggedOff ? t('gamesWidget.ctaLogin') : t('newUser.tracks.matches.cta')
+  const ctaText = isLoggedOff
+    ? t('gamesWidget.ctaLogin')
+    : predictedGames > 0
+      ? t('gamesWidget.ctaContinue')
+      : t('newUser.tracks.matches.cta')
 
   return (
     <DashboardCard
@@ -96,16 +100,7 @@ export async function GamesInfoWidget({
         )}
 
         {/* CTA */}
-        <Button
-          component={Link}
-          href={gamesHref}
-          variant="contained"
-          color="primary"
-          size="small"
-          fullWidth
-        >
-          {ctaText}
-        </Button>
+        <GamesInfoWidgetCta isLoggedOff={isLoggedOff} href={gamesHref} label={ctaText} />
       </Stack>
     </DashboardCard>
   )

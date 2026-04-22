@@ -70,7 +70,20 @@ describe('GamesInfoWidget', () => {
       expect(screen.getByText('hub.gamesWidget.ctaLogin')).toBeInTheDocument()
     })
 
-    it('renders "Start Predicting" CTA when isLoggedOff is false', async () => {
+    it('renders "Start Predicting" CTA when isLoggedOff is false and predictedGames is 0', async () => {
+      render(
+        await GamesInfoWidget({
+          isLoggedOff: false,
+          scoringRules: defaultScoringRules,
+          gamesHref: '/en/tournaments/t-1/games',
+          predictedGames: 0,
+          totalGames: 104,
+        })
+      )
+      expect(screen.getByText('hub.newUser.tracks.matches.cta')).toBeInTheDocument()
+    })
+
+    it('renders "Keep Predicting" CTA when isLoggedOff is false and predictedGames > 0', async () => {
       render(
         await GamesInfoWidget({
           isLoggedOff: false,
@@ -80,7 +93,7 @@ describe('GamesInfoWidget', () => {
           totalGames: 104,
         })
       )
-      expect(screen.getByText('hub.newUser.tracks.matches.cta')).toBeInTheDocument()
+      expect(screen.getByText('hub.gamesWidget.ctaContinue')).toBeInTheDocument()
     })
   })
 
