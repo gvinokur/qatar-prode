@@ -70,7 +70,7 @@ export default async function TournamentHubPage(props: Props) {
           actionCenterData={actionCenterData}
           gamesHref={gamesHref}
         />
-        {!hubData.isStarted && (
+        {msUntilPredictionLock > 0 && (
           <>
             <QualifiedTeamsWidget
               isLoggedOff={!user}

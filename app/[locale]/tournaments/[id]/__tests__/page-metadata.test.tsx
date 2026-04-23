@@ -135,15 +135,27 @@ describe('TournamentHubPage (root landing page)', () => {
     expect(screen.getByTestId('games-prediction-widget')).toBeInTheDocument()
   })
 
-  it('renders QualifiedTeamsWidget and AwardsWidget when tournament has not started', async () => {
+  it('renders QualifiedTeamsWidget and AwardsWidget when prediction lock has not passed', async () => {
     const page = await TournamentHubPage(makeParams('t-1'))
     render(page as Parameters<typeof render>[0])
     expect(screen.getByTestId('qualified-teams-widget')).toBeInTheDocument()
     expect(screen.getByTestId('awards-widget')).toBeInTheDocument()
   })
 
-  it('does not render QualifiedTeamsWidget or AwardsWidget when tournament has started', async () => {
-    mockGetTournamentHubPageData.mockResolvedValue({ ...DEFAULT_HUB_DATA, isStarted: true })
+  it('renders QualifiedTeamsWidget and AwardsWidget when tournament started but lock has not passed', async () => {
+    // firstGameDate 1 day ago → msUntilPredictionLock > 0 (still 1 day remaining)
+    const oneDayAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    mockGetPublicTournamentTiming.mockResolvedValue({ tournamentHasStarted: true, firstGameDate: oneDayAgo })
+    const page = await TournamentHubPage(makeParams('t-1'))
+    render(page as Parameters<typeof render>[0])
+    expect(screen.getByTestId('qualified-teams-widget')).toBeInTheDocument()
+    expect(screen.getByTestId('awards-widget')).toBeInTheDocument()
+  })
+
+  it('does not render QualifiedTeamsWidget or AwardsWidget when prediction lock has passed', async () => {
+    // firstGameDate 3 days ago → msUntilPredictionLock < 0 (lock was 1 day ago)
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    mockGetPublicTournamentTiming.mockResolvedValue({ tournamentHasStarted: true, firstGameDate: threeDaysAgo })
     const page = await TournamentHubPage(makeParams('t-1'))
     render(page as Parameters<typeof render>[0])
     expect(screen.queryByTestId('qualified-teams-widget')).not.toBeInTheDocument()
