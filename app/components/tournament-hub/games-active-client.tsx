@@ -170,9 +170,9 @@ export function GamesActiveClient({
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 1,
-                bgcolor: 'rgba(255, 255, 255, 0.85)',
-                boxShadow: 1,
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+                bgcolor: 'action.selected',
+                boxShadow: 2,
+                '&:hover': { bgcolor: 'action.focus' },
               }}
             >
               <ChevronLeftIcon fontSize="small" />
@@ -190,9 +190,9 @@ export function GamesActiveClient({
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 1,
-                bgcolor: 'rgba(255, 255, 255, 0.85)',
-                boxShadow: 1,
-                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+                bgcolor: 'action.selected',
+                boxShadow: 2,
+                '&:hover': { bgcolor: 'action.focus' },
               }}
             >
               <ChevronRightIcon fontSize="small" />
