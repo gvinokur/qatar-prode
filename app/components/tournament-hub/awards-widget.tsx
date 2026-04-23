@@ -82,16 +82,16 @@ export async function AwardsWidget({
         <DeadlineBox severity={severity}>
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
             <ScheduleIcon sx={{ fontSize: 14, color: iconColor }} />
-            <Typography variant="caption" fontWeight="bold" color={iconColor}>
+            <Typography variant="body2" fontWeight="bold" color={iconColor}>
               {t('statusWidget.deadlineLabel')}
             </Typography>
             {lockDateFormatted && (
-              <Typography variant="caption" color={iconColor}>
+              <Typography variant="body2" color={iconColor}>
                 {lockDateFormatted}
               </Typography>
             )}
           </Stack>
-          <Typography variant="caption" color={iconColor} display="block">
+          <Typography variant="body2" color={iconColor} display="block">
             {deadlineMessage}
           </Typography>
         </DeadlineBox>

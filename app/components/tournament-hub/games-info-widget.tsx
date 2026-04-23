@@ -56,11 +56,11 @@ export async function GamesInfoWidget({
         >
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
             <ScheduleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+            <Typography variant="body2" color="text.secondary" fontWeight="bold">
               {t('newUser.tracks.deadline.label')}
             </Typography>
           </Stack>
-          <Typography variant="caption" color="text.secondary" display="block">
+          <Typography variant="body2" color="text.secondary" display="block">
             {t('gamesWidget.deadlineText')}
           </Typography>
         </Box>
@@ -77,12 +77,12 @@ export async function GamesInfoWidget({
           >
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
               <AddCircleOutlineIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              <Typography variant="body2" color="text.secondary" fontWeight="bold">
                 {t('newUser.tracks.scoringLabel')}
               </Typography>
             </Stack>
             {scoringRules.matches.map((rule) => (
-              <Typography key={rule} variant="caption" color="text.secondary" display="block">
+              <Typography key={rule} variant="body2" color="text.secondary" display="block">
                 • {rule}
               </Typography>
             ))}
