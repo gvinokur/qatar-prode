@@ -67,22 +67,20 @@ export interface TournamentHubPageData {
 }
 ```
 
-The `qualifiersTotal` query (reuse exact same pattern from `tournament-prediction-completion-repository.ts`):
+The `qualifiersTotal` query — `PlayoffRoundTable` already has a `total_games` field, so no JOIN needed:
 ```ts
-const totalFirstRoundGamesResult = await db
-  .selectFrom('games')
-  .innerJoin('tournament_playoff_round_games', 'tournament_playoff_round_games.game_id', 'games.id')
-  .innerJoin('tournament_playoff_rounds', 'tournament_playoff_rounds.id', 'tournament_playoff_round_games.tournament_playoff_round_id')
-  .select((eb) => eb.fn.countAll<number>().as('count'))
-  .where('tournament_playoff_rounds.tournament_id', '=', tournamentId)
-  .where('tournament_playoff_rounds.is_first_stage', '=', true)
+const firstStageRound = await db
+  .selectFrom('tournament_playoff_rounds')
+  .select('total_games')
+  .where('tournament_id', '=', tournamentId)
+  .where('is_first_stage', '=', true)
   .executeTakeFirst()
 
-qualifiersTotal = Number(totalFirstRoundGamesResult?.count ?? 0) * 2
+qualifiersTotal = (firstStageRound?.total_games ?? 0) * 2
 awardsTotal = 7  // 3 finalStandings + 4 individual awards (constant per app logic)
 ```
 
-Add `totalFirstRoundGamesResult` to the existing `Promise.all` in `getTournamentHubPageData`.
+Add this query to the existing `Promise.all` in `getTournamentHubPageData`.
 
 ### 3. `computeStatusWidgetSeverity` (urgency-utils.ts)
 
@@ -246,9 +244,9 @@ Remove unused imports: `EmojiEventsIcon`, `GroupsIcon`.
 - `getTournamentHubPageData(tournamentId)`: add qualifiers total query to the existing `Promise.all`; hardcode `awardsTotal: 7`
   Calls: db (added query for first-stage playoff games)
   Tests:
-  - returns qualifiersTotal as first-stage games × 2
+  - returns qualifiersTotal as first-stage round total_games × 2
   - returns awardsTotal as 7
-  - returns qualifiersTotal=0 when no playoff rounds configured
+  - returns qualifiersTotal=0 when no first-stage playoff round configured
 
 ### `app/utils/urgency-utils.ts` *(modified)*
 
