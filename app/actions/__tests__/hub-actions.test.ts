@@ -16,7 +16,6 @@ import { applyLocalizationBatch } from '@/app/utils/localization-helper'
 import { testFactories } from '../../../__tests__/db/test-factories'
 
 const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000
-const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000
 const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000
 
 vi.mock('@/app/db/database', () => ({

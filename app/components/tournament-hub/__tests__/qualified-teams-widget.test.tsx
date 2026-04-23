@@ -28,8 +28,6 @@ const defaultScoringRules: ScoringRulesBySection = {
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000
-const TWENTY_FOUR_HOURS_MS = 24 * ONE_HOUR_MS
-const FORTY_EIGHT_HOURS_MS = 48 * ONE_HOUR_MS
 
 const baseProps = {
   isLoggedOff: false,
