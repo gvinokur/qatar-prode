@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-23 (Story 357 — Status Widgets)
 
 ---
 
@@ -31,7 +31,7 @@ Thin Server Component wrapper for the hub's Action Center widget. Calls the serv
 ### app/components/tournament-hub/pre-tournament-new-user-action-center.tsx
 Server Component rendering the full "incomplete user" Action Center layout for pre-tournament users with low prediction progress.
 
-- **PreTournamentNewUserActionCenter({ data, tournamentId, locale })**: `JSX.Element` — [Server] Calls `getTranslations('hub')`, `getTranslations('rules.rules')`, and `getTranslations('rules.constraints')`. Calls `getRulesBySection(data.scoringConfig, tRules)` for scoring rule labels and `getConstraintsBySection(tConstraints, lockDate)` for per-section deadline strings. `lockDate` is computed from `data.firstGameDate + 5 days` formatted via `Intl.DateTimeFormat`. Computes per-track progress percentages and 4-state CTA labels (cta / ctaKeep / ctaFinish / ctaReview) keyed by progress thresholds. Renders: (1) `PreTournamentCountdown` when `data.firstGameDate !== null`; (2) `TutorialCTACard`; (3) three `PredictionTrackCard` sub-components (Matches, Qualified Teams, Awards).
+- **PreTournamentNewUserActionCenter({ data, tournamentId, locale })**: `JSX.Element` — [Server] Calls `getTranslations('hub')`, `getTranslations('rules.rules')`, and `getTranslations('rules.constraints')`. Calls `getRulesBySection(data.scoringConfig, tRules)` for scoring rule labels and `getConstraintsBySection(tConstraints, lockDate)` for per-section deadline strings. `lockDate` is computed from `data.firstGameDate + PREDICTION_LOCK_OFFSET_MS` (2 days) formatted via `Intl.DateTimeFormat`. Computes per-track progress percentages and 4-state CTA labels (cta / ctaKeep / ctaFinish / ctaReview) keyed by progress thresholds. Renders: (1) `PreTournamentCountdown` when `data.firstGameDate !== null`; (2) `TutorialCTACard`; (3) three `PredictionTrackCard` sub-components (Matches, Qualified Teams, Awards).
   Calls: getTranslations, getRulesBySection, getConstraintsBySection
   Renders: PreTournamentCountdown, TutorialCTACard, PredictionTrackCard
 
@@ -115,23 +115,29 @@ Zero-fetch Server Component that routes to the correct Games widget state based 
 ### app/components/tournament-hub/games-info-widget.tsx
 Async Server Component for the Games widget in Logged-Off and Pre-Start states.
 
-- **GamesInfoWidget({ isLoggedOff, scoringRules, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Renders `DashboardCard` with title `newUser.tracks.matches.title`, `SportsSoccerIcon`, and count `"${predictedGames}/${totalGames}"`. Inside: description paragraph; dashed deadline box (ScheduleIcon, `deadlineText` key); dashed scoring rules box (AddCircleOutlineIcon, `scoringRules.matches` strings); `LinearProgress` (value=predictedGames/totalGames×100, hidden when `totalGames===0`); CTA Button — `gamesWidget.ctaLogin` when `isLoggedOff`, else `newUser.tracks.matches.cta`.
+- **GamesInfoWidget({ isLoggedOff, scoringRules, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Renders `DashboardCard` with title `newUser.tracks.matches.title`, `SportsSoccerIcon`, and count `"${predictedGames}/${totalGames}"`. Inside: description paragraph; dashed inline Box deadline section (ScheduleIcon + `newUser.tracks.deadline.label` + `gamesWidget.deadlineText`); dashed scoring rules box (AddCircleOutlineIcon + `scoringRules.matches` strings, all `variant="body2"`); `LinearProgress color="secondary"` (hidden when `totalGames===0`); CTA via `GamesInfoWidgetCta` — `gamesWidget.ctaLogin` when `isLoggedOff`; `gamesWidget.ctaContinue` when `predictedGames > 0`; else `newUser.tracks.matches.cta`.
   Calls: getTranslations('hub')
-  Renders: DashboardCard
+  Renders: DashboardCard, GamesInfoWidgetCta
+
+### app/components/tournament-hub/deadline-box.tsx
+Severity-aware Client Component wrapper for the dashed deadline box shown in pre-tournament hub widgets. Extracted to client boundary so MUI `alpha()` theme callbacks can resolve at runtime.
+
+- **DeadlineBox({ severity, children })**: `JSX.Element` — [Client] Renders a `Box` with `border: '1px dashed'`. For `severity === 'normal'`: `borderColor: 'divider'`, `bgcolor: 'transparent'`. For other severities: `borderColor: '{severity}.main'`, `bgcolor: alpha(theme.palette[severity].main, 0.05)` via theme callback. `borderRadius: 1`, `p: 1`. Accepts `severity: StatusWidgetSeverity` and `children: React.ReactNode`.
+  Uses: alpha (MUI styles), Box
 
 ### app/components/tournament-hub/qualified-teams-widget.tsx
 Async Server Component for the Qualified Teams prediction widget in pre-tournament phase.
 
 - **QualifiedTeamsWidget({ isLoggedOff, scoringRules, qtHref, qualifiersCompleted, qualifiersTotal, msUntilPredictionLock, lockDateFormatted })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')` and `computeStatusWidgetSeverity(msUntilPredictionLock)`. Renders `DashboardCard` with `AccountTreeIcon`, title `newUser.tracks.qualifiedTeams.title`, count `"${qualifiersCompleted}/${qualifiersTotal}"`, and `urgent={severity === 'error'}`. Inside: description paragraph; severity-coloured dashed deadline box (ScheduleIcon + deadlineLabel + lockDateFormatted + deadline message selected by severity); dashed scoring rules box (AddCircleOutlineIcon + `scoringRules.qualifiedTeams`); `LinearProgress color="secondary"` (hidden when `qualifiersTotal === 0`); CTA via `GamesInfoWidgetCta` — 4-state label: 0% → `cta`, >0%<90% → `ctaKeep`, ≥90%<100% → `ctaFinish`, 100% → `ctaReview`; `gamesWidget.ctaLogin` when `isLoggedOff`.
   Calls: getTranslations('hub'), computeStatusWidgetSeverity
-  Renders: DashboardCard, GamesInfoWidgetCta
+  Renders: DashboardCard, DeadlineBox, GamesInfoWidgetCta
 
 ### app/components/tournament-hub/awards-widget.tsx
 Async Server Component for the Awards prediction widget in pre-tournament phase.
 
 - **AwardsWidget({ isLoggedOff, scoringRules, awardsHref, awardsCompleted, awardsTotal, msUntilPredictionLock, lockDateFormatted })**: `Promise<JSX.Element>` — [Server] Same structure as `QualifiedTeamsWidget`. `EmojiEventsIcon`, title `newUser.tracks.awards.title`, count `"${awardsCompleted}/${awardsTotal}"`, `scoringRules.awards`. 4-state CTA keyed by awards progress.
   Calls: getTranslations('hub'), computeStatusWidgetSeverity
-  Renders: DashboardCard, GamesInfoWidgetCta
+  Renders: DashboardCard, DeadlineBox, GamesInfoWidgetCta
 
 ### app/components/tournament-hub/games-active-widget.tsx
 Async Server Component for the Games widget in Active state. Thin wrapper — computes initial urgency and urgent game IDs, then delegates to GamesActiveSection.

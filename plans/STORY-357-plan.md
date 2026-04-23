@@ -318,6 +318,40 @@ No new cross-layer flows. `getTournamentHubPageData` gains one extra parallel DB
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: PREDICTION_LOCK_OFFSET_MS moved to prediction-constants.ts
+**Date:** 2026-04-23
+**Reason:** Extracting to a dedicated `app/utils/prediction-constants.ts` avoids potential circular imports (hub-actions imports from utils; utils importing from hub-actions would create a cycle). Better separation of concerns.
+**Change:** Created `app/utils/prediction-constants.ts` with the exported constant. All callers import from there instead of from `hub-actions.ts`. Hub-actions itself imports from prediction-constants.
+
+### Amendment 2: DeadlineBox extracted as 'use client' component
+**Date:** 2026-04-23
+**Reason:** Server Components cannot use theme callback functions (`(theme) => alpha(...)`) directly in `sx` props. The `alpha()` bg tint for severity colours requires access to the MUI theme at runtime.
+**Change:** Created `app/components/tournament-hub/deadline-box.tsx` as a `'use client'` component that accepts `severity` + `children`. Both widgets and the refactored `GamesInfoWidget` use `<DeadlineBox>` instead of inline `Box` with theme callbacks.
+
+### Amendment 3: Widget visibility condition changed from !isStarted to msUntilPredictionLock > 0
+**Date:** 2026-04-23
+**Reason:** Plan used `{!hubData.isStarted && ...}` which would hide the widgets the moment the tournament starts, even though predictions remain open for 2 more days. Using `msUntilPredictionLock > 0` keeps the widgets visible during the entire prediction window.
+**Change:** Hub page renders QT and Awards widgets when `msUntilPredictionLock > 0` (i.e., lock has not yet occurred), rather than `!hubData.isStarted`.
+
+### Amendment 4: deadlineNormal translation corrected
+**Date:** 2026-04-23
+**Reason:** Original plan text "Changes allowed until the tournament starts." was inaccurate — predictions lock 2 days *after* tournament start, not at the start.
+**Change:** EN: "Predictions lock 2 days after the tournament starts." ES: "Los pronósticos se bloquean 2 días después del inicio del torneo."
+
+### Amendment 5: All scoring rules and deadline text bumped from caption to body2
+**Date:** 2026-04-23
+**Reason:** Post-implementation visual review showed `variant="caption"` text was too small in the deadline box and scoring rules sections of all three pre-tournament hub widgets.
+**Change:** All `variant="caption"` → `variant="body2"` in `QualifiedTeamsWidget`, `AwardsWidget`, and `GamesInfoWidget` (deadline box label, deadline message, scoring rules label, individual rule lines).
+
+### Amendment 6: GamesInfoWidget also updated for consistency
+**Date:** 2026-04-23
+**Reason:** `GamesInfoWidget` (matches card) uses the same deadline box + scoring rules pattern. Consistency required the same caption→body2 and DeadlineBox extraction changes.
+**Change:** `games-info-widget.tsx` added to files-modified scope; uses `DeadlineBox` component and `variant="body2"` throughout.
+
+---
+
 ## Acceptance Criteria Coverage
 
 | AC | Implementation |
