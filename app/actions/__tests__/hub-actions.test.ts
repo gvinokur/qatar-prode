@@ -9,7 +9,6 @@ import * as tournamentRepository from '@/app/db/tournament-repository'
 import * as database from '@/app/db/database'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
-import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
 import * as tournamentPredictionCompletionRepository from '@/app/db/tournament-prediction-completion-repository'
 import * as favoriteGroupsRepository from '@/app/db/favorite-groups-repository'
 import * as userActions from '../user-actions'
@@ -30,7 +29,7 @@ vi.mock('@/app/db/game-repository', () => ({
   findFirstGameInTournament: vi.fn(),
   findLastGameInTournament: vi.fn(),
   findFirstGameFullData: vi.fn(),
-  findRecentGamesWithUserGuesses: vi.fn(),
+  findRecentGamesForDashboard: vi.fn(),
 }))
 
 vi.mock('@/app/db/tournament-prediction-completion-repository', () => ({
@@ -647,11 +646,14 @@ describe('getLeaderboardPeekData', () => {
 // getRecentResultsData
 // ---------------------------------------------------------------------------
 
+const pastDate = new Date(Date.now() - 2 * 60 * 60 * 1000) // 2h ago
+const futureDate = new Date(Date.now() + 30 * 60 * 1000)   // 30min in future (prediction closed)
+
 const makeRawGame = (overrides?: Partial<any>) => ({
   gameId: 'game-1',
   homeTeamId: 'team-1',
   awayTeamId: 'team-2',
-  homeScore: 2,
+  homeScore: 2,      // non-null = finished by default
   awayScore: 1,
   userHomeGuess: 2,
   userAwayGuess: 1,
@@ -659,7 +661,7 @@ const makeRawGame = (overrides?: Partial<any>) => ({
   boostType: null,
   boostMultiplier: null,
   finalScore: null,
-  gameDate: new Date('2022-12-18'),
+  gameDate: pastDate,
   ...overrides,
 })
 
@@ -669,108 +671,72 @@ describe('getRecentResultsData', () => {
     vi.mocked(userActions.getLoggedInUser).mockResolvedValue(
       testFactories.user({ id: USER_ID }) as any
     )
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
-    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
-    vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(null as any)
-    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(defaultTournament)
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([])
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([])
-    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
-      teams: [],
-      completeGroupIds: new Set(),
-      allGroupsComplete: false,
-    } as any)
     vi.mocked(applyLocalizationBatch).mockImplementation((teams) => teams)
   })
 
   it('throws Unauthorized when no active session', async () => {
     vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null as any)
 
-    await expect(getRecentResultsData(TOURNAMENT_ID, 'en')).rejects.toThrow(
-      'Unauthorized'
-    )
+    await expect(getRecentResultsData(TOURNAMENT_ID, 'en')).rejects.toThrow('Unauthorized')
   })
 
-  it('returns empty recentGames when findRecentGamesWithUserGuesses returns []', async () => {
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([])
-
+  it('returns empty recentGames when findRecentGamesForDashboard returns []', async () => {
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
     expect(result.recentGames).toEqual([])
   })
 
-  it('returns null for qualifiedTeamsScore when stats array is empty', async () => {
-    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue(
-      []
-    )
+  it('returns gameStatus finished when homeScore is not null', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homeScore: 2, awayScore: 1, gameDate: pastDate }),
+    ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsScore).toBeNull()
-    expect(result.qualifiedTeamsCorrect).toBeNull()
-    expect(result.individualAwardsScore).toBeNull()
-    expect(result.honorRollScore).toBeNull()
+    expect(result.recentGames[0].gameStatus).toBe('finished')
   })
 
-  it('returns populated scores when stats array has entries', async () => {
-    const stats = {
-      qualified_teams_score: 10,
-      qualified_teams_correct: 8,
-      individual_awards_score: 5,
-      honor_roll_score: 2,
-    }
-    vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue(
-      [stats] as any
-    )
+  it('returns gameStatus about_to_start when homeScore is null and gameDate is in the future', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homeScore: null, awayScore: null, gameDate: futureDate }),
+    ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsScore).toBe(10)
-    expect(result.qualifiedTeamsCorrect).toBe(8)
-    expect(result.individualAwardsScore).toBe(5)
-    expect(result.honorRollScore).toBe(2)
+    expect(result.recentGames[0].gameStatus).toBe('about_to_start')
   })
 
-  it('returns qualifiedTeamsActualCount equal to number of qualified teams from findQualifiedTeams', async () => {
-    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
-      teams: [
-        { id: 'team-1', name: 'Argentina', short_name: 'ARG', group_id: 'g1', position: 1 },
-        { id: 'team-2', name: 'France', short_name: 'FRA', group_id: 'g1', position: 2 },
-        { id: 'team-3', name: 'Brazil', short_name: 'BRA', group_id: 'g2', position: 1 },
-      ],
-      completeGroupIds: new Set(['g1', 'g2']),
-      allGroupsComplete: false,
-    } as any)
+  it('returns gameStatus pending when homeScore is null and gameDate is in the past', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homeScore: null, awayScore: null, gameDate: pastDate }),
+    ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsActualCount).toBe(3)
+    expect(result.recentGames[0].gameStatus).toBe('pending')
   })
 
-  it('returns qualifiedTeamsActualCount of 0 when no teams have qualified', async () => {
-    vi.mocked(teamRepository.findQualifiedTeams).mockResolvedValue({
-      teams: [],
-      completeGroupIds: new Set(),
-      allGroupsComplete: false,
-    } as any)
+  it('includes games where user has no prediction (userHomeGuess: null)', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ userHomeGuess: null, userAwayGuess: null, guessScore: null }),
+    ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
-    expect(result.qualifiedTeamsActualCount).toBe(0)
+    expect(result.recentGames).toHaveLength(1)
+    expect(result.recentGames[0].userHomeGuess).toBeNull()
+    expect(result.recentGames[0].finalPoints).toBe(0)
   })
 
   it('correctly computes boostBonus as finalPoints minus basePoints', async () => {
-    const rawGame = makeRawGame({
-      guessScore: 3,
-      finalScore: 8, // 8 - 3 = 5 boost
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ guessScore: 3, finalScore: 8 }),
     ] as any)
-    const team1 = testFactories.team({ id: 'team-1' })
-    const team2 = testFactories.team({ id: 'team-2' })
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
+      testFactories.team({ id: 'team-1' }),
+      testFactories.team({ id: 'team-2' }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
@@ -781,19 +747,12 @@ describe('getRecentResultsData', () => {
   })
 
   it('includes localized team names when teamsMap has team', async () => {
-    const rawGame = makeRawGame({
-      homeTeamId: 'team-1',
-      awayTeamId: 'team-2',
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homeTeamId: 'team-1', awayTeamId: 'team-2' }),
     ] as any)
-
-    const team1 = testFactories.team({ id: 'team-1', name: 'Argentina' })
-    const team2 = testFactories.team({ id: 'team-2', name: 'France' })
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
+      testFactories.team({ id: 'team-1', name: 'Argentina' }),
+      testFactories.team({ id: 'team-2', name: 'France' }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
@@ -803,17 +762,11 @@ describe('getRecentResultsData', () => {
   })
 
   it('falls back to teamId when team not found in teamsMap', async () => {
-    const rawGame = makeRawGame({
-      homeTeamId: 'unknown-team',
-      awayTeamId: 'team-2',
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homeTeamId: 'unknown-team' }),
     ] as any)
-
-    const team2 = testFactories.team({ id: 'team-2', name: 'France' })
     vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team2,
+      testFactories.team({ id: 'team-2', name: 'France' }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
@@ -823,18 +776,8 @@ describe('getRecentResultsData', () => {
   })
 
   it('uses basePoints when finalScore is null', async () => {
-    const rawGame = makeRawGame({
-      guessScore: 3,
-      finalScore: null,
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
-    ] as any)
-    const team1 = testFactories.team({ id: 'team-1' })
-    const team2 = testFactories.team({ id: 'team-2' })
-    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ guessScore: 3, finalScore: null }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
@@ -844,18 +787,8 @@ describe('getRecentResultsData', () => {
   })
 
   it('handles game with no guessScore (null)', async () => {
-    const rawGame = makeRawGame({
-      guessScore: null,
-      finalScore: null,
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
-    ] as any)
-    const team1 = testFactories.team({ id: 'team-1' })
-    const team2 = testFactories.team({ id: 'team-2' })
-    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ guessScore: null, finalScore: null }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
@@ -865,163 +798,13 @@ describe('getRecentResultsData', () => {
   })
 
   it('preserves boostType in game item', async () => {
-    const rawGame = makeRawGame({
-      boostType: 'golden',
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
-    ] as any)
-    const team1 = testFactories.team({ id: 'team-1' })
-    const team2 = testFactories.team({ id: 'team-2' })
-    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ boostType: 'golden' }),
     ] as any)
 
     const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
 
     expect(result.recentGames[0].boostType).toBe('golden')
-  })
-
-  it('maps game data correctly including scores and guesses', async () => {
-    const rawGame = makeRawGame({
-      gameId: 'game-xyz',
-      homeScore: 3,
-      awayScore: 2,
-      userHomeGuess: 2,
-      userAwayGuess: 2,
-    })
-    vi.mocked(gameRepository.findRecentGamesWithUserGuesses).mockResolvedValue([
-      rawGame,
-    ] as any)
-    const team1 = testFactories.team({ id: 'team-1', name: 'Brazil' })
-    const team2 = testFactories.team({ id: 'team-2', name: 'Germany' })
-    vi.mocked(teamRepository.findTeamInTournament).mockResolvedValue([
-      team1,
-      team2,
-    ] as any)
-
-    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-    const game = result.recentGames[0]
-    expect(game.gameId).toBe('game-xyz')
-    expect(game.homeTeamName).toBe('Brazil')
-    expect(game.awayTeamName).toBe('Germany')
-    expect(game.homeScore).toBe(3)
-    expect(game.awayScore).toBe(2)
-    expect(game.userHomeGuess).toBe(2)
-    expect(game.userAwayGuess).toBe(2)
-  })
-
-  describe('honorRollCorrect', () => {
-    it('returns null when honorRollScore is null (not yet scored)', async () => {
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.honorRollCorrect).toBeNull()
-    })
-
-    it('returns empty array when scored but no honor roll positions match', async () => {
-      const stats = { honor_roll_score: 0, individual_awards_score: null,
-        qualified_teams_score: null, qualified_teams_correct: null }
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
-      const tournament = testFactories.tournament({
-        id: TOURNAMENT_ID,
-        champion_team_id: 'team-champ',
-        runner_up_team_id: 'team-runner',
-        third_place_team_id: 'team-third',
-      })
-      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
-      const guess = testFactories.tournamentGuess({
-        champion_team_id: 'team-wrong',
-        runner_up_team_id: 'team-wrong',
-        third_place_team_id: 'team-wrong',
-      })
-      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.honorRollCorrect).toEqual([])
-    })
-
-    it('returns matched positions when honor roll positions match tournament results', async () => {
-      const stats = { honor_roll_score: 8, individual_awards_score: null,
-        qualified_teams_score: null, qualified_teams_correct: null }
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
-      const tournament = testFactories.tournament({
-        id: TOURNAMENT_ID,
-        champion_team_id: 'team-champ',
-        runner_up_team_id: 'team-runner',
-        third_place_team_id: null,
-      })
-      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
-      const guess = testFactories.tournamentGuess({
-        champion_team_id: 'team-champ',   // correct
-        runner_up_team_id: 'team-runner', // correct
-        third_place_team_id: 'team-wrong',
-      })
-      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.honorRollCorrect).toEqual(['champion', 'runnerUp'])
-    })
-  })
-
-  describe('individualAwardsCorrect', () => {
-    it('returns null when individualAwardsScore is null (not yet scored)', async () => {
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([])
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.individualAwardsCorrect).toBeNull()
-    })
-
-    it('returns empty array when scored but no individual award types match', async () => {
-      const stats = { individual_awards_score: 0, honor_roll_score: null,
-        qualified_teams_score: null, qualified_teams_correct: null }
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
-      const tournament = testFactories.tournament({
-        id: TOURNAMENT_ID,
-        best_player_id: 'player-best',
-        top_goalscorer_player_id: 'player-top',
-      })
-      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
-      const guess = testFactories.tournamentGuess({
-        best_player_id: 'player-wrong',
-        top_goalscorer_player_id: 'player-wrong',
-      })
-      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.individualAwardsCorrect).toEqual([])
-    })
-
-    it('returns matched award types when individual awards match tournament results', async () => {
-      const stats = { individual_awards_score: 6, honor_roll_score: null,
-        qualified_teams_score: null, qualified_teams_correct: null }
-      vi.mocked(tournamentGuessRepository.getTournamentGuessStatsForUsers).mockResolvedValue([stats] as any)
-      const tournament = testFactories.tournament({
-        id: TOURNAMENT_ID,
-        best_player_id: 'player-best',
-        top_goalscorer_player_id: 'player-top',
-        best_goalkeeper_player_id: 'player-gk',
-        best_young_player_id: null,
-      })
-      vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(tournament)
-      const guess = testFactories.tournamentGuess({
-        best_player_id: 'player-best',    // correct
-        top_goalscorer_player_id: 'player-wrong',
-        best_goalkeeper_player_id: 'player-gk', // correct
-      })
-      vi.mocked(tournamentGuessRepository.findTournamentGuessByUserIdTournament).mockResolvedValue(guess as any)
-
-      const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
-
-      expect(result.individualAwardsCorrect).toEqual(['bestPlayer', 'bestGoalkeeper'])
-    })
   })
 })
 

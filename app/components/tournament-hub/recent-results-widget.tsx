@@ -3,67 +3,80 @@
 import { Box, Button, Divider, Typography } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
+import WatchLaterIcon from '@mui/icons-material/WatchLater'
 import SportsScoreIcon from '@mui/icons-material/SportsScore'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { BoostBadge } from '../boost-badge'
-import type { RecentResultsData, RecentGameResultItem, HonorRollPosition, IndividualAwardType } from '../../actions/hub-actions'
+import type { RecentResultsData, RecentGameResultItem } from '../../actions/hub-actions'
 
 interface RecentResultsWidgetProps {
   readonly data: RecentResultsData
   readonly statsHref: string
-  readonly resultsHref: string
-  readonly qualifiedTeamsHref: string
-  readonly awardsHref: string
-}
-
-const sectionLinkSx = {
-  display: 'block',
-  textDecoration: 'none',
-  color: 'inherit',
-  borderRadius: 1,
-  '&:hover': { bgcolor: 'action.hover' },
-  p: 0.5,
-  m: -0.5,
-} as const
-
-function isExactResult(item: RecentGameResultItem): boolean {
-  return (
-    item.userHomeGuess === item.homeScore &&
-    item.userAwayGuess === item.awayScore
-  )
 }
 
 function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const t = useTranslations('hub.recentResults')
+  const isPending = item.gameStatus === 'pending' || item.gameStatus === 'about_to_start'
+  const hasGuess = item.userHomeGuess !== null
   const isCorrect = item.finalPoints > 0
-  const exact = isExactResult(item)
+  const isExact =
+    hasGuess &&
+    item.gameStatus === 'finished' &&
+    item.userHomeGuess === item.homeScore &&
+    item.userAwayGuess === item.awayScore
+
+  const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
+  const predictionText = hasGuess
+    ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    : t('noPredictionShort')
 
   let subtext: string
-  if (!isCorrect) {
-    subtext = t('yourGuess', { home: item.userHomeGuess ?? '?', away: item.userAwayGuess ?? '?' })
-  } else if (exact) {
+  if (isPending) {
+    subtext = `${statusText} • ${predictionText}`
+  } else if (!hasGuess) {
+    subtext = t('youDidntPredict')
+  } else if (isExact) {
     subtext = t('exactResult')
+  } else if (isCorrect) {
+    subtext = t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
   } else {
-    subtext = t('correctResult')
+    subtext = t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+  }
+
+  let scoreDisplay: string
+  let statusIcon
+  if (isPending) {
+    scoreDisplay = '-- pts'
+    statusIcon = <WatchLaterIcon sx={{ color: 'warning.main', fontSize: 'small', mt: 0.3, flexShrink: 0 }} />
+  } else if (isCorrect) {
+    scoreDisplay = `+${item.finalPoints} pts`
+    statusIcon = <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+  } else {
+    scoreDisplay = '0 pts'
+    statusIcon = <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
   }
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-        {isCorrect ? (
-          <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-        ) : (
-          <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-        )}
+        {statusIcon}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" noWrap>
-              {item.homeTeamName} {item.homeScore}–{item.awayScore} {item.awayTeamName}
+              {item.homeTeamName}{' '}
+              {item.gameStatus === 'finished'
+                ? `${item.homeScore}–${item.awayScore}`
+                : 'vs'}{' '}
+              {item.awayTeamName}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-              <Typography variant="body2" color={isCorrect ? 'success.main' : 'text.secondary'} fontWeight="medium">
-                {isCorrect ? `+${item.finalPoints}` : '0'} pts
+              <Typography
+                variant="body2"
+                color={isCorrect && !isPending ? 'success.main' : 'text.secondary'}
+                fontWeight="medium"
+              >
+                {scoreDisplay}
               </Typography>
               {item.boostType && item.boostBonus > 0 && (
                 <BoostBadge type={item.boostType} />
@@ -79,90 +92,32 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   )
 }
 
-function AwardItem({ label, score, captionText }: { readonly label: string; readonly score: number; readonly captionText: string | null }) {
-  const isCorrect = score > 0
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-      {isCorrect ? (
-        <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-      ) : (
-        <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-      )}
-      <Box sx={{ flex: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2">{label}</Typography>
-          <Typography variant="body2" color={isCorrect ? 'success.main' : 'text.secondary'} fontWeight="medium">
-            {isCorrect ? `+${score}` : '0'} pts
-          </Typography>
-        </Box>
-        {captionText !== null && (
-          <Typography variant="caption" color="text.secondary">
-            {captionText}
-          </Typography>
-        )}
-      </Box>
-    </Box>
-  )
-}
-
-export function RecentResultsWidget({
-  data,
-  statsHref,
-  resultsHref,
-  qualifiedTeamsHref,
-  awardsHref,
-}: RecentResultsWidgetProps) {
+export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProps) {
   const t = useTranslations('hub.recentResults')
-
-  const {
-    recentGames,
-    qualifiedTeamsScore,
-    qualifiedTeamsCorrect,
-    qualifiedTeamsActualCount,
-    individualAwardsScore,
-    honorRollScore,
-    honorRollCorrect,
-    individualAwardsCorrect,
-  } = data
-
-  const honorRollPositionLabels: Record<HonorRollPosition, string> = {
-    champion: t('honorRollPosition.champion'),
-    runnerUp: t('honorRollPosition.runnerUp'),
-    thirdPlace: t('honorRollPosition.thirdPlace'),
-  }
-  const individualAwardLabels: Record<IndividualAwardType, string> = {
-    bestPlayer: t('individualAward.bestPlayer'),
-    topGoalscorer: t('individualAward.topGoalscorer'),
-    bestGoalkeeper: t('individualAward.bestGoalkeeper'),
-    bestYoungPlayer: t('individualAward.bestYoungPlayer'),
-  }
-
-  let honorRollCaption: string | null = null
-  if (honorRollCorrect !== null) {
-    if (honorRollCorrect.length === 0) {
-      honorRollCaption = t('noCorrectPredictions')
-    } else {
-      honorRollCaption = t('correctItems', { items: honorRollCorrect.map(pos => honorRollPositionLabels[pos]).join(', ') })
-    }
-  }
-
-  let individualAwardsCaption: string | null = null
-  if (individualAwardsCorrect !== null) {
-    if (individualAwardsCorrect.length === 0) {
-      individualAwardsCaption = t('noCorrectPredictions')
-    } else {
-      individualAwardsCaption = t('correctItems', { items: individualAwardsCorrect.map(award => individualAwardLabels[award]).join(', ') })
-    }
-  }
-
+  const { recentGames } = data
   const hasGames = recentGames.length > 0
-  const hasQT = qualifiedTeamsActualCount > 0
-  const hasAwards = individualAwardsScore !== null || honorRollScore !== null
-  const isEmpty = !hasGames && !hasQT && !hasAwards
 
   return (
     <>
-      {isEmpty ? (
+      {hasGames ? (
+        <Box>
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
+          >
+            {t('recentGames')}
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {recentGames.map((item, idx) => (
+              <Box key={item.gameId}>
+                {idx > 0 && <Divider sx={{ mb: 1 }} />}
+                <GameItem item={item} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ) : (
         <Box sx={{ textAlign: 'center', py: 3 }}>
           <SportsScoreIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
           <Typography variant="body2" color="text.secondary" fontWeight="medium">
@@ -171,79 +126,6 @@ export function RecentResultsWidget({
           <Typography variant="caption" color="text.secondary">
             {t('emptySubtitle')}
           </Typography>
-        </Box>
-      ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {hasGames && (
-            <Box component={Link} href={resultsHref} sx={sectionLinkSx}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-              >
-                {t('recentGames')}
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {recentGames.map((item, idx) => (
-                  <Box key={item.gameId}>
-                    {idx > 0 && <Divider sx={{ mb: 1 }} />}
-                    <GameItem item={item} />
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          )}
-
-          {hasQT && (
-            <Box component={Link} href={qualifiedTeamsHref} sx={sectionLinkSx}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-              >
-                {t('qualifiedTeams')}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
-                    <Typography variant="body2" color="success.main" fontWeight="medium">
-                      +{qualifiedTeamsScore ?? 0} pts
-                    </Typography>
-                  </Box>
-                  {qualifiedTeamsCorrect !== null && (
-                    <Typography variant="caption" color="text.secondary">
-                      {t('qualifiedSummary', {
-                        correct: qualifiedTeamsCorrect,
-                        total: qualifiedTeamsActualCount,
-                      })}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          )}
-
-          {hasAwards && (
-            <Box component={Link} href={awardsHref} sx={sectionLinkSx}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-              >
-                {t('tournamentAwards')}
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {individualAwardsScore !== null && (
-                  <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} captionText={individualAwardsCaption} />
-                )}
-                {honorRollScore !== null && (
-                  <AwardItem label={t('honorRollLabel')} score={honorRollScore} captionText={honorRollCaption} />
-                )}
-              </Box>
-            </Box>
-          )}
         </Box>
       )}
 

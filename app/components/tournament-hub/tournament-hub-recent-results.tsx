@@ -25,9 +25,6 @@ export async function TournamentHubRecentResults({
       <RecentResultsWidget
         data={data}
         statsHref={`${base}/stats`}
-        resultsHref={`${base}/results`}
-        qualifiedTeamsHref={`${base}/qualified-teams`}
-        awardsHref={`${base}/awards`}
       />
     </DashboardCard>
   )

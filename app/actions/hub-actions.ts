@@ -1,14 +1,13 @@
 'use server'
 
 import { db } from '../db/database'
-import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesWithUserGuesses, findFirstGameFullData } from '../db/game-repository'
+import { findGamesForDashboard, findFirstGameInTournament, findLastGameInTournament, findRecentGamesForDashboard, findFirstGameFullData } from '../db/game-repository'
 import { findGameGuessesByUserId } from '../db/game-guess-repository'
-import { findTeamInTournament, findQualifiedTeams } from '../db/team-repository'
+import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
-import { getTournamentGuessStatsForUsers, findTournamentGuessByUserIdTournament } from '../db/tournament-guess-repository'
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch, applyLocalization } from '../utils/localization-helper'
@@ -735,54 +734,14 @@ export async function getLeaderboardPeekData(
 export type HonorRollPosition = 'champion' | 'runnerUp' | 'thirdPlace'
 export type IndividualAwardType = 'bestPlayer' | 'topGoalscorer' | 'bestGoalkeeper' | 'bestYoungPlayer'
 
-type TournamentResult = Awaited<ReturnType<typeof findTournamentById>>
-type TournamentGuess = Awaited<ReturnType<typeof findTournamentGuessByUserIdTournament>>
-
-function computeHonorRollCorrect(
-  tournament: TournamentResult,
-  tournamentGuess: TournamentGuess
-): HonorRollPosition[] {
-  const correct: HonorRollPosition[] = []
-  if (!tournamentGuess) return correct
-  if (tournament?.champion_team_id && tournamentGuess.champion_team_id === tournament.champion_team_id) {
-    correct.push('champion')
-  }
-  if (tournament?.runner_up_team_id && tournamentGuess.runner_up_team_id === tournament.runner_up_team_id) {
-    correct.push('runnerUp')
-  }
-  if (tournament?.third_place_team_id && tournamentGuess.third_place_team_id === tournament.third_place_team_id) {
-    correct.push('thirdPlace')
-  }
-  return correct
-}
-
-function computeIndividualAwardsCorrect(
-  tournament: TournamentResult,
-  tournamentGuess: TournamentGuess
-): IndividualAwardType[] {
-  const correct: IndividualAwardType[] = []
-  if (!tournamentGuess) return correct
-  if (tournament?.best_player_id && tournamentGuess.best_player_id === tournament.best_player_id) {
-    correct.push('bestPlayer')
-  }
-  if (tournament?.top_goalscorer_player_id && tournamentGuess.top_goalscorer_player_id === tournament.top_goalscorer_player_id) {
-    correct.push('topGoalscorer')
-  }
-  if (tournament?.best_goalkeeper_player_id && tournamentGuess.best_goalkeeper_player_id === tournament.best_goalkeeper_player_id) {
-    correct.push('bestGoalkeeper')
-  }
-  if (tournament?.best_young_player_id && tournamentGuess.best_young_player_id === tournament.best_young_player_id) {
-    correct.push('bestYoungPlayer')
-  }
-  return correct
-}
+export type GameStatus = 'finished' | 'pending' | 'about_to_start'
 
 export interface RecentGameResultItem {
   gameId: string
   homeTeamName: string
   awayTeamName: string
-  homeScore: number
-  awayScore: number
+  homeScore: number | null
+  awayScore: number | null
   userHomeGuess: number | null
   userAwayGuess: number | null
   basePoints: number
@@ -790,27 +749,18 @@ export interface RecentGameResultItem {
   boostBonus: number
   finalPoints: number
   gameDate: Date
+  gameStatus: GameStatus
 }
 
 export interface RecentResultsData {
   recentGames: RecentGameResultItem[]
-  qualifiedTeamsScore: number | null
-  qualifiedTeamsCorrect: number | null
-  /** Number of teams that have actually qualified (from tournament_group_teams.is_complete) */
-  qualifiedTeamsActualCount: number
-  individualAwardsScore: number | null
-  honorRollScore: number | null
-  /** Positions user predicted correctly; null = honor roll not yet scored */
-  honorRollCorrect: HonorRollPosition[] | null
-  /** Award types user predicted correctly; null = awards not yet scored */
-  individualAwardsCorrect: IndividualAwardType[] | null
 }
 
-const RECENT_GAMES_LIMIT = 5
+const RECENT_GAMES_LIMIT = 10
 
 /**
- * Fetches recent game results with user guesses plus aggregated QT/award scores
- * for the authenticated user on the Tournament Hub.
+ * Fetches recent game results for all games with a closed prediction window,
+ * including games the user did not predict. Removes QT/award data.
  */
 export async function getRecentResultsData(
   tournamentId: string,
@@ -821,13 +771,9 @@ export async function getRecentResultsData(
     throw new Error('Unauthorized')
   }
 
-  const [recentGames, statsArray, teams, qualifiedTeamsResult, tournament, tournamentGuess] = await Promise.all([
-    findRecentGamesWithUserGuesses(user.id, tournamentId, RECENT_GAMES_LIMIT),
-    getTournamentGuessStatsForUsers([user.id], tournamentId),
+  const [recentGames, teams] = await Promise.all([
+    findRecentGamesForDashboard(user.id, tournamentId, RECENT_GAMES_LIMIT),
     findTeamInTournament(tournamentId),
-    findQualifiedTeams(tournamentId),
-    findTournamentById(tournamentId),
-    findTournamentGuessByUserIdTournament(user.id, tournamentId),
   ])
 
   const localizedTeams = applyLocalizationBatch(teams, locale, [
@@ -835,10 +781,22 @@ export async function getRecentResultsData(
   ])
   const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
 
+  const now = new Date()
+
   const gameItems: RecentGameResultItem[] = recentGames.map((g) => {
     const basePoints = g.guessScore ?? 0
     const finalPoints = g.finalScore ?? g.guessScore ?? 0
     const boostBonus = finalPoints - basePoints
+
+    let gameStatus: GameStatus
+    if (g.homeScore !== null) {
+      gameStatus = 'finished'
+    } else if (g.gameDate > now) {
+      gameStatus = 'about_to_start'
+    } else {
+      gameStatus = 'pending'
+    }
+
     return {
       gameId: g.gameId,
       homeTeamName: (teamsMap[g.homeTeamId] as Team | undefined)?.name ?? g.homeTeamId,
@@ -852,31 +810,9 @@ export async function getRecentResultsData(
       boostBonus,
       finalPoints,
       gameDate: g.gameDate,
+      gameStatus,
     }
   })
 
-  const stats = statsArray[0] ?? null
-  const honorRollScoreValue = stats?.honor_roll_score ?? null
-  const individualAwardsScoreValue = stats?.individual_awards_score ?? null
-
-  const honorRollCorrect: HonorRollPosition[] | null =
-    honorRollScoreValue !== null && tournament
-      ? computeHonorRollCorrect(tournament, tournamentGuess)
-      : null
-
-  const individualAwardsCorrect: IndividualAwardType[] | null =
-    individualAwardsScoreValue !== null && tournament
-      ? computeIndividualAwardsCorrect(tournament, tournamentGuess)
-      : null
-
-  return {
-    recentGames: gameItems,
-    qualifiedTeamsScore: stats?.qualified_teams_score ?? null,
-    qualifiedTeamsCorrect: stats?.qualified_teams_correct ?? null,
-    qualifiedTeamsActualCount: qualifiedTeamsResult.teams.length,
-    individualAwardsScore: individualAwardsScoreValue,
-    honorRollScore: honorRollScoreValue,
-    honorRollCorrect,
-    individualAwardsCorrect,
-  }
+  return { recentGames: gameItems }
 }

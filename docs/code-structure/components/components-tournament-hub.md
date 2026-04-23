@@ -93,16 +93,17 @@ Client Component for a single group card in the Leaderboard Peek widget. Tappabl
 ### app/components/tournament-hub/tournament-hub-recent-results.tsx
 Async Server Component for the Recent Results widget. Fetches prediction outcome data and the card title translation in parallel, then wraps the result in DashboardCard.
 
-- **TournamentHubRecentResults({ tournamentId, locale })**: `Promise<JSX.Element>` — [Server] Fetches `getRecentResultsData` and `getTranslations('hub.recentResults')` in parallel via `Promise.all`. Computes `statsHref`, `resultsHref`, `qualifiedTeamsHref`, `awardsHref` from `/${locale}/tournaments/${tournamentId}/[suffix]`. Wraps `RecentResultsWidget` inside `DashboardCard` using `t('title')` and `HistoryIcon`.
+- **TournamentHubRecentResults({ tournamentId, locale })**: `Promise<JSX.Element>` — [Server] Fetches `getRecentResultsData` and `getTranslations('hub.recentResults')` in parallel via `Promise.all`. Computes `statsHref` from `/${locale}/tournaments/${tournamentId}/stats`. Wraps `RecentResultsWidget` inside `DashboardCard` using `t('title')` and `HistoryIcon`.
   Calls: getRecentResultsData
   Renders: DashboardCard, RecentResultsWidget
 
 ### app/components/tournament-hub/recent-results-widget.tsx
 Client Component for the Recent Results widget content. Renders directly inside DashboardCard's CardContent (no own Paper or title wrapper).
 
-- **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when all data arrays are empty/zero/null. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`). "View full statistics" button uses `mt: 'auto'` to anchor to the bottom of DashboardCard's flex column.
+- **RecentResultsWidget({ data, statsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when `recentGames` is empty. Otherwise renders a RECENT GAMES list with one `GameItem` per game, divider-separated. "View full statistics" button anchored to bottom.
   Uses: useTranslations('hub.recentResults')
-  Renders: GameItem (inline sub-component), AwardItem (inline sub-component), BoostBadge
+  Renders: GameItem (inline sub-component), BoostBadge
+- **GameItem({ item })**: `JSX.Element` — [Client, inline] Renders one game row with icon (✅/❌/🕐), score/vs display, pts label, subtext. Five visual states: `finished+no-prediction` → CancelOutlined + youDidntPredict; `finished+exact` → CheckCircle + exactResult; `finished+correct-not-exact` → CheckCircle + correctResultWithGuess; `finished+incorrect` → CancelOutlined + yourGuess; `pending/about_to_start` → WatchLaterIcon (warning.main) + status + prediction or noPredictionShort + "-- pts".
 
 ### app/components/tournament-hub/games-prediction-widget.tsx
 Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.
