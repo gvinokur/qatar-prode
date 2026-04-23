@@ -143,14 +143,16 @@ export function GamesActiveClient({
         {renderStatusRow()}
 
         <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton
-            size="small"
-            onClick={handleLeft}
-            disabled={currentIndex === 0}
-            aria-label="previous game"
-          >
-            <ChevronLeftIcon />
-          </IconButton>
+          {editingGameId === null && (
+            <IconButton
+              size="small"
+              onClick={handleLeft}
+              disabled={currentIndex === 0}
+              aria-label="previous game"
+            >
+              <ChevronLeftIcon />
+            </IconButton>
+          )}
 
           <Box sx={{ flexGrow: 1 }}>
             <FlippableGameCard
@@ -170,14 +172,16 @@ export function GamesActiveClient({
             />
           </Box>
 
-          <IconButton
-            size="small"
-            onClick={handleRight}
-            disabled={currentIndex === games.length - 1}
-            aria-label="next game"
-          >
-            <ChevronRightIcon />
-          </IconButton>
+          {editingGameId === null && (
+            <IconButton
+              size="small"
+              onClick={handleRight}
+              disabled={currentIndex === games.length - 1}
+              aria-label="next game"
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          )}
         </Stack>
 
         <Button

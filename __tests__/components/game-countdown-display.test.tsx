@@ -80,7 +80,21 @@ describe('GameCountdownDisplay', () => {
     expect(progressBar).not.toBeInTheDocument();
   });
 
-  it('should show progress bar for games within 48h window', () => {
+  it('should show progress bar for games within 48h window in non-compact mode', () => {
+    vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
+    const gameDate = new Date('2026-01-20T15:00:00Z'); // 4h to deadline
+
+    const { container } = render(
+      <TestWrapper>
+        <GameCountdownDisplay gameDate={gameDate} compact={false} />
+      </TestWrapper>
+    );
+
+    const progressBar = container.querySelector('.MuiLinearProgress-root');
+    expect(progressBar).toBeInTheDocument();
+  });
+
+  it('should not show progress bar in compact mode even within 48h window', () => {
     vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
     const gameDate = new Date('2026-01-20T15:00:00Z'); // 4h to deadline
 
@@ -91,7 +105,7 @@ describe('GameCountdownDisplay', () => {
     );
 
     const progressBar = container.querySelector('.MuiLinearProgress-root');
-    expect(progressBar).toBeInTheDocument();
+    expect(progressBar).not.toBeInTheDocument();
   });
 
   it('should not render progress bar for closed games', () => {
