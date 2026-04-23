@@ -45,6 +45,7 @@ export const findGamesInTournament = cache(async (tournamentId: string, draftRes
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])
@@ -151,6 +152,7 @@ export const findFirstGameFullData = cache(async (tournamentId: string): Promise
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])
@@ -327,6 +329,7 @@ export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  =>
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])
@@ -382,6 +385,7 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])
@@ -431,6 +435,7 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])
@@ -483,6 +488,7 @@ export const getAllTournamentGames = cache(async (tournamentId: string) => {
           .select([
             'tournament_playoff_round_games.tournament_playoff_round_id',
             'tournament_playoff_rounds.round_name',
+            'tournament_playoff_rounds.round_name_i18n',
             'tournament_playoff_rounds.is_final',
             'tournament_playoff_rounds.is_third_place'
           ])

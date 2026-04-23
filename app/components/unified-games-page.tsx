@@ -1,8 +1,10 @@
 'use server'
 
+import { getLocale } from 'next-intl/server';
 import { getLoggedInUser } from '../actions/user-actions';
 import { getTeamsMap, getGamesClosingWithin48Hours } from '../actions/tournament-actions';
 import { getAllTournamentGames, getTournamentGameCounts } from '../db/game-repository';
+import { applyLocalization } from '../utils/localization-helper';
 import { findGameGuessesByUserId, getPredictionDashboardStats } from '../db/game-guess-repository';
 import { findTournamentById } from '../db/tournament-repository';
 import { findGroupsInTournament } from '../db/tournament-group-repository';
@@ -27,6 +29,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
   }
 
   // Fetch all data in parallel
+  const locale = await getLocale();
+
   const [
     games,
     gameCounts,
@@ -63,6 +67,13 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
     : undefined;
 
+  const localizedGames = games.map(game => ({
+    ...game,
+    playoffStage: game.playoffStage
+      ? applyLocalization(game.playoffStage, locale, [{ field: 'round_name', i18nField: 'round_name_i18n' }])
+      : game.playoffStage
+  }));
+
   // Convert game guesses array to map
   const gameGuesses = customToMap(gameGuessesArray, (gameGuess) => gameGuess.game_id);
 
@@ -75,7 +86,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     >
       <EditTriggerContextProvider>
         <UnifiedGamesPageClient
-          games={games}
+          games={localizedGames}
           gameCounts={gameCounts}
           teamsMap={teamsMap}
           tournamentId={tournamentId}
