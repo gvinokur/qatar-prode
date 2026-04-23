@@ -9,7 +9,7 @@
 - **MAIN_REPO_PATH**: /Users/gvinokur/Personal/qatar-prode
 - **PR_NUMBER**: 378
 - **PR_URL**: https://github.com/gvinokur/qatar-prode/pull/378
-- **STATUS**: Planning
+- **STATUS**: Implementing
 
 ## GitHub Issue
 

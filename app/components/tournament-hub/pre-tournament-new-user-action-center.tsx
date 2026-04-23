@@ -14,6 +14,7 @@ import { PreTournamentCountdown } from './pre-tournament-hero'
 import { TutorialCTACard } from './tutorial-cta-card'
 import { getRulesBySection, getConstraintsBySection } from '../../utils/scoring-rules-utils'
 import type { ActionCenterData } from '../../actions/hub-actions'
+import { PREDICTION_LOCK_OFFSET_MS } from '../../utils/prediction-constants'
 import type { Locale } from '../../../i18n.config'
 
 interface PreTournamentNewUserActionCenterProps {
@@ -187,11 +188,11 @@ export async function PreTournamentNewUserActionCenter({
   const scoringLabel = t('newUser.tracks.scoringLabel')
   const deadlineLabel = t('newUser.tracks.deadline.label')
 
-  // QT/Awards lock 5 days after the first game — compute the formatted date once and pass it to
+  // QT/Awards lock 2 days after the first game — compute the formatted date once and pass it to
   // getConstraintsBySection, which embeds it directly into the constraint text from rules.constraints.
   const qtLockDateFormatted = data.firstGameDate
     ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
-        new Date(data.firstGameDate.getTime() + 5 * 24 * 60 * 60 * 1000)
+        new Date(data.firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS)
       )
     : null
 

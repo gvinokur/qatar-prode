@@ -135,6 +135,13 @@
     "createGroup": "Create Group",
     "discoverGroups": "Discover Groups"
   },
+  "statusWidget": {
+    "deadlineLabel": "Prediction deadline:",
+    "deadlineNormal": "Changes allowed until the tournament starts.",
+    "deadlineInfo": "Less than 48 hours remaining.",
+    "deadlineWarning": "Less than 24 hours remaining!",
+    "deadlineError": "Final 2 hours — submit your predictions now!"
+  },
   "gamesWidget": {
     "cardTitle": "Upcoming Games",
     "ctaLogin": "Sign In to Predict",

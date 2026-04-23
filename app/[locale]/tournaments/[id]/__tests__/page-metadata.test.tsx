@@ -45,6 +45,11 @@ vi.mock('@/app/actions/hub-actions', () => ({
   getActionCenterGames: () => mockGetActionCenterGames(),
 }))
 
+// Mock prediction-constants
+vi.mock('@/app/utils/prediction-constants', () => ({
+  PREDICTION_LOCK_OFFSET_MS: 2 * 24 * 60 * 60 * 1000,
+}))
+
 // Mock DashboardBanner so it doesn't need real data
 vi.mock('@/app/components/tournament-hub/dashboard-banner', () => ({
   DashboardBanner: () => <div data-testid="dashboard-banner" />,
@@ -60,6 +65,14 @@ vi.mock('@mui/icons-material/SportsSoccer', () => ({ default: () => <span data-t
 vi.mock('@mui/icons-material/EmojiEvents', () => ({ default: () => <span data-testid="icon-events" /> }))
 vi.mock('@mui/icons-material/Groups', () => ({ default: () => <span data-testid="icon-groups" /> }))
 vi.mock('@mui/icons-material/History', () => ({ default: () => <span data-testid="icon-history" /> }))
+
+// Mock new status widgets
+vi.mock('@/app/components/tournament-hub/qualified-teams-widget', () => ({
+  QualifiedTeamsWidget: () => <div data-testid="qualified-teams-widget" />,
+}))
+vi.mock('@/app/components/tournament-hub/awards-widget', () => ({
+  AwardsWidget: () => <div data-testid="awards-widget" />,
+}))
 
 // Mock TournamentHubRecentResults (async server component)
 vi.mock('@/app/components/tournament-hub/tournament-hub-recent-results', () => ({
@@ -82,6 +95,8 @@ const DEFAULT_HUB_DATA = {
   totalGames: 64,
   isStarted: false,
   isFinished: false,
+  qualifiersTotal: 32,
+  awardsTotal: 7,
 }
 
 const makeParams = (id: string) => ({
@@ -120,11 +135,19 @@ describe('TournamentHubPage (root landing page)', () => {
     expect(screen.getByTestId('games-prediction-widget')).toBeInTheDocument()
   })
 
-  it('renders Standings and Groups static DashboardCard titles', async () => {
+  it('renders QualifiedTeamsWidget and AwardsWidget when tournament has not started', async () => {
     const page = await TournamentHubPage(makeParams('t-1'))
     render(page as Parameters<typeof render>[0])
-    expect(screen.getByText('Standings')).toBeInTheDocument()
-    expect(screen.getByText('Groups')).toBeInTheDocument()
+    expect(screen.getByTestId('qualified-teams-widget')).toBeInTheDocument()
+    expect(screen.getByTestId('awards-widget')).toBeInTheDocument()
+  })
+
+  it('does not render QualifiedTeamsWidget or AwardsWidget when tournament has started', async () => {
+    mockGetTournamentHubPageData.mockResolvedValue({ ...DEFAULT_HUB_DATA, isStarted: true })
+    const page = await TournamentHubPage(makeParams('t-1'))
+    render(page as Parameters<typeof render>[0])
+    expect(screen.queryByTestId('qualified-teams-widget')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('awards-widget')).not.toBeInTheDocument()
   })
 
   it('renders the Results widget when timing.tournamentHasStarted is true', async () => {

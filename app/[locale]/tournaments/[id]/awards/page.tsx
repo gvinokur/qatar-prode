@@ -21,6 +21,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
 import JsonLd from '../../../../components/shared/json-ld'
 import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
+import { PREDICTION_LOCK_OFFSET_MS } from '../../../../utils/prediction-constants'
 
 type Props = {
   readonly params: Promise<{
@@ -87,9 +88,8 @@ export default async function Awards(props: Props) {
     : null
 
   // Get tournament start time to check if predictions are still allowed
-  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
   const currentTime = new Date()
-  const isPredictionLocked = (currentTime.getTime() - tournamentStartDate.getTime()) >= FIVE_DAYS_MS;
+  const isPredictionLocked = (currentTime.getTime() - tournamentStartDate.getTime()) >= PREDICTION_LOCK_OFFSET_MS;
 
   return (
     <>

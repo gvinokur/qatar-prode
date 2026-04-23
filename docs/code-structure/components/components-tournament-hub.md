@@ -119,6 +119,20 @@ Async Server Component for the Games widget in Logged-Off and Pre-Start states.
   Calls: getTranslations('hub')
   Renders: DashboardCard
 
+### app/components/tournament-hub/qualified-teams-widget.tsx
+Async Server Component for the Qualified Teams prediction widget in pre-tournament phase.
+
+- **QualifiedTeamsWidget({ isLoggedOff, scoringRules, qtHref, qualifiersCompleted, qualifiersTotal, msUntilPredictionLock, lockDateFormatted })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')` and `computeStatusWidgetSeverity(msUntilPredictionLock)`. Renders `DashboardCard` with `AccountTreeIcon`, title `newUser.tracks.qualifiedTeams.title`, count `"${qualifiersCompleted}/${qualifiersTotal}"`, and `urgent={severity === 'error'}`. Inside: description paragraph; severity-coloured dashed deadline box (ScheduleIcon + deadlineLabel + lockDateFormatted + deadline message selected by severity); dashed scoring rules box (AddCircleOutlineIcon + `scoringRules.qualifiedTeams`); `LinearProgress color="secondary"` (hidden when `qualifiersTotal === 0`); CTA via `GamesInfoWidgetCta` — 4-state label: 0% → `cta`, >0%<90% → `ctaKeep`, ≥90%<100% → `ctaFinish`, 100% → `ctaReview`; `gamesWidget.ctaLogin` when `isLoggedOff`.
+  Calls: getTranslations('hub'), computeStatusWidgetSeverity
+  Renders: DashboardCard, GamesInfoWidgetCta
+
+### app/components/tournament-hub/awards-widget.tsx
+Async Server Component for the Awards prediction widget in pre-tournament phase.
+
+- **AwardsWidget({ isLoggedOff, scoringRules, awardsHref, awardsCompleted, awardsTotal, msUntilPredictionLock, lockDateFormatted })**: `Promise<JSX.Element>` — [Server] Same structure as `QualifiedTeamsWidget`. `EmojiEventsIcon`, title `newUser.tracks.awards.title`, count `"${awardsCompleted}/${awardsTotal}"`, `scoringRules.awards`. 4-state CTA keyed by awards progress.
+  Calls: getTranslations('hub'), computeStatusWidgetSeverity
+  Renders: DashboardCard, GamesInfoWidgetCta
+
 ### app/components/tournament-hub/games-active-widget.tsx
 Async Server Component for the Games widget in Active state. Thin wrapper — computes initial urgency and urgent game IDs, then delegates to GamesActiveSection.
 

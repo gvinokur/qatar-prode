@@ -15,6 +15,7 @@ import * as userActions from '../user-actions'
 import { applyLocalizationBatch } from '@/app/utils/localization-helper'
 import { testFactories } from '../../../__tests__/db/test-factories'
 
+const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000
 const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000
 const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000
 
@@ -98,7 +99,7 @@ const defaultTournament = testFactories.tournament({
   max_golden_games: 3,
 })
 
-// A first-game date far in the past so the 5-day lock window has already passed by default
+// A first-game date far in the past so the 2-day lock window has already passed by default
 const pastFirstGame = testFactories.game({
   id: 'first-game',
   game_date: new Date(Date.now() - SIX_DAYS_MS),
@@ -352,10 +353,10 @@ describe('getActionCenterGames', () => {
   })
 
   describe('qtAndAwardsOpen', () => {
-    it('returns qtAndAwardsOpen=true when first game was less than 5 days ago', async () => {
+    it('returns qtAndAwardsOpen=true when first game was less than 2 days ago', async () => {
       const recentFirstGame = testFactories.game({
         id: 'first-game',
-        game_date: new Date(Date.now() - FOUR_DAYS_MS),
+        game_date: new Date(Date.now() - ONE_DAY_MS),
       })
       vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
       vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(recentFirstGame as any)
@@ -366,7 +367,7 @@ describe('getActionCenterGames', () => {
       expect(result.msUntilPredictionLock).toBeGreaterThan(0)
     })
 
-    it('returns qtAndAwardsOpen=false when first game was more than 5 days ago', async () => {
+    it('returns qtAndAwardsOpen=false when first game was more than 2 days ago', async () => {
       vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
       // pastFirstGame is already set in beforeEach (6 days ago)
 
@@ -383,7 +384,7 @@ describe('getActionCenterGames', () => {
       })
       const recentFirstGame = testFactories.game({
         id: 'first-game',
-        game_date: new Date(Date.now() - FOUR_DAYS_MS),
+        game_date: new Date(Date.now() - ONE_DAY_MS),
       })
       vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
       vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(inactiveTournament)

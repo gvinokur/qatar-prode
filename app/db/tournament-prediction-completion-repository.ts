@@ -3,6 +3,7 @@ import { TournamentPredictionCompletion, Tournament, TeamPositionPrediction } fr
 import { findTournamentGuessByUserIdTournament } from './tournament-guess-repository';
 import { getTournamentStartDate } from '../actions/tournament-actions';
 import { getAllUserGroupPositionsPredictions } from './qualified-teams-repository';
+import { PREDICTION_LOCK_OFFSET_MS } from '../utils/prediction-constants';
 
 /**
  * Get tournament prediction completion status for a user
@@ -131,11 +132,11 @@ export async function getTournamentPredictionCompletion(
   const overallCompleted = finalStandingsCompleted + awardsCompleted + qualifiersCompleted;
   const overallPercentage = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
-  // Check if predictions are locked (5 days after tournament starts)
+  // Check if predictions are locked after the lock window after tournament starts
   const tournamentStartDate = await getTournamentStartDate(tournamentId);
 
   const isPredictionLocked = tournamentStartDate
-    ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
+    ? Date.now() > tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS
     : false;
 
   return {

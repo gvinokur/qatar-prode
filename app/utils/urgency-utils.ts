@@ -6,6 +6,18 @@ const ONE_HOUR_MS = 60 * 60 * 1000
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000
 
+export type StatusWidgetSeverity = 'normal' | 'info' | 'warning' | 'error'
+
+/**
+ * Derives the deadline severity for status widgets (QT, Awards) from ms remaining until lock.
+ */
+export function computeStatusWidgetSeverity(msUntilLock: number): StatusWidgetSeverity {
+  if (msUntilLock < 2 * ONE_HOUR_MS) return 'error'
+  if (msUntilLock < TWENTY_FOUR_HOURS_MS) return 'warning'
+  if (msUntilLock < FORTY_EIGHT_HOURS_MS) return 'info'
+  return 'normal'
+}
+
 /**
  * Derives the urgency level for the active games carousel from carousel data.
  * 'critical'  — nearest deadline < 2 hours
