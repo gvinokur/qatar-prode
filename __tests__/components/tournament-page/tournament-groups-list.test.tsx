@@ -12,7 +12,8 @@ vi.mock('@/app/actions/prode-group-actions', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
-    push: vi.fn()
+    push: vi.fn(),
+    refresh: vi.fn(),
   }))
 }));
 
@@ -46,11 +47,6 @@ describe('TournamentGroupsList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock globalThis.location.reload
-    Object.defineProperty(globalThis, 'location', {
-      value: { reload: vi.fn() },
-      writable: true
-    });
   });
 
   it('renders page title', () => {

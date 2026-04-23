@@ -8,10 +8,27 @@ vi.mock('@/app/actions/hub-actions', () => ({
   getRecentResultsData: vi.fn(),
 }))
 
+vi.mock('next-intl/server', () => ({
+  getTranslations: () => Promise.resolve((key: string) => `hub.recentResults:${key}`),
+}))
+
+vi.mock('../dashboard-card', () => ({
+  DashboardCard: ({ title, children }: any) => (
+    <div data-testid="dashboard-card">
+      <span data-testid="dashboard-card-title">{title}</span>
+      {children}
+    </div>
+  ),
+}))
+
 vi.mock('../recent-results-widget', () => ({
-  RecentResultsWidget: ({ data }: any) => (
+  RecentResultsWidget: ({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref }: any) => (
     <div data-testid="recent-results-widget">
-      {JSON.stringify(data.recentGames.length)}
+      <span data-testid="game-count">{JSON.stringify(data.recentGames.length)}</span>
+      <span data-testid="stats-href">{statsHref}</span>
+      <span data-testid="results-href">{resultsHref}</span>
+      <span data-testid="qt-href">{qualifiedTeamsHref}</span>
+      <span data-testid="awards-href">{awardsHref}</span>
     </div>
   ),
 }))
@@ -23,6 +40,8 @@ const emptyData: RecentResultsData = {
   qualifiedTeamsActualCount: 0,
   individualAwardsScore: null,
   honorRollScore: null,
+  honorRollCorrect: null,
+  individualAwardsCorrect: null,
 }
 
 describe('TournamentHubRecentResults', () => {
@@ -32,6 +51,7 @@ describe('TournamentHubRecentResults', () => {
 
   it('renders RecentResultsWidget when getRecentResultsData returns populated data', async () => {
     const populatedData: RecentResultsData = {
+      ...emptyData,
       recentGames: [
         {
           gameId: 'game-1',
@@ -48,11 +68,6 @@ describe('TournamentHubRecentResults', () => {
           gameDate: new Date('2022-12-18'),
         },
       ],
-      qualifiedTeamsScore: null,
-      qualifiedTeamsCorrect: null,
-      qualifiedTeamsActualCount: 0,
-      individualAwardsScore: null,
-      honorRollScore: null,
     }
     vi.mocked(hubActions.getRecentResultsData).mockResolvedValue(populatedData)
 
@@ -64,7 +79,7 @@ describe('TournamentHubRecentResults', () => {
     )
 
     expect(screen.getByTestId('recent-results-widget')).toBeInTheDocument()
-    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByTestId('game-count')).toHaveTextContent('1')
   })
 
   it('renders RecentResultsWidget with empty data when getRecentResultsData returns empty', async () => {
@@ -78,7 +93,7 @@ describe('TournamentHubRecentResults', () => {
     )
 
     expect(screen.getByTestId('recent-results-widget')).toBeInTheDocument()
-    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(screen.getByTestId('game-count')).toHaveTextContent('0')
   })
 
   it('calls getRecentResultsData with correct tournamentId and locale', async () => {
@@ -92,14 +107,42 @@ describe('TournamentHubRecentResults', () => {
     expect(hubActions.getRecentResultsData).toHaveBeenCalledWith('tournament-42', 'es')
   })
 
-  it('calls getRecentResultsData and constructs statsHref from locale and tournamentId', async () => {
+  it('renders DashboardCard with the hub.recentResults.title translation', async () => {
     vi.mocked(hubActions.getRecentResultsData).mockResolvedValue(emptyData)
 
-    await TournamentHubRecentResults({
-      tournamentId: 'tournament-xyz',
-      locale: 'en',
-    })
+    render(
+      await TournamentHubRecentResults({
+        tournamentId: 'tournament-1',
+        locale: 'en',
+      })
+    )
 
-    expect(hubActions.getRecentResultsData).toHaveBeenCalled()
+    expect(screen.getByTestId('dashboard-card')).toBeInTheDocument()
+    expect(screen.getByTestId('dashboard-card-title')).toHaveTextContent('hub.recentResults:title')
+  })
+
+  it('passes correct hrefs derived from locale and tournamentId to RecentResultsWidget', async () => {
+    vi.mocked(hubActions.getRecentResultsData).mockResolvedValue(emptyData)
+
+    render(
+      await TournamentHubRecentResults({
+        tournamentId: 'tournament-xyz',
+        locale: 'es',
+      })
+    )
+
+    expect(screen.getByTestId('stats-href')).toHaveTextContent('/es/tournaments/tournament-xyz/stats')
+    expect(screen.getByTestId('results-href')).toHaveTextContent('/es/tournaments/tournament-xyz/results')
+    expect(screen.getByTestId('qt-href')).toHaveTextContent('/es/tournaments/tournament-xyz/qualified-teams')
+    expect(screen.getByTestId('awards-href')).toHaveTextContent('/es/tournaments/tournament-xyz/awards')
+  })
+
+  it('re-throws when getRecentResultsData rejects', async () => {
+    const error = new Error('DB failure')
+    vi.mocked(hubActions.getRecentResultsData).mockRejectedValue(error)
+
+    await expect(
+      TournamentHubRecentResults({ tournamentId: 'tournament-1', locale: 'en' })
+    ).rejects.toThrow('DB failure')
   })
 })

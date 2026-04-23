@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Button, Divider, Paper, Typography } from '@mui/material'
+import { Box, Button, Divider, Typography } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import SportsScoreIcon from '@mui/icons-material/SportsScore'
@@ -161,100 +161,93 @@ export function RecentResultsWidget({
   const isEmpty = !hasGames && !hasQT && !hasAwards
 
   return (
-    <Box>
-      <Box sx={{ mb: 1, textAlign: 'center' }}>
-        <Typography variant="h6">{t('title')}</Typography>
-      </Box>
-
-      <Paper sx={{ p: 2 }}>
-        {isEmpty ? (
-          <Box sx={{ textAlign: 'center', py: 3 }}>
-            <SportsScoreIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-            <Typography variant="body2" color="text.secondary" fontWeight="medium">
-              {t('emptyTitle')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {t('emptySubtitle')}
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {hasGames && (
-              <Box component={Link} href={resultsHref} sx={sectionLinkSx}>
-                <Typography
-                  variant="overline"
-                  color="text.secondary"
-                  sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-                >
-                  {t('recentGames')}
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {recentGames.map((item, idx) => (
-                    <Box key={item.gameId}>
-                      {idx > 0 && <Divider sx={{ mb: 1 }} />}
-                      <GameItem item={item} />
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            {hasQT && (
-              <Box component={Link} href={qualifiedTeamsHref} sx={sectionLinkSx}>
-                <Typography
-                  variant="overline"
-                  color="text.secondary"
-                  sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-                >
-                  {t('qualifiedTeams')}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
-                      <Typography variant="body2" color="success.main" fontWeight="medium">
-                        +{qualifiedTeamsScore ?? 0} pts
-                      </Typography>
-                    </Box>
-                    {qualifiedTeamsCorrect !== null && (
-                      <Typography variant="caption" color="text.secondary">
-                        {t('qualifiedSummary', {
-                          correct: qualifiedTeamsCorrect,
-                          total: qualifiedTeamsActualCount,
-                        })}
-                      </Typography>
-                    )}
+    <>
+      {isEmpty ? (
+        <Box sx={{ textAlign: 'center', py: 3 }}>
+          <SportsScoreIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+          <Typography variant="body2" color="text.secondary" fontWeight="medium">
+            {t('emptyTitle')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('emptySubtitle')}
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {hasGames && (
+            <Box component={Link} href={resultsHref} sx={sectionLinkSx}>
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
+              >
+                {t('recentGames')}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {recentGames.map((item, idx) => (
+                  <Box key={item.gameId}>
+                    {idx > 0 && <Divider sx={{ mb: 1 }} />}
+                    <GameItem item={item} />
                   </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {hasQT && (
+            <Box component={Link} href={qualifiedTeamsHref} sx={sectionLinkSx}>
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
+              >
+                {t('qualifiedTeams')}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
+                    <Typography variant="body2" color="success.main" fontWeight="medium">
+                      +{qualifiedTeamsScore ?? 0} pts
+                    </Typography>
+                  </Box>
+                  {qualifiedTeamsCorrect !== null && (
+                    <Typography variant="caption" color="text.secondary">
+                      {t('qualifiedSummary', {
+                        correct: qualifiedTeamsCorrect,
+                        total: qualifiedTeamsActualCount,
+                      })}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
-            )}
+            </Box>
+          )}
 
-            {hasAwards && (
-              <Box component={Link} href={awardsHref} sx={sectionLinkSx}>
-                <Typography
-                  variant="overline"
-                  color="text.secondary"
-                  sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
-                >
-                  {t('tournamentAwards')}
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {individualAwardsScore !== null && (
-                    <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} captionText={individualAwardsCaption} />
-                  )}
-                  {honorRollScore !== null && (
-                    <AwardItem label={t('honorRollLabel')} score={honorRollScore} captionText={honorRollCaption} />
-                  )}
-                </Box>
+          {hasAwards && (
+            <Box component={Link} href={awardsHref} sx={sectionLinkSx}>
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 1, lineHeight: 1.2 }}
+              >
+                {t('tournamentAwards')}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {individualAwardsScore !== null && (
+                  <AwardItem label={t('individualAwardsLabel')} score={individualAwardsScore} captionText={individualAwardsCaption} />
+                )}
+                {honorRollScore !== null && (
+                  <AwardItem label={t('honorRollLabel')} score={honorRollScore} captionText={honorRollCaption} />
+                )}
               </Box>
-            )}
-          </Box>
-        )}
-      </Paper>
+            </Box>
+          )}
+        </Box>
+      )}
 
-      {/* View stats button — always shown outside the card, matching leaderboard peek pattern */}
-      <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+      <Box sx={{ mt: 'auto', pt: 1.5, textAlign: 'center' }}>
         <Button
           component={Link}
           href={statsHref}
@@ -265,6 +258,6 @@ export function RecentResultsWidget({
           {t('seeStats')}
         </Button>
       </Box>
-    </Box>
+    </>
   )
 }

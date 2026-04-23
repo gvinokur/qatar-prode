@@ -541,15 +541,29 @@ describe('RecentResultsWidget', () => {
     })
   })
 
-  describe('title rendering', () => {
-    it('always renders widget title', () => {
-      renderWithTheme(
+  describe('layout', () => {
+    it('does not render a Paper element (DashboardCard provides the card shell)', () => {
+      const { container } = renderWithTheme(
         <RecentResultsWidget data={emptyData} {...defaultHrefs} />
       )
 
-      expect(
-        screen.getByText('hub.recentResults:title')
-      ).toBeInTheDocument()
+      expect(container.querySelector('.MuiPaper-root')).toBeNull()
+    })
+
+    it('does not show empty state when recentGames is empty but qualifiedTeamsActualCount > 0', () => {
+      const data: RecentResultsData = {
+        ...emptyData,
+        recentGames: [],
+        qualifiedTeamsActualCount: 4,
+        qualifiedTeamsScore: 0,
+      }
+
+      renderWithTheme(
+        <RecentResultsWidget data={data} {...defaultHrefs} />
+      )
+
+      expect(screen.queryByText('hub.recentResults:emptyTitle')).not.toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:qualifiedTeams')).toBeInTheDocument()
     })
   })
 

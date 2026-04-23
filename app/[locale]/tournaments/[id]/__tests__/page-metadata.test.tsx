@@ -44,6 +44,11 @@ vi.mock('@mui/icons-material/EmojiEvents', () => ({ default: () => <span data-te
 vi.mock('@mui/icons-material/Groups', () => ({ default: () => <span data-testid="icon-groups" /> }))
 vi.mock('@mui/icons-material/History', () => ({ default: () => <span data-testid="icon-history" /> }))
 
+// Mock TournamentHubRecentResults (async server component)
+vi.mock('@/app/components/tournament-hub/tournament-hub-recent-results', () => ({
+  TournamentHubRecentResults: () => <div data-testid="recent-results-widget" />,
+}))
+
 describe('TournamentHubPage (root landing page)', () => {
   const mockParams = Promise.resolve({ id: 'tournament-1' });
   const mockUser = { id: 'user-1', email: 'test@example.com' };
@@ -71,14 +76,29 @@ describe('TournamentHubPage (root landing page)', () => {
     expect(screen.getByTestId('dashboard-banner')).toBeInTheDocument();
   });
 
-  it('renders all four mock DashboardCard titles when logged in', async () => {
+  it('renders the three static DashboardCard titles when logged in', async () => {
     const page = await TournamentHubPage({ params: mockParams });
     render(page as Parameters<typeof render>[0]);
 
     expect(screen.getByText('Games')).toBeInTheDocument();
     expect(screen.getByText('Standings')).toBeInTheDocument();
     expect(screen.getByText('Groups')).toBeInTheDocument();
-    expect(screen.getByText('Results')).toBeInTheDocument();
+  });
+
+  it('renders the Results widget when timing.tournamentHasStarted is true', async () => {
+    mockGetPublicTournamentTiming.mockResolvedValue({ tournamentHasStarted: true });
+
+    const page = await TournamentHubPage({ params: mockParams });
+    render(page as Parameters<typeof render>[0]);
+
+    expect(screen.getByTestId('recent-results-widget')).toBeInTheDocument();
+  });
+
+  it('does not render the Results widget when timing is null', async () => {
+    const page = await TournamentHubPage({ params: mockParams });
+    render(page as Parameters<typeof render>[0]);
+
+    expect(screen.queryByTestId('recent-results-widget')).not.toBeInTheDocument();
   });
 
   it('renders DashboardBanner even when user is not logged in', async () => {

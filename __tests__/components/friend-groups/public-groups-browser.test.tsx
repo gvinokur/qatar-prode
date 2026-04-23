@@ -57,12 +57,6 @@ describe('PublicGroupsBrowser', () => {
     vi.mocked(usePathname).mockReturnValue(DISCOVER_PATH);
     vi.mocked(useSearchParams).mockReturnValue(mockSearchParams);
     mockRequestToJoinGroup.mockResolvedValue({ success: true } as any);
-
-    Object.defineProperty(globalThis, 'location', {
-      value: { href: 'http://localhost/es/tournaments/t1/friend-groups/discover' },
-      writable: true,
-      configurable: true,
-    });
   });
 
   afterEach(() => {

@@ -1,5 +1,6 @@
 'use server'
 
+import { Suspense } from 'react'
 import { Box, Typography } from '@mui/material'
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
@@ -11,6 +12,7 @@ import { getLoggedInUser } from '@/app/actions/user-actions'
 import { getActionCenterGames, getPublicTournamentTiming } from '@/app/actions/hub-actions'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
+import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
 
 type Props = {
   readonly params: Promise<{
@@ -51,11 +53,11 @@ export default async function TournamentHubPage(props: Props) {
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </Typography>
         </DashboardCard>
-        <DashboardCard title="Results" icon={<HistoryIcon />}>
-          <Typography variant="body2" color="text.secondary">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-          </Typography>
-        </DashboardCard>
+        {timing?.tournamentHasStarted && (
+          <Suspense fallback={<DashboardCard title="Results" icon={<HistoryIcon fontSize="small" />} />}>
+            <TournamentHubRecentResults tournamentId={id} locale={locale} />
+          </Suspense>
+        )}
       </Box>
 
     </Box>

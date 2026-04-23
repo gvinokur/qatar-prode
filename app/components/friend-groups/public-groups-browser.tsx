@@ -93,7 +93,7 @@ export default function PublicGroupsBrowser({
   const handleRequestJoin = (groupId: string) => {
     if (!currentUserId) {
       // Redirect to login with returnUrl
-      const returnUrl = encodeURIComponent(globalThis.location.href);
+      const returnUrl = encodeURIComponent(pathname);
       router.push(`/${locale}/login?returnUrl=${returnUrl}`);
       return;
     }
