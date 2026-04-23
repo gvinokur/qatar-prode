@@ -39,15 +39,33 @@ The Games list currently shows all predictions as a flat ordered list with no vi
 
 ## Technical Approach
 
-### 1. Database — Migration
+### 1. Database — Migrations
 
-New file: `migrations/20260423000000_add_matchday_to_games.sql`
+**Migration 1** — Schema: `migrations/20260423000000_add_matchday_to_games.sql`
 
 ```sql
 ALTER TABLE games ADD COLUMN IF NOT EXISTS matchday INTEGER;
 ```
 
-Manual execution required. No automated calculation (out of scope per issue).
+**Migration 2** — World Cup seed data: `migrations/20260423000001_seed_world_cup_matchdays.sql`
+
+Sets matchday for FIFA World Cup 2026 group-stage games using the established game_number ranges (48-team format: 12 groups × 4 games = 48 games per matchday, 3 matchdays):
+
+```sql
+UPDATE games
+SET matchday =
+  CASE
+    WHEN game_number BETWEEN  1 AND 24 THEN 1
+    WHEN game_number BETWEEN 25 AND 48 THEN 2
+    WHEN game_number BETWEEN 49 AND 72 THEN 3
+  END
+WHERE tournament_id = (
+  SELECT id FROM tournaments WHERE short_name = 'WC 2026' LIMIT 1
+)
+AND game_number BETWEEN 1 AND 72;
+```
+
+Both migrations require manual execution with user permission. If the FIFA 2026 tournament row doesn't exist yet, the UPDATE affects 0 rows safely.
 
 ### 2. Type Update
 
@@ -194,7 +212,11 @@ No new cross-layer flows. All changes are within existing UI components plus the
 
 ### `migrations/20260423000000_add_matchday_to_games.sql` *(new)*
 
-SQL only. No functions.
+SQL only. Adds `matchday INTEGER` column. No functions.
+
+### `migrations/20260423000001_seed_world_cup_matchdays.sql` *(new)*
+
+SQL only. Updates `matchday` for FIFA WC 2026 group-stage games using `short_name = 'WC 2026'` subquery. Safe no-op if tournament doesn't exist yet. No functions.
 
 ---
 
@@ -320,7 +342,8 @@ SQL only. No functions.
 
 | File | Purpose |
 |------|---------|
-| `migrations/20260423000000_add_matchday_to_games.sql` | Add matchday column |
+| `migrations/20260423000000_add_matchday_to_games.sql` | Add matchday column to games table |
+| `migrations/20260423000001_seed_world_cup_matchdays.sql` | Set matchday 1/2/3 for FIFA WC 2026 game_numbers 1–72 |
 | `app/components/stage-separator.tsx` | StageSeparator UI component |
 
 ## Files to Modify
