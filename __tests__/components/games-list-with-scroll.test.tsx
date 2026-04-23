@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { GamesListWithScroll } from '../../app/components/games-list-with-scroll';
 import { renderWithProviders, createMockGuessesContext } from '../utils/test-utils';
@@ -26,15 +26,23 @@ vi.mock('framer-motion', () => ({
 
 // Mock FlippableGameCard
 vi.mock('../../app/components/flippable-game-card', () => ({
-  default: ({ game, isEditing, onEditStart, onEditEnd, onAutoAdvanceNext, onAutoGoPrevious }: any) => (
+  default: ({ game, isEditing, onEditStart, onEditEnd, onAutoAdvanceNext, onAutoGoPrevious, onStageClick }: any) => (
     <div data-testid={`game-card-${game.id}`}>
       <div>Game: {game.game_number}</div>
       <button onClick={onEditStart}>Edit</button>
       <button onClick={onEditEnd}>End Edit</button>
       <button onClick={onAutoAdvanceNext}>Next</button>
       <button onClick={onAutoGoPrevious}>Previous</button>
+      {onStageClick && <button data-testid={`stage-click-${game.id}`} onClick={onStageClick}>Stage</button>}
       {isEditing && <div>Editing</div>}
     </div>
+  ),
+}));
+
+// Mock StageSeparator
+vi.mock('../../app/components/stage-separator', () => ({
+  StageSeparator: ({ label }: { label: string }) => (
+    <div data-testid="stage-separator" data-label={label}>{label}</div>
   ),
 }));
 
@@ -112,6 +120,7 @@ describe('GamesListWithScroll', () => {
     away_team_rule: undefined,
     game_type: 'group',
     game_local_timezone: undefined,
+    matchday: null,
     group: undefined,
     playoffStage: undefined,
     gameResult: undefined,
@@ -1330,6 +1339,103 @@ describe('GamesListWithScroll', () => {
       // All games should be rendered (no virtualization for <100 games)
       expect(screen.getByTestId('game-card-game1')).toBeInTheDocument();
       expect(screen.getByTestId('game-card-game50')).toBeInTheDocument();
+    });
+  });
+
+  describe('Story #376 — Stage Separators and section grouping', () => {
+    it('renders a StageSeparator for group games with matchday', () => {
+      const game = createMockGame({
+        id: 'game1',
+        matchday: 1,
+        group: { tournament_group_id: 'grp-a', group_letter: 'A' },
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={[game]} />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getByTestId('stage-separator')).toBeInTheDocument();
+    });
+
+    it('renders separate StageSeparators for different matchdays', () => {
+      const game1 = createMockGame({
+        id: 'game1',
+        game_number: 1,
+        matchday: 1,
+        group: { tournament_group_id: 'grp-a', group_letter: 'A' },
+      });
+      const game2 = createMockGame({
+        id: 'game2',
+        game_number: 2,
+        matchday: 2,
+        group: { tournament_group_id: 'grp-a', group_letter: 'A' },
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={[game1, game2]} />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getAllByTestId('stage-separator')).toHaveLength(2);
+    });
+
+    it('groups games with the same matchday under one separator', () => {
+      const game1 = createMockGame({
+        id: 'game1',
+        game_number: 1,
+        matchday: 1,
+        group: { tournament_group_id: 'grp-a', group_letter: 'A' },
+      });
+      const game2 = createMockGame({
+        id: 'game2',
+        game_number: 2,
+        matchday: 1,
+        group: { tournament_group_id: 'grp-b', group_letter: 'B' },
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={[game1, game2]} />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getAllByTestId('stage-separator')).toHaveLength(1);
+    });
+
+    it('renders StageSeparator for playoff games grouped by round', () => {
+      const game = createMockGame({
+        id: 'game1',
+        playoffStage: {
+          tournament_playoff_round_id: 'round-qf',
+          round_name: 'Quarterfinals',
+          is_final: false,
+          is_third_place: false,
+        },
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={[game]} />,
+        { guessesContext: true }
+      );
+
+      expect(screen.getByTestId('stage-separator')).toBeInTheDocument();
+    });
+
+    it('calls onGameStageClick with the game when stage button is clicked', () => {
+      const onGameStageClick = vi.fn();
+      const game = createMockGame({
+        id: 'game1',
+        matchday: 1,
+        group: { tournament_group_id: 'grp-a', group_letter: 'A' },
+      });
+
+      renderWithProviders(
+        <GamesListWithScroll {...defaultProps} games={[game]} onGameStageClick={onGameStageClick} />,
+        { guessesContext: true }
+      );
+
+      fireEvent.click(screen.getByTestId('stage-click-game1'));
+      expect(onGameStageClick).toHaveBeenCalledWith(game);
     });
   });
 });

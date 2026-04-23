@@ -36,7 +36,8 @@
     "actualResult": "Resultado Real",
     "predictionResultExact": "Exacto ({points} puntos)",
     "predictionResultCorrect": "Correcto ({points} puntos)",
-    "predictionResultIncorrect": "Incorrecto (0 puntos)"
+    "predictionResultIncorrect": "Incorrecto (0 puntos)",
+    "matchday": "Fecha {number}"
   },
   "urgency": {
     "games": "{count, plural, =0 {Ningún partido cierra en {timeframe}} one {{count} partido cierra en {timeframe}} other {{count} partidos cierran en {timeframe}}}",

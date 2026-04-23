@@ -15,6 +15,7 @@ type GameViewProps = {
   teamsMap: {[k:string]: Team}
   handleEditClick: (_gameNumber: number) => void
   disabled?: boolean
+  onStageClick?: () => void
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -27,7 +28,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewProps) => {
+const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageClick}: GameViewProps) => {
   const t = useTranslations('predictions');
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
@@ -39,6 +40,13 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
 
   const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
   const scoreForGame = calculateScoreForGame(game, gameGuess)
+
+  let stageLabel: string | undefined
+  if (game.playoffStage) {
+    stageLabel = game.playoffStage.round_name
+  } else if (game.group) {
+    stageLabel = t('secondaryFilters.groupWithLetter', { letter: game.group.group_letter })
+  }
 
   // Get team names using shared utility
   const {
@@ -74,6 +82,8 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false}: GameViewP
       boostType={gameGuess.boost_type || null}
       disabled={editDisabled}
       onEditClick={handleEditClick}
+      stageLabel={stageLabel}
+      onStageClick={onStageClick}
     />
   )
 }

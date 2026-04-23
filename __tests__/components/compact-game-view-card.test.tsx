@@ -765,4 +765,55 @@ describe('CompactGameViewCard', () => {
       expect(homeTeamEls[0]).toHaveStyle({ fontWeight: 700 });
     });
   });
+  describe('Stage label (Story #376)', () => {
+    it('renders nothing extra when stageLabel is undefined', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...guessProps} />
+        </TestWrapper>
+      );
+      expect(screen.queryByLabelText(/Group|Grupo|Matchday|Fecha/)).not.toBeInTheDocument();
+    });
+
+    it('renders static text when stageLabel is provided without onStageClick', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...guessProps} stageLabel="Group A" />
+        </TestWrapper>
+      );
+      expect(screen.getByText('Group A')).toBeInTheDocument();
+    });
+
+    it('renders clickable element when stageLabel and onStageClick are provided', () => {
+      const onStageClick = vi.fn();
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...guessProps} stageLabel="Group A" onStageClick={onStageClick} />
+        </TestWrapper>
+      );
+      const btn = screen.getByRole('button', { name: 'Group A' });
+      expect(btn).toBeInTheDocument();
+    });
+
+    it('calls onStageClick when the stage button is clicked', () => {
+      const onStageClick = vi.fn();
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...guessProps} stageLabel="Group A" onStageClick={onStageClick} />
+        </TestWrapper>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Group A' }));
+      expect(onStageClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render stage label on non-guess cards', () => {
+      renderWithTheme(
+        <TestWrapper>
+          <CompactGameViewCard {...resultProps} />
+        </TestWrapper>
+      );
+      // resultProps has isGameGuess: false — stage label should not appear
+      expect(screen.queryByText('Group A')).not.toBeInTheDocument();
+    });
+  });
 }); // test comment

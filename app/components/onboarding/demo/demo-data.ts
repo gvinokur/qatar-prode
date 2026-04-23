@@ -68,6 +68,7 @@ export const DEMO_GAMES: Game[] = [
     away_team_rule: undefined,
     game_local_timezone: undefined,
     location_i18n: undefined,
+    matchday: null,
   },
   {
     id: 'game-2',
@@ -82,6 +83,7 @@ export const DEMO_GAMES: Game[] = [
     away_team_rule: undefined,
     game_local_timezone: undefined,
     location_i18n: undefined,
+    matchday: null,
   },
   {
     id: 'game-3',
@@ -96,6 +98,7 @@ export const DEMO_GAMES: Game[] = [
     away_team_rule: undefined,
     game_local_timezone: undefined,
     location_i18n: undefined,
+    matchday: null,
   },
   {
     id: 'game-4',
@@ -110,6 +113,7 @@ export const DEMO_GAMES: Game[] = [
     away_team_rule: undefined,
     game_local_timezone: undefined,
     location_i18n: undefined,
+    matchday: null,
   },
 ]
 

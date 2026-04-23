@@ -13,7 +13,7 @@ import {
   Chip,
   alpha
 } from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Lock as LockIcon } from "@mui/icons-material";
+import { ArrowForwardIos as ArrowForwardIosIcon, Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Lock as LockIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import { useTranslations } from 'next-intl';
@@ -49,6 +49,8 @@ type GameGuessProps =  {
   awayPenaltyWinner?: boolean
   gameResult?: GameResultNew | null
   boostType?: 'silver' | 'golden' | null
+  stageLabel?: string
+  onStageClick?: () => void
 } & SharedProps
 
 type GameResultProps = {
@@ -417,6 +419,35 @@ export default function CompactGameViewCard({
               {location}
             </Typography>
           </Box>
+
+          {/* Stage label — shown only on game guess cards when stageLabel is provided */}
+          {specificProps.isGameGuess && specificProps.stageLabel && (
+            specificProps.onStageClick ? (
+              <Box
+                component="button"
+                onClick={(e) => { e.stopPropagation(); specificProps.onStageClick!(); }}
+                aria-label={specificProps.stageLabel}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'text.secondary',
+                  p: 0,
+                  '&:hover': { color: 'primary.main' },
+                }}
+              >
+                <Typography variant="caption">{specificProps.stageLabel}</Typography>
+                <ArrowForwardIosIcon sx={{ fontSize: 10 }} />
+              </Box>
+            ) : (
+              <Typography variant="caption" color="text.secondary">
+                {specificProps.stageLabel}
+              </Typography>
+            )
+          )}
         </Box>
       </CardContent>
     </Card>

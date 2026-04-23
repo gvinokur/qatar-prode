@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-23
 
 ---
 
@@ -179,8 +179,8 @@ Client component displaying games list for public tournament view with optional 
 ### app/components/tournament-page/public-games-page.tsx
 Server component fetching and passing game data to PublicGamesPageClient.
 
-- **PublicGamesPage({ tournamentId }: PublicGamesPageProps)**: `Promise<JSX.Element>` — [Server] Fetches games, teams, groups, and playoff rounds in parallel.
-  Calls: getAllTournamentGames, getTeamsMap, findGroupsInTournament, findPlayoffStagesWithGamesInTournament
+- **PublicGamesPage({ tournamentId }: PublicGamesPageProps)**: `Promise<JSX.Element>` — [Server] Fetches games, teams, groups, and playoff rounds in parallel; applies locale-aware localization on playoff round names before passing to client.
+  Calls: getAllTournamentGames, getTeamsMap, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, applyLocalization
   Renders: PublicGamesPageClient
 
 ### app/components/tournament-page/tournament-sidebar.tsx
