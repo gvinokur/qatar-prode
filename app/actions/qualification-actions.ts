@@ -10,6 +10,7 @@ import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
+import { PREDICTION_LOCK_OFFSET_MS } from '../utils/prediction-constants';
 
 /**
  * Get tournament configuration for qualified teams feature
@@ -31,12 +32,11 @@ export async function getTournamentQualificationConfig(tournamentId: string, loc
     throw new QualificationPredictionError(t('qualification.tournamentNotFound'), 'TOURNAMENT_NOT_FOUND');
   }
 
-  // Check if predictions are locked (5 days after tournament starts)
-  // Same logic as tournament awards (honor roll, individual awards)
+  // Check if predictions are locked after the lock window after tournament starts
   const { getTournamentStartDate } = await import('./tournament-actions');
   const tournamentStartDate = await getTournamentStartDate(tournamentId);
   const isPredictionLocked = tournamentStartDate
-    ? Date.now() > tournamentStartDate.getTime() + 5 * 24 * 60 * 60 * 1000
+    ? Date.now() > tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS
     : false;
 
   return {

@@ -135,6 +135,13 @@
     "createGroup": "Crear Grupo",
     "discoverGroups": "Descubrir Grupos"
   },
+  "statusWidget": {
+    "deadlineLabel": "Fecha límite:",
+    "deadlineNormal": "Los pronósticos se bloquean 2 días después del inicio del torneo.",
+    "deadlineInfo": "Quedan menos de 48 horas.",
+    "deadlineWarning": "¡Quedan menos de 24 horas!",
+    "deadlineError": "¡Últimas 2 horas para enviar tus pronósticos!"
+  },
   "gamesWidget": {
     "cardTitle": "Próximos Partidos",
     "ctaLogin": "Iniciar sesión para pronosticar",

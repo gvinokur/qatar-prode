@@ -74,7 +74,7 @@ describe('Tournament Prediction Completion Repository', () => {
       });
 
       // Mock: Tournament started 2 days ago (not locked)
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
       mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -174,7 +174,7 @@ describe('Tournament Prediction Completion Repository', () => {
       });
 
       // Mock: Tournament started 2 days ago (not locked)
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
       mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -256,7 +256,7 @@ describe('Tournament Prediction Completion Repository', () => {
       });
 
       // Mock: Tournament started 2 days ago (not locked)
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
       mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -271,7 +271,7 @@ describe('Tournament Prediction Completion Repository', () => {
       expect(result.isPredictionLocked).toBe(false);
     });
 
-    it('should mark predictions as locked after 5 days', async () => {
+    it('should mark predictions as locked after 2 days', async () => {
       // Mock: Some tournament guesses
       const mockTournamentGuess = {
         id: 'guess-1',
@@ -349,7 +349,7 @@ describe('Tournament Prediction Completion Repository', () => {
       });
 
       // Mock: Tournament started 2 days ago
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
       mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -388,7 +388,7 @@ describe('Tournament Prediction Completion Repository', () => {
       mockDb.selectFrom.mockReturnValue(createMockSelectQuery({ count: 0 }) as any);
 
       // Mock: Tournament date
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
       mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
       const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -446,7 +446,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -491,7 +491,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -537,7 +537,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -583,7 +583,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -630,7 +630,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -677,7 +677,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -724,7 +724,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -771,7 +771,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament);
@@ -825,7 +825,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, customTournament);
@@ -879,7 +879,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, noBoostTournament);
@@ -969,7 +969,7 @@ describe('Tournament Prediction Completion Repository', () => {
         });
 
         // Mock: Tournament started 2 days ago
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
         mockGetTournamentStartDate.mockResolvedValue(twoDaysAgo);
 
         const result = await getTournamentPredictionCompletion(userId, tournamentId, customTournament);

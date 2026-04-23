@@ -16,6 +16,7 @@ import { type ScoringConfig, DEFAULT_SCORING } from '../utils/scoring-config'
 import { ExtendedGameData } from '../definitions'
 import { GameGuessNew, Team } from '../db/tables-definition'
 import type { Locale } from '../../i18n.config'
+import { PREDICTION_LOCK_OFFSET_MS } from '../utils/prediction-constants'
 
 export interface RankNeighborEntry {
   userId: string
@@ -41,7 +42,7 @@ export interface ActionCenterData {
   tournamentMaxSilver: number
   tournamentMaxGolden: number
   mode: 'urgent' | 'fallback' | 'empty'
-  /** True when the 5-day tournament prediction window has not yet closed */
+  /** True when the 2-day tournament prediction window has not yet closed */
   qtAndAwardsOpen: boolean
   /** Milliseconds until QT/awards predictions lock (negative = already locked) */
   msUntilPredictionLock: number
@@ -101,6 +102,8 @@ export interface TournamentHubPageData {
   totalGames: number
   isStarted: boolean
   isFinished: boolean
+  qualifiersTotal: number
+  awardsTotal: number
 }
 
 /**
@@ -108,7 +111,7 @@ export interface TournamentHubPageData {
  * Does NOT require authentication — safe to call for logged-off users.
  */
 export async function getTournamentHubPageData(tournamentId: string): Promise<TournamentHubPageData> {
-  const [tournament, firstGame, lastGame, totalGamesResult] = await Promise.all([
+  const [tournament, firstGame, lastGame, totalGamesResult, firstStageRound] = await Promise.all([
     findTournamentById(tournamentId),
     findFirstGameInTournament(tournamentId),
     findLastGameInTournament(tournamentId),
@@ -117,18 +120,27 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
       .select((eb) => eb.fn.countAll<number>().as('count'))
       .where('tournament_id', '=', tournamentId)
       .executeTakeFirst(),
+    db
+      .selectFrom('tournament_playoff_rounds')
+      .select('total_games')
+      .where('tournament_id', '=', tournamentId)
+      .where('is_first_stage', '=', true)
+      .executeTakeFirst(),
   ])
 
   const now = Date.now()
   const totalGames = Number(totalGamesResult?.count ?? 0)
   const isStarted = !!firstGame && firstGame.game_date.getTime() <= now
   const isFinished = !!lastGame && lastGame.game_date.getTime() < now
+  const qualifiersTotal = (firstStageRound?.total_games ?? 0) * 2
 
   return {
     scoringConfig: buildScoringConfig(tournament),
     totalGames,
     isStarted,
     isFinished,
+    qualifiersTotal,
+    awardsTotal: 7,
   }
 }
 
@@ -155,7 +167,6 @@ export async function computeIsIncompleteUser(data: ActionCenterData): Promise<b
 const MAX_URGENT_CARDS = 5
 const FALLBACK_CARD_COUNT = 5
 const FALLBACK_WINDOW_MS = 5 * 24 * 60 * 60 * 1000 // 5-day lookahead for fallback carousel
-const PREDICTION_LOCK_OFFSET_MS = 5 * 24 * 60 * 60 * 1000 // 5 days after tournament start
 
 /**
  * Computes whether QT/awards predictions are still open and how many ms remain.

@@ -8,12 +8,20 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 
 ## Files
 
+### app/utils/prediction-constants.ts
+Shared constants for prediction lock timing — neutral (no `'use server'`) so it can be imported in Server Actions, repositories, and components alike.
+
+- **PREDICTION_LOCK_OFFSET_MS**: `number` — Milliseconds after tournament start before QT/awards predictions lock (`2 * 24 * 60 * 60 * 1000` = 2 days).
+
 ### app/utils/urgency-utils.ts
-Shared urgency level derivation for the active games carousel — extracted from the duplicated functions in `games-active-widget.tsx` and `games-active-section.tsx`.
+Shared urgency derivation for the active games carousel and status widgets (Qualified Teams, Awards).
 
 - **UrgencyLevel**: TypeScript type — `'critical' | 'high' | 'medium' | 'safe' | 'empty'`
+- **StatusWidgetSeverity**: TypeScript type — `'normal' | 'info' | 'warning' | 'error'`
 - **computeUrgencyLevel(data: { mode: string; games: Array<{ game_date: Date }> })**: `UrgencyLevel` — Maps carousel mode + nearest game deadline to a display urgency. `mode !== 'urgent'` → `'safe'` (fallback) or `'empty'`. `mode === 'urgent'`: finds minimum deadline across games → `< 2h → 'critical'`, `< 24h → 'high'`, `≤ 48h → 'medium'`, otherwise `'safe'`.
   Calls: calculateDeadline
+- **computeStatusWidgetSeverity(msUntilLock: number)**: `StatusWidgetSeverity` — Derives deadline severity from ms remaining until prediction lock. `< 2h → 'error'`, `< 24h → 'warning'`, `< 48h → 'info'`, otherwise `'normal'`.
+  Calls: *(none — pure function)*
 
 ### app/utils/guess-utils.ts
 Pure utility functions for evaluating game guess completeness — shared between `GamesActiveClient` (client-side delta tracking) and `getActionCenterGames` (server-side urgent-game filtering).
