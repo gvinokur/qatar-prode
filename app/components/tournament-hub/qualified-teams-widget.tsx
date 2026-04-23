@@ -4,7 +4,6 @@ import {
   AddCircleOutline as AddCircleOutlineIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material'
-import { alpha } from '@mui/material/styles'
 import { getTranslations } from 'next-intl/server'
 import { DashboardCard } from './dashboard-card'
 import { GamesInfoWidgetCta } from './games-info-widget-cta'
@@ -85,9 +84,7 @@ export async function QualifiedTeamsWidget({
             borderColor: severity === 'normal' ? 'divider' : `${severity}.main`,
             borderRadius: 1,
             p: 1,
-            bgcolor: severity === 'normal'
-              ? 'transparent'
-              : (theme) => alpha(theme.palette[severity].main, 0.05),
+            bgcolor: { info: 'rgba(2,136,209,0.05)', warning: 'rgba(237,108,2,0.05)', error: 'rgba(211,47,47,0.05)', normal: 'transparent' }[severity],
           }}
         >
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
