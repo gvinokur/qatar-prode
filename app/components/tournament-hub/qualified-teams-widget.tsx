@@ -120,6 +120,8 @@ export async function QualifiedTeamsWidget({
           </Box>
         )}
 
+        <Box sx={{ flexGrow: 1 }} />
+
         {/* Progress bar */}
         {qualifiersTotal > 0 && (
           <LinearProgress

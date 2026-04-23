@@ -120,6 +120,8 @@ export async function AwardsWidget({
           </Box>
         )}
 
+        <Box sx={{ flexGrow: 1 }} />
+
         {/* Progress bar */}
         {awardsTotal > 0 && (
           <LinearProgress
