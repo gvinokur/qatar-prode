@@ -59,13 +59,11 @@ SET matchday =
     WHEN game_number BETWEEN 25 AND 48 THEN 2
     WHEN game_number BETWEEN 49 AND 72 THEN 3
   END
-WHERE tournament_id = (
-  SELECT id FROM tournaments WHERE short_name = 'WC 2026' LIMIT 1
-)
-AND game_number BETWEEN 1 AND 72;
+WHERE tournament_id = '280a5902-5dfc-4ffc-ba9b-73a4f32e4401'  -- World Cup 26
+  AND game_number BETWEEN 1 AND 72;
 ```
 
-Both migrations require manual execution with user permission. If the FIFA 2026 tournament row doesn't exist yet, the UPDATE affects 0 rows safely.
+Both migrations require manual execution with user permission. If no games exist yet for this tournament, the UPDATE affects 0 rows safely.
 
 ### 2. Type Update
 
