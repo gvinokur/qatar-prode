@@ -41,11 +41,12 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageCli
   const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
   const scoreForGame = calculateScoreForGame(game, gameGuess)
 
-  const stageLabel = game.playoffStage
-    ? game.playoffStage.round_name
-    : game.group
-    ? t('secondaryFilters.groupWithLetter', { letter: game.group.group_letter })
-    : undefined
+  let stageLabel: string | undefined
+  if (game.playoffStage) {
+    stageLabel = game.playoffStage.round_name
+  } else if (game.group) {
+    stageLabel = t('secondaryFilters.groupWithLetter', { letter: game.group.group_letter })
+  }
 
   // Get team names using shared utility
   const {

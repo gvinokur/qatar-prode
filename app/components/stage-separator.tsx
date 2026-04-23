@@ -6,7 +6,7 @@ import { alpha } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
 interface StageSeparatorProps {
-  label: string
+  readonly label: string
 }
 
 export function StageSeparator({ label }: StageSeparatorProps) {
