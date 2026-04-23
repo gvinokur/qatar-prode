@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Stats at a Glance — Mockup v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
+        "@mui/icons-material/": "https://esm.sh/@mui/icons-material@6.0.0/",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack,
+      Card, CardContent, CardHeader,
+      Typography, Button, Chip,
+      Divider, Avatar, Skeleton
+    } from '@mui/material';
+    import InsightsIcon from '@mui/icons-material/Insights';
+    import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+    import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+    import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+    import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
+    const html = htm.bind(React.createElement);
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper: '#1a1a1a',
+        },
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
+        },
+        success: {
+          main: '#4ade80',
+        },
+        text: {
+          primary: '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+        divider: 'rgba(255, 255, 255, 0.08)'
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    // ── Mock Components ──
+
+    function DashboardCard({ title, icon, children }) {
+      const avatar = html`
+        <${Avatar} sx=${{ 
+          bgcolor: 'rgba(167, 139, 250, 0.1)', 
+          color: 'primary.main',
+          width: 32,
+          height: 32,
+        }}>
+          ${icon}
+        <//>
+      `;
+
+      const titleEl = html`
+        <${Typography} variant="subtitle1" fontWeight={700} fontSize="0.95rem">
+          ${title}
+        <//>
+      `;
+
+      return html`
+        <${Card} variant="outlined" sx=${{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          bgcolor: 'background.paper',
+          borderColor: 'divider',
+        }}>
+          <${CardHeader}
+            avatar=${avatar}
+            title=${titleEl}
+            sx=${{ pb: 1 }}
+          <//>
+          <${CardContent} sx=${{ flexGrow: 1, pt: 0, display: 'flex', flexDirection: 'column' }}>
+            ${children}
+          <//>
+        <//>
+      `;
+    }
+
+    function Sparkline({ data }) {
+      const max = Math.max(...data);
+      const min = Math.min(...data);
+      const range = max - min || 1;
+      const width = 120;
+      const height = 40;
+      const points = data.map((v, i) => ({
+        x: (i / (data.length - 1)) * width,
+        y: height - ((v - min) / range) * height
+      }));
+
+      const pathData = 'M ' + points.map(p => p.x + ' ' + p.y).join(' L ');
+
+      return html`
+        <${Box} sx=${{ width, height, position: 'relative' }}>
+          <svg width=${width} height=${height}>
+            <path 
+              d=${pathData} 
+              fill="none" 
+              stroke=${theme.palette.primary.main} 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
+        <//>
+      `;
+    }
+
+    function PopulatedState() {
+      return html`
+        <${Stack} spacing=${3}>
+          <${DashboardCard} title="Estadísticas" icon=${html`<${InsightsIcon} />`}>
+            <${Box} sx=${{ mb: 2 }}>
+              <${Stack} direction="row" alignItems="flex-end" spacing=${1}>
+                <${Typography} variant="h3" fontWeight={800} sx=${{ lineHeight: 1 }}>
+                  128
+                <//>
+                <${Typography} variant="body1" color="text.secondary" sx=${{ mb: 0.5 }}>
+                  pts
+                <//>
+                <${Stack} direction="row" alignItems="center" sx=${{ color: 'success.main', mb: 0.5, ml: 'auto' }}>
+                  <${ArrowDropUpIcon} />
+                  <${Typography} variant="body2" fontWeight="bold">
+                    12 pts
+                  <//>
+                <//>
+              <//>
+              <${Typography} variant="caption" color="text.secondary">
+                Desde ayer (22 de abr)
+              <//>
+            <//>
+
+            <${Divider} sx=${{ my: 1.5 }} />
+
+            <${Stack} spacing=${1.5} sx=${{ mb: 2 }}>
+              <${Box} sx=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <${Stack} direction="row" spacing=${1} alignItems="center">
+                  <${SportsSoccerIcon} sx=${{ fontSize: 18, color: 'text.secondary' }} />
+                  <${Typography} variant="body2">Partidos<//>
+                <//>
+                <${Stack} direction="row" spacing={1} alignItems="center">
+                  <${Typography} variant="caption" color="success.main" fontWeight="bold">+7<//>
+                  <${Typography} variant="body2" fontWeight="medium">84 pts<//>
+                <//>
+              <//>
+              <${Box} sx=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <${Stack} direction="row" spacing=${1} alignItems="center">
+                  <${CheckCircleOutlineIcon} sx=${{ fontSize: 18, color: 'text.secondary' }} />
+                  <${Typography} variant="body2">Clasificados<//>
+                <//>
+                <${Stack} direction="row" spacing={1} alignItems="center">
+                  <${Typography} variant="caption" color="success.main" fontWeight="bold">+3<//>
+                  <${Typography} variant="body2" fontWeight="medium">30 pts<//>
+                <//>
+              <//>
+              <${Box} sx=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <${Stack} direction="row" spacing=${1} alignItems="center">
+                  <${EmojiEventsIcon} sx=${{ fontSize: 18, color: 'text.secondary' }} />
+                  <${Typography} variant="body2">Premios<//>
+                <//>
+                <${Stack} direction="row" spacing={1} alignItems="center">
+                  <${Typography} variant="caption" color="success.main" fontWeight="bold">+2<//>
+                  <${Typography} variant="body2" fontWeight="medium">14 pts<//>
+                <//>
+              <//>
+            <//>
+
+            <${Box} sx=${{ mt: 'auto' }}>
+              <${Typography} variant="overline" color="text.secondary" sx=${{ display: 'block', mb: 1 }}>
+                Tendencia
+              <//>
+              <${Stack} direction="row" justifyContent="space-between" alignItems="center">
+                <${Sparkline} data=${[10, 15, 12, 40, 38, 55, 80, 78, 95, 120, 128]} />
+                <${Typography} variant="caption" color="text.secondary" sx=${{ maxWidth: 80, textAlign: 'right' }}>
+                  +40% últimos 5 días
+                <//>
+              <//>
+            <//>
+
+            <${Box} sx=${{ mt: 2, textAlign: 'center' }}>
+              <${Button} variant="text" size="small" fullWidth sx=${{ py: 1 }}>
+                Ver estadísticas completas
+              <//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function LoadingState() {
+      return html`
+        <${DashboardCard} title="Estadísticas" icon=${html`<${InsightsIcon} />`}>
+          <${Box} sx=${{ mb: 2 }}>
+            <${Skeleton} variant="text" width="60%" height={40} />
+            <${Skeleton} variant="text" width="40%" />
+          <//>
+          <${Stack} spacing=${1.5} sx=${{ my: 2 }}>
+            <${Skeleton} variant="rectangular" height={24} />
+            <${Skeleton} variant="rectangular" height={24} />
+            <${Skeleton} variant="rectangular" height={24} />
+          <//>
+          <${Skeleton} variant="rectangular" height={60} sx=${{ mt: 'auto', borderRadius: 1 }} />
+          <${Skeleton} variant="text" width="50%" sx=${{ mt: 2, mx: 'auto' }} />
+        <//>
+      `;
+    }
+
+    function EmptyState() {
+      return html`
+        <${DashboardCard} title="Estadísticas" icon=${html`<${InsightsIcon} />`}>
+          <${Box} sx=${{ textAlign: 'center', py: 4 }}>
+            <${InsightsIcon} sx=${{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+            <${Typography} variant="body2" color="text.secondary" fontWeight="medium">
+              Aún no tienes puntos
+            <//>
+            <${Typography} variant="caption" color="text.secondary">
+              ¡Empezá a predecir para ver tus estadísticas!
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      const [state, setState] = React.useState('populated');
+
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="sm" sx=${{ py: 4 }}>
+            <${Box} sx=${{ mb: 4 }}>
+              <${Typography} variant="h5" fontWeight={700} gutterBottom>Tournament Hub: Stats Widget<//>
+              <${Typography} variant="body2" color="text.secondary">
+                Mockup v2: Specific deltas and updated icons.
+              <//>
+            <//>
+
+            <${Stack} direction="row" spacing=${1} sx=${{ mb: 3 }}>
+              ${['loading', 'empty', 'populated'].map(s => html`
+                <${Chip}
+                  key=${s}
+                  label=${s.toUpperCase()}
+                  onClick=${() => setState(s)}
+                  variant=${state === s ? 'filled' : 'outlined'}
+                  color=${state === s ? 'primary' : 'default'}
+                  size="small"
+                />
+              `)}
+            <//>
+
+            <${Box} sx=${{ width: 340 }}>
+              ${state === 'loading'   && html`<${LoadingState} />`}
+              ${state === 'empty'     && html`<${EmptyState} />`}
+              ${state === 'populated' && html`<${PopulatedState} />`}
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>
