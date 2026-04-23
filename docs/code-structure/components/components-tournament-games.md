@@ -39,9 +39,14 @@ Popover showing detailed boost allocation breakdown by group, playoff, and perfo
 - **DistributionSection** (FC) - Helper section for boost distribution
 - **PerformanceSection** (FC) - Helper section for boost performance
 
+**File:** `app/components/stage-separator.tsx`
+Full-width header row that spans a CSS grid column (gridColumn: '1 / -1') to visually separate game groups by matchday or round.
+- **StageSeparator({ label: string })** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Box (gridColumn 1/-1), Typography (overline, primary.main), Divider`
+
 **File:** `app/components/compact-game-view-card.tsx`
-Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay.
+Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay. When `isGameGuess && stageLabel` is provided, renders a stage label row below the location — clickable (with ArrowForwardIos icon) when `onStageClick` is provided, static otherwise.
 - **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
+- Props `GameGuessProps` include: `stageLabel?: string`, `onStageClick?: () => void`
 - **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/correct/incorrect). `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or winner match but penalty winner is wrong or unpredicted in a game that went to penalties.
 
 **File:** `app/components/compact-prediction-dashboard.tsx`
@@ -51,6 +56,7 @@ Compact dashboard showing game and tournament prediction progress with urgency i
 **File:** `app/components/flippable-game-card.tsx`
 3D flip card for inline game editing. Shows game view on front, edit controls on back with keyboard navigation support.
 - **FlippableGameCard** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useReducedMotion` - Renders: `Box, GameView, Card, GamePredictionEditControls`
+- Props include: `onStageClick?: () => void` — passed through to `GameView`
 
 **File:** `app/components/game-boost-selector.tsx`
 Interactive boost selector with silver/golden buttons, count badges, and dialog for boost limit warnings.
@@ -81,8 +87,8 @@ Dialog for editing game results or guesses. Supports penalty shootouts, game dat
 - **GameResultEditDialog** (FC) - `[Client]` - Calls: none - Uses: `useState, useEffect` - Renders: `Dialog, DateTimePicker, GamePredictionEditControls, TextField, Grid`
 
 **File:** `app/components/game-view.tsx`
-Displays a single game prediction card. Gets game data from context and renders CompactGameViewCard.
-- **GameView** (FC) - `[Client]` - Calls: `calculateScoreForGame` - Uses: `useContext(GuessesContext), useTranslations` - Renders: `CompactGameViewCard`
+Displays a single game prediction card. Gets game data from context, computes stageLabel from group letter or playoff round name, and renders CompactGameViewCard.
+- **GameView({ game, teamsMap, handleEditClick, disabled?, onStageClick? })** (FC) - `[Client]` - Calls: `calculateScoreForGame` - Uses: `useContext(GuessesContext), useTranslations` - Renders: `CompactGameViewCard`
 - **buildGameGuess** (fn) - Helper to build empty GameGuess object
 
 **File:** `app/components/games-grid.tsx`
@@ -97,8 +103,8 @@ Skeleton loading component displaying game card loaders.
 - **GamesListLoading** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Stack, GameCardSkeleton`
 
 **File:** `app/components/games-list-with-scroll.tsx`
-Scrollable list of games with filter integration, auto-scroll to first unpredicted game, and keyboard navigation support.
-- **GamesListWithScroll** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations` - Renders: `Box, FlippableGameCard, EmptyGamesState`
+Scrollable list of games with stage separators, filter integration, auto-scroll to first unpredicted game, and keyboard navigation support. Groups games into `GameSection[]` (by matchday for group games, by round for playoff games) and renders `StageSeparator` before each group.
+- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick? })** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator, FlippableGameCard, EmptyGamesState`
 
 **File:** `app/components/stepper-score-input.tsx`
 Stepper input for scores with increment/decrement buttons, imperatively expose focus method.
@@ -128,8 +134,9 @@ Helper functions and constants for urgency level calculations, color mapping, an
 - **hasUrgentGames** (fn) - Checks if games need urgent attention
 
 **File:** `app/components/unified-games-page-client.tsx`
-Main games page with filter integration, edit parameter handling, and auto-scroll to next/urgent games.
-- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
+Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler.
+- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
+- `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
 - **UnifiedGamesPageClient** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `FilterContextProvider, UnifiedGamesPageContent`
 
 **File:** `app/components/unified-games-page.tsx`

@@ -41,6 +41,8 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 
 `TournamentTable` includes `locations: ColumnType<string[], string[] | string | undefined, string[] | string>` — ordered list of city/country location names (e.g., `["Qatar", "Lusail"]`) stored as JSONB NOT NULL DEFAULT '[]'; select returns `string[]`, insert is optional (uses DB default), update accepts array or raw JSON string; used for SportsEvent JSON-LD structured data (Story #310).
 
+`GameTable` includes `matchday?: number | null` — group-stage matchday number (1-indexed). Null for playoff games or group games not yet assigned a matchday. Used by `getAllTournamentGames` sort and `GamesListWithScroll` section grouping (Story #376).
+
 `TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
@@ -94,7 +96,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **findGamesAroundCurrentTime(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Finds last 24h results + next 48h upcoming games (cached).
 - **findGamesInNext24Hours(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Finds upcoming games in next 24 hours (cached).
 - **findGamesForDashboard(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Unified dashboard query: last 24h + next 48h games (cached).
-- **getAllTournamentGames(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Fetches ALL games for unified games page (cached).
+- **getAllTournamentGames(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Fetches ALL games for unified games page (cached). Sorted by `matchday ASC NULLS LAST, game_date ASC`.
 - **getTournamentGameCounts(userId: string | null, tournamentId: string)**: `Promise<TournamentGameCounts>` — Counts for filter badges (total, groups, playoffs, unpredicted, closing soon) (cached).
 - **findRecentGamesWithUserGuesses(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameWithGuess[]>` — Returns games with published (non-draft) results where the user has a guess, ordered by game_date desc, up to `limit` rows. Returns empty array when limit is 0.
 

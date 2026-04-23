@@ -453,7 +453,7 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
 /**
  * Fetch ALL tournament games (groups + playoffs) for unified games page
  * Returns ExtendedGameData with group and playoff metadata
- * Sorted by game_date ascending
+ * Sorted by matchday ASC NULLS LAST, then game_date ASC
  *
  * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
  * ⚠️ DO NOT add locale parameter to this function
@@ -494,6 +494,7 @@ export const getAllTournamentGames = cache(async (tournamentId: string) => {
       ).as('gameResult')
     ])
     .where('tournament_id', '=', tournamentId)
+    .orderBy(sql`matchday asc nulls last`)
     .orderBy('game_date', 'asc')
     .execute() as ExtendedGameData[];
 });

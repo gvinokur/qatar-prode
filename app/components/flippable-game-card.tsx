@@ -40,6 +40,9 @@ interface FlippableGameCardProps {
   // Auto-advance / Auto-previous
   readonly onAutoAdvanceNext?: () => void;
   readonly onAutoGoPrevious?: () => void;
+
+  // Stage click handler (optional — omit for static stage label)
+  readonly onStageClick?: () => void;
 }
 
 export default function FlippableGameCard({
@@ -58,7 +61,8 @@ export default function FlippableGameCard({
   onEditEnd,
   disabled = false,
   onAutoAdvanceNext,
-  onAutoGoPrevious
+  onAutoGoPrevious,
+  onStageClick
 }: FlippableGameCardProps) {
   const t = useTranslations('predictions');
   const theme = useTheme();
@@ -293,6 +297,7 @@ export default function FlippableGameCard({
             teamsMap={teamsMap}
             handleEditClick={handleEditClick}
             disabled={disabled}
+            onStageClick={onStageClick}
           />
         </Box>
 

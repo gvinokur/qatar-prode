@@ -264,6 +264,8 @@ export interface GameTable extends Identifiable {
   game_type?: string
   game_local_timezone?: string
 
+  matchday?: number | null
+
   // Internationalization columns
   location_i18n?: JSONColumnType<Record<string, string>>
 }

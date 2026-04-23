@@ -1119,4 +1119,100 @@ describe('UnifiedGamesPageClient', () => {
       expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
     });
   });
+
+  describe('Story #376 — handleGameStageClick', () => {
+    it('passes onGameStageClick to GamesListWithScroll', () => {
+      const games = createTestGames(2);
+      const teamsMap = createTestTeamsMap(4);
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        { guessesContext: true }
+      );
+
+      expect(mockGamesListWithScroll).toHaveBeenCalledWith(
+        expect.objectContaining({ onGameStageClick: expect.any(Function) })
+      );
+    });
+
+    it('calls setActiveFilter and setGroupFilter for a group game', async () => {
+      const games = createTestGames(2);
+      const teamsMap = createTestTeamsMap(4);
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        { guessesContext: true }
+      );
+
+      const { onGameStageClick } = mockGamesListWithScroll.mock.lastCall[0];
+      const groupGame = games.find(g => g.group != null)!;
+
+      await act(async () => {
+        onGameStageClick(groupGame);
+      });
+
+      // After click, GamesListWithScroll should be re-called with groups filter
+      await waitFor(() => {
+        expect(mockGamesListWithScroll).toHaveBeenCalledWith(
+          expect.objectContaining({ activeFilter: 'groups' })
+        );
+      });
+    });
+
+    it('calls setActiveFilter and setRoundFilter for a playoff game', async () => {
+      const games = createTestGames(6);
+      const teamsMap = createTestTeamsMap(12);
+
+      renderWithProviders(
+        <UnifiedGamesPageClient
+          games={games}
+          gameCounts={defaultGameCounts}
+          teamsMap={teamsMap}
+          tournamentId="tournament-1"
+          groups={defaultGroups}
+          rounds={defaultRounds}
+          tournament={defaultTournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={defaultTournamentPredictionCompletion}
+          tournamentStartDate={undefined}
+        />,
+        { guessesContext: true }
+      );
+
+      const { onGameStageClick } = mockGamesListWithScroll.mock.lastCall[0];
+      const playoffGame = games.find(g => g.playoffStage != null)!;
+
+      await act(async () => {
+        onGameStageClick(playoffGame);
+      });
+
+      await waitFor(() => {
+        expect(mockGamesListWithScroll).toHaveBeenCalledWith(
+          expect.objectContaining({ activeFilter: 'playoffs' })
+        );
+      });
+    });
+  });
 });

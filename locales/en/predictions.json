@@ -36,7 +36,8 @@
     "actualResult": "Actual Result",
     "predictionResultExact": "Exact ({points} points)",
     "predictionResultCorrect": "Correct ({points} points)",
-    "predictionResultIncorrect": "Incorrect (0 points)"
+    "predictionResultIncorrect": "Incorrect (0 points)",
+    "matchday": "Matchday {number}"
   },
   "urgency": {
     "games": "{count, plural, =0 {No matches close in {timeframe}} one {{count} match closes in {timeframe}} other {{count} matches close in {timeframe}}}",

@@ -205,6 +205,7 @@ export const testFactories = {
     away_team_rule: undefined,
     game_type: 'group',
     game_local_timezone: 'America/New_York',
+    matchday: null,
     ...overrides,
   }),
 

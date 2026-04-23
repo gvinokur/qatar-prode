@@ -1,12 +1,13 @@
 'use client'
 
 import { Box, Button } from '@mui/material';
-import { useContext, useState, useCallback, useEffect } from 'react';
+import { Fragment, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FlippableGameCard from './flippable-game-card';
+import { StageSeparator } from './stage-separator';
 import { ExtendedGameData } from '../definitions';
 import { Game, GameGuessNew, Team, Tournament } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -17,12 +18,15 @@ import { FilterType } from '../utils/game-filters';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 import { calculateTeamNamesForPlayoffGame } from '../utils/playoff-utils';
 
+type GameSection = { sectionKey: string; label: string; games: ExtendedGameData[] }
+
 interface GamesListWithScrollProps {
   readonly games: ExtendedGameData[];
   readonly teamsMap: Record<string, Team>;
   readonly tournamentId: string;
   readonly activeFilter: FilterType;
   readonly tournament: Tournament;
+  readonly onGameStageClick?: (game: ExtendedGameData) => void;
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -43,7 +47,8 @@ export function GamesListWithScroll({
   teamsMap,
   tournamentId,
   activeFilter,
-  tournament
+  tournament,
+  onGameStageClick
 }: GamesListWithScrollProps) {
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
@@ -52,6 +57,38 @@ export function GamesListWithScroll({
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const gameGuesses = groupContext.gameGuesses;
   const { data } = useSession();
+
+  const gameSections = useMemo((): GameSection[] => {
+    const sections: GameSection[] = [];
+    const keyIndex: Record<string, number> = {};
+
+    for (const game of games) {
+      let sectionKey: string;
+      let label: string;
+
+      if (game.playoffStage) {
+        sectionKey = `playoff-${game.playoffStage.tournament_playoff_round_id}`;
+        label = game.playoffStage.round_name;
+      } else if (game.group && game.matchday != null) {
+        sectionKey = `matchday-${game.matchday}`;
+        label = t('game.matchday', { number: game.matchday });
+      } else if (game.group) {
+        sectionKey = `group-${game.group.group_letter}`;
+        label = t('secondaryFilters.groupWithLetter', { letter: game.group.group_letter });
+      } else {
+        sectionKey = 'other';
+        label = '';
+      }
+
+      if (keyIndex[sectionKey] === undefined) {
+        keyIndex[sectionKey] = sections.length;
+        sections.push({ sectionKey, label, games: [] });
+      }
+      sections[keyIndex[sectionKey]].games.push(game);
+    }
+
+    return sections;
+  }, [games, t]);
 
   // Auto-scroll effect (runs once on mount)
   useEffect(() => {
@@ -222,37 +259,43 @@ export function GamesListWithScroll({
           width: '100%',
         }}
       >
-        {games.map(game => {
-          const gameGuess = gameGuesses[game.id];
-          const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
+        {gameSections.map(section => (
+          <Fragment key={section.sectionKey}>
+            {section.label && <StageSeparator label={section.label} />}
+            {section.games.map(game => {
+              const gameGuess = gameGuesses[game.id];
+              const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
 
-          return (
-            <Box
-              key={game.id}
-              id={`game-${game.id}`}
-              data-game-id={game.id}
-            >
-              <FlippableGameCard
-                game={game}
-                teamsMap={teamsMap}
-                isPlayoffs={isPlayoffGame}
-                tournamentId={tournamentId}
-                homeScore={gameGuess?.home_score}
-                awayScore={gameGuess?.away_score}
-                homePenaltyWinner={gameGuess?.home_penalty_winner}
-                awayPenaltyWinner={gameGuess?.away_penalty_winner}
-                boostType={gameGuess?.boost_type}
-                initialBoostType={gameGuess?.boost_type}
-                isEditing={editingGameId === game.id}
-                onEditStart={() => handleEditStart(game.id)}
-                onEditEnd={handleEditEnd}
-                disabled={false}
-                onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
-                onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
-              />
-            </Box>
-          );
-        })}
+              return (
+                <Box
+                  key={game.id}
+                  id={`game-${game.id}`}
+                  data-game-id={game.id}
+                >
+                  <FlippableGameCard
+                    game={game}
+                    teamsMap={teamsMap}
+                    isPlayoffs={isPlayoffGame}
+                    tournamentId={tournamentId}
+                    homeScore={gameGuess?.home_score}
+                    awayScore={gameGuess?.away_score}
+                    homePenaltyWinner={gameGuess?.home_penalty_winner}
+                    awayPenaltyWinner={gameGuess?.away_penalty_winner}
+                    boostType={gameGuess?.boost_type}
+                    initialBoostType={gameGuess?.boost_type}
+                    isEditing={editingGameId === game.id}
+                    onEditStart={() => handleEditStart(game.id)}
+                    onEditEnd={handleEditEnd}
+                    disabled={false}
+                    onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
+                    onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
+                    onStageClick={onGameStageClick ? () => onGameStageClick(game) : undefined}
+                  />
+                </Box>
+              );
+            })}
+          </Fragment>
+        ))}
       </Box>
 
       {/* Back to top button - only show on desktop if more than 1 game */}

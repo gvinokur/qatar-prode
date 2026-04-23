@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
-import { useMemo, useContext, useEffect, useState } from 'react';
+import { useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -63,6 +63,16 @@ function UnifiedGamesPageContent({
   const filteredGames = useMemo(() => {
     return filterGames(games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses);
   }, [games, activeFilter, groupFilter, roundFilter, guessesContext.gameGuesses]);
+
+  const handleGameStageClick = useCallback((game: ExtendedGameData) => {
+    if (game.playoffStage) {
+      setActiveFilter('playoffs');
+      setRoundFilter(game.playoffStage.tournament_playoff_round_id);
+    } else if (game.group) {
+      setActiveFilter('groups');
+      setGroupFilter(game.group.tournament_group_id);
+    }
+  }, [setActiveFilter, setGroupFilter, setRoundFilter]);
 
   // Calculate progress
   const totalGames = games.length;
@@ -269,6 +279,7 @@ function UnifiedGamesPageContent({
           tournamentId={tournamentId}
           activeFilter={activeFilter}
           tournament={tournament}
+          onGameStageClick={handleGameStageClick}
         />
 
         {/* Floating Action Button - Scroll to Next Game (mobile only) */}
