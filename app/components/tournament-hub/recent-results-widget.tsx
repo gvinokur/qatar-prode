@@ -26,13 +26,13 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
     item.userHomeGuess === item.homeScore &&
     item.userAwayGuess === item.awayScore
 
+  const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
+  const predictionText = hasGuess
+    ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    : t('noPredictionShort')
+
   let subtext: string
   if (isPending) {
-    const statusText =
-      item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
-    const predictionText = hasGuess
-      ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
-      : t('noPredictionShort')
     subtext = `${statusText} • ${predictionText}`
   } else if (!hasGuess) {
     subtext = t('youDidntPredict')
