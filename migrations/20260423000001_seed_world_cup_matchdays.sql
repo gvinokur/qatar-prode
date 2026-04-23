@@ -5,5 +5,5 @@ SET matchday =
     WHEN game_number BETWEEN 25 AND 48 THEN 2
     WHEN game_number BETWEEN 49 AND 72 THEN 3
   END
-WHERE tournament_id = (SELECT id FROM tournaments WHERE short_name = 'WC 2026')
+WHERE tournament_id = (SELECT id FROM tournaments WHERE short_name = 'World Cup 26')
   AND game_number BETWEEN 1 AND 72;

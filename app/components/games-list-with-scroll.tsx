@@ -87,6 +87,14 @@ export function GamesListWithScroll({
       sections[keyIndex[sectionKey]].games.push(game);
     }
 
+    // Sort group-fallback sections alphabetically; matchday/playoff sections keep insertion order
+    sections.sort((a, b) => {
+      const aIsGroup = a.sectionKey.startsWith('group-');
+      const bIsGroup = b.sectionKey.startsWith('group-');
+      if (aIsGroup && bIsGroup) return a.sectionKey.localeCompare(b.sectionKey);
+      return 0;
+    });
+
     return sections;
   }, [games, t]);
 
