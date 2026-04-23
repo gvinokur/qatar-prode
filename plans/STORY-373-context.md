@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Enhanced Tournament Hub Recent Results
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-373
 - **Branch:** feature/story-373
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 374
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/374
 
 ## State
 - **Current Phase:** planning
