@@ -10,15 +10,17 @@ The story activates the "Groups" slot by integrating `TournamentHubLeaderboardPe
 
 | File | Action |
 |------|--------|
-| `app/actions/hub-actions.ts` | Add `isAuthenticated` field to `LeaderboardPeekResult`; set it from `user?.id` check |
-| `app/[locale]/tournaments/[id]/page.tsx` | Remove "Groups" placeholder; add `TournamentHubLeaderboardPeek` in Suspense |
-| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Add logged-off branch; refactor remaining branches |
+| `app/[locale]/tournaments/[id]/page.tsx` | Remove "Groups" placeholder; pass `isAuthenticated={!!user}` prop; add `TournamentHubLeaderboardPeek` in Suspense |
+| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Add `isAuthenticated` prop; add logged-off branch; refactor remaining branches |
+| `app/components/tournament-hub/social-hub-card.tsx` | Add optional `loginHref?: string` prop; render single login Button when provided |
 | `app/components/tournament-hub/leaderboard-peek-card.tsx` | Style update: add `variant="outlined"` + `height: '100%'` for grid consistency |
 | `app/components/tournament-hub/__tests__/tournament-hub-leaderboard-peek.test.tsx` | New: unit tests for 4 branches |
 | `app/components/tournament-hub/__tests__/leaderboard-peek-card.test.tsx` | New or updated: rendering + click tests |
+| `app/components/tournament-hub/__tests__/social-hub-card.test.tsx` | New or updated: login mode vs default mode |
 
 **No changes to:**
-- `app/components/tournament-hub/social-hub-card.tsx`
+- `app/actions/hub-actions.ts` — data fetching unchanged; auth state flows from hub page as a prop
+- `app/components/tournament-hub/social-hub-card.tsx` — gains optional `loginHref` prop (see below)
 - `app/components/tournament-hub/pre-tournament-groups-preview.tsx`
 - `app/components/tournament-hub/dashboard-card.tsx`
 
@@ -90,32 +92,21 @@ The Suspense wraps the component as a whole. When resolved, if it returns a Frag
 
 Keep the "Standings" DashboardCard placeholder unchanged (different story scope).
 
-### `hub-actions.ts` — `LeaderboardPeekResult` update
-
-Add `isAuthenticated: boolean` to the interface and populate it in `getLeaderboardPeekData`:
-
-```ts
-// Current early return when unauthenticated:
-if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [] }
-
-// Updated:
-if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [], isAuthenticated: false }
-
-// At the end (authenticated path):
-return { groups, userHasGroups, allGroupNames, isAuthenticated: true }
-```
-
 ### `TournamentHubLeaderboardPeek` refactor
 
 **Before:** Single `<Box>` wrapper with shared header → 3 branches inside.
 
 **After (4 branches):**
-- Branch 0 (`!isAuthenticated`): Return `<DashboardCard>` with a login CTA (sign-in prompt + link to sign-in page)
-- Branch 1 (`isAuthenticated && !userHasGroups`): Return `<DashboardCard title={t('groups')} icon={<GroupsIcon />}><SocialHubCard .../></DashboardCard>`
+- Branch 0 (`!isAuthenticated` prop): Return `<DashboardCard>` with a login CTA (sign-in prompt + link to sign-in page)
+- Branch 1 (`!userHasGroups`): Return `<DashboardCard title={t('groups')} icon={<GroupsIcon />}><SocialHubCard .../></DashboardCard>`
 - Branch 2 (`userHasGroups && groups.length === 0`): Return `<DashboardCard title={t('yourStandings')} icon={<GroupsIcon />}><PreTournamentGroupsPreview .../></DashboardCard>`
 - Branch 3 (`groups.length > 0`): Return `<>{groups.map(g => <LeaderboardPeekCard key={g.groupId} ... />)}</>`
 
-**Login CTA card content (Branch 0):** A centered state inside a DashboardCard showing a brief message ("Sign in to see your group standings") and a Button linking to the sign-in page (`/${locale}/auth/signin`). No new component needed — rendered inline in the branch.
+**`isAuthenticated` prop source:** The hub page already fetches `user` via `getLoggedInUser()`. It passes `isAuthenticated={!!user}` to `TournamentHubLeaderboardPeek` — no changes to `hub-actions.ts` or `LeaderboardPeekResult`.
+
+**Login CTA card content (Branch 0):** Reuses `SocialHubCard` with a new optional `loginHref` prop. When `loginHref` is provided, the component renders in "logged-off mode": same `GroupAddIcon`, title, and description as the normal state, but replaces the two action buttons ("Create Group" + "Find Group") with a single "Log in" Button linking to `loginHref`. The hub component passes `loginHref={`/${locale}/auth/signin`}`.
+
+This avoids duplicating the Paper/Stack layout and keeps both states in one component.
 
 Remove the "See all groups" link (navigation is via card click, which is already in LeaderboardPeekCard's CardActionArea).
 
@@ -141,22 +132,26 @@ This ensures visual consistency with other DashboardCard-style widgets in the gr
 - `TournamentHubLeaderboardPeek` no longer wraps in a Box; returns Fragment (active) or DashboardCard (logged-off/no-groups/pre-tournament)
 - `getLeaderboardPeekData` now returns `isAuthenticated` flag to distinguish logged-off from no-groups state
 
-### `app/actions/hub-actions.ts` *(modified)*
+### `app/components/tournament-hub/social-hub-card.tsx` *(modified)*
 
-**Changed types:**
+**Changed functions:**
 
-- **`LeaderboardPeekResult`** — adds `isAuthenticated: boolean` field
-  - `isAuthenticated: false` when `getLoggedInUser()` returns null (unauthenticated)
-  - `isAuthenticated: true` on all authenticated code paths
+- **`SocialHubCard({ locale, tournamentId, loginHref }): JSX.Element`** *(adds optional `loginHref?: string` prop; when provided renders a single login Button instead of "Create Group" + "Find Group" buttons)*
+  Tests:
+  - renders "Create Group" and "Find Group" buttons when `loginHref` is undefined
+  - renders a single "Log in" button linking to `loginHref` when `loginHref` is provided
+  - does NOT render the friend groups action buttons when in login mode
+  - renders the same icon and title text in both modes
 
 ### `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` *(modified)*
 
 **Changed functions:**
 
-- **`TournamentHubLeaderboardPeek({ tournamentId, locale }): JSX.Element`** *(adds logged-off branch; removes Box wrapper, shared header, and "See all groups" link; returns Fragment for active state, single DashboardCard for edge states)*
+- **`TournamentHubLeaderboardPeek({ tournamentId, locale, isAuthenticated }): JSX.Element`** *(adds `isAuthenticated: boolean` prop; adds logged-off branch; removes Box wrapper, shared header, and "See all groups" link; returns Fragment for active state, single DashboardCard for edge states)*
   Calls: `getLeaderboardPeekData`, `getTranslations`
   Tests:
   - renders a DashboardCard with a sign-in link when `isAuthenticated` is false
+  - does NOT call `getLeaderboardPeekData` when `isAuthenticated` is false
   - renders a DashboardCard containing SocialHubCard when `isAuthenticated` is true and `userHasGroups` is false
   - renders a DashboardCard containing PreTournamentGroupsPreview when `userHasGroups` is true and `groups` is empty
   - renders one LeaderboardPeekCard per group (not wrapped in a Box) when `groups` has items
