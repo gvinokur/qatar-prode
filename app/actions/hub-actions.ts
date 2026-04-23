@@ -60,6 +60,10 @@ export interface ActionCenterData {
   totalGames: number
   /** Number of games the user has fully predicted (both scores, playoff penalty included) */
   predictedGames: number
+  /** Total silver boosts applied across all user games in this tournament */
+  silverBoostsUsed: number
+  /** Total golden boosts applied across all user games in this tournament */
+  goldenBoostsUsed: number
   /** Sum of completed podium + individual awards (out of awardsTotal) */
   awardsCompleted: number
   /** Total number of award predictions available (3 podium + 4 individual = 7) */
@@ -279,6 +283,8 @@ export async function getActionCenterGames(
   const firstGameDate = firstGame?.game_date ?? null
   const totalGames = predictionCompletion?.totalGames ?? 0
   const predictedGames = predictionCompletion?.completedGames ?? 0
+  const silverBoostsUsed = predictionCompletion?.silverBoostsUsed ?? 0
+  const goldenBoostsUsed = predictionCompletion?.goldenBoostsUsed ?? 0
   const awardsCompleted = (predictionCompletion?.finalStandings.completed ?? 0) + (predictionCompletion?.awards.completed ?? 0)
   const awardsTotal = (predictionCompletion?.finalStandings.total ?? 0) + (predictionCompletion?.awards.total ?? 0)
   const qualifiersCompleted = predictionCompletion?.qualifiers.completed ?? 0
@@ -327,6 +333,8 @@ export async function getActionCenterGames(
       openerBackfill,
       totalGames,
       predictedGames,
+      silverBoostsUsed,
+      goldenBoostsUsed,
       awardsCompleted,
       awardsTotal,
       qualifiersCompleted,
@@ -406,12 +414,188 @@ export async function getActionCenterGames(
     openerBackfill: false,
     totalGames,
     predictedGames,
+    silverBoostsUsed,
+    goldenBoostsUsed,
     awardsCompleted,
     awardsTotal,
     qualifiersCompleted,
     qualifiersTotal,
     tournamentJustStarted,
     scoringConfig: buildScoringConfig(tournament),
+  }
+}
+
+/**
+ * Carousel-only data needed to refresh the active games widget after all urgent games are
+ * predicted. Lighter than ActionCenterData — skips the 7+ sequential queries in
+ * getTournamentPredictionCompletion and fetches only what the carousel needs.
+ */
+export interface CarouselGamesData {
+  games: ExtendedGameData[]
+  gameGuesses: Record<string, GameGuessNew>
+  teamsMap: Record<string, Team>
+  tournamentMaxSilver: number
+  tournamentMaxGolden: number
+  mode: 'urgent' | 'fallback' | 'empty'
+  /** IDs of games in urgent mode (empty for fallback/empty modes) */
+  urgentGameIds: string[]
+  /** Number of games the user has fully predicted (lightweight query, not getTournamentPredictionCompletion) */
+  predictedGames: number
+  /** Total silver boosts applied across all user games in this tournament */
+  silverBoostsUsed: number
+  /** Total golden boosts applied across all user games in this tournament */
+  goldenBoostsUsed: number
+}
+
+/**
+ * Lightweight carousel-only refetch. Called by GamesActiveSection when all urgent games
+ * become complete. Does NOT call getTournamentPredictionCompletion — instead runs two
+ * parallel aggregate queries covering predicted count and boost usage.
+ */
+export async function getCarouselGames(
+  tournamentId: string,
+  locale: Locale
+): Promise<CarouselGamesData> {
+  const user = await getLoggedInUser()
+  if (!user?.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const [games, guessesArray, teams, tournament] = await Promise.all([
+    findGamesForDashboard(tournamentId),
+    findGameGuessesByUserId(user.id, tournamentId),
+    findTeamInTournament(tournamentId),
+    findTournamentById(tournamentId),
+  ])
+
+  // Run lightweight aggregate queries in parallel — replaces the 7+ sequential queries
+  // in getTournamentPredictionCompletion with just the three counts we need.
+  const [predictedGamesResult, silverBoostsResult, goldenBoostsResult] = await Promise.all([
+    db
+      .selectFrom('games')
+      .innerJoin('game_guesses', 'game_guesses.game_id', 'games.id')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('games.tournament_id', '=', tournamentId)
+      .where('game_guesses.user_id', '=', user.id)
+      .where('game_guesses.home_score', 'is not', null)
+      .where('game_guesses.away_score', 'is not', null)
+      .where((eb) =>
+        eb.or([
+          eb('games.game_type', '=', 'group'),
+          eb.and([
+            eb('games.game_type', '!=', 'group'),
+            eb.or([
+              eb('game_guesses.home_score', '!=', eb.ref('game_guesses.away_score')),
+              eb('game_guesses.home_penalty_winner', '=', true),
+              eb('game_guesses.away_penalty_winner', '=', true),
+            ]),
+          ]),
+        ])
+      )
+      .executeTakeFirst(),
+    db
+      .selectFrom('game_guesses')
+      .innerJoin('games', 'games.id', 'game_guesses.game_id')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('games.tournament_id', '=', tournamentId)
+      .where('game_guesses.user_id', '=', user.id)
+      .where('game_guesses.boost_type', '=', 'silver')
+      .executeTakeFirst(),
+    db
+      .selectFrom('game_guesses')
+      .innerJoin('games', 'games.id', 'game_guesses.game_id')
+      .select((eb) => eb.fn.countAll<number>().as('count'))
+      .where('games.tournament_id', '=', tournamentId)
+      .where('game_guesses.user_id', '=', user.id)
+      .where('game_guesses.boost_type', '=', 'golden')
+      .executeTakeFirst(),
+  ])
+
+  const predictedGames = Number(predictedGamesResult?.count ?? 0)
+  const silverBoostsUsed = Number(silverBoostsResult?.count ?? 0)
+  const goldenBoostsUsed = Number(goldenBoostsResult?.count ?? 0)
+  const tournamentMaxSilver = tournament?.max_silver_games ?? 0
+  const tournamentMaxGolden = tournament?.max_golden_games ?? 0
+
+  const now = Date.now()
+  const localizedTeams = applyLocalizationBatch(teams, locale, [
+    { field: 'name', i18nField: 'name_i18n' },
+  ])
+  const teamsMap = Object.fromEntries(localizedTeams.map((t) => [t.id, t]))
+
+  if (games.length === 0) {
+    return {
+      games: [],
+      gameGuesses: {},
+      teamsMap,
+      tournamentMaxSilver,
+      tournamentMaxGolden,
+      mode: 'empty',
+      urgentGameIds: [],
+      predictedGames,
+      silverBoostsUsed,
+      goldenBoostsUsed,
+    }
+  }
+
+  const guessesMapAll = Object.fromEntries(guessesArray.map((g) => [g.game_id, g]))
+
+  // Same urgent-game filtering as getActionCenterGames — mirrors isGuessComplete logic
+  const urgentGames = games
+    .filter((g) => {
+      const deadline = calculateDeadline(g.game_date)
+      if (deadline <= now) return false
+      const guess = guessesMapAll[g.id]
+      if (!guess) return true
+      if (guess.home_score === null || guess.home_score === undefined) return true
+      if (guess.away_score === null || guess.away_score === undefined) return true
+      if (!!g.playoffStage && guess.home_score === guess.away_score) {
+        return !(guess.home_penalty_winner || guess.away_penalty_winner)
+      }
+      return false
+    })
+    .sort((a, b) => calculateDeadline(a.game_date) - calculateDeadline(b.game_date))
+    .slice(0, MAX_URGENT_CARDS)
+
+  let selectedGames: ExtendedGameData[]
+  let mode: CarouselGamesData['mode']
+  let urgentGameIds: string[]
+
+  if (urgentGames.length > 0) {
+    selectedGames = urgentGames
+    mode = 'urgent'
+    urgentGameIds = urgentGames.map((g) => g.id)
+  } else {
+    const upcomingGames = [...games]
+      .filter((g) => calculateDeadline(g.game_date) > now)
+      .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
+      .slice(0, FALLBACK_CARD_COUNT)
+    selectedGames = upcomingGames
+    mode = upcomingGames.length > 0 ? 'fallback' : 'empty'
+    urgentGameIds = []
+  }
+
+  const localizedGames = applyLocalizationBatch(selectedGames, locale, [
+    { field: 'location', i18nField: 'location_i18n' },
+  ]) as ExtendedGameData[]
+
+  const gameGuesses = Object.fromEntries(
+    localizedGames
+      .filter((g) => guessesMapAll[g.id] !== undefined)
+      .map((g) => [g.id, guessesMapAll[g.id]] as [string, GameGuessNew])
+  )
+
+  return {
+    games: localizedGames,
+    gameGuesses,
+    teamsMap,
+    tournamentMaxSilver,
+    tournamentMaxGolden,
+    mode,
+    urgentGameIds,
+    predictedGames,
+    silverBoostsUsed,
+    goldenBoostsUsed,
   }
 }
 

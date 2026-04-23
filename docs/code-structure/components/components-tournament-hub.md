@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-04-23
 
 ---
 
@@ -119,15 +119,22 @@ Async Server Component for the Games widget in Logged-Off and Pre-Start states.
   Renders: DashboardCard
 
 ### app/components/tournament-hub/games-active-widget.tsx
-Async Server Component for the Games widget in Active state. Computes urgency level and wraps the client carousel.
+Async Server Component for the Games widget in Active state. Thin wrapper — computes initial urgency and urgent game IDs, then delegates to GamesActiveSection.
 
-- **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Computes `urgencyLevel` ('critical'/'high'/'medium'/'safe'/'empty') by finding the minimum deadline across `data.games` when `mode==='urgent'`, else 'safe' for fallback or 'empty'. Computes `unpredictedCount = data.totalGames - data.predictedGames` when urgent, else 0. Renders `DashboardCard` with `urgent={data.mode==='urgent'}`. Inside: `GuessesContextProvider` wrapping `GamesActiveClient`.
-  Calls: getTranslations('hub'), calculateDeadline
-  Renders: DashboardCard, GuessesContextProvider, GamesActiveClient
+- **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Computes `urgencyLevel` via `computeUrgencyLevel` (imported from `urgency-utils`). Computes `urgentGameIds` (all game IDs when `mode==='urgent'`, else empty). Passes `initialSilverUsed={data.silverBoostsUsed}` and `initialGoldenUsed={data.goldenBoostsUsed}` to `GamesActiveSection` for boost delta tracking.
+  Calls: getTranslations('hub'), computeUrgencyLevel
+  Renders: GamesActiveSection
+
+### app/components/tournament-hub/games-active-section.tsx
+Client Component that owns all mutable carousel state and handles independent refetch when all urgent games are predicted.
+
+- **GamesActiveSection({ initialGames, initialGameGuesses, initialTeamsMap, initialUrgencyLevel, initialUrgentGameIds, initialPredicted, totalGames, tournamentMaxSilver, tournamentMaxGolden, initialSilverUsed, initialGoldenUsed, tournamentId, gamesHref, cardTitle })**: `JSX.Element` — [Client] Holds `games`, `gameGuesses`, `teamsMap`, `urgencyLevel`, `urgentGameIds`, `predicted`, `silverUsed`, `goldenUsed`, and `refetchKey` in `useState`. `handleAllUrgentComplete` calls `getCarouselGames` (lightweight — no `getTournamentPredictionCompletion`), updates all state, and increments `refetchKey`. The `key={refetchKey}` prop on `GuessesContextProvider` forces a clean remount, resetting both the guess context and the delta snapshots in `GamesActiveClient` and `GuessesContextProvider` simultaneously. Passes `tournamentSilverUsed={silverUsed}` and `tournamentGoldenUsed={goldenUsed}` to `GuessesContextProvider` for tournament-wide boost count accuracy.
+  Calls: getCarouselGames, computeUrgencyLevel
+  Renders: GuessesContextProvider (key={refetchKey}), GamesActiveClient
 
 ### app/components/tournament-hub/games-active-client.tsx
-Client Component managing navigation through the single-card game carousel with urgency status display.
+Client Component managing navigation through the single-card game carousel with reactive predicted-count tracking and urgency status display.
 
-- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, mode, urgencyLevel, unpredictedCount })**: `JSX.Element` — [Client] Manages `currentIndex: number` (useState, 0) and `editingGameId: string | null` (useState). Reads `gameGuesses` from `GuessesContext` via `useContext`. Renders: (1) status row when `urgencyLevel !== 'empty'` — icon (ErrorIcon/WarningAmberIcon/InfoOutlinedIcon based on level) + urgentMessage with count, or safeMessage without icon for 'safe'; (2) navigation row with `ChevronLeft` IconButton (disabled at 0) + `FlippableGameCard` + `ChevronRight` IconButton (disabled at last); (3) "View All Matches" Button/Link.
-  Uses: useContext(GuessesContext), useState, useTranslations('hub')
-  Renders: FlippableGameCard
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) navigation row (ChevronLeft + FlippableGameCard + ChevronRight); (3) "View All Matches" Button/Link.
+  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub')
+  Renders: DashboardCard, FlippableGameCard

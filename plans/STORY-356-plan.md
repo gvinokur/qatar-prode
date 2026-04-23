@@ -556,3 +556,202 @@ Coverage requirement: ≥80% on new code.
 - `npm run lint` — must pass
 - `npm run build` — must pass
 - SonarCloud: 0 new issues of any severity
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: Refactored Component Architecture — `GamesActiveSection` + Callback Pattern
+
+**Date:** 2026-04-22
+**Reason:** Two bugs surfaced after initial implementation: (1) carousel games loaded without scores after page refresh — root cause: `GuessesContextProvider` initializes `gameGuesses` state once on mount; subsequent prop changes from `router.refresh()` are silently ignored. (2) Un-completing a game didn't update urgency text — root cause: urgency was computed server-side in `GamesActiveWidget` and passed as a static prop; client-side guess changes never re-ran the computation.
+
+**What actually changed:**
+
+The original plan placed `GuessesContextProvider` and `GamesActiveClient` directly inside `GamesActiveWidget` (Server Component). The actual implementation adds a new client-owned layer:
+
+```
+GamesActiveWidget (Server, now thin wrapper)
+  └── GamesActiveSection (NEW Client Component — owns carousel state + refetch)
+        └── GuessesContextProvider (key={refetchKey} for clean remount on refetch)
+              └── GamesActiveClient (Client)
+```
+
+**`GamesActiveSection`** (`app/components/tournament-hub/games-active-section.tsx`) — new Client Component:
+- Holds all carousel state: `games`, `gameGuesses`, `teamsMap`, `urgencyLevel`, `urgentGameIds`, `predicted`, `refetchKey`
+- `handleAllUrgentComplete` callback: called by `GamesActiveClient` once all urgent games are predicted → triggers refetch → updates all state → increments `refetchKey`
+- `key={refetchKey}` on `GuessesContextProvider` forces full unmount+remount — simultaneously resets guess context state AND the `initialGuessesRef` delta snapshot in `GamesActiveClient`
+- Contains a duplicate `computeUrgencyLevel` function (same as `GamesActiveWidget`) — will be de-duplicated when the action split lands
+
+**`GamesActiveWidget`** is now a thin async Server Component that reads translations and passes initial data to `GamesActiveSection`.
+
+**`GamesActiveClient`** props changed significantly from plan:
+
+| Plan prop | Actual prop | Notes |
+|-----------|-------------|-------|
+| `mode: 'urgent' \| 'fallback' \| 'empty'` | _(removed)_ | No longer passed; urgency derived client-side |
+| `unpredictedCount: number` | _(removed)_ | Replaced by `urgentGameIds` + live count |
+| _(new)_ | `cardTitle: string` | Card header title, now passed as prop |
+| _(new)_ | `initialPredicted: number` | Server-rendered predicted count for delta baseline |
+| _(new)_ | `totalGames: number` | Total game count for the counter display |
+| _(new)_ | `urgentGameIds: string[]` | IDs of games that were in urgent mode at render time |
+| _(new)_ | `onAllUrgentComplete: () => Promise<void>` | Callback to `GamesActiveSection` when all urgent games are complete |
+
+**Delta tracking added to `GamesActiveClient`:**
+- `initialGuessesRef = useRef(gameGuesses)` — snapshot of guesses on mount (resets on remount via `key`)
+- `initialWindowPredicted = countCompleteGuesses(initialGuessesRef.current, games)`
+- `currentWindowPredicted = countCompleteGuesses(gameGuesses, games)`
+- `delta = currentWindowPredicted - initialWindowPredicted`
+- `adjustedPredicted = initialPredicted + delta` — displayed in card header
+
+**Urgency logic moved to `GamesActiveClient`:**
+- `urgentRemaining = urgentGameIds.filter(id => !isGuessComplete(gameGuesses[id], isPlayoff)).length`
+- `effectiveIsUrgent = urgentGameIds.length > 0 && urgentRemaining > 0`
+- `effectiveUrgencyLevel` — derived from `effectiveIsUrgent` + `urgencyLevel` prop
+- `useEffect` fires `onAllUrgentComplete` once when `urgentRemaining === 0` (guarded by `refetchTriggeredRef`)
+
+---
+
+### Amendment 2: `isGuessComplete` / `countCompleteGuesses` Extracted to Util
+
+**Date:** 2026-04-22
+**Reason:** Both `GamesActiveClient` and `getActionCenterGames` (server) needed the same "is this guess complete?" logic. Extracting to a shared util prevents drift.
+
+**Files created:**
+- `app/utils/guess-utils.ts` — two exported functions:
+  ```ts
+  export function isGuessComplete(guess: GameGuessNew | undefined, isPlayoff: boolean): boolean
+  export function countCompleteGuesses(guessMap: Record<string, GameGuessNew>, games: ExtendedGameData[]): number
+  ```
+- `app/utils/__tests__/guess-utils.test.ts` — comprehensive unit tests covering: undefined guess, 0-0 scores, null/undefined scores, penalty winner rules for playoff games, countCompleteGuesses with empty map and mixed complete/incomplete guesses
+
+---
+
+### Amendment 3: `GuessesContextProvider` — Safety Sync Added
+
+**Date:** 2026-04-22
+**Reason:** Defense-in-depth against future prop changes not triggering context reset.
+
+`useEffect(() => { setGameGuesses(serverGameGuesses) }, [serverGameGuesses])` added to `guesses-context-provider.tsx`. With the `key={refetchKey}` remount pattern this is now redundant, but kept as a safety net.
+
+---
+
+### Amendment 4 (PENDING DECISION): Split `getActionCenterGames` — Lightweight Carousel Refetch
+
+**Date:** 2026-04-22
+**Reason:** `GamesActiveSection.handleAllUrgentComplete` currently calls `getActionCenterGames`, which internally calls `getTournamentPredictionCompletion`. That function runs **7+ sequential DB queries**: total game count, completed game count (JOIN with game_guesses + playoff filter), tournament guess lookup, tournament start date, final standings completion, awards completion, qualifiers completion. This is expensive for a carousel-only refetch that only needs `games`, `gameGuesses`, `teamsMap`, and `mode`.
+
+**Proposed split:**
+
+**New `getCarouselGames(tournamentId, locale)`** — lightweight carousel-only action:
+- Does NOT call `getTournamentPredictionCompletion`
+- DB calls: `findGamesForDashboard`, `findGameGuessesByUserId`, `findTeamInTournament`, `findTournamentById` (for `tournamentMaxSilver`/`tournamentMaxGolden` and localization only)
+- Returns: `{ games, gameGuesses, teamsMap, mode, urgentGameIds }` — no completion stats
+- `GamesActiveSection.handleAllUrgentComplete` calls this instead of `getActionCenterGames`
+
+**`getActionCenterGames` (page-level)** remains unchanged — called once by `TournamentHubPage`, returns full `ActionCenterData` including completion stats.
+
+**Open question — predicted counter after refetch:**
+
+After `getCarouselGames` refetch, `GamesActiveSection` cannot call `setPredicted` (no fresh count). The remounted `GamesActiveClient` has:
+- `initialPredicted` = old page-level value (e.g., 8)
+- `initialGuessesRef` = new carousel guesses (all complete)
+- `delta` = 0
+- Display: 8/16 ✗ — STALE (should be 10/16)
+
+**Options to resolve:**
+
+| Option | Approach | Cost | Counter correctness |
+|--------|----------|------|---------------------|
+| **A** | Keep calling `getActionCenterGames` on refetch (status quo) | 7+ DB queries | ✓ Correct — `fresh.predictedGames` updates `initialPredicted` |
+| **B** | `getCarouselGames` returns no count; accept stale counter | Cheapest | ✗ Counter resets to page-load value after refetch |
+| **C** | `getCarouselGames` runs 1 lightweight count query: `SELECT COUNT(*) FROM game_guesses WHERE user_id=$1 AND tournament_id=$2 AND home_score IS NOT NULL AND away_score IS NOT NULL AND (playoff penalty filter)` | 1 extra query | ✓ Correct — `GamesActiveSection` calls `setPredicted(fresh.predictedGames)` |
+| **D** | Store `adjustedPredicted` in `GamesActiveSection` state; pass it as new `initialPredicted` before key remount | No extra DB call | ✓ Correct — delta-aware, but more complex state management |
+
+**Decision: Option C** — `getCarouselGames` runs a single lightweight aggregate query that returns `predictedGames`, `silverBoostsUsed`, and `goldenBoostsUsed` in one shot (see Amendment 5 for the combined query). `GamesActiveSection` calls `setPredicted(fresh.predictedGames)` before `setRefetchKey(k+1)`, so the remounted component starts with the correct counter.
+
+---
+
+### Amendment 5 (PENDING DECISION): Boost Delta Tracking — Fix Boost Counts Scoped to Carousel
+
+**Date:** 2026-04-22
+**Reason:** `GuessesContextProvider` currently computes `silverUsed`/`goldenUsed` by filtering its internal `gameGuesses` state (`guesses.filter(g => g.boost_type === 'silver').length`). But `gameGuesses` only contains carousel game guesses (2-4 games from `getActionCenterGames`). If the user has boosts applied to games outside the current carousel window, the context returns wrong counts — potentially allowing more boosts than the tournament limit allows.
+
+**Current (broken) flow:**
+```
+GuessesContextProvider
+  gameGuesses = { 'g-1': {..., boost_type: 'silver'}, 'g-2': {...} }  ← 2 carousel games only
+  silverUsed = gameGuesses.filter(silver) = 1  ← WRONG if user has silver on 10 other games
+```
+
+**Proposed fix:**
+
+1. **Add `silverBoostsUsed`/`goldenBoostsUsed` to `ActionCenterData`**:
+   `getTournamentPredictionCompletion` already computes these (via `getTournamentGuessStatsForUsers`). Currently not plumbed through to `ActionCenterData`. Add them:
+   ```ts
+   // ActionCenterData new fields:
+   silverBoostsUsed: number   // total across all user games in tournament
+   goldenBoostsUsed: number
+   ```
+
+2. **Pass to `GamesActiveSection`** as `initialSilverUsed`/`initialGoldenUsed` props.
+
+3. **Add boost delta tracking in `GamesActiveSection`**:
+   - `initialBoostRef = useRef(gameGuesses)` — already captured via existing `refetchKey` reset
+   - `initialCarouselSilver = countSilver(initialBoostRef.current)` (boosts in carousel at mount time)
+   - `currentCarouselSilver = countSilver(gameGuesses)` (current carousel session)
+   - `boostDelta = currentCarouselSilver - initialCarouselSilver`
+   - Pass `tournamentSilverUsed = initialSilverUsed + boostDelta` to `GuessesContextProvider`
+
+4. **`GuessesContextProvider`** receives new props `tournamentSilverUsed`/`tournamentGoldenUsed` and uses them directly instead of computing from `gameGuesses`:
+   ```ts
+   // Before (broken):
+   const silverUsed = Object.values(gameGuesses).filter(g => g.boost_type === 'silver').length
+   // After (correct):
+   props.tournamentSilverUsed  // passed from GamesActiveSection
+   ```
+
+5. **On carousel refetch**: `getCarouselGames` returns fresh `silverBoostsUsed`/`goldenBoostsUsed` from the same lightweight aggregate query used for `predictedGames` (one combined DB query covering all three counts). `GamesActiveSection` calls `setInitialSilverUsed(fresh.silverBoostsUsed)` before `setRefetchKey(k+1)`, resetting the delta baseline cleanly.
+
+**Combined lightweight aggregate query** (runs as one DB call in `getCarouselGames`):
+```sql
+-- predicted count (requires JOIN for playoff filter)
+SELECT COUNT(*) FROM games
+INNER JOIN game_guesses ON game_guesses.game_id = games.id
+WHERE games.tournament_id = $1 AND game_guesses.user_id = $2
+  AND game_guesses.home_score IS NOT NULL AND game_guesses.away_score IS NOT NULL
+  AND (
+    games.game_type = 'group'
+    OR game_guesses.home_score != game_guesses.away_score
+    OR game_guesses.home_penalty_winner = true
+    OR game_guesses.away_penalty_winner = true
+  )
+
+-- boost counts (simple, no join needed — game_guesses already scoped to tournament via game_id JOIN or user+tournament filter)
+SELECT boost_type, COUNT(*) FROM game_guesses
+WHERE user_id = $2 AND tournament_id_derived = $1  -- (join games on game_id to filter by tournament)
+  AND boost_type IS NOT NULL
+GROUP BY boost_type
+```
+
+These two can run as parallel `Promise.all` calls in `getCarouselGames` — still far cheaper than the 7+ sequential calls in `getTournamentPredictionCompletion`.
+
+**Scope clarification:** The delta tracking lives in `GamesActiveSection` (not inside `GuessesContextProvider`). `GuessesContextProvider` becomes a dumb receiver — it accepts `tournamentSilverUsed`/`tournamentGoldenUsed` as props and exposes them directly via context, without computing from its own (carousel-scoped) `gameGuesses`.
+
+**Decision:** Implement boost delta tracking. Wrong counts in UI are a bug, even if the BE prevents over-application.
+
+---
+
+### Summary: What Remains to Implement
+
+| Item | Status | Complexity |
+|------|--------|------------|
+| `GamesActiveSection` + callback refactor | ✅ Done | — |
+| `isGuessComplete` / `countCompleteGuesses` util + tests | ✅ Done | — |
+| Updated `GamesActiveClient` tests | ✅ Done | — |
+| `GuessesContextProvider` safety sync | ✅ Done | — |
+| Add `silverBoostsUsed`/`goldenBoostsUsed` to `ActionCenterData` + populate in `getActionCenterGames` | ⏳ To do | Low |
+| Create `getCarouselGames` lightweight action (no `getTournamentPredictionCompletion`, but with combined lightweight aggregate query for `predictedGames` + boost counts) | ⏳ To do | Medium |
+| `GamesActiveSection`: call `getCarouselGames` instead of `getActionCenterGames`; add `initialSilverUsed`/`initialGoldenUsed` state + delta tracking; pass `tournamentSilverUsed`/`tournamentGoldenUsed` to `GuessesContextProvider` | ⏳ To do | Medium |
+| `GuessesContextProvider`: remove internal boost count computation; accept `tournamentSilverUsed`/`tournamentGoldenUsed` as props | ⏳ To do | Low |
+| De-duplicate `computeUrgencyLevel` between `GamesActiveWidget` and `GamesActiveSection` (move to shared util) | ⏳ To do | Low |

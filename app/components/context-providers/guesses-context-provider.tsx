@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useLocale } from 'next-intl';
 import { toLocale } from '../../utils/locale-utils';
 import {
@@ -36,16 +36,37 @@ export interface GuessesContextProviderProps {
   readonly autoSave?: boolean
   readonly tournamentMaxSilver?: number
   readonly tournamentMaxGolden?: number
+  /**
+   * Tournament-wide count of silver boosts already applied across ALL games (not just the
+   * carousel window). When provided, boost usage is computed as this baseline plus any
+   * changes made to carousel games during the current session (delta tracking). Resets on
+   * remount (key change) alongside the carousel data refetch.
+   */
+  readonly tournamentSilverUsed?: number
+  /**
+   * Tournament-wide count of golden boosts already applied across ALL games (not just the
+   * carousel window). Same delta-tracking semantics as tournamentSilverUsed.
+   */
+  readonly tournamentGoldenUsed?: number
 }
 
 export function GuessesContextProvider ({children,
                                           gameGuesses: serverGameGuesses,
                                           autoSave = false,
                                           tournamentMaxSilver = 0,
-                                          tournamentMaxGolden = 0
+                                          tournamentMaxGolden = 0,
+                                          tournamentSilverUsed,
+                                          tournamentGoldenUsed,
                                         }: GuessesContextProviderProps) {
   const locale = toLocale(useLocale());
   const [gameGuesses, setGameGuesses] = useState(serverGameGuesses)
+
+  // Snapshot initial carousel boost counts for delta tracking.
+  // Resets automatically on component remount (key change after carousel refetch).
+  const initialCarouselBoostsRef = useRef({
+    silver: Object.values(serverGameGuesses).filter(g => g.boost_type === 'silver').length,
+    golden: Object.values(serverGameGuesses).filter(g => g.boost_type === 'golden').length,
+  })
 
   // Sync state with server-provided guesses when they change (e.g., after router.refresh() or
   // soft navigation). This is needed because useState only initializes once — subsequent prop
@@ -55,17 +76,28 @@ export function GuessesContextProvider ({children,
     setGameGuesses(serverGameGuesses)
   }, [serverGameGuesses])
 
-  // Calculate boost counts from game guesses
+  // Calculate boost counts from game guesses.
+  // When tournament-wide baseline counts are provided (tournamentSilverUsed/tournamentGoldenUsed),
+  // use them plus a delta from this carousel session to get the correct tournament-wide total.
+  // This prevents wrong counts when the user has boosts on games outside the carousel window.
+  // Falls back to counting from local carousel guesses only when no baseline is provided.
   const boostCounts = useMemo(() => {
     const guesses = Object.values(gameGuesses);
-    const silverUsed = guesses.filter(g => g.boost_type === 'silver').length;
-    const goldenUsed = guesses.filter(g => g.boost_type === 'golden').length;
+    const currentCarouselSilver = guesses.filter(g => g.boost_type === 'silver').length;
+    const currentCarouselGolden = guesses.filter(g => g.boost_type === 'golden').length;
+
+    const silverUsed = tournamentSilverUsed !== undefined
+      ? tournamentSilverUsed + (currentCarouselSilver - initialCarouselBoostsRef.current.silver)
+      : currentCarouselSilver;
+    const goldenUsed = tournamentGoldenUsed !== undefined
+      ? tournamentGoldenUsed + (currentCarouselGolden - initialCarouselBoostsRef.current.golden)
+      : currentCarouselGolden;
 
     return {
       silver: { used: silverUsed, max: tournamentMaxSilver },
       golden: { used: goldenUsed, max: tournamentMaxGolden }
     };
-  }, [gameGuesses, tournamentMaxSilver, tournamentMaxGolden]);
+  }, [gameGuesses, tournamentMaxSilver, tournamentMaxGolden, tournamentSilverUsed, tournamentGoldenUsed]);
 
   const updateGameGuess = useCallback(async (
     gameId: string,

@@ -617,11 +617,13 @@ Key flows:
               → DashboardCard
           → [actionCenterData && !isStarted] → GamesInfoWidget(isLoggedOff=false)
               → DashboardCard
-          → [actionCenterData && isStarted] → GamesActiveWidget
-              → DashboardCard
-              → GuessesContextProvider [Provider]
-              → GamesActiveClient [Client]
-                  → FlippableGameCard → updateOrCreateGameGuesses (via context autoSave)
+          → [actionCenterData && isStarted] → GamesActiveWidget (Server)
+              → GamesActiveSection [Client] — owns carousel state; initialSilverUsed/initialGoldenUsed from ActionCenterData
+                  → GuessesContextProvider [Provider] (key={refetchKey}; tournamentSilverUsed/tournamentGoldenUsed for correct boost counts)
+                  → GamesActiveClient [Client]
+                      → FlippableGameCard → updateOrCreateGameGuesses (via context autoSave)
+                  → on all urgentGameIds complete: getCarouselGames (lightweight refetch)
+                      → increments refetchKey → remounts GuessesContextProvider + GamesActiveClient
       → renders DashboardCard ×3 (Standings, Groups, Results placeholder)
 
 30. Action Center data flow (Story #317; updated #342, #349)
