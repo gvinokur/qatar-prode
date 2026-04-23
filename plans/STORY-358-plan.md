@@ -10,14 +10,14 @@ The story activates the "Groups" slot by integrating `TournamentHubLeaderboardPe
 
 | File | Action |
 |------|--------|
+| `app/actions/hub-actions.ts` | Add `isAuthenticated` field to `LeaderboardPeekResult`; set it from `user?.id` check |
 | `app/[locale]/tournaments/[id]/page.tsx` | Remove "Groups" placeholder; add `TournamentHubLeaderboardPeek` in Suspense |
-| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Refactor: remove Box wrapper + shared header; return Fragment for active groups |
+| `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` | Add logged-off branch; refactor remaining branches |
 | `app/components/tournament-hub/leaderboard-peek-card.tsx` | Style update: add `variant="outlined"` + `height: '100%'` for grid consistency |
-| `app/components/tournament-hub/__tests__/tournament-hub-leaderboard-peek.test.tsx` | New: unit tests for 3 branches |
+| `app/components/tournament-hub/__tests__/tournament-hub-leaderboard-peek.test.tsx` | New: unit tests for 4 branches |
 | `app/components/tournament-hub/__tests__/leaderboard-peek-card.test.tsx` | New or updated: rendering + click tests |
 
 **No changes to:**
-- `app/actions/hub-actions.ts` — data fetching stays as-is
 - `app/components/tournament-hub/social-hub-card.tsx`
 - `app/components/tournament-hub/pre-tournament-groups-preview.tsx`
 - `app/components/tournament-hub/dashboard-card.tsx`
@@ -37,7 +37,18 @@ The story activates the "Groups" slot by integrating `TournamentHubLeaderboardPe
   (grid auto-fits: narrow screen stacks all cards vertically)
 ```
 
-**Empty state (no groups) — single card:**
+**Logged-off state — single card:**
+```
+┌──────────────────┬──────────────────┬──────────────────┐
+│ 🎮 Games         │ 🏆 Standings     │ 👥 Grupos        │
+│ [Prediction]     │ [placeholder]    │ [Login CTA]      │
+│                  │                  │ Inicia sesión    │
+│                  │                  │ para ver tu pos. │
+│                  │                  │ [Iniciar sesión] │
+└──────────────────┴──────────────────┴──────────────────┘
+```
+
+**Logged-in, no groups — single card:**
 ```
 ┌──────────────────┬──────────────────┬──────────────────┐
 │ 🎮 Games         │ 🏆 Standings     │ 👥 Grupos        │
@@ -79,14 +90,32 @@ The Suspense wraps the component as a whole. When resolved, if it returns a Frag
 
 Keep the "Standings" DashboardCard placeholder unchanged (different story scope).
 
+### `hub-actions.ts` — `LeaderboardPeekResult` update
+
+Add `isAuthenticated: boolean` to the interface and populate it in `getLeaderboardPeekData`:
+
+```ts
+// Current early return when unauthenticated:
+if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [] }
+
+// Updated:
+if (!user?.id) return { groups: [], userHasGroups: false, allGroupNames: [], isAuthenticated: false }
+
+// At the end (authenticated path):
+return { groups, userHasGroups, allGroupNames, isAuthenticated: true }
+```
+
 ### `TournamentHubLeaderboardPeek` refactor
 
-**Before:** Single `<Box>` wrapper with shared header → all branches inside.
+**Before:** Single `<Box>` wrapper with shared header → 3 branches inside.
 
-**After:**
-- Branch 1 (`!userHasGroups`): Return `<DashboardCard title={t('groups')} icon={<GroupsIcon />}><SocialHubCard .../></DashboardCard>`
+**After (4 branches):**
+- Branch 0 (`!isAuthenticated`): Return `<DashboardCard>` with a login CTA (sign-in prompt + link to sign-in page)
+- Branch 1 (`isAuthenticated && !userHasGroups`): Return `<DashboardCard title={t('groups')} icon={<GroupsIcon />}><SocialHubCard .../></DashboardCard>`
 - Branch 2 (`userHasGroups && groups.length === 0`): Return `<DashboardCard title={t('yourStandings')} icon={<GroupsIcon />}><PreTournamentGroupsPreview .../></DashboardCard>`
 - Branch 3 (`groups.length > 0`): Return `<>{groups.map(g => <LeaderboardPeekCard key={g.groupId} ... />)}</>`
+
+**Login CTA card content (Branch 0):** A centered state inside a DashboardCard showing a brief message ("Sign in to see your group standings") and a Button linking to the sign-in page (`/${locale}/auth/signin`). No new component needed — rendered inline in the branch.
 
 Remove the "See all groups" link (navigation is via card click, which is already in LeaderboardPeekCard's CardActionArea).
 
@@ -109,19 +138,28 @@ This ensures visual consistency with other DashboardCard-style widgets in the gr
 
 **Flow 32 (Leaderboard Peek data flow)** — updated:
 - `TournamentHubPage` (hub page) now renders `TournamentHubLeaderboardPeek` directly inside the widget grid (it was previously unused in the hub page)
-- `TournamentHubLeaderboardPeek` no longer wraps in a Box; returns Fragment (active) or DashboardCard (empty/pre-tournament)
+- `TournamentHubLeaderboardPeek` no longer wraps in a Box; returns Fragment (active) or DashboardCard (logged-off/no-groups/pre-tournament)
+- `getLeaderboardPeekData` now returns `isAuthenticated` flag to distinguish logged-off from no-groups state
+
+### `app/actions/hub-actions.ts` *(modified)*
+
+**Changed types:**
+
+- **`LeaderboardPeekResult`** — adds `isAuthenticated: boolean` field
+  - `isAuthenticated: false` when `getLoggedInUser()` returns null (unauthenticated)
+  - `isAuthenticated: true` on all authenticated code paths
 
 ### `app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx` *(modified)*
 
 **Changed functions:**
 
-- **`TournamentHubLeaderboardPeek({ tournamentId, locale }): JSX.Element`** *(removes Box wrapper, shared header, and "See all groups" link; returns Fragment for active state, single DashboardCard for edge states)*
+- **`TournamentHubLeaderboardPeek({ tournamentId, locale }): JSX.Element`** *(adds logged-off branch; removes Box wrapper, shared header, and "See all groups" link; returns Fragment for active state, single DashboardCard for edge states)*
   Calls: `getLeaderboardPeekData`, `getTranslations`
   Tests:
-  - renders a DashboardCard containing SocialHubCard when `userHasGroups` is false
+  - renders a DashboardCard with a sign-in link when `isAuthenticated` is false
+  - renders a DashboardCard containing SocialHubCard when `isAuthenticated` is true and `userHasGroups` is false
   - renders a DashboardCard containing PreTournamentGroupsPreview when `userHasGroups` is true and `groups` is empty
   - renders one LeaderboardPeekCard per group (not wrapped in a Box) when `groups` has items
-  - does NOT render a shared "Your Standings" header Typography in the active state
   - renders exactly 3 LeaderboardPeekCard components when `groups` has 3 items
 
 ### `app/components/tournament-hub/leaderboard-peek-card.tsx` *(modified)*
@@ -167,7 +205,7 @@ No new exported functions — JSX-only changes (remove Groups DashboardCard, add
 - `npm run test` — ≥ 80% coverage on changed files
 - `npm run lint` — no ESLint errors
 - `npm run build` — no TypeScript errors
-- Visual check in Vercel Preview: verify 3 states (active groups / pre-tournament / no groups)
+- Visual check in Vercel Preview: verify 4 states (active groups / pre-tournament / no groups / logged off)
 
 ## CODE-STRUCTURE Files to Update
 
