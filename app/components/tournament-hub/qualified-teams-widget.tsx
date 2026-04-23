@@ -6,6 +6,7 @@ import {
 } from '@mui/icons-material'
 import { getTranslations } from 'next-intl/server'
 import { DashboardCard } from './dashboard-card'
+import { DeadlineBox } from './deadline-box'
 import { GamesInfoWidgetCta } from './games-info-widget-cta'
 import { computeStatusWidgetSeverity } from '../../utils/urgency-utils'
 import type { ScoringRulesBySection } from '../../utils/scoring-rules-utils'
@@ -78,15 +79,7 @@ export async function QualifiedTeamsWidget({
         </Typography>
 
         {/* Deadline box */}
-        <Box
-          sx={{
-            border: '1px dashed',
-            borderColor: severity === 'normal' ? 'divider' : `${severity}.main`,
-            borderRadius: 1,
-            p: 1,
-            bgcolor: { info: 'rgba(2,136,209,0.05)', warning: 'rgba(237,108,2,0.05)', error: 'rgba(211,47,47,0.05)', normal: 'transparent' }[severity],
-          }}
-        >
+        <DeadlineBox severity={severity}>
           <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
             <ScheduleIcon sx={{ fontSize: 14, color: iconColor }} />
             <Typography variant="caption" fontWeight="bold" color={iconColor}>
@@ -101,7 +94,7 @@ export async function QualifiedTeamsWidget({
           <Typography variant="caption" color={iconColor} display="block">
             {deadlineMessage}
           </Typography>
-        </Box>
+        </DeadlineBox>
 
         {/* Scoring rules box */}
         {scoringRules.qualifiedTeams.length > 0 && (
