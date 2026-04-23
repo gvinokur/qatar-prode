@@ -10,33 +10,14 @@ import {
   SportsSoccer as SportsSoccerIcon,
   WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import FlippableGameCard from '../flippable-game-card'
 import { DashboardCard } from './dashboard-card'
 import { GuessesContext } from '../context-providers/guesses-context-provider'
+import { isGuessComplete, countCompleteGuesses } from '../../utils/guess-utils'
 import type { ExtendedGameData } from '../../definitions'
-import type { Team, GameGuessNew } from '../../db/tables-definition'
-
-/** Mirrors the server-side completion check in getTournamentPredictionCompletion. */
-function isGuessComplete(guess: GameGuessNew | undefined, isPlayoff: boolean): boolean {
-  if (!guess) return false
-  if (guess.home_score === null || guess.home_score === undefined) return false
-  if (guess.away_score === null || guess.away_score === undefined) return false
-  // Tied playoff games require a penalty winner to be truly complete
-  if (isPlayoff && guess.home_score === guess.away_score) {
-    return !!(guess.home_penalty_winner || guess.away_penalty_winner)
-  }
-  return true
-}
-
-function countCompleteInWindow(
-  guessMap: Record<string, GameGuessNew>,
-  windowGames: ExtendedGameData[]
-): number {
-  return windowGames.filter((g) => isGuessComplete(guessMap[g.id], !!g.playoffStage)).length
-}
+import type { Team } from '../../db/tables-definition'
 
 type UrgencyLevel = 'critical' | 'high' | 'medium' | 'safe' | 'empty'
 
@@ -49,8 +30,13 @@ interface GamesActiveClientProps {
   readonly cardTitle: string
   readonly initialPredicted: number
   readonly totalGames: number
-  /** IDs of games that were in urgent mode at server render time */
+  /** IDs of games that were in urgent mode at server render / last refetch time */
   readonly urgentGameIds: string[]
+  /**
+   * Called once when all urgentGameIds become complete. The parent (GamesActiveSection)
+   * uses this to fetch fresh carousel data and remount this component with updated state.
+   */
+  readonly onAllUrgentComplete: () => Promise<void>
 }
 
 export function GamesActiveClient({
@@ -63,23 +49,24 @@ export function GamesActiveClient({
   initialPredicted,
   totalGames,
   urgentGameIds,
+  onAllUrgentComplete,
 }: GamesActiveClientProps) {
   const t = useTranslations('hub')
-  const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
   const { gameGuesses } = useContext(GuessesContext)
 
   // Snapshot initial guesses on first render — used as baseline for delta tracking.
   // The header counter tracks tournament-wide completion: initialPredicted (server) + delta
-  // from predictions made/removed during this session.
+  // from predictions made/removed during this session. On refetch, the component remounts
+  // (key change in GamesActiveSection) so the snapshot resets alongside initialPredicted.
   const initialGuessesRef = useRef(gameGuesses)
-  const initialWindowPredicted = countCompleteInWindow(initialGuessesRef.current, games)
-  const currentWindowPredicted = countCompleteInWindow(gameGuesses, games)
+  const initialWindowPredicted = countCompleteGuesses(initialGuessesRef.current, games)
+  const currentWindowPredicted = countCompleteGuesses(gameGuesses, games)
   const delta = currentWindowPredicted - initialWindowPredicted
   const adjustedPredicted = initialPredicted + delta
 
-  // When all originally-urgent games become completely predicted, transition to safe mode.
+  // When all originally-urgent games become completely predicted, call the refetch callback.
   // urgentRemaining is also used for the urgency message count (scoped to the carousel window).
   const urgentRemaining = urgentGameIds.filter((id) => {
     const game = games.find((g) => g.id === id)
@@ -92,15 +79,15 @@ export function GamesActiveClient({
       ? 'safe'
       : 'empty'
 
-  // Once all urgent games are complete, refresh the server component so the
-  // widget can load the next batch of upcoming games.
-  const refreshTriggeredRef = useRef(false)
+  // Fire once when all urgent games are complete — triggers a client-side refetch of
+  // carousel data so the next batch of upcoming games loads without a full page refresh.
+  const refetchTriggeredRef = useRef(false)
   useEffect(() => {
-    if (urgentGameIds.length > 0 && urgentRemaining === 0 && !refreshTriggeredRef.current) {
-      refreshTriggeredRef.current = true
-      router.refresh()
+    if (urgentGameIds.length > 0 && urgentRemaining === 0 && !refetchTriggeredRef.current) {
+      refetchTriggeredRef.current = true
+      onAllUrgentComplete()
     }
-  }, [urgentRemaining, urgentGameIds, router])
+  }, [urgentRemaining, urgentGameIds, onAllUrgentComplete])
 
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined

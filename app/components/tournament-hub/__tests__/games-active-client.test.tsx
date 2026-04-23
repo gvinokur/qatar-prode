@@ -19,11 +19,6 @@ vi.mock('next/link', () => ({
   ),
 }))
 
-const mockRefresh = vi.fn()
-vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(() => ({ refresh: mockRefresh })),
-}))
-
 // Mock FlippableGameCard with a testable implementation
 const mockFlippableGameCard = vi.fn()
 vi.mock('@/app/components/flippable-game-card', () => ({
@@ -72,6 +67,8 @@ function renderWithContext(
   )
 }
 
+const mockOnAllUrgentComplete = vi.fn().mockResolvedValue(undefined)
+
 const defaultProps = {
   games,
   teamsMap,
@@ -82,6 +79,7 @@ const defaultProps = {
   initialPredicted: 30,
   totalGames: 64,
   urgentGameIds: ['game-1', 'game-2', 'game-3'],
+  onAllUrgentComplete: mockOnAllUrgentComplete,
 }
 
 beforeEach(() => {
@@ -267,8 +265,8 @@ describe('GamesActiveClient', () => {
     })
   })
 
-  describe('router refresh', () => {
-    it('triggers router.refresh() when all urgentGameIds become complete', () => {
+  describe('onAllUrgentComplete callback', () => {
+    it('calls onAllUrgentComplete when all urgentGameIds become complete', () => {
       const guesses = {
         'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
         'game-2': testFactories.gameGuess({ game_id: 'game-2' }) as any,
@@ -278,18 +276,18 @@ describe('GamesActiveClient', () => {
         <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
         { gameGuesses: guesses }
       )
-      expect(mockRefresh).toHaveBeenCalledTimes(1)
+      expect(mockOnAllUrgentComplete).toHaveBeenCalledTimes(1)
     })
 
-    it('does not trigger router.refresh() when urgentGameIds is empty', () => {
+    it('does not call onAllUrgentComplete when urgentGameIds is empty', () => {
       renderWithContext(
         <GamesActiveClient {...defaultProps} urgencyLevel="safe" urgentGameIds={[]} />,
         { gameGuesses: {} }
       )
-      expect(mockRefresh).not.toHaveBeenCalled()
+      expect(mockOnAllUrgentComplete).not.toHaveBeenCalled()
     })
 
-    it('does not trigger router.refresh() when some urgent games remain unpredicted', () => {
+    it('does not call onAllUrgentComplete when some urgent games remain unpredicted', () => {
       const partialGuesses = {
         'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
         // game-2 and game-3 not predicted
@@ -298,10 +296,10 @@ describe('GamesActiveClient', () => {
         <GamesActiveClient {...defaultProps} urgencyLevel="high" />,
         { gameGuesses: partialGuesses }
       )
-      expect(mockRefresh).not.toHaveBeenCalled()
+      expect(mockOnAllUrgentComplete).not.toHaveBeenCalled()
     })
 
-    it('triggers router.refresh() only once even after re-renders with all games complete', () => {
+    it('calls onAllUrgentComplete only once even after re-renders with all games complete', () => {
       const guesses = {
         'game-1': testFactories.gameGuess({ game_id: 'game-1' }) as any,
         'game-2': testFactories.gameGuess({ game_id: 'game-2' }) as any,
@@ -316,7 +314,7 @@ describe('GamesActiveClient', () => {
           <GamesActiveClient {...defaultProps} urgencyLevel="high" />
         </GuessesContext.Provider>
       )
-      expect(mockRefresh).toHaveBeenCalledTimes(1)
+      expect(mockOnAllUrgentComplete).toHaveBeenCalledTimes(1)
     })
   })
 

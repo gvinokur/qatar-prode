@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server'
-import { GamesActiveClient } from './games-active-client'
-import { GuessesContextProvider } from '../context-providers/guesses-context-provider'
+import { GamesActiveSection } from './games-active-section'
 import { calculateDeadline } from '../../utils/countdown-utils'
 import type { ActionCenterData } from '../../actions/hub-actions'
 
@@ -36,28 +35,22 @@ export async function GamesActiveWidget({ data, tournamentId, gamesHref }: Games
   const t = await getTranslations('hub')
 
   const urgencyLevel = computeUrgencyLevel(data)
-  // IDs of urgent games at server render time — used by the client for the urgent→safe transition
   const urgentGameIds = data.mode === 'urgent' ? data.games.map((g) => g.id) : []
 
   return (
-    <GuessesContextProvider
-      gameGuesses={data.gameGuesses}
-      autoSave={true}
+    <GamesActiveSection
+      initialGames={data.games}
+      initialGameGuesses={data.gameGuesses}
+      initialTeamsMap={data.teamsMap}
+      initialUrgencyLevel={urgencyLevel}
+      initialUrgentGameIds={urgentGameIds}
+      initialPredicted={data.predictedGames}
+      totalGames={data.totalGames}
       tournamentMaxSilver={data.tournamentMaxSilver}
       tournamentMaxGolden={data.tournamentMaxGolden}
-    >
-      <GamesActiveClient
-        games={data.games}
-        teamsMap={data.teamsMap}
-        tournamentId={tournamentId}
-        gamesHref={gamesHref}
-        urgencyLevel={urgencyLevel}
-        cardTitle={t('newUser.tracks.matches.title')}
-        initialPredicted={data.predictedGames}
-        totalGames={data.totalGames}
-        urgentGameIds={urgentGameIds}
-      />
-    </GuessesContextProvider>
+      tournamentId={tournamentId}
+      gamesHref={gamesHref}
+      cardTitle={t('newUser.tracks.matches.title')}
+    />
   )
 }
-
