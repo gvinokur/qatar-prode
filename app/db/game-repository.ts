@@ -557,6 +557,8 @@ export const getTournamentGameCounts = cache(async (
   };
 });
 
+export type BoostType = 'silver' | 'golden' | null
+
 export interface RecentGameForDashboard {
   gameId: string
   homeTeamId: string
@@ -566,7 +568,7 @@ export interface RecentGameForDashboard {
   userHomeGuess: number | null
   userAwayGuess: number | null
   guessScore: number | null
-  boostType: 'silver' | 'golden' | null
+  boostType: BoostType
   boostMultiplier: number | null
   finalScore: number | null
   gameDate: Date
@@ -630,7 +632,7 @@ export async function findRecentGamesForDashboard(
     userHomeGuess: r.userHomeGuess ?? null,
     userAwayGuess: r.userAwayGuess ?? null,
     guessScore: r.guessScore ?? null,
-    boostType: (r.boostType as 'silver' | 'golden' | null) ?? null,
+    boostType: (r.boostType as BoostType) ?? null,
     boostMultiplier: r.boostMultiplier ?? null,
     finalScore: r.finalScore ?? null,
     gameDate: r.gameDate,
@@ -646,7 +648,7 @@ export interface RecentGameWithGuess {
   userHomeGuess: number | null
   userAwayGuess: number | null
   guessScore: number | null
-  boostType: 'silver' | 'golden' | null
+  boostType: BoostType
   boostMultiplier: number | null
   finalScore: number | null
   gameDate: Date
@@ -697,7 +699,7 @@ export async function findRecentGamesWithUserGuesses(
     userHomeGuess: r.userHomeGuess ?? null,
     userAwayGuess: r.userAwayGuess ?? null,
     guessScore: r.guessScore ?? null,
-    boostType: (r.boostType as 'silver' | 'golden' | null) ?? null,
+    boostType: (r.boostType as BoostType) ?? null,
     boostMultiplier: r.boostMultiplier ?? null,
     finalScore: r.finalScore ?? null,
     gameDate: r.gameDate,

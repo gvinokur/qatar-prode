@@ -44,22 +44,28 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
     subtext = t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
   }
 
-  const scoreDisplay = isPending
-    ? '-- pts'
-    : isCorrect
-      ? `+${item.finalPoints} pts`
-      : '0 pts'
+  let scoreDisplay: string
+  if (isPending) {
+    scoreDisplay = '-- pts'
+  } else if (isCorrect) {
+    scoreDisplay = `+${item.finalPoints} pts`
+  } else {
+    scoreDisplay = '0 pts'
+  }
+
+  let statusIcon
+  if (isPending) {
+    statusIcon = <WatchLaterIcon sx={{ color: 'warning.main', fontSize: 'small', mt: 0.3, flexShrink: 0 }} />
+  } else if (isCorrect) {
+    statusIcon = <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+  } else {
+    statusIcon = <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
+  }
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-        {isPending ? (
-          <WatchLaterIcon sx={{ color: 'warning.main', fontSize: 'small', mt: 0.3, flexShrink: 0 }} />
-        ) : isCorrect ? (
-          <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-        ) : (
-          <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-        )}
+        {statusIcon}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" noWrap>
@@ -98,17 +104,7 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
 
   return (
     <>
-      {!hasGames ? (
-        <Box sx={{ textAlign: 'center', py: 3 }}>
-          <SportsScoreIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-          <Typography variant="body2" color="text.secondary" fontWeight="medium">
-            {t('emptyTitle')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('emptySubtitle')}
-          </Typography>
-        </Box>
-      ) : (
+      {hasGames ? (
         <Box>
           <Typography
             variant="overline"
@@ -125,6 +121,16 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
               </Box>
             ))}
           </Box>
+        </Box>
+      ) : (
+        <Box sx={{ textAlign: 'center', py: 3 }}>
+          <SportsScoreIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+          <Typography variant="body2" color="text.secondary" fontWeight="medium">
+            {t('emptyTitle')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('emptySubtitle')}
+          </Typography>
         </Box>
       )}
 
