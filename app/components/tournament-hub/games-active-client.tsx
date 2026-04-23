@@ -142,47 +142,63 @@ export function GamesActiveClient({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {renderStatusRow()}
 
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {editingGameId === null && (
+        <Box sx={{ position: 'relative' }}>
+          <FlippableGameCard
+            game={currentGame}
+            teamsMap={teamsMap}
+            isPlayoffs={!!currentGame.playoffStage}
+            tournamentId={tournamentId}
+            homeScore={guess?.home_score}
+            awayScore={guess?.away_score}
+            homePenaltyWinner={guess?.home_penalty_winner}
+            awayPenaltyWinner={guess?.away_penalty_winner}
+            boostType={guess?.boost_type}
+            initialBoostType={guess?.boost_type}
+            isEditing={editingGameId === currentGame.id}
+            onEditStart={() => setEditingGameId(currentGame.id)}
+            onEditEnd={() => setEditingGameId(null)}
+          />
+
+          {editingGameId === null && currentIndex > 0 && (
             <IconButton
               size="small"
               onClick={handleLeft}
-              disabled={currentIndex === 0}
               aria-label="previous game"
+              sx={{
+                position: 'absolute',
+                left: 4,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.85)',
+                boxShadow: 1,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+              }}
             >
-              <ChevronLeftIcon />
+              <ChevronLeftIcon fontSize="small" />
             </IconButton>
           )}
 
-          <Box sx={{ flexGrow: 1 }}>
-            <FlippableGameCard
-              game={currentGame}
-              teamsMap={teamsMap}
-              isPlayoffs={!!currentGame.playoffStage}
-              tournamentId={tournamentId}
-              homeScore={guess?.home_score}
-              awayScore={guess?.away_score}
-              homePenaltyWinner={guess?.home_penalty_winner}
-              awayPenaltyWinner={guess?.away_penalty_winner}
-              boostType={guess?.boost_type}
-              initialBoostType={guess?.boost_type}
-              isEditing={editingGameId === currentGame.id}
-              onEditStart={() => setEditingGameId(currentGame.id)}
-              onEditEnd={() => setEditingGameId(null)}
-            />
-          </Box>
-
-          {editingGameId === null && (
+          {editingGameId === null && currentIndex < games.length - 1 && (
             <IconButton
               size="small"
               onClick={handleRight}
-              disabled={currentIndex === games.length - 1}
               aria-label="next game"
+              sx={{
+                position: 'absolute',
+                right: 4,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.85)',
+                boxShadow: 1,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
+              }}
             >
-              <ChevronRightIcon />
+              <ChevronRightIcon fontSize="small" />
             </IconButton>
           )}
-        </Stack>
+        </Box>
 
         <Button
           component={Link}
