@@ -30,7 +30,7 @@ export async function GamesActiveWidget({ data, tournamentId, gamesHref }: Games
       initialGoldenUsed={data.goldenBoostsUsed}
       tournamentId={tournamentId}
       gamesHref={gamesHref}
-      cardTitle={t('newUser.tracks.matches.title')}
+      cardTitle={t('gamesWidget.cardTitle')}
     />
   )
 }

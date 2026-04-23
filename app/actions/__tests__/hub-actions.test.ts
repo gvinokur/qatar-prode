@@ -160,8 +160,8 @@ describe('getActionCenterGames', () => {
   })
 
   describe('mode: urgent', () => {
-    it('returns mode urgent with up to 4 unpredicted open-deadline games', async () => {
-      const games = [1, 2, 3, 4, 5].map((i) =>
+    it('returns mode urgent with up to 5 unpredicted open-deadline games', async () => {
+      const games = [1, 2, 3, 4, 5, 6].map((i) =>
         testFactories.game({
           id: `game-${i}`,
           game_date: new Date(future2h.getTime() + i * 60 * 60 * 1000),
@@ -172,7 +172,7 @@ describe('getActionCenterGames', () => {
       const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
 
       expect(result.mode).toBe('urgent')
-      expect(result.games).toHaveLength(4)
+      expect(result.games).toHaveLength(5)
     })
 
     it('sorts urgent games by deadline ascending', async () => {
@@ -303,8 +303,8 @@ describe('getActionCenterGames', () => {
       expect(result.mode).toBe('fallback')
     })
 
-    it('returns up to 3 games in fallback mode', async () => {
-      const games = [1, 2, 3, 4].map((i) =>
+    it('returns up to 5 games in fallback mode when all are within the 5-day window', async () => {
+      const games = [1, 2, 3, 4, 5, 6].map((i) =>
         testFactories.game({
           id: `game-${i}`,
           game_date: new Date(future2h.getTime() + i * 60 * 60 * 1000),
@@ -318,7 +318,29 @@ describe('getActionCenterGames', () => {
       const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
 
       expect(result.mode).toBe('fallback')
-      expect(result.games).toHaveLength(3)
+      expect(result.games).toHaveLength(5)
+    })
+
+    it('excludes fallback games beyond the 5-day window', async () => {
+      const withinWindow = testFactories.game({
+        id: 'game-soon',
+        game_date: new Date(future2h.getTime() + 60 * 60 * 1000), // 3h from now
+      })
+      const beyondWindow = testFactories.game({
+        id: 'game-later',
+        game_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days away
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([withinWindow, beyondWindow] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: withinWindow.id }),
+        testFactories.gameGuess({ game_id: beyondWindow.id }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('fallback')
+      expect(result.games).toHaveLength(1)
+      expect(result.games[0].id).toBe('game-soon')
     })
   })
 

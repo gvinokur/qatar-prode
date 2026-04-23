@@ -130,6 +130,7 @@
     "discoverGroups": "Discover Groups"
   },
   "gamesWidget": {
+    "cardTitle": "Upcoming Games",
     "ctaLogin": "Sign In to Predict",
     "ctaContinue": "Keep Predicting",
     "ctaViewAll": "View All Matches",

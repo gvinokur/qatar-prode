@@ -130,6 +130,7 @@
     "discoverGroups": "Descubrir Grupos"
   },
   "gamesWidget": {
+    "cardTitle": "Próximos Partidos",
     "ctaLogin": "Iniciar sesión para pronosticar",
     "ctaContinue": "Seguir pronosticando",
     "ctaViewAll": "Ver todos los partidos",

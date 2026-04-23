@@ -153,8 +153,9 @@ export async function computeIsIncompleteUser(data: ActionCenterData): Promise<b
   return gamesProgress < 30 || awardsProgress < 90 || qtProgress < 90
 }
 
-const MAX_URGENT_CARDS = 4
-const FALLBACK_CARD_COUNT = 3
+const MAX_URGENT_CARDS = 5
+const FALLBACK_CARD_COUNT = 5
+const FALLBACK_WINDOW_MS = 5 * 24 * 60 * 60 * 1000 // 5-day lookahead for fallback carousel
 const PREDICTION_LOCK_OFFSET_MS = 5 * 24 * 60 * 60 * 1000 // 5 days after tournament start
 
 /**
@@ -372,9 +373,12 @@ export async function getActionCenterGames(
     selectedGames = urgentGames
     mode = 'urgent'
   } else {
-    // Fallback: next 3 games whose prediction deadline hasn't passed, sorted by game_date asc
+    // Fallback: upcoming games within the next 5 days whose deadline hasn't passed.
+    // The 5-day window surfaces playoff games from the next round as the date approaches,
+    // rather than hardcoding "next N games" which can be weeks away between rounds.
+    const windowEnd = now + FALLBACK_WINDOW_MS
     const upcomingGames = [...games]
-      .filter((g) => calculateDeadline(g.game_date) > now)
+      .filter((g) => calculateDeadline(g.game_date) > now && g.game_date.getTime() <= windowEnd)
       .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
       .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
@@ -566,8 +570,9 @@ export async function getCarouselGames(
     mode = 'urgent'
     urgentGameIds = urgentGames.map((g) => g.id)
   } else {
+    const windowEnd = now + FALLBACK_WINDOW_MS
     const upcomingGames = [...games]
-      .filter((g) => calculateDeadline(g.game_date) > now)
+      .filter((g) => calculateDeadline(g.game_date) > now && g.game_date.getTime() <= windowEnd)
       .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
       .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
