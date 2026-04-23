@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Implement Matchday grouping and per-stage separators for Games list
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-376
 - **Branch:** feature/story-376
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 377
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/377
 
 ## State
 - **Current Phase:** review-ready

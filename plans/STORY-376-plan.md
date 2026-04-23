@@ -377,6 +377,29 @@ Coverage target: ≥ 80% on all new/changed files.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Seed migration short_name fix + group section alphabetical sort
+**Date:** 2026-04-23
+**Reason:** Discovered during testing that the migration used `'WC 2026'` as the `short_name` lookup value but the actual DB record uses `'World Cup 26'`. Also found group-fallback sections (games without matchday that group by group_letter) were rendering in insertion order rather than alphabetical order.
+**Change:**
+- `migrations/20260423000001_seed_world_cup_matchdays.sql`: changed `WHERE short_name = 'WC 2026'` to `WHERE short_name = 'World Cup 26'`
+- `app/components/games-list-with-scroll.tsx`: added `.sort()` to `gameSections` that orders `group-*` sections alphabetically by `sectionKey` while preserving insertion order for matchday/playoff sections
+
+### Amendment 2: Playoff round name localization (unplanned post-implementation fix)
+**Date:** 2026-04-23
+**Reason:** After implementation, it was discovered that playoff stage separator labels and game card stage labels were always showing English round names even when the UI language was set to Spanish. The `round_name_i18n` JSONB field existed on `tournament_playoff_rounds` (added in Story #157) but was not being fetched or applied.
+**Change:**
+- `app/db/game-repository.ts`: added `'tournament_playoff_rounds.round_name_i18n'` to the `playoffStage` subquery `.select()` arrays in `getAllTournamentGames` and related queries
+- `app/definitions.ts`: added `round_name_i18n?: Record<string, string> | null` to the `playoffStage` field of `ExtendedGameData`
+- `app/components/unified-games-page.tsx`: added `getLocale()` fetch and `applyLocalization` call to replace `round_name` with the locale-appropriate value before passing games to the client
+- `app/components/tournament-page/public-games-page.tsx`: same treatment as `unified-games-page.tsx` for the unauthenticated view
+
+### Amendment 3: demo-data.ts updated for new GameTable field
+**Date:** 2026-04-23
+**Reason:** Adding `matchday` to `GameTable` required updating `DEMO_GAMES` objects to satisfy TypeScript exhaustiveness checks.
+**Change:** `app/components/onboarding/demo/demo-data.ts`: added `matchday: null` to all 4 demo game objects.
+
 ## Validation
 
 1. Run migration on local DB (with user permission)
