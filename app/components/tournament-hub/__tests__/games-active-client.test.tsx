@@ -94,10 +94,10 @@ describe('GamesActiveClient', () => {
       expect(screen.queryByTestId('game-card-game-2')).not.toBeInTheDocument()
     })
 
-    it('renders single game with both arrows disabled when games.length is 1', () => {
+    it('renders single game with both arrows hidden when games.length is 1', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} games={[game1] as any} urgentGameIds={['game-1']} />)
-      expect(screen.getByLabelText('previous game')).toBeDisabled()
-      expect(screen.getByLabelText('next game')).toBeDisabled()
+      expect(screen.queryByLabelText('previous game')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('next game')).not.toBeInTheDocument()
     })
 
     it('renders the card title', () => {
@@ -112,16 +112,16 @@ describe('GamesActiveClient', () => {
   })
 
   describe('navigation', () => {
-    it('left arrow button is disabled when currentIndex is 0', () => {
+    it('left arrow is not rendered when currentIndex is 0', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} />)
-      expect(screen.getByLabelText('previous game')).toBeDisabled()
+      expect(screen.queryByLabelText('previous game')).not.toBeInTheDocument()
     })
 
-    it('right arrow button is disabled at the last game', () => {
+    it('right arrow is not rendered at the last game', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} />)
       fireEvent.click(screen.getByLabelText('next game'))
       fireEvent.click(screen.getByLabelText('next game'))
-      expect(screen.getByLabelText('next game')).toBeDisabled()
+      expect(screen.queryByLabelText('next game')).not.toBeInTheDocument()
     })
 
     it('clicking right increments currentIndex and renders next game', () => {
