@@ -557,6 +557,86 @@ export const getTournamentGameCounts = cache(async (
   };
 });
 
+export interface RecentGameForDashboard {
+  gameId: string
+  homeTeamId: string
+  awayTeamId: string
+  homeScore: number | null
+  awayScore: number | null
+  userHomeGuess: number | null
+  userAwayGuess: number | null
+  guessScore: number | null
+  boostType: 'silver' | 'golden' | null
+  boostMultiplier: number | null
+  finalScore: number | null
+  gameDate: Date
+}
+
+/**
+ * Find all games where prediction deadline has passed (game_date <= now() + 1h),
+ * LEFT JOINing user guesses and published results. Used for the Recent Results dashboard widget.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ */
+export async function findRecentGamesForDashboard(
+  userId: string,
+  tournamentId: string,
+  limit: number
+): Promise<RecentGameForDashboard[]> {
+  if (limit <= 0) return []
+
+  const cutoff = new Date(Date.now() + 60 * 60 * 1000)
+
+  const rows = await db
+    .selectFrom('games')
+    .leftJoin('game_results', (join) =>
+      join
+        .onRef('game_results.game_id', '=', 'games.id')
+        .on('game_results.is_draft', '=', false)
+    )
+    .leftJoin('game_guesses', (join) =>
+      join
+        .onRef('game_guesses.game_id', '=', 'games.id')
+        .on('game_guesses.user_id', '=', userId)
+    )
+    .where('games.tournament_id', '=', tournamentId)
+    .where('games.game_date', '<=', cutoff)
+    .select([
+      'games.id as gameId',
+      'games.home_team as homeTeamId',
+      'games.away_team as awayTeamId',
+      'game_results.home_score as homeScore',
+      'game_results.away_score as awayScore',
+      'game_guesses.home_score as userHomeGuess',
+      'game_guesses.away_score as userAwayGuess',
+      'game_guesses.score as guessScore',
+      'game_guesses.boost_type as boostType',
+      'game_guesses.boost_multiplier as boostMultiplier',
+      'game_guesses.final_score as finalScore',
+      'games.game_date as gameDate',
+    ])
+    .orderBy('games.game_date', 'desc')
+    .limit(limit)
+    .execute()
+
+  return rows.map((r) => ({
+    gameId: r.gameId,
+    homeTeamId: r.homeTeamId ?? '',
+    awayTeamId: r.awayTeamId ?? '',
+    homeScore: r.homeScore ?? null,
+    awayScore: r.awayScore ?? null,
+    userHomeGuess: r.userHomeGuess ?? null,
+    userAwayGuess: r.userAwayGuess ?? null,
+    guessScore: r.guessScore ?? null,
+    boostType: (r.boostType as 'silver' | 'golden' | null) ?? null,
+    boostMultiplier: r.boostMultiplier ?? null,
+    finalScore: r.finalScore ?? null,
+    gameDate: r.gameDate,
+  }))
+}
+
 export interface RecentGameWithGuess {
   gameId: string
   homeTeamId: string

@@ -4,7 +4,6 @@ import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import { RecentResultsWidget } from '../recent-results-widget'
 import type { RecentGameResultItem, RecentResultsData } from '@/app/actions/hub-actions'
 
-// Mock next-intl — returns namespace-prefixed keys so tests can assert on both namespace and key
 vi.mock('next-intl', () => ({
   useTranslations: (namespace?: string) => (key: string, vars?: any) => {
     const prefix = namespace ? `${namespace}:` : ''
@@ -12,16 +11,11 @@ vi.mock('next-intl', () => ({
   },
 }))
 
-// Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ href, children }: any) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({ href, children }: any) => <a href={href}>{children}</a>,
 }))
 
-const makeRecentGameItem = (
-  overrides?: Partial<RecentGameResultItem>
-): RecentGameResultItem => ({
+const makeRecentGameItem = (overrides?: Partial<RecentGameResultItem>): RecentGameResultItem => ({
   gameId: 'game-1',
   homeTeamName: 'Argentina',
   awayTeamName: 'France',
@@ -34,582 +28,253 @@ const makeRecentGameItem = (
   boostBonus: 0,
   finalPoints: 3,
   gameDate: new Date('2022-12-18'),
+  gameStatus: 'finished',
   ...overrides,
 })
 
-const emptyData: RecentResultsData = {
-  recentGames: [],
-  qualifiedTeamsScore: null,
-  qualifiedTeamsCorrect: null,
-  qualifiedTeamsActualCount: 0,
-  individualAwardsScore: null,
-  honorRollScore: null,
-  honorRollCorrect: null,
-  individualAwardsCorrect: null,
-}
-
-const defaultHrefs = {
-  statsHref: '/stats',
-  resultsHref: '/results',
-  qualifiedTeamsHref: '/qualified-teams',
-  awardsHref: '/awards',
-}
+const emptyData: RecentResultsData = { recentGames: [] }
+const defaultHrefs = { statsHref: '/stats' }
 
 describe('RecentResultsWidget', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  beforeEach(() => { vi.clearAllMocks() })
 
   describe('empty state', () => {
-    it('renders empty state when recentGames is empty and QT/awards are all null/zero', () => {
-      renderWithTheme(
-        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
-      )
+    it('renders empty state when recentGames is empty', () => {
+      renderWithTheme(<RecentResultsWidget data={emptyData} {...defaultHrefs} />)
 
-      expect(
-        screen.getByText('hub.recentResults:emptyTitle')
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText('hub.recentResults:emptySubtitle')
-      ).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:emptyTitle')).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:emptySubtitle')).toBeInTheDocument()
     })
 
-    it('renders seeStats button even in empty state (button is outside the card)', () => {
-      renderWithTheme(
-        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
-      )
+    it('renders seeStats button even in empty state', () => {
+      renderWithTheme(<RecentResultsWidget data={emptyData} {...defaultHrefs} />)
 
-      expect(
-        screen.getByText('hub.recentResults:seeStats')
-      ).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:seeStats')).toBeInTheDocument()
     })
   })
 
   describe('recent games section', () => {
-    it('renders only Recent Games section when games populated but QT/awards are null', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [makeRecentGameItem()],
-      }
+    it('renders games when recentGames is populated', () => {
+      const data: RecentResultsData = { recentGames: [makeRecentGameItem()] }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
-      expect(
-        screen.getByText('hub.recentResults:recentGames')
-      ).toBeInTheDocument()
+      expect(screen.getByText('hub.recentResults:recentGames')).toBeInTheDocument()
       expect(screen.getByText('Argentina 2–1 France')).toBeInTheDocument()
     })
 
-    it('renders game item with CheckCircle icon when finalPoints > 0 (correct prediction)', () => {
-      const game = makeRecentGameItem({ finalPoints: 3 })
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
+    it('shows "+N pts" for finished correct predictions', () => {
+      const data: RecentResultsData = { recentGames: [makeRecentGameItem({ finalPoints: 3 })] }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
-      // Should show positive points
       expect(screen.getByText('+3 pts')).toBeInTheDocument()
-      // CheckCircleOutlineIcon is rendered (component has correct/success styling)
-      expect(screen.getByText('Argentina 2–1 France')).toBeInTheDocument()
     })
 
-    it('renders game item with Cancel icon when finalPoints === 0 (wrong prediction)', () => {
-      const game = makeRecentGameItem({
-        finalPoints: 0,
-        userHomeGuess: 1,
-        userAwayGuess: 1,
-      })
+    it('shows "0 pts" for finished incorrect predictions', () => {
       const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
+        recentGames: [makeRecentGameItem({ finalPoints: 0, userHomeGuess: 1, userAwayGuess: 1 })],
       }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
-      // Should show "0 pts" label
       expect(screen.getByText('0 pts')).toBeInTheDocument()
-      // Should show the guess
-      expect(
-        screen.getByText(
-          /hub.recentResults:yourGuess:\{"home":1,"away":1\}/
-        )
-      ).toBeInTheDocument()
     })
 
-    it('renders BoostBadge when boostType is set and boostBonus > 0 (golden shows 3x)', () => {
-      const game = makeRecentGameItem({
-        boostType: 'golden',
-        boostBonus: 5,
-        finalPoints: 8,
-        basePoints: 3,
-      })
+    it('shows "-- pts" for pending games (not "0 pts")', () => {
       const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      // BoostBadge renders "3x" for golden boosts
-      expect(screen.getByText('3x')).toBeInTheDocument()
-    })
-
-    it('renders BoostBadge with 2x label for silver boosts', () => {
-      const game = makeRecentGameItem({
-        boostType: 'silver',
-        boostBonus: 3,
-        finalPoints: 6,
-        basePoints: 3,
-      })
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.getByText('2x')).toBeInTheDocument()
-    })
-
-    it('does not render BoostBadge when boostBonus is 0', () => {
-      const game = makeRecentGameItem({
-        boostType: 'silver',
-        boostBonus: 0,
-      })
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.queryByText('2x')).not.toBeInTheDocument()
-      expect(screen.queryByText('3x')).not.toBeInTheDocument()
-    })
-
-    it('renders multiple game items with dividers between them', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
         recentGames: [
-          makeRecentGameItem({ gameId: 'game-1' }),
           makeRecentGameItem({
-            gameId: 'game-2',
-            homeTeamName: 'Brazil',
-            awayTeamName: 'Germany',
+            gameStatus: 'pending',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
           }),
         ],
       }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
-      expect(screen.getByText('Argentina 2–1 France')).toBeInTheDocument()
-      expect(screen.getByText('Brazil 2–1 Germany')).toBeInTheDocument()
+      expect(screen.getByText('-- pts')).toBeInTheDocument()
+      expect(screen.queryByText('0 pts')).not.toBeInTheDocument()
     })
 
-    it('game section links to resultsHref', () => {
+    it('shows "-- pts" for about_to_start games', () => {
       const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [makeRecentGameItem()],
+        recentGames: [
+          makeRecentGameItem({
+            gameStatus: 'about_to_start',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
+          }),
+        ],
       }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} resultsHref="/en/tournaments/t1/results" />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
-      const links = screen.getAllByRole('link')
-      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/results')).toBe(true)
+      expect(screen.getByText('-- pts')).toBeInTheDocument()
+    })
+
+    it('renders yellow clock icon text for pending game (matchInProgress key)', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            gameStatus: 'pending',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
+            userHomeGuess: 1,
+            userAwayGuess: 1,
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/hub.recentResults:matchInProgress/)).toBeInTheDocument()
+    })
+
+    it('shows "About to start" text for about_to_start status', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            gameStatus: 'about_to_start',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
+            userHomeGuess: 1,
+            userAwayGuess: 1,
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/hub.recentResults:aboutToStart/)).toBeInTheDocument()
+    })
+
+    it('shows youDidntPredict for finished game with null guesses', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({ userHomeGuess: null, userAwayGuess: null, finalPoints: 0 }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('hub.recentResults:youDidntPredict')).toBeInTheDocument()
+    })
+
+    it('shows correctResultWithGuess for correct but not exact prediction', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            finalPoints: 2,
+            homeScore: 1,
+            awayScore: 0,
+            userHomeGuess: 2,
+            userAwayGuess: 0,
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(
+        screen.getByText(/hub.recentResults:correctResultWithGuess/)
+      ).toBeInTheDocument()
+    })
+
+    it('shows exactResult for exact prediction', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({ finalPoints: 5, homeScore: 2, awayScore: 1, userHomeGuess: 2, userAwayGuess: 1 }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('hub.recentResults:exactResult')).toBeInTheDocument()
+    })
+
+    it('shows noPredictionShort for pending game with no prediction', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            gameStatus: 'pending',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
+            userHomeGuess: null,
+            userAwayGuess: null,
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/hub.recentResults:noPredictionShort/)).toBeInTheDocument()
+    })
+
+    it('shows "vs" instead of score for non-finished games', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            gameStatus: 'pending',
+            homeScore: null,
+            awayScore: null,
+            finalPoints: 0,
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('Argentina vs France')).toBeInTheDocument()
+    })
+
+    it('renders BoostBadge when boostType is set and boostBonus > 0', () => {
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({ boostType: 'golden', boostBonus: 5, finalPoints: 8, basePoints: 3 })],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('3x')).toBeInTheDocument()
+    })
+
+    it('does not render BoostBadge when boostBonus is 0', () => {
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({ boostType: 'silver', boostBonus: 0 })],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.queryByText('2x')).not.toBeInTheDocument()
+    })
+
+    it('renders all 10 game items when data has 10 games', () => {
+      const games = Array.from({ length: 10 }, (_, i) =>
+        makeRecentGameItem({ gameId: `game-${i}`, homeTeamName: `Team${i}` })
+      )
+      const data: RecentResultsData = { recentGames: games }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('Team0 2–1 France')).toBeInTheDocument()
+      expect(screen.getByText('Team9 2–1 France')).toBeInTheDocument()
     })
   })
 
-  describe('qualified teams section', () => {
-    it('renders QT section only when qualifiedTeamsActualCount > 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        qualifiedTeamsScore: 10,
-        qualifiedTeamsCorrect: 8,
-        qualifiedTeamsActualCount: 10,
-      }
+  describe('stats button', () => {
+    it('"See Stats" button renders with correct href', () => {
+      const data: RecentResultsData = { recentGames: [makeRecentGameItem()] }
 
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:qualifiedTeams')
-      ).toBeInTheDocument()
-      expect(screen.getByText('+10 pts')).toBeInTheDocument()
-    })
-
-    it('shows qualified summary with actual count as denominator', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        qualifiedTeamsScore: 10,
-        qualifiedTeamsCorrect: 8,
-        qualifiedTeamsActualCount: 10,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText(
-          /hub.recentResults:qualifiedSummary:\{"correct":8,"total":10\}/
-        )
-      ).toBeInTheDocument()
-    })
-
-    it('does not render QT section when qualifiedTeamsActualCount is 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        qualifiedTeamsScore: 0,  // score may be 0 even before teams qualify
-        qualifiedTeamsActualCount: 0,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      const elements = screen.queryAllByText(
-        'hub.recentResults:qualifiedTeams'
-      )
-      expect(elements.length).toBe(0)
-    })
-
-    it('renders QT section when qualifiedTeamsActualCount > 0 even if score is 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        qualifiedTeamsScore: 0,
-        qualifiedTeamsCorrect: 0,
-        qualifiedTeamsActualCount: 8,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:qualifiedTeams')
-      ).toBeInTheDocument()
-    })
-
-    it('QT section links to qualifiedTeamsHref', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        qualifiedTeamsScore: 10,
-        qualifiedTeamsActualCount: 8,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} qualifiedTeamsHref="/en/tournaments/t1/qualified-teams" />
-      )
-
-      const links = screen.getAllByRole('link')
-      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/qualified-teams')).toBe(true)
-    })
-  })
-
-  describe('awards section', () => {
-    it('renders awards section only when individualAwardsScore is not null', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        individualAwardsScore: 5,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:tournamentAwards')
-      ).toBeInTheDocument()
-      expect(screen.getByText('+5 pts')).toBeInTheDocument()
-    })
-
-    it('renders honor roll score when honorRollScore > 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        honorRollScore: 3,
-        honorRollCorrect: ['champion'],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
-      expect(screen.getByText('+3 pts')).toBeInTheDocument()
-    })
-
-    it('renders honor roll with no-correct caption when honorRollCorrect is empty', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        honorRollScore: 0,
-        honorRollCorrect: [],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
-      expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
-    })
-
-    it('renders correct honor roll positions in caption', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        honorRollScore: 8,
-        honorRollCorrect: ['champion', 'runnerUp'],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText(
-          /hub.recentResults:correctItems:\{"items":"hub.recentResults:honorRollPosition.champion, hub.recentResults:honorRollPosition.runnerUp"\}/
-        )
-      ).toBeInTheDocument()
-    })
-
-    it('renders null caption when honorRollCorrect is null (not yet scored)', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        honorRollScore: 3,
-        honorRollCorrect: null,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.queryByText('hub.recentResults:noCorrectPredictions')).not.toBeInTheDocument()
-      expect(screen.queryByText(/hub.recentResults:correctItems/)).not.toBeInTheDocument()
-    })
-
-    it('renders both individual awards and honor roll when both are set', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        individualAwardsScore: 5,
-        individualAwardsCorrect: ['bestPlayer'],
-        honorRollScore: 3,
-        honorRollCorrect: ['champion'],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.getByText('+5 pts')).toBeInTheDocument()
-      expect(screen.getByText('+3 pts')).toBeInTheDocument()
-      expect(screen.getByText('hub.recentResults:honorRollLabel')).toBeInTheDocument()
-    })
-
-    it('shows no-correct caption for individual awards when individualAwardsCorrect is empty', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        individualAwardsScore: 0,
-        individualAwardsCorrect: [],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.getByText('hub.recentResults:noCorrectPredictions')).toBeInTheDocument()
-    })
-
-    it('renders correct individual award types in caption', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        individualAwardsScore: 6,
-        individualAwardsCorrect: ['bestPlayer', 'topGoalscorer'],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText(
-          /hub.recentResults:correctItems:\{"items":"hub.recentResults:individualAward.bestPlayer, hub.recentResults:individualAward.topGoalscorer"\}/
-        )
-      ).toBeInTheDocument()
-    })
-
-    it('does not show no-correct caption when individual awards score > 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        individualAwardsScore: 6,
-        individualAwardsCorrect: ['bestPlayer'],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.queryByText('hub.recentResults:noCorrectPredictions')).not.toBeInTheDocument()
-    })
-
-    it('awards section links to awardsHref', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        individualAwardsScore: 5,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} awardsHref="/en/tournaments/t1/awards" />
-      )
-
-      const links = screen.getAllByRole('link')
-      expect(links.some(l => l.getAttribute('href') === '/en/tournaments/t1/awards')).toBe(true)
-    })
-  })
-
-  describe('view stats button', () => {
-    it('renders "View full statistics" button when data is not empty', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [makeRecentGameItem()],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
+      renderWithTheme(<RecentResultsWidget data={data} statsHref="/en/tournaments/t1/stats" />)
 
       const button = screen.getByText('hub.recentResults:seeStats')
-      expect(button).toBeInTheDocument()
-    })
-
-    it('button href matches statsHref prop', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [makeRecentGameItem()],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget
-          data={data}
-          {...defaultHrefs}
-          statsHref="/en/tournaments/t1/stats"
-        />
-      )
-
-      const statsButton = screen.getByText('hub.recentResults:seeStats')
-      expect(statsButton.closest('a')).toHaveAttribute('href', '/en/tournaments/t1/stats')
-    })
-
-    it('renders stats button even in empty state (button is outside the card)', () => {
-      renderWithTheme(
-        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:seeStats')
-      ).toBeInTheDocument()
-    })
-  })
-
-  describe('layout', () => {
-    it('does not render a Paper element (DashboardCard provides the card shell)', () => {
-      const { container } = renderWithTheme(
-        <RecentResultsWidget data={emptyData} {...defaultHrefs} />
-      )
-
-      expect(container.querySelector('.MuiPaper-root')).toBeNull()
-    })
-
-    it('does not show empty state when recentGames is empty but qualifiedTeamsActualCount > 0', () => {
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [],
-        qualifiedTeamsActualCount: 4,
-        qualifiedTeamsScore: 0,
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(screen.queryByText('hub.recentResults:emptyTitle')).not.toBeInTheDocument()
-      expect(screen.getByText('hub.recentResults:qualifiedTeams')).toBeInTheDocument()
-    })
-  })
-
-  describe('game items - score display', () => {
-    it('shows correct result label for exact prediction', () => {
-      const game = makeRecentGameItem({
-        finalPoints: 5,
-        userHomeGuess: 2,
-        userAwayGuess: 1,
-        homeScore: 2,
-        awayScore: 1,
-      })
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:exactResult')
-      ).toBeInTheDocument()
-    })
-
-    it('shows correct result label for non-exact but correct prediction', () => {
-      const game = makeRecentGameItem({
-        finalPoints: 1,
-        userHomeGuess: 2,
-        userAwayGuess: 0,
-        homeScore: 1,
-        awayScore: 0,
-      })
-      const data: RecentResultsData = {
-        ...emptyData,
-        recentGames: [game],
-      }
-
-      renderWithTheme(
-        <RecentResultsWidget data={data} {...defaultHrefs} />
-      )
-
-      expect(
-        screen.getByText('hub.recentResults:correctResult')
-      ).toBeInTheDocument()
+      expect(button.closest('a')).toHaveAttribute('href', '/en/tournaments/t1/stats')
     })
   })
 })

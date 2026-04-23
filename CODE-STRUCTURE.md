@@ -643,17 +643,16 @@ Key flows:
           → [branch: active] ScrollShadowContainer (direction="horizontal")
               → FlippableGameCard ×N → updateOrCreateGameGuesses (via context autoSave)
 
-31. Recent Results data flow (Story #318)
+31. Recent Results data flow (Story #318, updated Story #373)
     TournamentHubRecentResults (Server) → getRecentResultsData(tournamentId, locale)
       → getLoggedInUser
-      → findRecentGamesWithUserGuesses(userId, tournamentId, 5) (last 5 scored games)
-      → getTournamentGuessStatsForUsers([userId], tournamentId)
-      → getAllUserGroupPositionsPredictions(userId, tournamentId)
+      → findRecentGamesForDashboard(userId, tournamentId, 10) (all games where prediction deadline passed)
       → findTeamInTournament(tournamentId)
       → applyLocalizationBatch (teams)
-      → returns RecentResultsData { recentGames, qualifiedTeamsScore, qualifiedTeamsCorrect, qualifiedTeamsTotalPredicted, individualAwardsScore, honorRollScore }
+      → derives gameStatus per game (finished / about_to_start / pending)
+      → returns RecentResultsData { recentGames: RecentGameResultItem[] }
     → RecentResultsWidget [Client]
-        → renders up to 3 sections (games, QT, awards) based on null checks
+        → renders games list (✅/❌/🕐 per gameStatus) with 5 visual states
         → "View full statistics" button → /${locale}/tournaments/${tournamentId}/stats
 
 32. Leaderboard Peek data flow (Story #319; updated #342)
