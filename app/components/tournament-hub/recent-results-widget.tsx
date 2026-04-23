@@ -45,20 +45,15 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   }
 
   let scoreDisplay: string
-  if (isPending) {
-    scoreDisplay = '-- pts'
-  } else if (isCorrect) {
-    scoreDisplay = `+${item.finalPoints} pts`
-  } else {
-    scoreDisplay = '0 pts'
-  }
-
   let statusIcon
   if (isPending) {
+    scoreDisplay = '-- pts'
     statusIcon = <WatchLaterIcon sx={{ color: 'warning.main', fontSize: 'small', mt: 0.3, flexShrink: 0 }} />
   } else if (isCorrect) {
+    scoreDisplay = `+${item.finalPoints} pts`
     statusIcon = <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
   } else {
+    scoreDisplay = '0 pts'
     statusIcon = <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
   }
 
