@@ -742,16 +742,67 @@ These two can run as parallel `Promise.all` calls in `getCarouselGames` — stil
 
 ---
 
-### Summary: What Remains to Implement
+### Summary: Implementation Status
 
-| Item | Status | Complexity |
-|------|--------|------------|
-| `GamesActiveSection` + callback refactor | ✅ Done | — |
-| `isGuessComplete` / `countCompleteGuesses` util + tests | ✅ Done | — |
-| Updated `GamesActiveClient` tests | ✅ Done | — |
-| `GuessesContextProvider` safety sync | ✅ Done | — |
-| Add `silverBoostsUsed`/`goldenBoostsUsed` to `ActionCenterData` + populate in `getActionCenterGames` | ⏳ To do | Low |
-| Create `getCarouselGames` lightweight action (no `getTournamentPredictionCompletion`, but with combined lightweight aggregate query for `predictedGames` + boost counts) | ⏳ To do | Medium |
-| `GamesActiveSection`: call `getCarouselGames` instead of `getActionCenterGames`; add `initialSilverUsed`/`initialGoldenUsed` state + delta tracking; pass `tournamentSilverUsed`/`tournamentGoldenUsed` to `GuessesContextProvider` | ⏳ To do | Medium |
-| `GuessesContextProvider`: remove internal boost count computation; accept `tournamentSilverUsed`/`tournamentGoldenUsed` as props | ⏳ To do | Low |
-| De-duplicate `computeUrgencyLevel` between `GamesActiveWidget` and `GamesActiveSection` (move to shared util) | ⏳ To do | Low |
+| Item | Status |
+|------|--------|
+| `GamesActiveSection` + callback refactor | ✅ Done |
+| `isGuessComplete` / `countCompleteGuesses` util + tests | ✅ Done |
+| Updated `GamesActiveClient` tests | ✅ Done |
+| `GuessesContextProvider` safety sync | ✅ Done |
+| Add `silverBoostsUsed`/`goldenBoostsUsed` to `ActionCenterData` + `getActionCenterGames` | ✅ Done (Amendment 4) |
+| Create `getCarouselGames` lightweight action with combined aggregate query | ✅ Done (Amendment 4) |
+| `GamesActiveSection`: `getCarouselGames`, boost delta tracking, pass to `GuessesContextProvider` | ✅ Done (Amendment 4) |
+| `GuessesContextProvider`: accept `tournamentSilverUsed`/`tournamentGoldenUsed` as props | ✅ Done (Amendment 4) |
+| De-duplicate `computeUrgencyLevel` → `app/utils/urgency-utils.ts` | ✅ Done (Amendment 4) |
+| Bug fixes and UX refinements (post-preview feedback) | ✅ Done (Amendments 6–8) |
+
+---
+
+### Amendment 6: Post-Preview Bug Fixes — Silver Card Width + Chevrons During Edit
+
+**Date:** 2026-04-23
+**Reason:** Two visual bugs found during Vercel Preview testing.
+
+**Bug 1 — Silver-boosted card appeared wider than other cards:**
+Root cause was not layout borders but content overflow in `GameCountdownDisplay` Line 2 in compact mode. When a game is urgent (< 48h, > 1h to deadline) and has a silver boost, three elements appear simultaneously on Line 2: `LinearProgress` (min 60px) + boost `Chip` (~40px) + large edit `IconButton` (48px) + gaps ≈ 158px against ~192px available at 340px widget width. Fix: suppress `LinearProgress` in compact mode — urgency is already communicated via countdown text color, `DashboardCard` red border, and the status row message.
+
+**Bug 2 — Chevrons visible while card was flipped to edit:**
+Chevrons remained rendered during edit mode, allowing navigation away from an in-progress edit. Fix: wrap both chevron `IconButton`s in `{editingGameId === null && (...)}` so they disappear when any card is editing.
+
+**Files changed:**
+- `app/components/game-countdown-display.tsx` — suppress `LinearProgress` when `compact={true}`
+- `app/components/tournament-hub/games-active-client.tsx` — hide chevrons when `editingGameId !== null`
+- `__tests__/components/game-countdown-display.test.tsx` — split one test into two: `compact={false}` shows progress bar, `compact={true}` suppresses it
+
+---
+
+### Amendment 7: 5-Day Fallback Window, 5-Card Cap, and `cardTitle` Translation Key
+
+**Date:** 2026-04-23
+**Reason:** Three UX improvements requested after Vercel Preview review.
+
+1. **5-day fallback window**: Added `FALLBACK_WINDOW_MS = 5 * 24 * 60 * 60 * 1000` constant. Fallback games are now filtered to `game_date <= now + 5 days`, so playoff games from upcoming rounds surface as their date approaches rather than showing games weeks away. Same filter applied in both `getActionCenterGames` and `getCarouselGames`.
+
+2. **Card cap raised to 5**: `MAX_URGENT_CARDS` increased from 4 → 5; `FALLBACK_CARD_COUNT` increased from 3 → 5. Both modes now show up to 5 cards.
+
+3. **`cardTitle` translation key**: Changed `GamesActiveWidget` from reusing `hub.newUser.tracks.matches.title` ("Partidos") to a dedicated `hub.gamesWidget.cardTitle` key ("Upcoming Games" / "Próximos Partidos"). The pre-tournament `GamesInfoWidget` continues to use the original key.
+
+**Files changed:**
+- `app/actions/hub-actions.ts` — new constant, filter in both actions, cap changes
+- `app/actions/__tests__/hub-actions.test.ts` — updated urgent cap test (5 instead of 4); replaced fallback cap test; added new window-exclusion test
+- `app/components/tournament-hub/games-active-widget.tsx` — use `t('gamesWidget.cardTitle')`
+- `locales/en/hub.json` — added `cardTitle: "Upcoming Games"` in `gamesWidget`
+- `locales/es/hub.json` — added `cardTitle: "Próximos Partidos"` in `gamesWidget`
+
+---
+
+### Amendment 8: Overlay Chevrons — Full-Width Card in View Mode
+
+**Date:** 2026-04-23
+**Reason:** With flanking chevrons, the game card was ~80px narrower than edit mode (both `IconButton`s consumed horizontal space). On mobile this made the card uncomfortably narrow.
+
+**Change:** Replaced the `Stack direction="row"` layout (left button, card, right button) with a `position: relative` wrapper. Chevrons are now absolutely positioned overlaid on the card at `top: '50%'`, `left: 4` / `right: 4`, `zIndex: 1`, with `bgcolor: 'action.selected'` and `boxShadow: 2` for visibility in both light and dark themes. Chevrons only render when there is an adjacent card (hidden at boundaries, not disabled), and disappear in edit mode.
+
+**Files changed:**
+- `app/components/tournament-hub/games-active-client.tsx` — replaced flanking layout with absolute overlay
