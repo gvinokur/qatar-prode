@@ -7,8 +7,8 @@
 - **BRANCH_NAME**: feature/story-357
 - **WORKTREE_PATH**: /Users/gvinokur/Personal/qatar-prode-story-357
 - **MAIN_REPO_PATH**: /Users/gvinokur/Personal/qatar-prode
-- **PR_NUMBER**: (to be filled after PR creation)
-- **PR_URL**: (to be filled after PR creation)
+- **PR_NUMBER**: 378
+- **PR_URL**: https://github.com/gvinokur/qatar-prode/pull/378
 - **STATUS**: Planning
 
 ## GitHub Issue
