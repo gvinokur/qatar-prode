@@ -27,9 +27,9 @@ Game status is derived at runtime (no DB status column):
 - `about_to_start`: `game_date > now()` AND prediction deadline passed (`game_date - 1h <= now()`)
 
 ### Data Window
-Games visible in this widget: `game_date >= now() - 24h AND game_date <= now() + 1h`
-- The `+1h` captures games in the "prediction closed / about to start" window
-- All such games have either started or are within the closed prediction window
+Games visible in this widget: `game_date <= now() + 1h, ORDER BY game_date DESC, LIMIT 10`
+- Selects the 10 most recent games where the prediction deadline has passed (closed ≥1h before kickoff)
+- No lower bound — shows the 10 most recent regardless of age
 
 ---
 
@@ -60,7 +60,7 @@ Games visible in this widget: `game_date >= now() - 24h AND game_date <= now() +
 **New functions:**
 
 - **findRecentGamesForDashboard(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameForDashboard[]>`
-  Fetches all games where `game_date >= now() - 24h AND game_date <= now() + 1h`, LEFT JOINing `game_guesses` (user predictions, nullable) and `game_results` (published results only: `is_draft = false`, nullable). Returns up to `limit` rows ordered by `game_date` desc.
+  Fetches all games where `game_date <= now() + 1h`, LEFT JOINing `game_guesses` (user predictions, nullable) and `game_results` (published results only: `is_draft = false`, nullable). Returns up to `limit` rows ordered by `game_date` desc. No lower bound — callers rely on the limit to control scope.
 
   ```typescript
   export interface RecentGameForDashboard {
@@ -82,7 +82,7 @@ Games visible in this widget: `game_date >= now() - 24h AND game_date <= now() +
   Status derived in action layer by checking if homeScore/awayScore are null and comparing gameDate to now().
 
   Tests:
-  - returns empty array when no games fall in the 24h window
+  - returns empty array when no games have game_date <= now() + 1h
   - returns games with null scores when result not yet published (pending)
   - returns games with null guesses when user has no prediction
   - excludes games with only draft results (is_draft = true)
@@ -242,7 +242,7 @@ export interface RecentResultsData {
 ## Testing Strategy
 
 - **`findRecentGamesForDashboard`**: Unit tests using `createMockSelectQuery()` for Kysely mock and `testFactories.game()` for test data (Vitest)
-  - 24h window inclusion/exclusion
+  - Window boundary: excludes future games beyond the 1h prediction-close window
   - LEFT JOIN behavior (null guesses, null scores)
   - Draft result exclusion
   - Limit enforcement
