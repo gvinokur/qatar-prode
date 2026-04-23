@@ -127,8 +127,8 @@ export default function GameCountdownDisplay({
             </Typography>
           </motion.div>
 
-          {/* Progress bar - inline on Line 2, only within 48h window */}
-          {countdown.shouldShowProgressBar && (
+          {/* Progress bar - inline on Line 2, only within 48h window and not in compact mode */}
+          {countdown.shouldShowProgressBar && !compact && (
             <Box flex={1} minWidth={60}>
               <LinearProgress
                 variant="determinate"

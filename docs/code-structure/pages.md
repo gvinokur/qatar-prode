@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-23
 
 ---
 
@@ -142,11 +142,11 @@ Offline fallback page shown when service worker catches offline navigation.
   Calls: getLocale
 
 ### app/[locale]/tournaments/[id]/page.tsx
-Tournament Hub landing page — two-zone layout with real banner logic (Story #355 UX Audit 2026 iteration).
+Tournament Hub landing page — real banner + Games widget + three placeholder DashboardCards (Story #355 banner, #356 Games widget).
 
-- **TournamentHubPage(props: Props)**: `JSX.Element` — [Server] Hub landing page. Resolves `id` from params, derives locale via `toLocale`. No redirect for unauthenticated users (removed in Story #355). Fetches `timing` (always, via `getPublicTournamentTiming`) and `data` (only when user is logged in, via `getActionCenterGames`) in parallel via `Promise.all`. Renders `DashboardBanner` (stacked hero + secondary CTA banners) and a CSS Grid Widget Area with four mock `DashboardCard` instances.
-  Calls: getLocale, toLocale, getLoggedInUser, getPublicTournamentTiming, getActionCenterGames (conditional)
-  Renders: DashboardBanner, DashboardCard (×4)
+- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners) and CSS Grid Widget Area with `GamesPredictionWidget` plus three placeholder `DashboardCard` instances (Standings, Groups, Results).
+  Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getPublicTournamentTiming, getActionCenterGames (conditional)
+  Renders: DashboardBanner, GamesPredictionWidget, DashboardCard (×3)
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
 Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.

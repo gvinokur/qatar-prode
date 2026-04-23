@@ -2,11 +2,26 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-23
 
 ---
 
 ## Files
+
+### app/utils/urgency-utils.ts
+Shared urgency level derivation for the active games carousel — extracted from the duplicated functions in `games-active-widget.tsx` and `games-active-section.tsx`.
+
+- **UrgencyLevel**: TypeScript type — `'critical' | 'high' | 'medium' | 'safe' | 'empty'`
+- **computeUrgencyLevel(data: { mode: string; games: Array<{ game_date: Date }> })**: `UrgencyLevel` — Maps carousel mode + nearest game deadline to a display urgency. `mode !== 'urgent'` → `'safe'` (fallback) or `'empty'`. `mode === 'urgent'`: finds minimum deadline across games → `< 2h → 'critical'`, `< 24h → 'high'`, `≤ 48h → 'medium'`, otherwise `'safe'`.
+  Calls: calculateDeadline
+
+### app/utils/guess-utils.ts
+Pure utility functions for evaluating game guess completeness — shared between `GamesActiveClient` (client-side delta tracking) and `getActionCenterGames` (server-side urgent-game filtering).
+
+- **isGuessComplete(guess: GameGuessNew | undefined, isPlayoff: boolean)**: `boolean` — Returns `true` when both scores are non-null/non-undefined AND, for playoff games with equal scores, at least one penalty winner flag is set.
+  Calls: *(none — pure function)*
+- **countCompleteGuesses(guessMap: Record<string, GameGuessNew>, games: ExtendedGameData[])**: `number` — Counts games whose guess in `guessMap` satisfies `isGuessComplete`. Derives `isPlayoff` from `game.playoffStage`.
+  Calls: isGuessComplete
 
 ### app/utils/scoring-config.ts
 Shared scoring configuration types and defaults — kept in a neutral (non-client, non-server) file so it can be imported from Server Components/Actions and Client Components alike.

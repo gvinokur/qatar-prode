@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-23
 
 ---
 
@@ -54,8 +54,8 @@ Manages tournament game filters (active filter, group filter, round filter) with
 - `useFilterContext` - Hook returning FilterContextValue
 
 **app/components/context-providers/guesses-context-provider.tsx**
-Manages game guesses and boost counts for a tournament with optional auto-save functionality.
-- `GuessesContextProvider` - [Provider] - Calls: `updateOrCreateGameGuesses`, `trackEvent` - Renders: GuessesContext.Provider
+Manages game guesses and tournament-wide boost counts for the carousel window with optional auto-save functionality.
+- `GuessesContextProvider({ children, gameGuesses, autoSave?, tournamentMaxSilver?, tournamentMaxGolden?, tournamentSilverUsed?, tournamentGoldenUsed? })` - [Provider] - Accepts optional `tournamentSilverUsed`/`tournamentGoldenUsed` baseline counts (tournament-wide, not just carousel). When provided, `boostCounts.silver.used` = baseline + delta (change in carousel session); when absent, falls back to counting from local guesses only. Delta computed vs `initialCarouselBoostsRef` snapshot (resets on remount). Syncs `gameGuesses` state via `useEffect` when prop changes. - Calls: `updateOrCreateGameGuesses`, `trackEvent` - Renders: GuessesContext.Provider
 - `GuessesContext` - Context export
 - `useLocale` - Uses: next-intl hook
 

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser, getPublicTournamentTiming } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser, getPublicTournamentTiming, getTournamentHubPageData } from '../hub-actions'
 import type { ActionCenterData } from '../hub-actions'
+import { createMockSelectQuery } from '@/__tests__/db/mock-helpers'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
 import * as teamRepository from '@/app/db/team-repository'
 import * as tournamentRepository from '@/app/db/tournament-repository'
+import * as database from '@/app/db/database'
 import * as prodeGroupRepository from '@/app/db/prode-group-repository'
 import * as groupRankingRepository from '@/app/db/group-ranking-repository'
 import * as tournamentGuessRepository from '@/app/db/tournament-guess-repository'
@@ -16,6 +18,12 @@ import { testFactories } from '../../../__tests__/db/test-factories'
 
 const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000
 const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000
+
+vi.mock('@/app/db/database', () => ({
+  db: {
+    selectFrom: vi.fn(),
+  },
+}))
 
 vi.mock('@/app/db/game-repository', () => ({
   findGamesForDashboard: vi.fn(),
@@ -152,8 +160,8 @@ describe('getActionCenterGames', () => {
   })
 
   describe('mode: urgent', () => {
-    it('returns mode urgent with up to 4 unpredicted open-deadline games', async () => {
-      const games = [1, 2, 3, 4, 5].map((i) =>
+    it('returns mode urgent with up to 5 unpredicted open-deadline games', async () => {
+      const games = [1, 2, 3, 4, 5, 6].map((i) =>
         testFactories.game({
           id: `game-${i}`,
           game_date: new Date(future2h.getTime() + i * 60 * 60 * 1000),
@@ -164,7 +172,7 @@ describe('getActionCenterGames', () => {
       const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
 
       expect(result.mode).toBe('urgent')
-      expect(result.games).toHaveLength(4)
+      expect(result.games).toHaveLength(5)
     })
 
     it('sorts urgent games by deadline ascending', async () => {
@@ -223,6 +231,43 @@ describe('getActionCenterGames', () => {
       expect(result.games.map((g) => g.id)).toContain('game-unpredicted')
     })
 
+    it('keeps a game in urgent mode when its guess is partial (missing away_score)', async () => {
+      const partialGame = testFactories.game({ id: 'game-partial', game_date: future2h })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([partialGame] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: 'game-partial', home_score: 1, away_score: null as any }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('urgent')
+      expect(result.games.map((g) => g.id)).toContain('game-partial')
+    })
+
+    it('keeps a tied playoff game in urgent mode when penalty winner is missing', async () => {
+      const playoffGame = testFactories.game({
+        id: 'game-playoff',
+        game_date: future2h,
+        game_type: 'playoff',
+        playoffStage: { tournament_playoff_round_id: 'r-1', round_name: 'QF', is_final: false, is_third_place: false },
+      } as any)
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([playoffGame] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({
+          game_id: 'game-playoff',
+          home_score: 1,
+          away_score: 1,
+          home_penalty_winner: false,
+          away_penalty_winner: false,
+        }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('urgent')
+      expect(result.games.map((g) => g.id)).toContain('game-playoff')
+    })
+
     it('includes only guesses for the selected carousel games', async () => {
       const carouselGame = testFactories.game({ id: 'game-carousel', game_date: future2h })
       const otherGame = testFactories.game({
@@ -258,8 +303,8 @@ describe('getActionCenterGames', () => {
       expect(result.mode).toBe('fallback')
     })
 
-    it('returns up to 3 games in fallback mode', async () => {
-      const games = [1, 2, 3, 4].map((i) =>
+    it('returns up to 5 games in fallback mode when all are within the 5-day window', async () => {
+      const games = [1, 2, 3, 4, 5, 6].map((i) =>
         testFactories.game({
           id: `game-${i}`,
           game_date: new Date(future2h.getTime() + i * 60 * 60 * 1000),
@@ -273,7 +318,29 @@ describe('getActionCenterGames', () => {
       const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
 
       expect(result.mode).toBe('fallback')
-      expect(result.games).toHaveLength(3)
+      expect(result.games).toHaveLength(5)
+    })
+
+    it('excludes fallback games beyond the 5-day window', async () => {
+      const withinWindow = testFactories.game({
+        id: 'game-soon',
+        game_date: new Date(future2h.getTime() + 60 * 60 * 1000), // 3h from now
+      })
+      const beyondWindow = testFactories.game({
+        id: 'game-later',
+        game_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days away
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([withinWindow, beyondWindow] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: withinWindow.id }),
+        testFactories.gameGuess({ game_id: beyondWindow.id }),
+      ])
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('fallback')
+      expect(result.games).toHaveLength(1)
+      expect(result.games[0].id).toBe('game-soon')
     })
   })
 
@@ -1118,5 +1185,106 @@ describe('getPublicTournamentTiming', () => {
 
     expect(result.tournamentHasStarted).toBe(true)
     expect(result.tournamentJustStarted).toBe(false)
+  })
+})
+
+describe('getTournamentHubPageData', () => {
+  const mockDb = vi.mocked(database.db)
+
+  beforeEach(() => {
+    // Default: db returns count=10
+    mockDb.selectFrom.mockReturnValue(createMockSelectQuery({ count: 10 }) as any)
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
+      testFactories.tournament({ id: TOURNAMENT_ID })
+    )
+    // Default: first game in the past (tournament started), last game in the future (not finished)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() - 24 * 60 * 60 * 1000) }) as any
+    )
+    vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'last', game_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }) as any
+    )
+  })
+
+  it('returns DEFAULT_SCORING when tournament is not found', async () => {
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(undefined)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
+    expect(result.scoringConfig.game_exact_score_points).toBe(2)
+  })
+
+  it('returns custom scoring config when tournament has custom scoring fields', async () => {
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
+      testFactories.tournament({
+        id: TOURNAMENT_ID,
+        game_correct_outcome_points: 3,
+        game_exact_score_points: 5,
+      })
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.scoringConfig.game_correct_outcome_points).toBe(3)
+    expect(result.scoringConfig.game_exact_score_points).toBe(5)
+  })
+
+  it('returns DEFAULT_SCORING when all tournament scoring fields are null', async () => {
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
+      testFactories.tournament({
+        id: TOURNAMENT_ID,
+        game_correct_outcome_points: null,
+        game_exact_score_points: null,
+        champion_points: null,
+        runner_up_points: null,
+        third_place_points: null,
+        individual_award_points: null,
+        qualified_team_points: null,
+        exact_position_qualified_points: null,
+        max_silver_games: null,
+        max_golden_games: null,
+      })
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
+    expect(result.scoringConfig.game_exact_score_points).toBe(2)
+  })
+
+  it('returns correct totalGames count from db query', async () => {
+    mockDb.selectFrom.mockReturnValue(createMockSelectQuery({ count: 64 }) as any)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.totalGames).toBe(64)
+  })
+
+  it('succeeds without authentication (no getLoggedInUser call)', async () => {
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result).toBeDefined()
+    expect(vi.mocked(userActions.getLoggedInUser)).not.toHaveBeenCalled()
+  })
+
+  it('returns isStarted=true when first game date is in the past', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() - 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isStarted).toBe(true)
+  })
+
+  it('returns isStarted=false when first game date is in the future', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() + 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isStarted).toBe(false)
+  })
+
+  it('returns isFinished=true when last game date is in the past', async () => {
+    vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'last', game_date: new Date(Date.now() - 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isFinished).toBe(true)
+  })
+
+  it('returns isFinished=false when last game date is in the future', async () => {
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isFinished).toBe(false)
   })
 })

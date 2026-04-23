@@ -597,11 +597,12 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic; #356 — Games widget)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
-      → getLoggedInUser()  [no redirect for unauthenticated users since Story #355]
-      → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer]
-      → getActionCenterGames(id, locale)  [only when user is logged in; null otherwise]
+      → getTournamentHubPageData(tournamentId) + getLoggedInUser() [parallel; Story #356]
+      → getRulesBySection(scoringConfig, tRules)  [page-level, shared scoringRules; Story #356]
+      → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer; Story #355]
+      → getActionCenterGames(id, locale)  [conditional: user && !isFinished; null otherwise]
       → renders DashboardBanner(user, timing, data) [Story #355: hero + secondary banner stack]
           DashboardBanner (Server)
             → [hero reads from timing — available for all users]
@@ -610,7 +611,20 @@ Key flows:
             → [secondary] LoggedOffBanner [Client] (when !user)
             → computeIsIncompleteUser(data)  [only when user is logged in and data is non-null]
             → [secondary] TutorialCTACard fullWidth [Client] (when user && computeIsIncompleteUser)
-      → renders DashboardCard ×4 (Widget Grid placeholder)
+      → renders GamesPredictionWidget (zero-fetch orchestrator; Story #356)
+          → [isFinished] → null
+          → [!actionCenterData] → GamesInfoWidget(isLoggedOff=true, predictedGames=0)
+              → DashboardCard
+          → [actionCenterData && !isStarted] → GamesInfoWidget(isLoggedOff=false)
+              → DashboardCard
+          → [actionCenterData && isStarted] → GamesActiveWidget (Server)
+              → GamesActiveSection [Client] — owns carousel state; initialSilverUsed/initialGoldenUsed from ActionCenterData
+                  → GuessesContextProvider [Provider] (key={refetchKey}; tournamentSilverUsed/tournamentGoldenUsed for correct boost counts)
+                  → GamesActiveClient [Client]
+                      → FlippableGameCard → updateOrCreateGameGuesses (via context autoSave)
+                  → on all urgentGameIds complete: getCarouselGames (lightweight refetch)
+                      → increments refetchKey → remounts GuessesContextProvider + GamesActiveClient
+      → renders DashboardCard ×3 (Standings, Groups, Results placeholder)
 
 30. Action Center data flow (Story #317; updated #342, #349)
     TournamentHubActionCenter (Server) — uses pre-fetched ActionCenterData from page (Story #349)

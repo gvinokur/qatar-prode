@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-04-23
 
 ---
 
@@ -103,3 +103,38 @@ Client Component for the Recent Results widget content. Renders directly inside 
 - **RecentResultsWidget({ data, statsHref, resultsHref, qualifiedTeamsHref, awardsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when all data arrays are empty/zero/null. Otherwise renders up to 3 clickable sections: PARTIDOS RECIENTES (links to `resultsHref`; game items with ✅/❌, points, BoostBadge), EQUIPOS CLASIFICADOS (links to `qualifiedTeamsHref`; shown when `qualifiedTeamsActualCount > 0`), PREMIOS DEL TORNEO (links to `awardsHref`; shown when `individualAwardsScore !== null` or `honorRollScore !== null`). "View full statistics" button uses `mt: 'auto'` to anchor to the bottom of DashboardCard's flex column.
   Uses: useTranslations('hub.recentResults')
   Renders: GameItem (inline sub-component), AwardItem (inline sub-component), BoostBadge
+
+### app/components/tournament-hub/games-prediction-widget.tsx
+Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.
+
+- **GamesPredictionWidget({ tournamentId, scoringRules, totalGames, isStarted, isFinished, actionCenterData, gamesHref })**: `JSX.Element | null` — [Server] Pure routing component — no async, no data calls. Returns `null` when `isFinished`. Renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0` when `!actionCenterData`. Renders `GamesInfoWidget` with `isLoggedOff=false` when `actionCenterData && !isStarted`. Renders `GamesActiveWidget` when `actionCenterData && isStarted`.
+  Calls: (none)
+  Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
+
+### app/components/tournament-hub/games-info-widget.tsx
+Async Server Component for the Games widget in Logged-Off and Pre-Start states.
+
+- **GamesInfoWidget({ isLoggedOff, scoringRules, gamesHref, predictedGames, totalGames })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Renders `DashboardCard` with title `newUser.tracks.matches.title`, `SportsSoccerIcon`, and count `"${predictedGames}/${totalGames}"`. Inside: description paragraph; dashed deadline box (ScheduleIcon, `deadlineText` key); dashed scoring rules box (AddCircleOutlineIcon, `scoringRules.matches` strings); `LinearProgress` (value=predictedGames/totalGames×100, hidden when `totalGames===0`); CTA Button — `gamesWidget.ctaLogin` when `isLoggedOff`, else `newUser.tracks.matches.cta`.
+  Calls: getTranslations('hub')
+  Renders: DashboardCard
+
+### app/components/tournament-hub/games-active-widget.tsx
+Async Server Component for the Games widget in Active state. Thin wrapper — computes initial urgency and urgent game IDs, then delegates to GamesActiveSection.
+
+- **GamesActiveWidget({ data, tournamentId, gamesHref })**: `Promise<JSX.Element>` — [Server] Calls `getTranslations('hub')`. Computes `urgencyLevel` via `computeUrgencyLevel` (imported from `urgency-utils`). Computes `urgentGameIds` (all game IDs when `mode==='urgent'`, else empty). Passes `initialSilverUsed={data.silverBoostsUsed}` and `initialGoldenUsed={data.goldenBoostsUsed}` to `GamesActiveSection` for boost delta tracking.
+  Calls: getTranslations('hub'), computeUrgencyLevel
+  Renders: GamesActiveSection
+
+### app/components/tournament-hub/games-active-section.tsx
+Client Component that owns all mutable carousel state and handles independent refetch when all urgent games are predicted.
+
+- **GamesActiveSection({ initialGames, initialGameGuesses, initialTeamsMap, initialUrgencyLevel, initialUrgentGameIds, initialPredicted, totalGames, tournamentMaxSilver, tournamentMaxGolden, initialSilverUsed, initialGoldenUsed, tournamentId, gamesHref, cardTitle })**: `JSX.Element` — [Client] Holds `games`, `gameGuesses`, `teamsMap`, `urgencyLevel`, `urgentGameIds`, `predicted`, `silverUsed`, `goldenUsed`, and `refetchKey` in `useState`. `handleAllUrgentComplete` calls `getCarouselGames` (lightweight — no `getTournamentPredictionCompletion`), updates all state, and increments `refetchKey`. The `key={refetchKey}` prop on `GuessesContextProvider` forces a clean remount, resetting both the guess context and the delta snapshots in `GamesActiveClient` and `GuessesContextProvider` simultaneously. Passes `tournamentSilverUsed={silverUsed}` and `tournamentGoldenUsed={goldenUsed}` to `GuessesContextProvider` for tournament-wide boost count accuracy.
+  Calls: getCarouselGames, computeUrgencyLevel
+  Renders: GuessesContextProvider (key={refetchKey}), GamesActiveClient
+
+### app/components/tournament-hub/games-active-client.tsx
+Client Component managing navigation through the single-card game carousel with reactive predicted-count tracking and urgency status display.
+
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) card area — full-width `FlippableGameCard` inside a `position:relative` wrapper; `ChevronLeft`/`ChevronRight` `IconButton`s are absolutely positioned at left/right edges (`top:50%`, `zIndex:1`, `bgcolor:action.selected`) and only rendered when `editingGameId === null` AND there is an adjacent card (hidden at boundaries, not disabled); (3) "View All Matches" Button/Link.
+  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub')
+  Renders: DashboardCard, FlippableGameCard

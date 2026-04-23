@@ -128,5 +128,14 @@
     "goToGroups": "Your Groups",
     "createGroup": "Create Group",
     "discoverGroups": "Discover Groups"
+  },
+  "gamesWidget": {
+    "cardTitle": "Upcoming Games",
+    "ctaLogin": "Sign In to Predict",
+    "ctaContinue": "Keep Predicting",
+    "ctaViewAll": "View All Matches",
+    "deadlineText": "Changes allowed up to 1 hour before each match.",
+    "urgentMessage": "Predict {count} games before it's too late!",
+    "safeMessage": "Some games are closing soon, you can still change their scores."
   }
 }
