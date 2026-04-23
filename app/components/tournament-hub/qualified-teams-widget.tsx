@@ -108,12 +108,12 @@ export async function QualifiedTeamsWidget({
           >
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
               <AddCircleOutlineIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              <Typography variant="body2" color="text.secondary" fontWeight="bold">
                 {t('newUser.tracks.scoringLabel')}
               </Typography>
             </Stack>
             {scoringRules.qualifiedTeams.map((rule) => (
-              <Typography key={rule} variant="caption" color="text.secondary" display="block">
+              <Typography key={rule} variant="body2" color="text.secondary" display="block">
                 • {rule}
               </Typography>
             ))}

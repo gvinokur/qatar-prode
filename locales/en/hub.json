@@ -137,7 +137,7 @@
   },
   "statusWidget": {
     "deadlineLabel": "Prediction deadline:",
-    "deadlineNormal": "Changes allowed until the tournament starts.",
+    "deadlineNormal": "Predictions lock 2 days after the tournament starts.",
     "deadlineInfo": "Less than 48 hours remaining.",
     "deadlineWarning": "Less than 24 hours remaining!",
     "deadlineError": "Final 2 hours — submit your predictions now!"
