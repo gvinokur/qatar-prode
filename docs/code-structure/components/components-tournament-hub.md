@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23 (Story 357 — Status Widgets)
+**Last updated:** 2026-04-24 (Story 358 — Dynamic Friend Group Widgets)
 
 ---
 
@@ -60,14 +60,14 @@ Client Component celebration banner shown above the Action Center carousel for 4
 ### app/components/tournament-hub/social-hub-card.tsx
 Client Component social CTA shown in the Leaderboard widget when the user belongs to 0 groups.
 
-- **SocialHubCard({ locale, tournamentId, loginHref? })**: `JSX.Element` — [Client] Outlined dashed Paper (secondary-tinted border). Renders GroupAddIcon (48px), h6 title, body2 description. When `loginHref` is provided (logged-off mode): renders a single "Log in" Button linking to `loginHref`. Otherwise (default mode): renders two buttons ("Create Group" contained, "Find Public Group" outlined) and a text "Learn more about groups" link — all linking to the friend-groups page.
-  Uses: useTranslations, Paper, Stack, Typography, Button, GroupAddIcon, Link
+- **SocialHubCard({ locale, tournamentId, loginHref? })**: `JSX.Element` — [Client] Full-height `Stack` (`flexGrow: 1`, `justifyContent: 'space-between'`). Content area is an inner Stack with `flexGrow: 1` + `justifyContent: 'center'` so it stretches to fill remaining grid cell height. Renders `GroupAddIcon` (40px, secondary), subtitle2 title, two body2 description lines (description + joinHint). When `loginHref` is provided (logged-off mode): renders a single full-width contained "Log in" Button. Otherwise (default mode): renders a row of two size="small" Buttons (Create Group contained + Find Public Group outlined, each `flex: 1`) and a text-secondary "Learn more about groups" link below.
+  Uses: useTranslations, Stack, Typography, Button, GroupAddIcon, Link
 
 ### app/components/tournament-hub/pre-tournament-groups-preview.tsx
 Client Component shown in the Leaderboard widget when the user has groups but no ranking data yet (pre-tournament). Shows group name chips and 3 CTAs.
 
-- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Renders "You're in" text followed by up to 3 group name `Chip` links; appends "and N others." text when `allGroupNames.length > 3`. Below that, 3 CTA buttons (Your Groups, Create Group, Discover Groups) linking to the friend-groups page.
-  Uses: useTranslations, Box, Stack, Typography, Button, Chip, Link
+- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Outer `Stack` with `height: '100%'` + `justifyContent: 'space-between'` to pin CTA to bottom. Outlined `Paper` with `flexGrow: 1` fills remaining height; inner content is flex-centered (`justifyContent: 'center'`). Paper renders "You're in" text + up to 3 group name `Chip` links (each linking to that group's page); appends "and N others." when `allGroupNames.length > 3`; below that, `EmojiEventsIcon` + "Rankings pending" text. Single full-width outlined "See all your groups" Button (`seeAllGroups` key) anchored to the bottom outside the Paper.
+  Uses: useTranslations, Box, Stack, Paper, Typography, Button, Chip, EmojiEventsIcon, Link
 
 ### app/components/tournament-hub/action-center-carousel.tsx
 Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.

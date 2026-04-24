@@ -142,11 +142,11 @@ Offline fallback page shown when service worker catches offline navigation.
   Calls: getLocale
 
 ### app/[locale]/tournaments/[id]/page.tsx
-Tournament Hub landing page — real banner + Games widget + three placeholder DashboardCards (Story #355 banner, #356 Games widget).
+Tournament Hub landing page — banner + Games widget + dynamic friend-group widgets + placeholder Standings card (Story #358 wired leaderboard peek).
 
-- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners) and CSS Grid Widget Area with `GamesPredictionWidget` plus three placeholder `DashboardCard` instances (Standings, Groups, Results).
+- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners) and CSS Grid Widget Area with: `GamesPredictionWidget`; one placeholder `DashboardCard` (Standings); `TournamentHubLeaderboardPeek` in `Suspense` (passes `isAuthenticated={!!user}`); `TournamentHubRecentResults` in `Suspense`.
   Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getPublicTournamentTiming, getActionCenterGames (conditional)
-  Renders: DashboardBanner, GamesPredictionWidget, DashboardCard (×3)
+  Renders: DashboardBanner, GamesPredictionWidget, DashboardCard (×1 Standings placeholder), TournamentHubLeaderboardPeek, TournamentHubRecentResults
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
 Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.
