@@ -21,13 +21,6 @@ vi.mock('@/app/components/context-providers/guesses-context-provider', () => ({
   },
 }))
 
-// Mock ScrollShadowContainer - just render children
-vi.mock('@/app/components/common/scroll-shadow-container', () => ({
-  ScrollShadowContainer: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="scroll-shadow-container">{children}</div>
-  ),
-}))
-
 // Mock FlippableGameCard with a testable implementation
 const mockFlippableGameCard = vi.fn()
 vi.mock('@/app/components/flippable-game-card', () => ({
@@ -124,12 +117,21 @@ beforeEach(() => {
 
 describe('ActionCenterCarousel', () => {
   describe('card rendering', () => {
-    it('renders a FlippableGameCard for each game', () => {
+    it('renders only the first FlippableGameCard on initial render', () => {
       render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
 
       expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
+      expect(screen.queryByTestId('flippable-card-game-2')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('flippable-card-game-3')).not.toBeInTheDocument()
+    })
+
+    it('shows next card after clicking down nav arrow', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'next' }))
+
+      expect(screen.queryByTestId('flippable-card-game-1')).not.toBeInTheDocument()
       expect(screen.getByTestId('flippable-card-game-2')).toBeInTheDocument()
-      expect(screen.getByTestId('flippable-card-game-3')).toBeInTheDocument()
     })
 
     it('passes isPlayoffs=false when game has no playoffStage', () => {
@@ -179,15 +181,47 @@ describe('ActionCenterCarousel', () => {
     })
   })
 
+  describe('vertical navigation', () => {
+    it('shows VerticalNav when games.length > 1', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      expect(screen.getByRole('button', { name: 'previous' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'next' })).toBeInTheDocument()
+    })
+
+    it('does not show VerticalNav when games.length === 1', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ games: [game1] as any })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: 'previous' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'next' })).not.toBeInTheDocument()
+    })
+
+    it('up arrow is disabled at first game', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      expect(screen.getByRole('button', { name: 'previous' })).toBeDisabled()
+    })
+
+    it('down arrow is disabled at last game', () => {
+      render(<ActionCenterCarousel data={buildData({ games: [game1, game2] as any })} tournamentId="t-1" locale="en" />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'next' }))
+
+      expect(screen.getByRole('button', { name: 'next' })).toBeDisabled()
+    })
+  })
+
   describe('edit state management', () => {
     it('starts with no card in editing mode', () => {
       render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
 
       expect(screen.getByTestId('flippable-card-game-1')).toHaveAttribute(
-        'data-is-editing',
-        'false'
-      )
-      expect(screen.getByTestId('flippable-card-game-2')).toHaveAttribute(
         'data-is-editing',
         'false'
       )
@@ -202,23 +236,47 @@ describe('ActionCenterCarousel', () => {
         'data-is-editing',
         'true'
       )
-      expect(screen.getByTestId('flippable-card-game-2')).toHaveAttribute(
-        'data-is-editing',
-        'false'
-      )
     })
 
-    it('only one card is editing at a time', () => {
+    it('advances to next card and sets editing on onAutoAdvanceNext', () => {
       render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
 
       fireEvent.click(screen.getByTestId('edit-start-game-1'))
-      fireEvent.click(screen.getByTestId('edit-start-game-2'))
+      fireEvent.click(screen.getByTestId('advance-next-game-1'))
+
+      expect(screen.getByTestId('flippable-card-game-2')).toHaveAttribute(
+        'data-is-editing',
+        'true'
+      )
+    })
+
+    it('clears editingGameId on onAutoAdvanceNext when already on last card', () => {
+      render(
+        <ActionCenterCarousel
+          data={buildData({ games: [game1] as any })}
+          tournamentId="t-1"
+          locale="en"
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('edit-start-game-1'))
+      fireEvent.click(screen.getByTestId('advance-next-game-1'))
 
       expect(screen.getByTestId('flippable-card-game-1')).toHaveAttribute(
         'data-is-editing',
         'false'
       )
-      expect(screen.getByTestId('flippable-card-game-2')).toHaveAttribute(
+    })
+
+    it('retreats to previous card and sets editing on onAutoGoPrevious', () => {
+      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
+
+      // navigate to game-2
+      fireEvent.click(screen.getByRole('button', { name: 'next' }))
+      fireEvent.click(screen.getByTestId('edit-start-game-2'))
+      fireEvent.click(screen.getByTestId('go-previous-game-2'))
+
+      expect(screen.getByTestId('flippable-card-game-1')).toHaveAttribute(
         'data-is-editing',
         'true'
       )
@@ -233,42 +291,6 @@ describe('ActionCenterCarousel', () => {
       expect(screen.getByTestId('flippable-card-game-1')).toHaveAttribute(
         'data-is-editing',
         'false'
-      )
-    })
-
-    it('advances editingGameId to next game on onAutoAdvanceNext', () => {
-      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
-
-      fireEvent.click(screen.getByTestId('edit-start-game-1'))
-      fireEvent.click(screen.getByTestId('advance-next-game-1'))
-
-      expect(screen.getByTestId('flippable-card-game-2')).toHaveAttribute(
-        'data-is-editing',
-        'true'
-      )
-    })
-
-    it('clears editingGameId on onAutoAdvanceNext when already on last card', () => {
-      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
-
-      fireEvent.click(screen.getByTestId('edit-start-game-3'))
-      fireEvent.click(screen.getByTestId('advance-next-game-3'))
-
-      expect(screen.getByTestId('flippable-card-game-3')).toHaveAttribute(
-        'data-is-editing',
-        'false'
-      )
-    })
-
-    it('retreats editingGameId to previous game on onAutoGoPrevious', () => {
-      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
-
-      fireEvent.click(screen.getByTestId('edit-start-game-2'))
-      fireEvent.click(screen.getByTestId('go-previous-game-2'))
-
-      expect(screen.getByTestId('flippable-card-game-1')).toHaveAttribute(
-        'data-is-editing',
-        'true'
       )
     })
 
@@ -310,7 +332,7 @@ describe('ActionCenterCarousel', () => {
       expect(screen.getByText('actionCenter.predictGames')).toBeInTheDocument()
     })
 
-    it('does not render the scroll container in empty mode', () => {
+    it('does not render cards in empty mode', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'empty', games: [] })}
@@ -319,7 +341,7 @@ describe('ActionCenterCarousel', () => {
         />
       )
 
-      expect(screen.queryByTestId('scroll-shadow-container')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('flippable-card-game-1')).not.toBeInTheDocument()
     })
   })
 
@@ -336,7 +358,7 @@ describe('ActionCenterCarousel', () => {
       expect(screen.getByText('actionCenter.fallbackSubtitle')).toBeInTheDocument()
     })
 
-    it('still renders cards in fallback mode', () => {
+    it('still renders first card in fallback mode', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'fallback' })}
@@ -368,7 +390,7 @@ describe('ActionCenterCarousel', () => {
       expect(screen.queryByText('preTournament.openerLabel')).not.toBeInTheDocument()
     })
 
-    it('renders the opener card in the carousel when openerBackfill=true', () => {
+    it('renders the opener card when openerBackfill=true', () => {
       render(
         <ActionCenterCarousel
           data={buildData({ mode: 'fallback', games: [game1] as any, openerBackfill: true })}
@@ -378,7 +400,6 @@ describe('ActionCenterCarousel', () => {
       )
 
       expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
-      expect(screen.getByTestId('scroll-shadow-container')).toBeInTheDocument()
     })
   })
 
@@ -482,33 +503,6 @@ describe('ActionCenterCarousel', () => {
       )
 
       expect(screen.queryByTestId('tournament-start-banner')).not.toBeInTheDocument()
-    })
-  })
-
-  describe('single-game centering', () => {
-    it('does not center when games.length > 1', () => {
-      render(<ActionCenterCarousel data={buildData()} tournamentId="t-1" locale="en" />)
-
-      const container = screen.getByTestId('scroll-shadow-container')
-      // With multiple games the parent doesn't force center alignment
-      expect(container).toBeInTheDocument()
-      // All 3 game cards render
-      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
-      expect(screen.getByTestId('flippable-card-game-2')).toBeInTheDocument()
-      expect(screen.getByTestId('flippable-card-game-3')).toBeInTheDocument()
-    })
-
-    it('renders exactly one card when games.length is 1', () => {
-      render(
-        <ActionCenterCarousel
-          data={buildData({ games: [game1] as any })}
-          tournamentId="t-1"
-          locale="en"
-        />
-      )
-
-      expect(screen.getByTestId('flippable-card-game-1')).toBeInTheDocument()
-      expect(screen.queryByTestId('flippable-card-game-2')).not.toBeInTheDocument()
     })
   })
 })

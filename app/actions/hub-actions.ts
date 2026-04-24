@@ -758,8 +758,12 @@ export interface RecentGameResultItem {
   awayTeamName: string
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
   userHomeGuess: number | null
   userAwayGuess: number | null
+  userHomePenaltyWinner: boolean | null
+  userAwayPenaltyWinner: boolean | null
   basePoints: number
   boostType: 'silver' | 'golden' | null
   boostBonus: number
@@ -819,8 +823,12 @@ export async function getRecentResultsData(
       awayTeamName: (teamsMap[g.awayTeamId] as Team | undefined)?.name ?? g.awayTeamId,
       homeScore: g.homeScore,
       awayScore: g.awayScore,
+      homePenaltyScore: g.homePenaltyScore,
+      awayPenaltyScore: g.awayPenaltyScore,
       userHomeGuess: g.userHomeGuess,
       userAwayGuess: g.userAwayGuess,
+      userHomePenaltyWinner: g.userHomePenaltyWinner,
+      userAwayPenaltyWinner: g.userAwayPenaltyWinner,
       basePoints,
       boostType: g.boostType,
       boostBonus,

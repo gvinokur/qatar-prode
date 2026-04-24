@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import {
   Box,
+  IconButton,
   Stack,
   Typography,
   Button,
@@ -13,11 +14,12 @@ import {
   AccountTree as AccountTreeIcon,
   EmojiEvents as EmojiEventsIcon,
   SportsSoccer as SportsSoccerIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
 } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider'
-import { ScrollShadowContainer } from '../common/scroll-shadow-container'
 import FlippableGameCard from '../flippable-game-card'
 import { ActionCenterData } from '../../actions/hub-actions'
 import type { Locale } from '../../../i18n.config'
@@ -65,9 +67,47 @@ function TrackedCircularProgress({ value, icon }: { readonly value: number; read
   )
 }
 
+interface VerticalNavProps {
+  readonly current: number
+  readonly total: number
+  readonly onUp: () => void
+  readonly onDown: () => void
+}
+
+function VerticalNav({ current, total, onUp, onDown }: VerticalNavProps) {
+  return (
+    <Stack sx={{ justifyContent: 'center', gap: 1, ml: 0.5 }}>
+      <IconButton
+        size="small"
+        disabled={current === 0}
+        onClick={onUp}
+        aria-label="previous"
+        sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+      >
+        <KeyboardArrowUpIcon fontSize="small" />
+      </IconButton>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === 0 ? 'primary.main' : 'divider' }} />
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current > 0 && current < total - 1 ? 'primary.main' : 'divider' }} />
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === total - 1 ? 'primary.main' : 'divider' }} />
+      </Box>
+      <IconButton
+        size="small"
+        disabled={current === total - 1}
+        onClick={onDown}
+        aria-label="next"
+        sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+      >
+        <KeyboardArrowDownIcon fontSize="small" />
+      </IconButton>
+    </Stack>
+  )
+}
+
 export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCenterCarouselProps) {
   const t = useTranslations('hub')
   const [editingGameId, setEditingGameId] = useState<string | null>(null)
+  const [visibleIndex, setVisibleIndex] = useState(0)
 
   const subtitle =
     data.mode === 'fallback' ? t('actionCenter.fallbackSubtitle') : t('actionCenter.subtitle')
@@ -82,14 +122,22 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
 
   const handleAutoAdvanceNext = (gameId: string) => {
     const index = data.games.findIndex((g) => g.id === gameId)
-    setEditingGameId(
-      index !== -1 && index < data.games.length - 1 ? data.games[index + 1].id : null
-    )
+    if (index !== -1 && index < data.games.length - 1) {
+      setEditingGameId(data.games[index + 1].id)
+      setVisibleIndex((i) => Math.min(data.games.length - 1, i + 1))
+    } else {
+      setEditingGameId(null)
+    }
   }
 
   const handleAutoGoPrevious = (gameId: string) => {
     const index = data.games.findIndex((g) => g.id === gameId)
-    setEditingGameId(index > 0 ? data.games[index - 1].id : null)
+    if (index > 0) {
+      setEditingGameId(data.games[index - 1].id)
+      setVisibleIndex((i) => Math.max(0, i - 1))
+    } else {
+      setEditingGameId(null)
+    }
   }
 
   const gamesProgress =
@@ -163,21 +211,13 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
             </Button>
           </Box>
         ) : (
-          /* Game carousel — includes opener when openerBackfill=true */
-          <ScrollShadowContainer
-            direction="horizontal"
-            hideScrollbar={true}
-            scrollContainerSx={{
-              display: 'flex',
-              gap: 2,
-              pb: 1,
-              ...(data.games.length === 1 ? { justifyContent: 'center' } : {}),
-            }}
-          >
-            {data.games.map((game) => {
-              const guess = data.gameGuesses[game.id]
-              return (
-                <Box key={game.id} sx={{ minWidth: { xs: 280, sm: 440 }, flexShrink: 0 }}>
+          /* Single-card view with vertical navigation */
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {data.games[visibleIndex] && (() => {
+                const game = data.games[visibleIndex]
+                const guess = data.gameGuesses[game.id]
+                return (
                   <FlippableGameCard
                     game={game}
                     teamsMap={data.teamsMap}
@@ -195,10 +235,18 @@ export function ActionCenterCarousel({ data, tournamentId, locale }: ActionCente
                     onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
                     onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
                   />
-                </Box>
-              )
-            })}
-          </ScrollShadowContainer>
+                )
+              })()}
+            </Box>
+            {data.games.length > 1 && (
+              <VerticalNav
+                current={visibleIndex}
+                total={data.games.length}
+                onUp={() => setVisibleIndex((i) => Math.max(0, i - 1))}
+                onDown={() => setVisibleIndex((i) => Math.min(data.games.length - 1, i + 1))}
+              />
+            )}
+          </Box>
         )}
 
         {/* Prediction progress — circular progress row replacing the old quick-action cards */}

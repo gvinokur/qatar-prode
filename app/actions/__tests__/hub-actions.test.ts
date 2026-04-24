@@ -811,6 +811,41 @@ describe('getRecentResultsData', () => {
 
     expect(result.recentGames[0].boostType).toBe('golden')
   })
+
+  it('maps homePenaltyScore and awayPenaltyScore from repository result', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homePenaltyScore: 4, awayPenaltyScore: 2 }),
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].homePenaltyScore).toBe(4)
+    expect(result.recentGames[0].awayPenaltyScore).toBe(2)
+  })
+
+  it('maps userHomePenaltyWinner and userAwayPenaltyWinner from repository result', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ userHomePenaltyWinner: true, userAwayPenaltyWinner: false }),
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].userHomePenaltyWinner).toBe(true)
+    expect(result.recentGames[0].userAwayPenaltyWinner).toBe(false)
+  })
+
+  it('returns null penalty fields when repository data has null penalties', async () => {
+    vi.mocked(gameRepository.findRecentGamesForDashboard).mockResolvedValue([
+      makeRawGame({ homePenaltyScore: null, awayPenaltyScore: null, userHomePenaltyWinner: null, userAwayPenaltyWinner: null }),
+    ] as any)
+
+    const result = await getRecentResultsData(TOURNAMENT_ID, 'en')
+
+    expect(result.recentGames[0].homePenaltyScore).toBeNull()
+    expect(result.recentGames[0].awayPenaltyScore).toBeNull()
+    expect(result.recentGames[0].userHomePenaltyWinner).toBeNull()
+    expect(result.recentGames[0].userAwayPenaltyWinner).toBeNull()
+  })
 })
 
 // ---------------------------------------------------------------------------

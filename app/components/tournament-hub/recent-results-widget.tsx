@@ -1,18 +1,60 @@
 'use client'
 
-import { Box, Button, Divider, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import WatchLaterIcon from '@mui/icons-material/WatchLater'
 import SportsScoreIcon from '@mui/icons-material/SportsScore'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { BoostBadge } from '../boost-badge'
 import type { RecentResultsData, RecentGameResultItem } from '../../actions/hub-actions'
 
+const VISIBLE_COUNT = 5
+
 interface RecentResultsWidgetProps {
   readonly data: RecentResultsData
   readonly statsHref: string
+}
+
+interface VerticalNavProps {
+  readonly current: number
+  readonly total: number
+  readonly onUp: () => void
+  readonly onDown: () => void
+}
+
+function VerticalNav({ current, total, onUp, onDown }: VerticalNavProps) {
+  return (
+    <Stack sx={{ justifyContent: 'center', gap: 1, ml: 0.5 }}>
+      <IconButton
+        size="small"
+        disabled={current === 0}
+        onClick={onUp}
+        aria-label="previous"
+        sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+      >
+        <KeyboardArrowUpIcon fontSize="small" />
+      </IconButton>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === 0 ? 'primary.main' : 'divider' }} />
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current > 0 && current < total - 1 ? 'primary.main' : 'divider' }} />
+        <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === total - 1 ? 'primary.main' : 'divider' }} />
+      </Box>
+      <IconButton
+        size="small"
+        disabled={current === total - 1}
+        onClick={onDown}
+        aria-label="next"
+        sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+      >
+        <KeyboardArrowDownIcon fontSize="small" />
+      </IconButton>
+    </Stack>
+  )
 }
 
 function GameItem({ item }: { readonly item: RecentGameResultItem }) {
@@ -25,6 +67,9 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
     item.gameStatus === 'finished' &&
     item.userHomeGuess === item.homeScore &&
     item.userAwayGuess === item.awayScore
+
+  const hasPenalties = item.homePenaltyScore != null && item.awayPenaltyScore != null
+  const homeWins = hasPenalties && item.homePenaltyScore! > item.awayPenaltyScore!
 
   const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
   const predictionText = hasGuess
@@ -39,9 +84,27 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   } else if (isExact) {
     subtext = t('exactResult')
   } else if (isCorrect) {
-    subtext = t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    if (hasPenalties) {
+      const winnerName = homeWins ? item.homeTeamName : item.awayTeamName
+      subtext = t('correctResultWithPenaltyWinner', {
+        home: item.userHomeGuess!,
+        away: item.userAwayGuess!,
+        team: winnerName,
+      })
+    } else {
+      subtext = t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    }
   } else {
-    subtext = t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    if (hasPenalties && (item.userHomePenaltyWinner || item.userAwayPenaltyWinner)) {
+      const predictedWinner = item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName
+      subtext = t('yourGuessWithPenaltyPrediction', {
+        home: item.userHomeGuess!,
+        away: item.userAwayGuess!,
+        team: predictedWinner,
+      })
+    } else {
+      subtext = t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    }
   }
 
   let scoreDisplay: string
@@ -57,6 +120,21 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
     statusIcon = <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
   }
 
+  let scoreContent: React.ReactNode
+  if (item.gameStatus === 'finished' && hasPenalties) {
+    scoreContent = (
+      <>
+        <Box component="span" fontWeight={homeWins ? 700 : 400}>{item.homeTeamName}</Box>
+        {' '}{item.homeScore} ({item.homePenaltyScore})–({item.awayPenaltyScore}) {item.awayScore}{' '}
+        <Box component="span" fontWeight={!homeWins ? 700 : 400}>{item.awayTeamName}</Box>
+      </>
+    )
+  } else if (item.gameStatus === 'finished') {
+    scoreContent = <>{item.homeTeamName} {item.homeScore}–{item.awayScore} {item.awayTeamName}</>
+  } else {
+    scoreContent = <>{item.homeTeamName} vs {item.awayTeamName}</>
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
@@ -64,11 +142,7 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" noWrap>
-              {item.homeTeamName}{' '}
-              {item.gameStatus === 'finished'
-                ? `${item.homeScore}–${item.awayScore}`
-                : 'vs'}{' '}
-              {item.awayTeamName}
+              {scoreContent}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
               <Typography
@@ -96,6 +170,14 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
   const t = useTranslations('hub.recentResults')
   const { recentGames } = data
   const hasGames = recentGames.length > 0
+  const needsNav = recentGames.length > VISIBLE_COUNT
+
+  const [startIndex, setStartIndex] = useState(0)
+  const maxIndex = Math.max(0, recentGames.length - VISIBLE_COUNT)
+  const visibleGames = recentGames.slice(startIndex, startIndex + VISIBLE_COUNT)
+
+  const handleUp = () => setStartIndex((prev) => Math.max(0, prev - 1))
+  const handleDown = () => setStartIndex((prev) => Math.min(maxIndex, prev + 1))
 
   return (
     <>
@@ -108,13 +190,25 @@ export function RecentResultsWidget({ data, statsHref }: RecentResultsWidgetProp
           >
             {t('recentGames')}
           </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {recentGames.map((item, idx) => (
-              <Box key={item.gameId}>
-                {idx > 0 && <Divider sx={{ mb: 1 }} />}
-                <GameItem item={item} />
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {visibleGames.map((item, idx) => (
+                  <Box key={item.gameId}>
+                    {idx > 0 && <Divider sx={{ mb: 1 }} />}
+                    <GameItem item={item} />
+                  </Box>
+                ))}
               </Box>
-            ))}
+            </Box>
+            {needsNav && (
+              <VerticalNav
+                current={startIndex}
+                total={maxIndex + 1}
+                onUp={handleUp}
+                onDown={handleDown}
+              />
+            )}
           </Box>
         </Box>
       ) : (

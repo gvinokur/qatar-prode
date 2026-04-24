@@ -21,8 +21,12 @@ const makeRecentGameItem = (overrides?: Partial<RecentGameResultItem>): RecentGa
   awayTeamName: 'France',
   homeScore: 2,
   awayScore: 1,
+  homePenaltyScore: null,
+  awayPenaltyScore: null,
   userHomeGuess: 2,
   userAwayGuess: 1,
+  userHomePenaltyWinner: null,
+  userAwayPenaltyWinner: null,
   basePoints: 3,
   boostType: null,
   boostBonus: 0,
@@ -254,7 +258,7 @@ describe('RecentResultsWidget', () => {
       expect(screen.queryByText('2x')).not.toBeInTheDocument()
     })
 
-    it('renders all 10 game items when data has 10 games', () => {
+    it('shows only first 5 game items when data has 10 games', () => {
       const games = Array.from({ length: 10 }, (_, i) =>
         makeRecentGameItem({ gameId: `game-${i}`, homeTeamName: `Team${i}` })
       )
@@ -263,7 +267,7 @@ describe('RecentResultsWidget', () => {
       renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
 
       expect(screen.getByText('Team0 2–1 France')).toBeInTheDocument()
-      expect(screen.getByText('Team9 2–1 France')).toBeInTheDocument()
+      expect(screen.queryByText('Team9 2–1 France')).not.toBeInTheDocument()
     })
   })
 
@@ -275,6 +279,111 @@ describe('RecentResultsWidget', () => {
 
       const button = screen.getByText('hub.recentResults:seeStats')
       expect(button.closest('a')).toHaveAttribute('href', '/en/tournaments/t1/stats')
+    })
+  })
+
+  describe('carousel navigation', () => {
+    it('does not render nav buttons when 5 or fewer games', () => {
+      const games = Array.from({ length: 5 }, (_, i) =>
+        makeRecentGameItem({ gameId: `game-${i}` })
+      )
+      renderWithTheme(<RecentResultsWidget data={{ recentGames: games }} {...defaultHrefs} />)
+
+      expect(screen.queryByRole('button', { name: 'previous' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'next' })).not.toBeInTheDocument()
+    })
+
+    it('renders nav buttons when more than 5 games', () => {
+      const games = Array.from({ length: 6 }, (_, i) =>
+        makeRecentGameItem({ gameId: `game-${i}` })
+      )
+      renderWithTheme(<RecentResultsWidget data={{ recentGames: games }} {...defaultHrefs} />)
+
+      expect(screen.getByRole('button', { name: 'previous' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'next' })).toBeInTheDocument()
+    })
+
+    it('up arrow is disabled when startIndex is 0', () => {
+      const games = Array.from({ length: 6 }, (_, i) =>
+        makeRecentGameItem({ gameId: `game-${i}` })
+      )
+      renderWithTheme(<RecentResultsWidget data={{ recentGames: games }} {...defaultHrefs} />)
+
+      expect(screen.getByRole('button', { name: 'previous' })).toBeDisabled()
+    })
+
+    it('down arrow is enabled at initial position', () => {
+      const games = Array.from({ length: 6 }, (_, i) =>
+        makeRecentGameItem({ gameId: `game-${i}` })
+      )
+      renderWithTheme(<RecentResultsWidget data={{ recentGames: games }} {...defaultHrefs} />)
+
+      expect(screen.getByRole('button', { name: 'next' })).not.toBeDisabled()
+    })
+  })
+
+  describe('penalty score display', () => {
+    it('shows standard score format when no penalty scores', () => {
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({ homeScore: 1, awayScore: 1 })],
+      }
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText('Argentina 1–1 France')).toBeInTheDocument()
+    })
+
+    it('shows penalty score format when penalty scores are present', () => {
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({
+          homeScore: 1,
+          awayScore: 1,
+          homePenaltyScore: 4,
+          awayPenaltyScore: 2,
+        })],
+      }
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/\(4\)–\(2\)/)).toBeInTheDocument()
+    })
+
+    it('uses correctResultWithPenaltyWinner key for correct (non-exact) penalty predictions', () => {
+      // User predicted 0-0 (draw, correct outcome) but actual was 1-1 with penalty winner
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({
+          homeScore: 1,
+          awayScore: 1,
+          homePenaltyScore: 4,
+          awayPenaltyScore: 2,
+          finalPoints: 1,
+          userHomeGuess: 0,
+          userAwayGuess: 0,
+          userHomePenaltyWinner: null,
+          userAwayPenaltyWinner: null,
+        })],
+      }
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/correctResultWithPenaltyWinner/)).toBeInTheDocument()
+    })
+
+    it('uses yourGuessWithPenaltyPrediction key when user had penalty prediction and was incorrect', () => {
+      // User predicted 2-0 (wrong outcome) but actual was 1-1 with penalty winner
+      const data: RecentResultsData = {
+        recentGames: [makeRecentGameItem({
+          homeScore: 1,
+          awayScore: 1,
+          homePenaltyScore: 4,
+          awayPenaltyScore: 2,
+          finalPoints: 0,
+          userHomeGuess: 2,
+          userAwayGuess: 0,
+          userHomePenaltyWinner: false,
+          userAwayPenaltyWinner: true,
+        })],
+      }
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/yourGuessWithPenaltyPrediction/)).toBeInTheDocument()
     })
   })
 })
