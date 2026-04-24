@@ -60,7 +60,6 @@ const baseProps = {
   tournamentId: 't-1',
   scoringRules: defaultScoringRules,
   totalGames: 64,
-  isStarted: false,
   isNearStart: false,
   isFinished: false,
   gamesHref: '/en/tournaments/t-1/games',
@@ -107,7 +106,6 @@ describe('GamesPredictionWidget', () => {
       <GamesPredictionWidget
         {...baseProps}
         isNearStart={true}
-        isStarted={false}
         actionCenterData={makeActionCenterData()}
       />
     )
@@ -120,7 +118,6 @@ describe('GamesPredictionWidget', () => {
       <GamesPredictionWidget
         {...baseProps}
         isNearStart={true}
-        isStarted={true}
         actionCenterData={makeActionCenterData({ tournamentHasStarted: true })}
       />
     )

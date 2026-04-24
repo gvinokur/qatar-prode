@@ -7,7 +7,6 @@ interface GamesPredictionWidgetProps {
   readonly tournamentId: string
   readonly scoringRules: ScoringRulesBySection
   readonly totalGames: number
-  readonly isStarted: boolean
   readonly isNearStart: boolean
   readonly isFinished: boolean
   readonly actionCenterData: ActionCenterData | null
