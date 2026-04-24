@@ -19,14 +19,17 @@ export function SocialHubCard({ locale, tournamentId, loginHref }: SocialHubCard
   const friendGroupsUrl = `/${locale}/tournaments/${tournamentId}/friend-groups`
 
   return (
-    <Stack spacing={1.5} sx={{ flexGrow: 1 }}>
-      <Stack direction="column" alignItems="center" spacing={1}>
+    <Stack spacing={1.5} sx={{ flexGrow: 1, height: '100%', justifyContent: 'space-between' }}>
+      <Stack direction="column" alignItems="center" justifyContent="center" spacing={1} sx={{ flexGrow: 1 }}>
         <GroupAddIcon sx={{ fontSize: 40, color: 'secondary.main' }} />
         <Typography variant="subtitle2" fontWeight={700} textAlign="center">
           {t('socialHub.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" textAlign="center">
           {t('socialHub.description')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          {t('socialHub.joinHint')}
         </Typography>
       </Stack>
       {loginHref ? (

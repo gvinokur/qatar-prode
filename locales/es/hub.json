@@ -85,6 +85,7 @@
   "socialHub": {
     "title": "¡No juegues solo!",
     "description": "La mejor manera de disfrutar el Mundial es en grupo. Creá el tuyo e invitá a tus amigos.",
+    "joinHint": "¿Tus amigos ya están jugando? Pediles el link de su grupo para unirte.",
     "createGroup": "Crear Grupo",
     "findGroup": "Encontrar Grupo Público",
     "login": "Iniciar sesión"

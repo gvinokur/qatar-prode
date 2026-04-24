@@ -85,6 +85,7 @@
   "socialHub": {
     "title": "Don't play alone!",
     "description": "The best way to enjoy the World Cup is in a group. Create yours and invite your friends.",
+    "joinHint": "Already have friends playing? Ask them for their group link to join.",
     "createGroup": "Create Group",
     "findGroup": "Find Public Group",
     "login": "Log in"
