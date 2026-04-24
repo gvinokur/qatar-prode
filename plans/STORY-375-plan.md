@@ -293,6 +293,28 @@ Coverage gate: ≥80% on new code.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: `sparklineStartDateLabel` added to `StatsAtAGlanceData`
+**Date:** 2026-04-24
+**Reason:** The component's trend section needs to show "Since {date}" below the sparkline gain, referencing the start of the sparkline window (not the previous snapshot date). This required a separate field from `snapshotDateLabel`.
+**Change:** `sparklineStartDateLabel: string | null` added to `StatsAtAGlanceData` interface and populated in `getStatsAtAGlanceData` as the formatted date of `sparklineWindow[0]` (null when fewer than 2 sparkline entries).
+
+### Amendment 2: Momentum chip shows `0 pts` instead of being omitted
+**Date:** 2026-04-24
+**Reason:** UX iteration during implementation — showing `0 pts` in neutral color when no new points were earned is more informative than silently hiding the chip, which users might interpret as a bug.
+**Change:** Momentum row always rendered when `snapshotDateLabel` exists. Shows `+N pts` in `success.main` when `momentumPoints > 0`; shows `0 pts` in `text.secondary` when zero. `ArrowDropUpIcon` only shown when positive.
+
+### Amendment 3: Category delta chip keyed on category total, not delta value
+**Date:** 2026-04-24
+**Reason:** A category with a non-zero total but zero delta (no new points today) should still show the `+0` chip in neutral color, so users can see that the category is active. Categories with zero total points (e.g. awards not started) omit the chip entirely.
+**Change:** Delta chip rendered when `matchesPoints > 0` (or equivalent per category), not when `matchesDelta > 0`. Color: `success.main` when delta > 0, `text.secondary` otherwise.
+
+### Amendment 4: Sparkline uses `secondary.main` + `action.selected` background
+**Date:** 2026-04-24
+**Reason:** UX iteration — `secondary.main` (gold) matches the theme accent used across other hub widget icons, and the `action.selected` background adds visual containment without being too heavy.
+**Change:** Sparkline wrapper `Box` uses `sx={{ color: 'secondary.main', bgcolor: 'action.selected', borderRadius: 1 }}` instead of `primary.main`.
+
 ## Validation (SonarCloud / Quality Gates)
 
 - 0 new issues (any severity)
