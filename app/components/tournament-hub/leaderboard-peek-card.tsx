@@ -35,7 +35,7 @@ export function LeaderboardPeekCard({ data, groupLeaderboardHref }: Readonly<Lea
   const theme = useTheme()
 
   return (
-    <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
+    <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', height: '100%' }}>
       <CardActionArea onClick={() => router.push(groupLeaderboardHref)}>
         {/* Header: group name + rank + momentum */}
         <Box

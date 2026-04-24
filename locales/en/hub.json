@@ -5,6 +5,7 @@
   "yourStandings": "Your Standings",
   "yourStandingsSubtitle": "Your 3 most active groups",
   "noRankingData": "Rankings will appear once the tournament is underway.",
+  "groups": "Groups",
   "seeAllGroups": "See all your groups",
   "actionCenter": {
     "title": "Action Center",
@@ -85,7 +86,8 @@
     "title": "Don't play alone!",
     "description": "The best way to enjoy the World Cup is in a group. Create yours and invite your friends.",
     "createGroup": "Create Group",
-    "findGroup": "Find Public Group"
+    "findGroup": "Find Public Group",
+    "login": "Log in"
   },
   "newUser": {
     "tutorial": {

@@ -19,8 +19,21 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('../social-hub-card', () => ({
-  SocialHubCard: ({ locale, tournamentId }: { locale: string; tournamentId: string }) => (
-    <div data-testid="social-hub-card" data-locale={locale} data-tournament-id={tournamentId}>
+  SocialHubCard: ({
+    locale,
+    tournamentId,
+    loginHref,
+  }: {
+    locale: string
+    tournamentId: string
+    loginHref?: string
+  }) => (
+    <div
+      data-testid="social-hub-card"
+      data-locale={locale}
+      data-tournament-id={tournamentId}
+      data-login-href={loginHref ?? ''}
+    >
       SocialHubCard
     </div>
   ),
@@ -35,12 +48,6 @@ vi.mock('../pre-tournament-groups-preview', () => ({
     <div data-testid="pre-tournament-groups-preview" data-count={allGroupNames.length}>
       PreTournamentGroupsPreview
     </div>
-  ),
-}))
-
-vi.mock('./leaderboard-peek-card', () => ({
-  LeaderboardPeekCard: ({ data }: { data: GroupPeekData }) => (
-    <div data-testid={`leaderboard-peek-card-${data.groupId}`}>{data.groupName}</div>
   ),
 }))
 
@@ -75,27 +82,54 @@ const makeGroupPeekData = (id: string, name: string): GroupPeekData => ({
 })
 
 const hasRankingResult: LeaderboardPeekResult = {
-  groups: [makeGroupPeekData('g-1', 'Alpha'), makeGroupPeekData('g-2', 'Beta')],
+  groups: [
+    makeGroupPeekData('g-1', 'Alpha'),
+    makeGroupPeekData('g-2', 'Beta'),
+    makeGroupPeekData('g-3', 'Gamma'),
+  ],
   userHasGroups: true,
   allGroupNames: [
     { id: 'g-1', name: 'Alpha' },
     { id: 'g-2', name: 'Beta' },
+    { id: 'g-3', name: 'Gamma' },
   ],
 }
+
+const defaultProps = { tournamentId: 'tour-42', locale: 'en' as const }
 
 describe('TournamentHubLeaderboardPeek', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders SocialHubCard when userHasGroups is false', async () => {
+  it('renders DashboardCard with SocialHubCard and login href when isAuthenticated is false', async () => {
+    render(
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: false })
+    )
+
+    const card = screen.getByTestId('social-hub-card')
+    expect(card).toBeInTheDocument()
+    expect(card).toHaveAttribute('data-login-href', '/en/auth/signin')
+  })
+
+  it('does not call getLeaderboardPeekData when isAuthenticated is false', async () => {
+    render(
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: false })
+    )
+
+    expect(hubActions.getLeaderboardPeekData).not.toHaveBeenCalled()
+  })
+
+  it('renders SocialHubCard without loginHref when authenticated but userHasGroups is false', async () => {
     vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(noGroupsResult)
 
     render(
-      await TournamentHubLeaderboardPeek({ tournamentId: 'tour-42', locale: 'en' })
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: true })
     )
 
-    expect(screen.getByTestId('social-hub-card')).toBeInTheDocument()
+    const card = screen.getByTestId('social-hub-card')
+    expect(card).toBeInTheDocument()
+    expect(card).toHaveAttribute('data-login-href', '')
     expect(screen.queryByTestId('pre-tournament-groups-preview')).not.toBeInTheDocument()
   })
 
@@ -103,29 +137,18 @@ describe('TournamentHubLeaderboardPeek', () => {
     vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(hasGroupsNoRankingResult)
 
     render(
-      await TournamentHubLeaderboardPeek({ tournamentId: 'tour-42', locale: 'en' })
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: true })
     )
 
     expect(screen.getByTestId('pre-tournament-groups-preview')).toBeInTheDocument()
     expect(screen.queryByTestId('social-hub-card')).not.toBeInTheDocument()
   })
 
-  it('passes allGroupNames to PreTournamentGroupsPreview', async () => {
-    vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(hasGroupsNoRankingResult)
-
-    render(
-      await TournamentHubLeaderboardPeek({ tournamentId: 'tour-42', locale: 'en' })
-    )
-
-    const preview = screen.getByTestId('pre-tournament-groups-preview')
-    expect(preview).toHaveAttribute('data-count', '2')
-  })
-
-  it('renders LeaderboardPeekCards when groups is non-empty', async () => {
+  it('renders one LeaderboardPeekCard per group when groups is non-empty', async () => {
     vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(hasRankingResult)
 
     render(
-      await TournamentHubLeaderboardPeek({ tournamentId: 'tour-42', locale: 'en' })
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: true })
     )
 
     expect(screen.getByTestId('leaderboard-peek-card-g-1')).toBeInTheDocument()
@@ -134,13 +157,13 @@ describe('TournamentHubLeaderboardPeek', () => {
     expect(screen.queryByTestId('pre-tournament-groups-preview')).not.toBeInTheDocument()
   })
 
-  it('renders the section header regardless of branch', async () => {
-    vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(noGroupsResult)
+  it('renders exactly 3 LeaderboardPeekCard components when groups has 3 items', async () => {
+    vi.mocked(hubActions.getLeaderboardPeekData).mockResolvedValue(hasRankingResult)
 
     render(
-      await TournamentHubLeaderboardPeek({ tournamentId: 'tour-42', locale: 'en' })
+      await TournamentHubLeaderboardPeek({ ...defaultProps, isAuthenticated: true })
     )
 
-    expect(screen.getByText('yourStandings')).toBeInTheDocument()
+    expect(screen.getAllByTestId(/^leaderboard-peek-card-/)).toHaveLength(3)
   })
 })

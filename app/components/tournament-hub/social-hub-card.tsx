@@ -10,9 +10,10 @@ import type { Locale } from '../../../i18n.config'
 interface SocialHubCardProps {
   readonly locale: Locale
   readonly tournamentId: string
+  readonly loginHref?: string
 }
 
-export function SocialHubCard({ locale, tournamentId }: SocialHubCardProps) {
+export function SocialHubCard({ locale, tournamentId, loginHref }: SocialHubCardProps) {
   const t = useTranslations('hub')
 
   const friendGroupsUrl = `/${locale}/tournaments/${tournamentId}/friend-groups`
@@ -34,33 +35,46 @@ export function SocialHubCard({ locale, tournamentId }: SocialHubCardProps) {
         <Typography variant="body2" color="text.secondary">
           {t('socialHub.description')}
         </Typography>
-        <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
+        {loginHref ? (
           <Button
             variant="contained"
             color="secondary"
             component={Link}
-            href={friendGroupsUrl}
+            href={loginHref}
           >
-            {t('socialHub.createGroup')}
+            {t('socialHub.login')}
           </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            component={Link}
-            href={friendGroupsUrl}
-          >
-            {t('socialHub.findGroup')}
-          </Button>
-        </Stack>
-        <Button
-          variant="text"
-          color="secondary"
-          size="small"
-          component={Link}
-          href={friendGroupsUrl}
-        >
-          {t('newUser.socialHub.learnMore')}
-        </Button>
+        ) : (
+          <>
+            <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap">
+              <Button
+                variant="contained"
+                color="secondary"
+                component={Link}
+                href={friendGroupsUrl}
+              >
+                {t('socialHub.createGroup')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                component={Link}
+                href={friendGroupsUrl}
+              >
+                {t('socialHub.findGroup')}
+              </Button>
+            </Stack>
+            <Button
+              variant="text"
+              color="secondary"
+              size="small"
+              component={Link}
+              href={friendGroupsUrl}
+            >
+              {t('newUser.socialHub.learnMore')}
+            </Button>
+          </>
+        )}
       </Stack>
     </Paper>
   )

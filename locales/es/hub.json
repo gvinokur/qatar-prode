@@ -5,6 +5,7 @@
   "yourStandings": "Tus Posiciones",
   "yourStandingsSubtitle": "Tus 3 grupos más activos",
   "noRankingData": "Las posiciones aparecerán cuando el torneo esté en marcha.",
+  "groups": "Grupos",
   "seeAllGroups": "Ver todos tus grupos",
   "actionCenter": {
     "title": "Centro de Acción",
@@ -85,7 +86,8 @@
     "title": "¡No juegues solo!",
     "description": "La mejor manera de disfrutar el Mundial es en grupo. Creá el tuyo e invitá a tus amigos.",
     "createGroup": "Crear Grupo",
-    "findGroup": "Encontrar Grupo Público"
+    "findGroup": "Encontrar Grupo Público",
+    "login": "Iniciar sesión"
   },
   "newUser": {
     "tutorial": {

@@ -1,7 +1,7 @@
-import { Box, Button, Typography } from '@mui/material'
-import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
+import GroupsIcon from '@mui/icons-material/Groups'
 import { getLeaderboardPeekData } from '../../actions/hub-actions'
+import { DashboardCard } from './dashboard-card'
 import { LeaderboardPeekCard } from './leaderboard-peek-card'
 import { SocialHubCard } from './social-hub-card'
 import { PreTournamentGroupsPreview } from './pre-tournament-groups-preview'
@@ -10,65 +10,59 @@ import type { Locale } from '../../../i18n.config'
 interface TournamentHubLeaderboardPeekProps {
   readonly tournamentId: string
   readonly locale: Locale
+  readonly isAuthenticated: boolean
 }
 
 export async function TournamentHubLeaderboardPeek({
   tournamentId,
   locale,
+  isAuthenticated,
 }: TournamentHubLeaderboardPeekProps) {
-  const result = await getLeaderboardPeekData(tournamentId, locale)
-  const { groups, userHasGroups, allGroupNames } = result
   const t = await getTranslations({ locale, namespace: 'hub' })
 
-  return (
-    <Box>
-      {/* Header — centered, matching Action Center style */}
-      <Box sx={{ mb: 1, textAlign: 'center' }}>
-        <Typography variant="h6">{t('yourStandings')}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('yourStandingsSubtitle')}
-        </Typography>
-      </Box>
+  if (!isAuthenticated) {
+    return (
+      <DashboardCard title={t('groups')} icon={<GroupsIcon fontSize="small" />}>
+        <SocialHubCard
+          locale={locale}
+          tournamentId={tournamentId}
+          loginHref={`/${locale}/auth/signin`}
+        />
+      </DashboardCard>
+    )
+  }
 
-      {/* Branch 1: No groups at all (or unauthenticated) */}
-      {!userHasGroups && (
+  const { groups, userHasGroups, allGroupNames } = await getLeaderboardPeekData(tournamentId, locale)
+
+  if (!userHasGroups) {
+    return (
+      <DashboardCard title={t('groups')} icon={<GroupsIcon fontSize="small" />}>
         <SocialHubCard locale={locale} tournamentId={tournamentId} />
-      )}
+      </DashboardCard>
+    )
+  }
 
-      {/* Branch 2: Has groups but no ranking data yet */}
-      {userHasGroups && groups.length === 0 && (
+  if (groups.length === 0) {
+    return (
+      <DashboardCard title={t('yourStandings')} icon={<GroupsIcon fontSize="small" />}>
         <PreTournamentGroupsPreview
           allGroupNames={allGroupNames}
           locale={locale}
           tournamentId={tournamentId}
         />
-      )}
+      </DashboardCard>
+    )
+  }
 
-      {/* Branch 3: Has ranking data — existing leaderboard cards */}
-      {groups.length > 0 && (
-        <>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {groups.map((group) => (
-              <LeaderboardPeekCard
-                key={group.groupId}
-                data={group}
-                groupLeaderboardHref={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
-              />
-            ))}
-          </Box>
-          <Box sx={{ mt: 1.5, textAlign: 'center' }}>
-            <Button
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/friend-groups`}
-              variant="text"
-              size="small"
-              color="primary"
-            >
-              {t('seeAllGroups')}
-            </Button>
-          </Box>
-        </>
-      )}
-    </Box>
+  return (
+    <>
+      {groups.map((group) => (
+        <LeaderboardPeekCard
+          key={group.groupId}
+          data={group}
+          groupLeaderboardHref={`/${locale}/tournaments/${tournamentId}/friend-groups/${group.groupId}`}
+        />
+      ))}
+    </>
   )
 }
