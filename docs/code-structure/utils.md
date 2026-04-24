@@ -195,6 +195,7 @@ Date and time formatting utilities with timezone and locale support.
 - **getCompactGameTime(date, gameTimezone, locale)**: `string` — Formats game time compactly with timezone: "18 Jan 15:00 GMT-5 (Local Time)".
 - **getCompactUserTime(date, locale)**: `string` — Formats date compactly with user timezone label: "18 Jan 14:00 (Your Time)".
 - **getTodayYYYYMMDD()**: `number` — Returns today's date as YYYYMMDD integer (e.g., 20260206) in Argentina timezone for daily rank tracking.
+- **getPreviousDayYYYYMMDD(date: number)**: `number` — Parses a YYYYMMDD integer in Argentina timezone, subtracts 1 day, and returns the result as a YYYYMMDD integer. Handles all month/year boundaries (e.g., 20260101 → 20251231).
 
 ### app/utils/playoffs-rule-helper.ts
 Type guards and description helpers for playoff team assignment rules.
