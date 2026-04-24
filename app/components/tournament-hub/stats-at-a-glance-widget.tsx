@@ -79,7 +79,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
               <Typography variant="h3" fontWeight={800} sx={{ lineHeight: 1 }}>
                 {data.totalPoints}
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5 }}>
+              <Typography variant="body1" color="secondary.main" sx={{ mb: 0.5 }}>
                 pts
               </Typography>
               {data.snapshotDateLabel && (
@@ -87,20 +87,20 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                   direction="row"
                   alignItems="center"
                   sx={{
-                    color: data.momentumPoints > 0 ? 'success.main' : 'text.secondary',
+                    color: data.momentumPoints > 0 ? 'success.main' : 'secondary.main',
                     mb: 0.5,
                     ml: 'auto',
                   }}
                 >
                   {data.momentumPoints > 0 && <ArrowDropUpIcon />}
                   <Typography variant="body2" fontWeight="bold">
-                    {data.momentumPoints > 0 ? `+${data.momentumPoints} pts` : '0 pts'}
+                    {data.momentumPoints > 0 ? `+${data.momentumPoints} pts` : '+0 pts'}
                   </Typography>
                 </Stack>
               )}
             </Stack>
             {data.snapshotDateLabel && (
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="secondary.main">
                 {data.isYesterday
                   ? t('sinceYesterday', { date: data.snapshotDateLabel })
                   : t('since', { date: data.snapshotDateLabel })}
@@ -123,7 +123,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 {data.matchesPoints > 0 && (
                   <Typography
                     variant="caption"
-                    color={data.matchesDelta > 0 ? 'success.main' : 'text.secondary'}
+                    color={data.matchesDelta > 0 ? 'success.main' : 'secondary.main'}
                     fontWeight="bold"
                   >
                     {`+${data.matchesDelta}`}
@@ -144,7 +144,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 {data.qualifiedTeamsPoints > 0 && (
                   <Typography
                     variant="caption"
-                    color={data.qualifiedTeamsDelta > 0 ? 'success.main' : 'text.secondary'}
+                    color={data.qualifiedTeamsDelta > 0 ? 'success.main' : 'secondary.main'}
                     fontWeight="bold"
                   >
                     {`+${data.qualifiedTeamsDelta}`}
@@ -165,7 +165,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 {data.awardsPoints > 0 && (
                   <Typography
                     variant="caption"
-                    color={data.awardsDelta > 0 ? 'success.main' : 'text.secondary'}
+                    color={data.awardsDelta > 0 ? 'success.main' : 'secondary.main'}
                     fontWeight="bold"
                   >
                     {`+${data.awardsDelta}`}
@@ -203,7 +203,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                     <Typography variant="caption" fontWeight="bold">
                       {`+${gain} pts`}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                    <Typography variant="caption" color="secondary.main" sx={{ ml: 0.5 }}>
                       {t('since', { date: data.sparklineStartDateLabel })}
                     </Typography>
                   </Stack>

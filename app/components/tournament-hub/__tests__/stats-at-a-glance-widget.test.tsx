@@ -125,7 +125,7 @@ describe('StatsAtAGlanceWidget', () => {
         momentumPoints: 0,
       })
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(screen.getByText('0 pts')).toBeInTheDocument()
+      expect(screen.getByText('+0 pts')).toBeInTheDocument()
     })
 
     it('renders since-yesterday caption when isYesterday is true', async () => {
