@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recent Results Widget Carousel — Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3",
+        "@mui/icons-material/": "https://esm.sh/@mui/icons-material@7.0.2/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack,
+      Card, CardContent, CardHeader,
+      Typography, Button, IconButton, Chip,
+      Divider, List, ListItem,
+      Skeleton, Paper
+    } from '@mui/material';
+    import CheckCircleOutlineIcon from 'https://esm.sh/@mui/icons-material@7.0.2/CheckCircleOutline?external=react,react-dom';
+    import CancelOutlinedIcon from 'https://esm.sh/@mui/icons-material@7.0.2/CancelOutlined?external=react,react-dom';
+    import KeyboardArrowUpIcon from 'https://esm.sh/@mui/icons-material@7.0.2/KeyboardArrowUp?external=react,react-dom';
+    import KeyboardArrowDownIcon from 'https://esm.sh/@mui/icons-material@7.0.2/KeyboardArrowDown?external=react,react-dom';
+    import EmojiEventsIcon from 'https://esm.sh/@mui/icons-material@7.0.2/EmojiEvents?external=react,react-dom';
+
+    const html = htm.bind(React.createElement);
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper: '#1a1a1a',
+        },
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
+        },
+        success: {
+          main: '#4ade80',
+        },
+        error: {
+          main: '#f87171',
+        },
+        text: {
+          primary: '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+        divider: 'rgba(255, 255, 255, 0.08)'
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    const MOCK_GAMES = [
+      { id: '1', home: 'Spain', away: 'France', homeScore: 1, awayScore: 1, homePen: 4, awayPen: 2, guessHome: 2, guessAway: 2, guessPenWinner: 'home', points: 1, status: 'finished' },
+      { id: '2', home: 'Argentina', away: 'Germany', homeScore: 1, awayScore: 3, guessHome: 1, guessAway: 1, points: 3, boost: 'golden', status: 'finished' },
+      { id: '3', home: 'France', away: 'Germany', homeScore: 1, awayScore: 1, homePen: 5, awayPen: 4, guessHome: 3, guessAway: 1, points: 0, status: 'finished' },
+      { id: '4', home: 'Argentina', away: 'Spain', homeScore: 2, awayScore: 1, guessHome: 2, guessAway: 1, points: 2, status: 'finished' },
+      { id: '5', home: 'Italy', away: 'Netherlands', homeScore: 1, awayScore: 2, guessHome: 2, guessAway: 0, points: 0, status: 'finished' },
+      { id: '6', home: 'France', away: 'Netherlands', homeScore: 3, awayScore: 0, guessHome: 2, guessAway: 1, points: 2, boost: 'silver', status: 'finished' },
+      { id: '7', home: 'Italy', away: 'Spain', homeScore: 2, awayScore: 1, guessHome: 1, guessAway: 1, points: 0, status: 'finished' },
+      { id: '8', home: 'Argentina', away: 'Germany', homeScore: 1, awayScore: 1, homePen: 3, awayPen: 5, guessHome: 1, guessAway: 0, points: 0, status: 'finished' },
+      { id: '9', home: 'France', away: 'Spain', homeScore: 1, awayScore: 1, homePen: 4, awayPen: 3, guessHome: null, points: 0, status: 'finished' },
+      { id: '10', home: 'Brazil', away: 'Germany', homeScore: 2, awayScore: 0, guessHome: null, points: 0, status: 'finished' },
+    ];
+
+    function BoostBadge({ type }) {
+      const color = type === 'golden' ? '#fbbf24' : '#9ca3af';
+      return html`
+        <${Box} sx=${{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 0.5, 
+          bgcolor: 'rgba(255,255,255,0.05)', 
+          px: 0.8, 
+          py: 0.2, 
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'rgba(255,255,255,0.1)'
+        }}>
+          <${EmojiEventsIcon} sx=${{ fontSize: 12, color }} />
+          <${Typography} variant="caption" sx=${{ fontSize: '10px', color, fontWeight: 700 }}>
+            ${type === 'golden' ? '3x' : '2x'}
+          <//>
+        <//>
+      `;
+    }
+
+    function GameItem({ game }) {
+      const isCorrect = game.points > 0;
+      const isExact = isCorrect && game.guessHome === game.homeScore && game.guessAway === game.awayScore;
+      const hasPenalties = game.homePen !== undefined;
+      const homeWinner = hasPenalties && game.homePen > game.awayPen;
+      const awayWinner = hasPenalties && game.awayPen > game.homePen;
+      
+      const homeName = html`
+        <${Box} component="span" sx=${{ fontWeight: homeWinner ? 700 : 400 }}>
+          ${game.home} ${homeWinner ? '(pen)' : ''}
+        <//>
+      `;
+      const awayName = html`
+        <${Box} component="span" sx=${{ fontWeight: awayWinner ? 700 : 400 }}>
+          ${game.away} ${awayWinner ? '(pen)' : ''}
+        <//>
+      `;
+
+      let subtext = '';
+      if (game.guessHome === null) {
+        subtext = 'No ingresaste una predicción';
+      } else {
+        const guessText = `Tu predicción: ${game.guessHome}–${game.guessAway}`;
+        const penText = game.guessPenWinner ? ` • Ganador penales: ${game.guessPenWinner === 'home' ? game.home : game.away}` : '';
+        subtext = isExact ? 'Resultado exacto' : `Predicción correcta • ${guessText}${penText}`;
+        if (!isCorrect) subtext = guessText;
+      }
+
+      return html`
+        <${Box} sx=${{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1 }}>
+          ${isCorrect 
+            ? html`<${CheckCircleOutlineIcon} color="success" sx=${{ fontSize: 20, mt: 0.2 }} />`
+            : html`<${CancelOutlinedIcon} color="error" sx=${{ fontSize: 20, mt: 0.2 }} />`
+          }
+          <${Box} sx=${{ flex: 1, minWidth: 0 }}>
+            <${Box} sx=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <${Typography} variant="body2" sx=${{ fontWeight: 500 }}>
+                ${homeName} ${game.homeScore}–${game.awayScore} ${awayName}
+              <//>
+              <${Box} sx=${{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <${Typography} variant="body2" color=${isCorrect ? 'success.main' : 'text.secondary'} sx=${{ fontWeight: 700 }}>
+                  ${isCorrect ? '+' : ''}${game.points} pts
+                <//>
+                ${game.boost && html`<${BoostBadge} type=${game.boost} />`}
+              <//>
+            <//>
+            <${Typography} variant="caption" color="text.secondary" sx=${{ display: 'block', mt: 0.2 }}>
+              ${subtext}
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function PopulatedState() {
+      const [startIndex, setStartIndex] = React.useState(0);
+      const visibleGames = MOCK_GAMES.slice(startIndex, startIndex + 5);
+
+      const handleUp = () => setStartIndex(prev => Math.max(0, prev - 1));
+      const handleDown = () => setStartIndex(prev => Math.min(MOCK_GAMES.length - 5, prev + 1));
+
+      return html`
+        <${Card} variant="outlined" sx=${{ bgcolor: 'background.paper', borderColor: 'divider' }}>
+          <${CardHeader} 
+            title="PARTIDOS RECIENTES" 
+            titleTypographyProps=${{ variant: 'overline', color: 'text.secondary', sx: { letterSpacing: 1.5 } }}
+            sx=${{ pb: 1 }}
+          />
+          <${CardContent} sx=${{ position: 'relative', pt: 0, pb: '8px !important' }}>
+            <${Box} sx=${{ display: 'flex', gap: 1 }}>
+              <${Box} sx=${{ flex: 1, minWidth: 0 }}>
+                <${Stack} divider=${html`<${Divider} />`}>
+                  ${visibleGames.map(game => html`<${GameItem} key=${game.id} game=${game} />`)}
+                <//>
+              <//>
+              
+              <${Stack} sx=${{ justifyContent: 'center', gap: 1, ml: 0.5 }}>
+                <${IconButton} 
+                  size="small" 
+                  disabled=${startIndex === 0} 
+                  onClick=${handleUp}
+                  sx=${{ 
+                    border: '1px solid', 
+                    borderColor: 'divider',
+                    '&.Mui-disabled': { opacity: 0.3 }
+                  }}
+                >
+                  <${KeyboardArrowUpIcon} fontSize="small" />
+                <//>
+                <${Box} sx=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                  <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: startIndex === 0 ? 'primary.main' : 'divider' }} />
+                  <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: startIndex > 0 && startIndex < MOCK_GAMES.length - 5 ? 'primary.main' : 'divider' }} />
+                  <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: startIndex === MOCK_GAMES.length - 5 ? 'primary.main' : 'divider' }} />
+                <//>
+                <${IconButton} 
+                  size="small" 
+                  disabled=${startIndex === MOCK_GAMES.length - 5} 
+                  onClick=${handleDown}
+                  sx=${{ 
+                    border: '1px solid', 
+                    borderColor: 'divider',
+                    '&.Mui-disabled': { opacity: 0.3 }
+                  }}
+                >
+                  <${KeyboardArrowDownIcon} fontSize="small" />
+                <//>
+              <//>
+            <//>
+
+            <${Box} sx=${{ mt: 2, textAlign: 'center' }}>
+              <${Button} color="primary" sx=${{ fontWeight: 700, fontSize: '0.75rem' }}>
+                VER ESTADÍSTICAS COMPLETAS
+              <//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function LoadingState() {
+      return html`
+        <${Card} variant="outlined" sx=${{ bgcolor: 'background.paper', opacity: 0.6 }}>
+          <${CardContent}>
+            <${Skeleton} variant="text" width="60%" sx=${{ mb: 2 }} />
+            <${Stack} spacing=${2}>
+              ${[1, 2, 3, 4, 5].map(i => html`
+                <${Box} key=${i} sx=${{ display: 'flex', gap: 2 }}>
+                  <${Skeleton} variant="circular" width={24} height={24} />
+                  <${Box} sx=${{ flex: 1 }}>
+                    <${Skeleton} variant="text" width="80%" />
+                    <${Skeleton} variant="text" width="40%" />
+                  <//>
+                <//>
+              `)}
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      const [state, setState] = React.useState('populated');
+
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="sm" sx=${{ py: 4 }}>
+            <${Box} sx=${{ mb: 4, textAlign: 'center' }}>
+              <${Typography} variant="h5" sx=${{ fontWeight: 700, mb: 1 }}>Recent Results Redesign<//>
+              <${Typography} variant="body2" color="text.secondary">
+                Carousel navigation (max 5 visible) + Penalty shootout indicators
+              <//>
+            <//>
+
+            <${Box} sx=${{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <${Stack} direction="row" spacing=${1}>
+                ${['loading', 'populated'].map(s => html`
+                  <${Chip}
+                    key=${s}
+                    label=${s.toUpperCase()}
+                    size="small"
+                    onClick=${() => setState(s)}
+                    color=${state === s ? 'primary' : 'default'}
+                    variant=${state === s ? 'filled' : 'outlined'}
+                    sx=${{ fontWeight: 700, fontSize: '10px' }}
+                  />
+                `)}
+              <//>
+            <//>
+
+            ${state === 'loading' && html`<${LoadingState} />`}
+            ${state === 'populated' && html`<${PopulatedState} />`}
+
+            <${Box} sx=${{ mt: 6, p: 3, bgcolor: 'rgba(167, 139, 250, 0.05)', borderRadius: 2, border: '1px dashed', borderColor: 'primary.main' }}>
+              <${Typography} variant="subtitle2" color="primary" gutterBottom sx=${{ fontWeight: 700 }}>DESIGN NOTES<//>
+              <${List} size="small" sx=${{ '& .MuiTypography-root': { fontSize: '0.85rem' } }}>
+                <${ListItem}>
+                  <${Typography}>• <b>Carousel:</b> Vertical navigation with up/down arrows. Single-step sliding.<//>
+                <//>
+                <${ListItem}>
+                  <${Typography}>• <b>Penalty Indicators:</b> Winner team gets "(pen)" suffix and bold weight. Matches the actual tournament results logic.<//>
+                <//>
+                <${ListItem}>
+                  <${Typography}>• <b>Guess Feedback:</b> For shootout games, subtext explicitly confirms the penalty winner prediction.<//>
+                <//>
+                <${ListItem}>
+                  <${Typography}>• <b>Height Control:</b> Fixed to 5 items to prevent "super tall" layout shifts on mobile/iPad.<//>
+                <//>
+              <//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>

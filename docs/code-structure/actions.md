@@ -12,7 +12,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 Administrative tournament management — full lifecycle operations: tournament creation from seed data, score calculation, group standings, playoff bracket management, and permissions. Restricted to admin users.
 
 - **deleteDBTournamentTree(tournament, locale)**: `Promise<void>` — Deletes entire tournament tree (all games, guesses, groups, teams, results).
-  Calls: getLoggedInUser, deleteAllGameGuessesByTournamentId, deleteAllTournamentGuessesByTournamentId, deleteAllTournamentGroupPositionsPredictions, deleteAllPlayersInTournament, deleteAllTournamentVenues, deleteThirdPlaceRulesByTournament, deleteAllGameResultsByTournamentId, deleteAllGamesFromTournament, deleteAllPlayoffRoundsInTournament, deleteAllGroupsFromTournament, deleteTournamentTeams, deleteTournament
+  Calls: getLoggedInUser, updateTournament, deleteAllGameGuessesByTournamentId, deleteAllTournamentGuessesByTournamentId, deleteAllTournamentGroupPositionsPredictions, deleteAllPlayersInTournament, deleteAllTournamentVenues, deleteThirdPlaceRulesByTournament, deleteAllGameResultsByTournamentId, deleteAllGamesFromTournament, deleteAllPlayoffRoundsInTournament, deleteAllGroupsFromTournament, deleteTournamentTeams, deleteTournament
 - **generateDbTournamentTeamPlayers(tournamentName)**: `Promise<void>` — Populates players from seed data files.
   Calls: findTournamentByName, findTeamInTournament, createPlayer, updatePlayer
 - **generateDbTournament(name, deletePrevious)**: `Promise<void>` — Creates a full tournament from seed data.
