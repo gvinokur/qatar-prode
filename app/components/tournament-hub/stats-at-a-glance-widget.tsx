@@ -28,7 +28,10 @@ function Sparkline({ data }: { data: number[] }) {
   }))
   const pathData = 'M ' + points.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ')
   return (
-    <Box sx={{ color: 'primary.main', width: '100%' }} data-testid="sparkline">
+    <Box
+      sx={{ color: 'primary.main', width: '100%', bgcolor: 'action.selected', borderRadius: 1, p: 1 }}
+      data-testid="sparkline"
+    >
       <svg
         width="100%"
         height={height}
@@ -114,18 +117,18 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('matchesLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2" fontWeight="medium">
+                  {data.matchesPoints} pts
+                </Typography>
                 {data.matchesPoints > 0 && (
                   <Typography
                     variant="caption"
                     color={data.matchesDelta > 0 ? 'success.main' : 'text.secondary'}
                     fontWeight="bold"
                   >
-                    {data.matchesDelta > 0 ? `+${data.matchesDelta}` : '0'}
+                    {`+${data.matchesDelta}`}
                   </Typography>
                 )}
-                <Typography variant="body2" fontWeight="medium">
-                  {data.matchesPoints} pts
-                </Typography>
               </Stack>
             </Box>
 
@@ -135,18 +138,18 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2" fontWeight="medium">
+                  {data.qualifiedTeamsPoints} pts
+                </Typography>
                 {data.qualifiedTeamsPoints > 0 && (
                   <Typography
                     variant="caption"
                     color={data.qualifiedTeamsDelta > 0 ? 'success.main' : 'text.secondary'}
                     fontWeight="bold"
                   >
-                    {data.qualifiedTeamsDelta > 0 ? `+${data.qualifiedTeamsDelta}` : '0'}
+                    {`+${data.qualifiedTeamsDelta}`}
                   </Typography>
                 )}
-                <Typography variant="body2" fontWeight="medium">
-                  {data.qualifiedTeamsPoints} pts
-                </Typography>
               </Stack>
             </Box>
 
@@ -156,18 +159,18 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('awardsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2" fontWeight="medium">
+                  {data.awardsPoints} pts
+                </Typography>
                 {data.awardsPoints > 0 && (
                   <Typography
                     variant="caption"
                     color={data.awardsDelta > 0 ? 'success.main' : 'text.secondary'}
                     fontWeight="bold"
                   >
-                    {data.awardsDelta > 0 ? `+${data.awardsDelta}` : '0'}
+                    {`+${data.awardsDelta}`}
                   </Typography>
                 )}
-                <Typography variant="body2" fontWeight="medium">
-                  {data.awardsPoints} pts
-                </Typography>
               </Stack>
             </Box>
           </Stack>

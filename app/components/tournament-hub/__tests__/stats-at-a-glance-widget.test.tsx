@@ -160,14 +160,14 @@ describe('StatsAtAGlanceWidget', () => {
       expect(screen.getByText('+7')).toBeInTheDocument()
     })
 
-    it('renders category delta as 0 in neutral color when delta is zero but total is non-zero', async () => {
+    it('renders category delta as +0 in neutral color when delta is zero but total is non-zero', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
         ...populatedData,
         matchesDelta: 0,
         matchesPoints: 84,
       })
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(screen.getByText('0')).toBeInTheDocument()
+      expect(screen.getByText('+0')).toBeInTheDocument()
     })
 
     it('does not render category delta when total for that category is zero', async () => {
@@ -179,7 +179,7 @@ describe('StatsAtAGlanceWidget', () => {
       render(await StatsAtAGlanceWidget(defaultProps))
       // awardsPoints is 0, so its delta chip should not appear
       // Other categories still render their deltas
-      const zeroBadges = screen.queryAllByText('0')
+      const zeroBadges = screen.queryAllByText('+0')
       expect(zeroBadges).toHaveLength(0)
     })
 
