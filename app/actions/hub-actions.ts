@@ -102,6 +102,7 @@ export interface TournamentHubPageData {
   scoringConfig: ScoringConfig
   totalGames: number
   isStarted: boolean
+  isNearStart: boolean
   isFinished: boolean
   qualifiersTotal: number
   awardsTotal: number
@@ -129,9 +130,11 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
       .executeTakeFirst(),
   ])
 
+  const PRE_TOURNAMENT_ACTIVE_WINDOW_MS = 48 * 60 * 60 * 1000
   const now = Date.now()
   const totalGames = Number(totalGamesResult?.count ?? 0)
   const isStarted = !!firstGame && firstGame.game_date.getTime() <= now
+  const isNearStart = !!firstGame && firstGame.game_date.getTime() - now <= PRE_TOURNAMENT_ACTIVE_WINDOW_MS
   const isFinished = !!lastGame && lastGame.game_date.getTime() < now
   const qualifiersTotal = (firstStageRound?.total_games ?? 0) * 2
 
@@ -139,6 +142,7 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
     scoringConfig: buildScoringConfig(tournament),
     totalGames,
     isStarted,
+    isNearStart,
     isFinished,
     qualifiersTotal,
     awardsTotal: 7,

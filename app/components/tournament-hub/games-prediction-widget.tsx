@@ -7,7 +7,7 @@ interface GamesPredictionWidgetProps {
   readonly tournamentId: string
   readonly scoringRules: ScoringRulesBySection
   readonly totalGames: number
-  readonly isStarted: boolean
+  readonly isNearStart: boolean
   readonly isFinished: boolean
   readonly actionCenterData: ActionCenterData | null
   readonly gamesHref: string
@@ -17,7 +17,7 @@ export function GamesPredictionWidget({
   tournamentId,
   scoringRules,
   totalGames,
-  isStarted,
+  isNearStart,
   isFinished,
   actionCenterData,
   gamesHref,
@@ -36,7 +36,7 @@ export function GamesPredictionWidget({
     )
   }
 
-  if (!isStarted) {
+  if (!isNearStart) {
     return (
       <GamesInfoWidget
         isLoggedOff={false}

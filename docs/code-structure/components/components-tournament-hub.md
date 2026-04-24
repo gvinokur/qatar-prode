@@ -117,7 +117,7 @@ Client Component for the Recent Results widget content. Renders directly inside 
 ### app/components/tournament-hub/games-prediction-widget.tsx
 Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.
 
-- **GamesPredictionWidget({ tournamentId, scoringRules, totalGames, isStarted, isFinished, actionCenterData, gamesHref })**: `JSX.Element | null` — [Server] Pure routing component — no async, no data calls. Returns `null` when `isFinished`. Renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0` when `!actionCenterData`. Renders `GamesInfoWidget` with `isLoggedOff=false` when `actionCenterData && !isStarted`. Renders `GamesActiveWidget` when `actionCenterData && isStarted`.
+- **GamesPredictionWidget({ tournamentId, scoringRules, totalGames, isNearStart, isFinished, actionCenterData, gamesHref })**: `JSX.Element | null` — Pure routing component — no async, no data calls. Returns `null` when `isFinished`. Renders `GamesInfoWidget` with `isLoggedOff=true, predictedGames=0` when `!actionCenterData`. Renders `GamesInfoWidget` with `isLoggedOff=false` when `actionCenterData && !isNearStart`. Renders `GamesActiveWidget` when `actionCenterData && isNearStart`.
   Calls: (none)
   Renders: GamesInfoWidget (conditional), GamesActiveWidget (conditional)
 

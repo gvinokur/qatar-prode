@@ -69,7 +69,7 @@ export default async function TournamentHubPage(props: Props) {
           tournamentId={id}
           scoringRules={scoringRules}
           totalGames={hubData.totalGames}
-          isStarted={hubData.isStarted}
+          isNearStart={hubData.isNearStart}
           isFinished={hubData.isFinished}
           actionCenterData={actionCenterData}
           gamesHref={gamesHref}
