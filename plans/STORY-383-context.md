@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Hub navigation unification and penalty winner indicators
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-383
 - **Branch:** feature/story-383
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 384
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/384
 
 ## State
 - **Current Phase:** planning
