@@ -195,6 +195,23 @@ No new exported functions — JSX-only changes (remove Groups DashboardCard, add
 - Task D: Write tests for `tournament-hub-leaderboard-peek.tsx`
 - Task E: Write/update tests for `leaderboard-peek-card.tsx`
 
+## Implementation Amendments
+
+### Amendment 1: SocialHubCard layout and button polish
+**Date:** 2026-04-24
+**Reason:** After initial implementation, the SocialHubCard inside DashboardCard had a redundant inner Paper border and button sizing/color didn't match the rest of the dashboard.
+**Change:** Removed inner dashed Paper border; resized buttons to `size="small"`; applied `contained` primary for main CTA and `outlined` secondary; split two-button row with `flex: 1` each; added `learnMore` text-link below; renamed translation key `groups` to "Friend Groups" / "Grupos de Amigos" to match redesigned copy. Also added vertical centering (`flexGrow: 1`, `justifyContent: 'center'`) to the content Stack so it fills remaining height when grid siblings are taller.
+
+### Amendment 2: Added `joinHint` copy to SocialHubCard
+**Date:** 2026-04-24
+**Reason:** User requested additional context about how to join existing groups ("ask your friend for their link").
+**Change:** Added `socialHub.joinHint` translation key to both `locales/en/hub.json` and `locales/es/hub.json`; rendered it as a second `body2` Typography below the description in `SocialHubCard`.
+
+### Amendment 3: Pre-tournament groups preview layout overhaul
+**Date:** 2026-04-24
+**Reason:** Plan said "No changes to `pre-tournament-groups-preview.tsx`", but after visual review the layout had the same height/centering problem as SocialHubCard, and the 3-button design (Your Groups + Create Group + Discover Groups) was redundant given the group chips already link to specific groups.
+**Change:** Switched outer wrapper from `Box` to `Stack` with `height: '100%'` + `justifyContent: 'space-between'`; added `flexGrow: 1`, `display: 'flex'`, and inner flex centering to the outlined Paper so it fills remaining height and vertically centers chips + ranking-pending icon; replaced 3 CTAs with a single full-width "See all your groups" (`seeAllGroups` key) Button anchored to the bottom. Updated test accordingly.
+
 ## Validation
 
 - `npm run test` — ≥ 80% coverage on changed files
