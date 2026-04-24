@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub Navigation Unification — Mockup v3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3",
+        "@mui/icons-material/": "https://esm.sh/@mui/icons-material@7.0.2/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack,
+      Card, CardContent, CardHeader,
+      Typography, Button, IconButton, Chip,
+      Divider, List, ListItem,
+      Skeleton, Paper, Badge
+    } from '@mui/material';
+    import CheckCircleOutlineIcon from 'https://esm.sh/@mui/icons-material@7.0.2/CheckCircleOutline?external=react,react-dom';
+    import CancelOutlinedIcon from 'https://esm.sh/@mui/icons-material@7.0.2/CancelOutlined?external=react,react-dom';
+    import KeyboardArrowUpIcon from 'https://esm.sh/@mui/icons-material@7.0.2/KeyboardArrowUp?external=react,react-dom';
+    import KeyboardArrowDownIcon from 'https://esm.sh/@mui/icons-material@7.0.2/KeyboardArrowDown?external=react,react-dom';
+    import EmojiEventsIcon from 'https://esm.sh/@mui/icons-material@7.0.2/EmojiEvents?external=react,react-dom';
+    import SportsSoccerIcon from 'https://esm.sh/@mui/icons-material@7.0.2/SportsSoccer?external=react,react-dom';
+
+    const html = htm.bind(React.createElement);
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper: '#1a1a1a',
+        },
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
+        },
+        success: {
+          main: '#4ade80',
+        },
+        error: {
+          main: '#f87171',
+        },
+        text: {
+          primary: '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+        divider: 'rgba(255, 255, 255, 0.08)'
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    function VerticalNav({ current, total, onUp, onDown, sx = {} }) {
+      return html`
+        <${Stack} sx=${{ justifyContent: 'center', gap: 1, ...sx }}>
+          <${IconButton} 
+            size="small" 
+            disabled=${current === 0} 
+            onClick=${onUp}
+            sx=${{ border: '1px solid', borderColor: 'divider' }}
+          >
+            <${KeyboardArrowUpIcon} fontSize="small" />
+          <//>
+          <${Box} sx=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+            <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === 0 ? 'primary.main' : 'divider' }} />
+            <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: current > 0 && current < total - 1 ? 'primary.main' : 'divider' }} />
+            <${Box} sx=${{ width: 4, height: 4, borderRadius: '50%', bgcolor: current === total - 1 ? 'primary.main' : 'divider' }} />
+          <//>
+          <${IconButton} 
+            size="small" 
+            disabled=${current === total - 1} 
+            onClick=${onDown}
+            sx=${{ border: '1px solid', borderColor: 'divider' }}
+          >
+            <${KeyboardArrowDownIcon} fontSize="small" />
+          <//>
+        <//>
+      `;
+    }
+
+    function RecentResultsWidget() {
+      const [startIndex, setStartIndex] = React.useState(0);
+      const totalSteps = 2; // Simulating 10 games total (2 pages of 5)
+
+      return html`
+        <${Card} variant="outlined" sx=${{ bgcolor: 'background.paper' }}>
+          <${CardHeader} 
+            title="PARTIDOS RECIENTES" 
+            titleTypographyProps=${{ variant: 'overline', color: 'text.secondary', sx: { letterSpacing: 1.5 } }}
+          />
+          <${CardContent} sx=${{ pt: 0 }}>
+            <${Box} sx=${{ display: 'flex', gap: 1 }}>
+              <${Box} sx=${{ flex: 1 }}>
+                <${Stack} spacing=${1} divider=${html`<${Divider} />`}>
+                  <${Box} sx=${{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 0.5 }}>
+                    <${CheckCircleOutlineIcon} color="success" sx=${{ fontSize: 20, mt: 0.2 }} />
+                    <${Box} sx=${{ flex: 1 }}>
+                      <${Box} sx=${{ display: 'flex', justifyContent: 'space-between' }}>
+                        <${Typography} variant="body2">
+                          <b>Spain</b> 1 (4)–(2) 1 France
+                        <//>
+                        <${Typography} variant="body2" color="success.main" sx=${{ fontWeight: 700 }}>+1 pts<//>
+                      <//>
+                      <${Typography} variant="caption" color="text.secondary">
+                        Predicción correcta • Ganador penales: Spain
+                      <//>
+                    <//>
+                  <//>
+                  
+                  <${Box} sx=${{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 0.5 }}>
+                    <${CancelOutlinedIcon} color="error" sx=${{ fontSize: 20, mt: 0.2 }} />
+                    <${Box} sx=${{ flex: 1 }}>
+                      <${Box} sx=${{ display: 'flex', justifyContent: 'space-between' }}>
+                        <${Typography} variant="body2">
+                          Italy 1 (3)–(5) 1 <b>Germany</b>
+                        <//>
+                        <${Typography} variant="body2" color="text.secondary" sx=${{ fontWeight: 700 }}>0 pts<//>
+                      <//>
+                      <${Typography} variant="caption" color="text.secondary">
+                        Tu predicción: 2–1
+                      <//>
+                    <//>
+                  <//>
+
+                  ${[3, 4, 5].map(i => html`
+                    <${Box} key=${i} sx=${{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 0.5 }}>
+                      <${CheckCircleOutlineIcon} color="success" sx=${{ fontSize: 20, mt: 0.2 }} />
+                      <${Box} sx=${{ flex: 1 }}>
+                        <${Box} sx=${{ display: 'flex', justifyContent: 'space-between' }}>
+                          <${Typography} variant="body2">Argentina 2–0 Spain<//>
+                          <${Typography} variant="body2" color="success.main" sx=${{ fontWeight: 700 }}>+2 pts<//>
+                        <//>
+                        <${Typography} variant="caption" color="text.secondary">Resultado exacto<//>
+                      <//>
+                    <//>
+                  `)}
+                <//>
+              <//>
+              <${VerticalNav} 
+                current=${startIndex} 
+                total=${totalSteps} 
+                onUp=${() => setStartIndex(0)} 
+                onDown=${() => setStartIndex(1)} 
+              />
+            <//>
+            
+            <${Box} sx=${{ mt: 2, textAlign: 'center' }}>
+              <${Button} color="primary" size="small" sx=${{ fontWeight: 700 }}>VER ESTADÍSTICAS COMPLETAS<//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="sm" sx=${{ py: 4 }}>
+            <${Box} sx=${{ mb: 4, textAlign: 'center' }}>
+              <${Typography} variant="h5" sx=${{ fontWeight: 700, mb: 1 }}>Penalty Score Format Update<//>
+              <${Typography} variant="body2" color="text.secondary">
+                Using 1 (4)–(2) 1 format for shootout results
+              <//>
+            <//>
+
+            <${RecentResultsWidget} />
+
+            <${Box} sx=${{ mt: 4, p: 2, bgcolor: 'rgba(167, 139, 250, 0.05)', borderRadius: 2, border: '1px dashed', borderColor: 'primary.main' }}>
+              <${Typography} variant="subtitle2" color="primary" sx=${{ fontWeight: 700 }}>UI UPDATE<//>
+              <${Typography} variant="caption" display="block">• Shootout results now show penalty scores in parentheses: <b>Team A</b> Score (Pen)–(Pen) Score Team B.<//>
+              <${Typography} variant="caption" display="block">• Winner team name is bolded for clarity.<//>
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>
