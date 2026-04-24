@@ -10,7 +10,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 
-// Mock next-intl
 vi.mock('next-intl', async () => {
   const actual = await vi.importActual('next-intl')
   return {
@@ -19,7 +18,6 @@ vi.mock('next-intl', async () => {
   }
 })
 
-// Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
@@ -58,7 +56,18 @@ describe('LeaderboardPeekCard', () => {
     expect(screen.getByText('Group Alpha')).toBeInTheDocument()
   })
 
-  it('renders 3 LeaderboardCard rows for a normal 3-row window', () => {
+  it('renders rank label with correct rank number', () => {
+    renderWithTheme(
+      <LeaderboardPeekCard
+        data={makeGroupData({ userRank: 7 })}
+        groupLeaderboardHref="/en/tournaments/t1/friend-groups/group-1"
+      />
+    )
+
+    expect(screen.getByText('#7')).toBeInTheDocument()
+  })
+
+  it('renders exactly data.rows.length LeaderboardCard rows', () => {
     renderWithTheme(
       <LeaderboardPeekCard
         data={makeGroupData()}
@@ -66,25 +75,24 @@ describe('LeaderboardPeekCard', () => {
       />
     )
 
-    // Each row shows its score
     expect(screen.getByText('892 pts')).toBeInTheDocument()
     expect(screen.getByText('800 pts')).toBeInTheDocument()
     expect(screen.getByText('750 pts')).toBeInTheDocument()
   })
 
-  it('the current user row shows "You" text (isCurrentUser=true triggers bold text)', () => {
-    renderWithTheme(
+  it('applies height: 100% style on the root Card', () => {
+    const { container } = renderWithTheme(
       <LeaderboardPeekCard
         data={makeGroupData()}
         groupLeaderboardHref="/en/tournaments/t1/friend-groups/group-1"
       />
     )
 
-    // LeaderboardCard renders "You" for current user
-    expect(screen.getByText('You')).toBeInTheDocument()
+    const card = container.firstChild as HTMLElement
+    expect(card).toHaveStyle({ height: '100%' })
   })
 
-  it('navigates to groupLeaderboardHref when card is clicked', () => {
+  it('calls router.push with groupLeaderboardHref when CardActionArea is clicked', () => {
     renderWithTheme(
       <LeaderboardPeekCard
         data={makeGroupData()}
@@ -98,19 +106,19 @@ describe('LeaderboardPeekCard', () => {
     expect(mockPush).toHaveBeenCalledWith('/en/tournaments/t1/friend-groups/group-1')
   })
 
-  it('renders rank chip in header with correct rank number', () => {
+  it('renders zero LeaderboardCard rows when data.rows is an empty array', () => {
     renderWithTheme(
       <LeaderboardPeekCard
-        data={makeGroupData({ userRank: 7 })}
+        data={makeGroupData({ rows: [] })}
         groupLeaderboardHref="/en/tournaments/t1/friend-groups/group-1"
       />
     )
 
-    // #7 is unique — only appears in the header (rows have ranks 2,3,4)
-    expect(screen.getByText('#7')).toBeInTheDocument()
+    expect(screen.queryByText('pts')).not.toBeInTheDocument()
+    expect(screen.getByText('Group Alpha')).toBeInTheDocument()
   })
 
-  it('renders RankChangeIndicator in header when rankChange is null (no change)', () => {
+  it('renders without crashing when rankChange is null', () => {
     renderWithTheme(
       <LeaderboardPeekCard
         data={makeGroupData({ rankChange: null })}
@@ -118,7 +126,6 @@ describe('LeaderboardPeekCard', () => {
       />
     )
 
-    // Component renders without crashing when rankChange is null (treated as 0)
     expect(screen.getByText('Group Alpha')).toBeInTheDocument()
   })
 })

@@ -655,18 +655,22 @@ Key flows:
         → renders games list (✅/❌/🕐 per gameStatus) with 5 visual states
         → "View full statistics" button → /${locale}/tournaments/${tournamentId}/stats
 
-32. Leaderboard Peek data flow (Story #319; updated #342)
-    TournamentHubLeaderboardPeek (Server) → getLeaderboardPeekData(tournamentId, locale)
-      → getLoggedInUser
-      → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId) + getFavoriteGroupIds(userId)
-      → getLatestRankingsForGroup(groupId, tournamentId) ×N groups (concurrent)
-      → getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3 groups (concurrent)
-      → returns LeaderboardPeekResult { groups: GroupPeekData[], userHasGroups, allGroupNames }
-    → [branch: !userHasGroups] SocialHubCard [Client]
-    → [branch: userHasGroups && no ranking data] PreTournamentGroupsPreview [Client]
-    → [branch: groups.length > 0] LeaderboardPeekCard [Client] ×N
-        → LeaderboardCard (compact=true) ×3
-        → RankChangeIndicator (header momentum chip)
+32. Leaderboard Peek data flow (Story #319; updated #342, #358)
+    TournamentHubPage (hub page) [renders via Suspense] TournamentHubLeaderboardPeek (Server)
+      isAuthenticated={!!user} passed as prop (user already fetched by hub page)
+    TournamentHubLeaderboardPeek (Server):
+      → [branch 0: !isAuthenticated] → DashboardCard [Server] → SocialHubCard(loginHref) [Client]
+      → calls getLeaderboardPeekData(tournamentId, locale) only when isAuthenticated
+          → getLoggedInUser
+          → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId) + getFavoriteGroupIds(userId)
+          → getLatestRankingsForGroup(groupId, tournamentId) ×N groups (concurrent)
+          → getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3 groups (concurrent)
+          → returns LeaderboardPeekResult { groups: GroupPeekData[], userHasGroups, allGroupNames }
+      → [branch 1: !userHasGroups] DashboardCard → SocialHubCard [Client]
+      → [branch 2: userHasGroups && no ranking data] DashboardCard → PreTournamentGroupsPreview [Client]
+      → [branch 3: groups.length > 0] Fragment → LeaderboardPeekCard [Client] ×N (each is own grid cell)
+          → LeaderboardCard (compact=true) ×3
+          → RankChangeIndicator (header momentum chip)
 
     Modified flows (Story #316; updated Story #338):
     - TournamentRedirect [Client] always redirects to /${locale}/tournaments/${id} (hub root; Story #338 removed feature flag)

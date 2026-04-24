@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23 (Story 357 — Status Widgets)
+**Last updated:** 2026-04-24 (Story 358 — Dynamic Friend Group Widgets)
 
 ---
 
@@ -60,14 +60,14 @@ Client Component celebration banner shown above the Action Center carousel for 4
 ### app/components/tournament-hub/social-hub-card.tsx
 Client Component social CTA shown in the Leaderboard widget when the user belongs to 0 groups.
 
-- **SocialHubCard({ locale, tournamentId })**: `JSX.Element` — [Client] Outlined dashed Paper (secondary-tinted border). Renders GroupAddIcon (48px), h6 title, body2 description, two buttons ("Create Group" contained, "Find Public Group" outlined), and a text-variant "Learn more about groups" link below the buttons — all linking to the friend-groups page.
-  Uses: useTranslations, Paper, Stack, Typography, Button, GroupAddIcon, Link
+- **SocialHubCard({ locale, tournamentId, loginHref? })**: `JSX.Element` — [Client] Full-height `Stack` (`flexGrow: 1`, `justifyContent: 'space-between'`). Content area is an inner Stack with `flexGrow: 1` + `justifyContent: 'center'` so it stretches to fill remaining grid cell height. Renders `GroupAddIcon` (40px, secondary), subtitle2 title, two body2 description lines (description + joinHint). When `loginHref` is provided (logged-off mode): renders a single full-width contained "Log in" Button. Otherwise (default mode): renders a row of two size="small" Buttons (Create Group contained + Find Public Group outlined, each `flex: 1`) and a text-secondary "Learn more about groups" link below.
+  Uses: useTranslations, Stack, Typography, Button, GroupAddIcon, Link
 
 ### app/components/tournament-hub/pre-tournament-groups-preview.tsx
 Client Component shown in the Leaderboard widget when the user has groups but no ranking data yet (pre-tournament). Shows group name chips and 3 CTAs.
 
-- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Renders "You're in" text followed by up to 3 group name `Chip` links; appends "and N others." text when `allGroupNames.length > 3`. Below that, 3 CTA buttons (Your Groups, Create Group, Discover Groups) linking to the friend-groups page.
-  Uses: useTranslations, Box, Stack, Typography, Button, Chip, Link
+- **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Outer `Stack` with `height: '100%'` + `justifyContent: 'space-between'` to pin CTA to bottom. Outlined `Paper` with `flexGrow: 1` fills remaining height; inner content is flex-centered (`justifyContent: 'center'`). Paper renders "You're in" text + up to 3 group name `Chip` links (each linking to that group's page); appends "and N others." when `allGroupNames.length > 3`; below that, `EmojiEventsIcon` + "Rankings pending" text. Single full-width outlined "See all your groups" Button (`seeAllGroups` key) anchored to the bottom outside the Paper.
+  Uses: useTranslations, Box, Stack, Paper, Typography, Button, Chip, EmojiEventsIcon, Link
 
 ### app/components/tournament-hub/action-center-carousel.tsx
 Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.
@@ -79,14 +79,14 @@ Client Component for the Action Center carousel. Manages card edit state (one ca
 ### app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx
 Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and branches on group membership and ranking state.
 
-- **TournamentHubLeaderboardPeek({ tournamentId, locale })**: `JSX.Element` — [Server] Calls `getLeaderboardPeekData` (returns `LeaderboardPeekResult`). Three branches: (1) `!userHasGroups` → header + `SocialHubCard`; (2) `userHasGroups && groups.length === 0` → header + `PreTournamentGroupsPreview`; (3) `groups.length > 0` → header + `LeaderboardPeekCard` per group + "See all groups" link.
+- **TournamentHubLeaderboardPeek({ tournamentId, locale, isAuthenticated })**: `JSX.Element` — [Server] Four branches — skips `getLeaderboardPeekData` when `!isAuthenticated`. (0) `!isAuthenticated` → single `DashboardCard` wrapping `SocialHubCard` with `loginHref`; (1) `!userHasGroups` → single `DashboardCard` wrapping `SocialHubCard` (default mode); (2) `userHasGroups && groups.length === 0` → single `DashboardCard` wrapping `PreTournamentGroupsPreview`; (3) `groups.length > 0` → React Fragment with one `LeaderboardPeekCard` per group (each renders as its own CSS Grid cell). Integrated into the hub page widget grid via `Suspense`.
   Calls: getLeaderboardPeekData
-  Renders: SocialHubCard, PreTournamentGroupsPreview, LeaderboardPeekCard
+  Renders: DashboardCard, SocialHubCard, PreTournamentGroupsPreview, LeaderboardPeekCard
 
 ### app/components/tournament-hub/leaderboard-peek-card.tsx
 Client Component for a single group card in the Leaderboard Peek widget. Tappable card showing group name, user rank, momentum indicator, and a 3-row compact mini-leaderboard.
 
-- **LeaderboardPeekCard({ data, groupLeaderboardHref })**: `JSX.Element` — [Client] Renders a tappable MUI `CardActionArea` that navigates to `groupLeaderboardHref` on click. Header row shows group name (with Groups icon), `#N` rank chip, and `RankChangeIndicator`. Below a divider, renders up to 3 `LeaderboardCard compact=true` rows converted from `GroupPeekData.rows` (all point-breakdown fields set to 0).
+- **LeaderboardPeekCard({ data, groupLeaderboardHref })**: `JSX.Element` — [Client] Outlined Card with `height: '100%'` for CSS Grid alignment. Renders a tappable `CardActionArea` that navigates to `groupLeaderboardHref` on click. Header row shows group name (with Groups icon), `#N` rank chip, and `RankChangeIndicator`. Below a divider, renders up to 3 `LeaderboardCard compact=true` rows converted from `GroupPeekData.rows` (all point-breakdown fields set to 0).
   Uses: useRouter, useTheme, RankChangeIndicator
   Renders: LeaderboardCard (compact=true)
 

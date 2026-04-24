@@ -25,11 +25,21 @@ export function PreTournamentGroupsPreview({
   const groupsUrl = `/${locale}/tournaments/${tournamentId}/friend-groups`
 
   return (
-    <Box>
-      {/* Card showing group memberships + ranking pending empty state */}
+    <Stack spacing={1.5} sx={{ height: '100%', justifyContent: 'space-between' }}>
+      {/* Card showing group memberships + ranking pending empty state — fills remaining height */}
       <Paper
         variant="outlined"
-        sx={{ p: 2, textAlign: 'center', borderRadius: 2 }}
+        sx={{
+          p: 2,
+          textAlign: 'center',
+          borderRadius: 2,
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+        }}
       >
         {/* Group chips */}
         <Box
@@ -39,7 +49,6 @@ export function PreTournamentGroupsPreview({
             justifyContent: 'center',
             alignItems: 'center',
             gap: 0.75,
-            mb: 2,
           }}
         >
           <Typography variant="body2" component="span">
@@ -63,31 +72,15 @@ export function PreTournamentGroupsPreview({
         </Box>
 
         {/* Ranking pending empty state */}
-        <EmojiEventsIcon sx={{ fontSize: 36, color: 'text.disabled', mb: 0.5 }} />
+        <EmojiEventsIcon sx={{ fontSize: 36, color: 'text.disabled' }} />
         <Typography variant="body2" color="text.secondary">
           {t('groupsPreview.rankingPending')}
         </Typography>
       </Paper>
 
-      {/* CTAs outside the card */}
-      <Stack
-        direction="row"
-        spacing={1}
-        flexWrap="wrap"
-        useFlexGap
-        justifyContent="center"
-        sx={{ mt: 2 }}
-      >
-        <Button variant="outlined" size="small" component={Link} href={groupsUrl}>
-          {t('groupsPreview.goToGroups')}
-        </Button>
-        <Button variant="outlined" size="small" component={Link} href={groupsUrl}>
-          {t('groupsPreview.createGroup')}
-        </Button>
-        <Button variant="outlined" size="small" component={Link} href={groupsUrl}>
-          {t('groupsPreview.discoverGroups')}
-        </Button>
-      </Stack>
-    </Box>
+      <Button variant="outlined" size="small" component={Link} href={groupsUrl} fullWidth>
+        {t('seeAllGroups')}
+      </Button>
+    </Stack>
   )
 }
