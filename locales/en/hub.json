@@ -153,5 +153,17 @@
     "deadlineText": "Changes allowed up to 1 hour before each match.",
     "urgentMessage": "Predict {count} games before it's too late!",
     "safeMessage": "Some games are closing soon, you can still change their scores."
+  },
+  "statsAtAGlance": {
+    "title": "Stats at a Glance",
+    "noData": "No points yet",
+    "noDataSubtitle": "Start predicting to see your stats!",
+    "matchesLabel": "Matches",
+    "qualifiedTeamsLabel": "Qualified Teams",
+    "awardsLabel": "Awards",
+    "trendLabel": "Trend",
+    "sinceYesterday": "Since yesterday ({date})",
+    "since": "Since {date}",
+    "seeAllStats": "See all statistics"
   }
 }

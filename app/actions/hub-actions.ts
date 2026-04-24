@@ -9,6 +9,7 @@ import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prod
 import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
+import { getScoreHistoryForUsers } from '../db/score-history-repository'
 import { getLoggedInUser } from './user-actions'
 import { applyLocalizationBatch, applyLocalization } from '../utils/localization-helper'
 import { calculateDeadline } from '../utils/countdown-utils'
@@ -826,4 +827,113 @@ export async function getRecentResultsData(
   })
 
   return { recentGames: gameItems }
+}
+
+const ARGENTINA_TZ = 'America/Argentina/Buenos_Aires'
+
+function getYesterdayYYYYMMDD(): number {
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const formatted = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ARGENTINA_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(yesterday)
+  return parseInt(formatted.replace(/-/g, ''), 10)
+}
+
+function formatSnapshotDate(snapshotDate: number, locale: Locale): string {
+  const year = Math.floor(snapshotDate / 10000)
+  const month = Math.floor((snapshotDate % 10000) / 100) - 1
+  const day = snapshotDate % 100
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(
+    new Date(year, month, day)
+  )
+}
+
+export interface StatsAtAGlanceData {
+  hasData: boolean
+  totalPoints: number
+  matchesPoints: number
+  qualifiedTeamsPoints: number
+  awardsPoints: number
+  momentumPoints: number
+  matchesDelta: number
+  qualifiedTeamsDelta: number
+  awardsDelta: number
+  snapshotDateLabel: string | null
+  isYesterday: boolean
+  sparklineData: number[]
+}
+
+/**
+ * Fetches the logged-in user's score history for the tournament and returns a compact
+ * summary for the Stats at a Glance widget: current totals, per-category deltas since
+ * the previous snapshot, and the last 7 snapshots as sparkline data.
+ */
+export async function getStatsAtAGlanceData(
+  tournamentId: string,
+  locale: Locale
+): Promise<StatsAtAGlanceData> {
+  const user = await getLoggedInUser()
+  if (!user?.id) {
+    throw new Error('Unauthorized')
+  }
+
+  const history = await getScoreHistoryForUsers([user.id], tournamentId)
+
+  const empty: StatsAtAGlanceData = {
+    hasData: false,
+    totalPoints: 0,
+    matchesPoints: 0,
+    qualifiedTeamsPoints: 0,
+    awardsPoints: 0,
+    momentumPoints: 0,
+    matchesDelta: 0,
+    qualifiedTeamsDelta: 0,
+    awardsDelta: 0,
+    snapshotDateLabel: null,
+    isYesterday: false,
+    sparklineData: [],
+  }
+
+  if (history.length === 0) return empty
+
+  const latest = history[history.length - 1]
+  const prev = history.length >= 2 ? history[history.length - 2] : null
+
+  const totalPoints = latest.total_points
+  const matchesPoints = latest.total_game_score + latest.total_boost_bonus
+  const qualifiedTeamsPoints = latest.qualified_teams_score + latest.group_position_score
+  const awardsPoints = latest.honor_roll_score + latest.individual_awards_score
+
+  const momentumPoints = prev ? totalPoints - prev.total_points : 0
+  const matchesDelta = prev
+    ? matchesPoints - (prev.total_game_score + prev.total_boost_bonus)
+    : 0
+  const qualifiedTeamsDelta = prev
+    ? qualifiedTeamsPoints - (prev.qualified_teams_score + prev.group_position_score)
+    : 0
+  const awardsDelta = prev
+    ? awardsPoints - (prev.honor_roll_score + prev.individual_awards_score)
+    : 0
+
+  const isYesterday = prev ? prev.snapshot_date === getYesterdayYYYYMMDD() : false
+  const snapshotDateLabel = prev ? formatSnapshotDate(prev.snapshot_date, locale) : null
+  const sparklineData = history.slice(-7).map((row) => row.total_points)
+
+  return {
+    hasData: true,
+    totalPoints,
+    matchesPoints,
+    qualifiedTeamsPoints,
+    awardsPoints,
+    momentumPoints,
+    matchesDelta,
+    qualifiedTeamsDelta,
+    awardsDelta,
+    snapshotDateLabel,
+    isYesterday,
+    sparklineData,
+  }
 }
