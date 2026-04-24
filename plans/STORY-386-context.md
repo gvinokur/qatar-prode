@@ -5,11 +5,11 @@
 - **Story Title:** [Bug] Games widget shows informational card until kickoff (should show active games 48h early)
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-386
 - **Branch:** feature/story-386
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 387
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/387
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** implementing
 - **Plan File:** plans/STORY-386-plan.md
 
 ## Quick Summary

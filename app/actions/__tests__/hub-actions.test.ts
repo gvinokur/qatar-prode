@@ -1075,6 +1075,44 @@ describe('getTournamentHubPageData', () => {
     const result = await getTournamentHubPageData(TOURNAMENT_ID)
     expect(result.isFinished).toBe(false)
   })
+
+  it('returns isNearStart=true when first game is exactly 48 hours away', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() + 48 * 60 * 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isNearStart).toBe(true)
+  })
+
+  it('returns isNearStart=true when first game is 24 hours away (inside window)', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() + 24 * 60 * 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isNearStart).toBe(true)
+  })
+
+  it('returns isNearStart=false when first game is 49 hours away (outside window)', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() + 49 * 60 * 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isNearStart).toBe(false)
+  })
+
+  it('returns isNearStart=true when first game has already started (in the past)', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'first', game_date: new Date(Date.now() - 60 * 1000) }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isNearStart).toBe(true)
+  })
+
+  it('returns isNearStart=false when no first game exists', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(null as any)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    expect(result.isNearStart).toBe(false)
+  })
 })
 
 describe('getStatsAtAGlanceData', () => {
