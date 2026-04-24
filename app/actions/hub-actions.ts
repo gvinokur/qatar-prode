@@ -839,7 +839,7 @@ function getYesterdayYYYYMMDD(): number {
     month: '2-digit',
     day: '2-digit',
   }).format(yesterday)
-  return parseInt(formatted.replace(/-/g, ''), 10)
+  return Number.parseInt(formatted.replaceAll('-', ''), 10)
 }
 
 function formatSnapshotDate(snapshotDate: number, locale: Locale): string {
@@ -901,8 +901,8 @@ export async function getStatsAtAGlanceData(
 
   if (history.length === 0) return empty
 
-  const latest = history[history.length - 1]
-  const prev = history.length >= 2 ? history[history.length - 2] : null
+  const latest = history.at(-1)!
+  const prev = history.length >= 2 ? history.at(-2)! : null
 
   const totalPoints = latest.total_points
   const matchesPoints = latest.total_game_score + latest.total_boost_bonus

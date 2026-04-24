@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser, getPublicTournamentTiming, getTournamentHubPageData } from '../hub-actions'
+import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, computeIsIncompleteUser, getPublicTournamentTiming, getTournamentHubPageData, getStatsAtAGlanceData } from '../hub-actions'
 import type { ActionCenterData } from '../hub-actions'
+import * as scoreHistoryRepository from '@/app/db/score-history-repository'
 import { createMockSelectQuery } from '@/__tests__/db/mock-helpers'
 import * as gameRepository from '@/app/db/game-repository'
 import * as gameGuessRepository from '@/app/db/game-guess-repository'
@@ -55,6 +56,10 @@ vi.mock('../user-actions', () => ({
 
 vi.mock('@/app/db/favorite-groups-repository', () => ({
   getFavoriteGroupIds: vi.fn(),
+}))
+
+vi.mock('@/app/db/score-history-repository', () => ({
+  getScoreHistoryForUsers: vi.fn(),
 }))
 
 vi.mock('@/app/db/prode-group-repository', () => ({
@@ -1069,5 +1074,125 @@ describe('getTournamentHubPageData', () => {
   it('returns isFinished=false when last game date is in the future', async () => {
     const result = await getTournamentHubPageData(TOURNAMENT_ID)
     expect(result.isFinished).toBe(false)
+  })
+})
+
+describe('getStatsAtAGlanceData', () => {
+  beforeEach(() => {
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(
+      testFactories.user({ id: USER_ID }) as any
+    )
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([])
+  })
+
+  it('throws Unauthorized when user is not logged in', async () => {
+    vi.mocked(userActions.getLoggedInUser).mockResolvedValue(null)
+    await expect(getStatsAtAGlanceData(TOURNAMENT_ID, 'en')).rejects.toThrow('Unauthorized')
+  })
+
+  it('returns hasData=false with all zeros when no snapshots exist', async () => {
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.hasData).toBe(false)
+    expect(result.totalPoints).toBe(0)
+    expect(result.sparklineData).toEqual([])
+    expect(result.snapshotDateLabel).toBeNull()
+  })
+
+  it('returns correct category totals from the latest snapshot', async () => {
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([
+      testFactories.scoreHistory({
+        total_game_score: 60,
+        total_boost_bonus: 10,
+        qualified_teams_score: 20,
+        group_position_score: 5,
+        honor_roll_score: 8,
+        individual_awards_score: 4,
+        total_points: 107,
+      }),
+    ])
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.hasData).toBe(true)
+    expect(result.totalPoints).toBe(107)
+    expect(result.matchesPoints).toBe(70)
+    expect(result.qualifiedTeamsPoints).toBe(25)
+    expect(result.awardsPoints).toBe(12)
+  })
+
+  it('returns delta=0 and isYesterday=false when only one snapshot exists', async () => {
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([
+      testFactories.scoreHistory({ total_points: 50, total_game_score: 50 }),
+    ])
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.momentumPoints).toBe(0)
+    expect(result.matchesDelta).toBe(0)
+    expect(result.isYesterday).toBe(false)
+    expect(result.snapshotDateLabel).toBeNull()
+  })
+
+  it('returns correct deltas from latest minus previous snapshot', async () => {
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([
+      testFactories.scoreHistory({
+        snapshot_date: 20260401,
+        total_game_score: 30,
+        total_boost_bonus: 0,
+        qualified_teams_score: 10,
+        group_position_score: 0,
+        honor_roll_score: 5,
+        individual_awards_score: 0,
+        total_points: 45,
+      }),
+      testFactories.scoreHistory({
+        snapshot_date: 20260402,
+        total_game_score: 37,
+        total_boost_bonus: 0,
+        qualified_teams_score: 10,
+        group_position_score: 0,
+        honor_roll_score: 5,
+        individual_awards_score: 0,
+        total_points: 52,
+      }),
+    ])
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.momentumPoints).toBe(7)
+    expect(result.matchesDelta).toBe(7)
+    expect(result.qualifiedTeamsDelta).toBe(0)
+    expect(result.awardsDelta).toBe(0)
+  })
+
+  it('sparklineData contains at most 7 entries from the most recent snapshots', async () => {
+    const snapshots = Array.from({ length: 10 }, (_, i) =>
+      testFactories.scoreHistory({ snapshot_date: 20260401 + i, total_points: (i + 1) * 10 })
+    )
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue(snapshots)
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.sparklineData).toHaveLength(7)
+    expect(result.sparklineData[0]).toBe(40)
+    expect(result.sparklineData[6]).toBe(100)
+  })
+
+  it('sparklineData preserves chronological order (oldest to newest)', async () => {
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([
+      testFactories.scoreHistory({ snapshot_date: 20260401, total_points: 10 }),
+      testFactories.scoreHistory({ snapshot_date: 20260402, total_points: 25 }),
+      testFactories.scoreHistory({ snapshot_date: 20260403, total_points: 40 }),
+    ])
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.sparklineData).toEqual([10, 25, 40])
+  })
+
+  it('sparklineStartDateLabel is null when sparklineData has fewer than 2 entries', async () => {
+    vi.mocked(scoreHistoryRepository.getScoreHistoryForUsers).mockResolvedValue([
+      testFactories.scoreHistory({ total_points: 50 }),
+    ])
+    const result = await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(result.sparklineStartDateLabel).toBeNull()
+  })
+
+  it('calls getScoreHistoryForUsers with the logged-in user id and tournamentId', async () => {
+    await getStatsAtAGlanceData(TOURNAMENT_ID, 'en')
+    expect(scoreHistoryRepository.getScoreHistoryForUsers).toHaveBeenCalledWith(
+      [USER_ID],
+      TOURNAMENT_ID
+    )
   })
 })

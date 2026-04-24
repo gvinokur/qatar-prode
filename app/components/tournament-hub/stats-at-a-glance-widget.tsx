@@ -15,7 +15,7 @@ interface Props {
   readonly locale: Locale
 }
 
-function Sparkline({ data }: { data: number[] }) {
+function Sparkline({ data }: { readonly data: number[] }) {
   if (data.length < 2) return null
   const max = Math.max(...data)
   const min = Math.min(...data)
@@ -62,17 +62,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
 
   return (
     <DashboardCard title={t('title')} icon={<InsightsIcon fontSize="small" />}>
-      {!data.hasData ? (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <InsightsIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-          <Typography variant="body2" color="text.secondary" fontWeight="medium">
-            {t('noData')}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('noDataSubtitle')}
-          </Typography>
-        </Box>
-      ) : (
+      {data.hasData ? (
         <>
           <Box sx={{ mb: 2 }}>
             <Stack direction="row" alignItems="flex-end" spacing={1}>
@@ -190,7 +180,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
               <Sparkline data={data.sparklineData} />
               {data.sparklineStartDateLabel && (() => {
                 const gain =
-                  data.sparklineData[data.sparklineData.length - 1] - data.sparklineData[0]
+                  data.sparklineData.at(-1)! - data.sparklineData[0]
                 return gain > 0 ? (
                   <Stack
                     direction="row"
@@ -225,6 +215,16 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
             </Button>
           </Box>
         </>
+      ) : (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <InsightsIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+          <Typography variant="body2" color="text.secondary" fontWeight="medium">
+            {t('noData')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('noDataSubtitle')}
+          </Typography>
+        </Box>
       )}
     </DashboardCard>
   )
