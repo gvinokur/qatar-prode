@@ -29,7 +29,7 @@ function Sparkline({ data }: { data: number[] }) {
   const pathData = 'M ' + points.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ')
   return (
     <Box
-      sx={{ color: 'primary.main', width: '100%', bgcolor: 'action.selected', borderRadius: 1, px: 1, py: 2 }}
+      sx={{ color: 'secondary.main', width: '100%', bgcolor: 'action.selected', borderRadius: 1, px: 1, py: 2 }}
       data-testid="sparkline"
     >
       <svg
@@ -113,7 +113,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
           <Stack spacing={1.5} sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <SportsSoccerIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                <SportsSoccerIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
                 <Typography variant="body2">{t('matchesLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -134,7 +134,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <CheckCircleOutlineIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                <CheckCircleOutlineIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
                 <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -155,7 +155,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <EmojiEventsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                <EmojiEventsIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
                 <Typography variant="body2">{t('awardsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -178,7 +178,8 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
           {data.sparklineData.length >= 2 && (
             <Box sx={{ mt: 'auto', mb: 1.5 }}>
               <Typography
-                variant="overline"
+                variant="body1"
+                fontWeight="medium"
                 display="block"
                 textAlign="center"
                 color="text.secondary"
@@ -196,7 +197,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                     alignItems="center"
                     justifyContent="center"
                     spacing={0.25}
-                    sx={{ mt: 0.5, color: 'success.main' }}
+                    sx={{ mt: 0.5, color: 'secondary.main' }}
                   >
                     <ArrowDropUpIcon fontSize="small" />
                     <Typography variant="caption" fontWeight="bold">
