@@ -56,14 +56,14 @@ describe('PreTournamentGroupsPreview', () => {
     expect(screen.getByText('groupsPreview.andOthers({"count":2})')).toBeInTheDocument()
   })
 
-  it('renders exactly 3 CTA buttons (Your Groups, Create Group, Discover Groups)', () => {
+  it('renders a single "see all groups" CTA button', () => {
     render(
       <PreTournamentGroupsPreview {...defaultProps} allGroupNames={makeGroups(1)} />
     )
 
-    expect(screen.getByText('groupsPreview.goToGroups')).toBeInTheDocument()
-    expect(screen.getByText('groupsPreview.createGroup')).toBeInTheDocument()
-    expect(screen.getByText('groupsPreview.discoverGroups')).toBeInTheDocument()
+    expect(screen.getByText('seeAllGroups')).toBeInTheDocument()
+    expect(screen.queryByText('groupsPreview.createGroup')).not.toBeInTheDocument()
+    expect(screen.queryByText('groupsPreview.discoverGroups')).not.toBeInTheDocument()
   })
 
   it('group chips link to the correct group href', () => {
