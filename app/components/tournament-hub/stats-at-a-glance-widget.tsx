@@ -20,16 +20,22 @@ function Sparkline({ data }: { data: number[] }) {
   const max = Math.max(...data)
   const min = Math.min(...data)
   const range = max - min || 1
-  const width = 120
+  const viewBoxWidth = 120
   const height = 40
   const points = data.map((v, i) => ({
-    x: (i / (data.length - 1)) * width,
+    x: (i / (data.length - 1)) * viewBoxWidth,
     y: height - ((v - min) / range) * (height - 4) - 2,
   }))
   const pathData = 'M ' + points.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ')
   return (
-    <Box sx={{ color: 'primary.main', flexShrink: 0 }} data-testid="sparkline">
-      <svg width={width} height={height} aria-hidden="true">
+    <Box sx={{ color: 'primary.main', width: '100%' }} data-testid="sparkline">
+      <svg
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${viewBoxWidth} ${height}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
         <path
           d={pathData}
           fill="none"
@@ -104,9 +110,13 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('matchesLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                {data.matchesDelta > 0 && (
-                  <Typography variant="caption" color="success.main" fontWeight="bold">
-                    +{data.matchesDelta}
+                {data.matchesPoints > 0 && (
+                  <Typography
+                    variant="caption"
+                    color={data.matchesDelta > 0 ? 'success.main' : 'text.secondary'}
+                    fontWeight="bold"
+                  >
+                    {data.matchesDelta > 0 ? `+${data.matchesDelta}` : '0'}
                   </Typography>
                 )}
                 <Typography variant="body2" fontWeight="medium">
@@ -121,9 +131,13 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('qualifiedTeamsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                {data.qualifiedTeamsDelta > 0 && (
-                  <Typography variant="caption" color="success.main" fontWeight="bold">
-                    +{data.qualifiedTeamsDelta}
+                {data.qualifiedTeamsPoints > 0 && (
+                  <Typography
+                    variant="caption"
+                    color={data.qualifiedTeamsDelta > 0 ? 'success.main' : 'text.secondary'}
+                    fontWeight="bold"
+                  >
+                    {data.qualifiedTeamsDelta > 0 ? `+${data.qualifiedTeamsDelta}` : '0'}
                   </Typography>
                 )}
                 <Typography variant="body2" fontWeight="medium">
@@ -138,9 +152,13 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                 <Typography variant="body2">{t('awardsLabel')}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
-                {data.awardsDelta > 0 && (
-                  <Typography variant="caption" color="success.main" fontWeight="bold">
-                    +{data.awardsDelta}
+                {data.awardsPoints > 0 && (
+                  <Typography
+                    variant="caption"
+                    color={data.awardsDelta > 0 ? 'success.main' : 'text.secondary'}
+                    fontWeight="bold"
+                  >
+                    {data.awardsDelta > 0 ? `+${data.awardsDelta}` : '0'}
                   </Typography>
                 )}
                 <Typography variant="body2" fontWeight="medium">
@@ -152,14 +170,25 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
 
           {data.sparklineData.length >= 2 && (
             <Box sx={{ mt: 'auto', mb: 1.5 }}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{ display: 'block', mb: 0.5 }}
-              >
-                {t('trendLabel')}
-              </Typography>
               <Sparkline data={data.sparklineData} />
+              {data.momentumPoints > 0 && data.snapshotDateLabel && (
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={0.25}
+                  sx={{ mt: 0.5, color: 'success.main' }}
+                >
+                  <ArrowDropUpIcon fontSize="small" />
+                  <Typography variant="caption" fontWeight="bold">
+                    {`+${data.momentumPoints} pts`}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                    {data.isYesterday
+                      ? t('sinceYesterday', { date: data.snapshotDateLabel })
+                      : t('since', { date: data.snapshotDateLabel })}
+                  </Typography>
+                </Stack>
+              )}
             </Box>
           )}
 

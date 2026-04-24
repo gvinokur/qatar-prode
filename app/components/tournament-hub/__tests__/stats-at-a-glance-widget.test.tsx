@@ -129,9 +129,8 @@ describe('StatsAtAGlanceWidget', () => {
     it('renders since-yesterday caption when isYesterday is true', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue(populatedData)
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(
-        screen.getByText('hub.statsAtAGlance.sinceYesterday({"date":"Apr 22"})')
-      ).toBeInTheDocument()
+      const els = screen.getAllByText('hub.statsAtAGlance.sinceYesterday({"date":"Apr 22"})')
+      expect(els.length).toBeGreaterThanOrEqual(1)
     })
 
     it('renders since caption when isYesterday is false and snapshotDateLabel exists', async () => {
@@ -141,9 +140,8 @@ describe('StatsAtAGlanceWidget', () => {
         snapshotDateLabel: 'Apr 20',
       })
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(
-        screen.getByText('hub.statsAtAGlance.since({"date":"Apr 20"})')
-      ).toBeInTheDocument()
+      const els = screen.getAllByText('hub.statsAtAGlance.since({"date":"Apr 20"})')
+      expect(els.length).toBeGreaterThanOrEqual(1)
     })
 
     it('renders all three category labels', async () => {
@@ -152,6 +150,35 @@ describe('StatsAtAGlanceWidget', () => {
       expect(screen.getByText('hub.statsAtAGlance.matchesLabel')).toBeInTheDocument()
       expect(screen.getByText('hub.statsAtAGlance.qualifiedTeamsLabel')).toBeInTheDocument()
       expect(screen.getByText('hub.statsAtAGlance.awardsLabel')).toBeInTheDocument()
+    })
+
+    it('renders category delta as +N in success color when delta is positive', async () => {
+      vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue(populatedData)
+      render(await StatsAtAGlanceWidget(defaultProps))
+      expect(screen.getByText('+7')).toBeInTheDocument()
+    })
+
+    it('renders category delta as 0 in neutral color when delta is zero but total is non-zero', async () => {
+      vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
+        ...populatedData,
+        matchesDelta: 0,
+        matchesPoints: 84,
+      })
+      render(await StatsAtAGlanceWidget(defaultProps))
+      expect(screen.getByText('0')).toBeInTheDocument()
+    })
+
+    it('does not render category delta when total for that category is zero', async () => {
+      vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
+        ...populatedData,
+        awardsPoints: 0,
+        awardsDelta: 0,
+      })
+      render(await StatsAtAGlanceWidget(defaultProps))
+      // awardsPoints is 0, so its delta chip should not appear
+      // Other categories still render their deltas
+      const zeroBadges = screen.queryAllByText('0')
+      expect(zeroBadges).toHaveLength(0)
     })
 
     it('renders sparkline when sparklineData has 2 or more entries', async () => {
@@ -167,6 +194,21 @@ describe('StatsAtAGlanceWidget', () => {
       })
       render(await StatsAtAGlanceWidget(defaultProps))
       expect(screen.queryByTestId('sparkline')).not.toBeInTheDocument()
+    })
+
+    it('renders trend momentum label below sparkline when momentumPoints is positive', async () => {
+      vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue(populatedData)
+      render(await StatsAtAGlanceWidget(defaultProps))
+      expect(screen.getByText('+12 pts')).toBeInTheDocument()
+    })
+
+    it('does not render trend momentum label when momentumPoints is zero', async () => {
+      vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
+        ...populatedData,
+        momentumPoints: 0,
+      })
+      render(await StatsAtAGlanceWidget(defaultProps))
+      expect(screen.queryByText('+0 pts')).not.toBeInTheDocument()
     })
   })
 
