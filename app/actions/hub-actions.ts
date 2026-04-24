@@ -864,6 +864,7 @@ export interface StatsAtAGlanceData {
   snapshotDateLabel: string | null
   isYesterday: boolean
   sparklineData: number[]
+  sparklineStartDateLabel: string | null
 }
 
 /**
@@ -895,6 +896,7 @@ export async function getStatsAtAGlanceData(
     snapshotDateLabel: null,
     isYesterday: false,
     sparklineData: [],
+    sparklineStartDateLabel: null,
   }
 
   if (history.length === 0) return empty
@@ -920,7 +922,12 @@ export async function getStatsAtAGlanceData(
 
   const isYesterday = prev ? prev.snapshot_date === getYesterdayYYYYMMDD() : false
   const snapshotDateLabel = prev ? formatSnapshotDate(prev.snapshot_date, locale) : null
-  const sparklineData = history.slice(-7).map((row) => row.total_points)
+  const sparklineWindow = history.slice(-7)
+  const sparklineData = sparklineWindow.map((row) => row.total_points)
+  const sparklineStartDateLabel =
+    sparklineWindow.length >= 2
+      ? formatSnapshotDate(sparklineWindow[0].snapshot_date, locale)
+      : null
 
   return {
     hasData: true,
@@ -935,5 +942,6 @@ export async function getStatsAtAGlanceData(
     snapshotDateLabel,
     isYesterday,
     sparklineData,
+    sparklineStartDateLabel,
   }
 }

@@ -171,24 +171,26 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
           {data.sparklineData.length >= 2 && (
             <Box sx={{ mt: 'auto', mb: 1.5 }}>
               <Sparkline data={data.sparklineData} />
-              {data.momentumPoints > 0 && data.snapshotDateLabel && (
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={0.25}
-                  sx={{ mt: 0.5, color: 'success.main' }}
-                >
-                  <ArrowDropUpIcon fontSize="small" />
-                  <Typography variant="caption" fontWeight="bold">
-                    {`+${data.momentumPoints} pts`}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
-                    {data.isYesterday
-                      ? t('sinceYesterday', { date: data.snapshotDateLabel })
-                      : t('since', { date: data.snapshotDateLabel })}
-                  </Typography>
-                </Stack>
-              )}
+              {data.sparklineStartDateLabel && (() => {
+                const gain =
+                  data.sparklineData[data.sparklineData.length - 1] - data.sparklineData[0]
+                return gain > 0 ? (
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={0.25}
+                    sx={{ mt: 0.5, color: 'success.main' }}
+                  >
+                    <ArrowDropUpIcon fontSize="small" />
+                    <Typography variant="caption" fontWeight="bold">
+                      {`+${gain} pts`}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                      {t('since', { date: data.sparklineStartDateLabel })}
+                    </Typography>
+                  </Stack>
+                ) : null
+              })()}
             </Box>
           )}
 

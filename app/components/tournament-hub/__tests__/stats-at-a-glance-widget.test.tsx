@@ -50,6 +50,7 @@ const emptyData: StatsAtAGlanceData = {
   snapshotDateLabel: null,
   isYesterday: false,
   sparklineData: [],
+  sparklineStartDateLabel: null,
 }
 
 const populatedData: StatsAtAGlanceData = {
@@ -65,6 +66,7 @@ const populatedData: StatsAtAGlanceData = {
   snapshotDateLabel: 'Apr 22',
   isYesterday: true,
   sparklineData: [10, 30, 55, 80, 95, 116, 128],
+  sparklineStartDateLabel: 'Apr 17',
 }
 
 const defaultProps = { tournamentId: 'tournament-1', locale: 'en' as const }
@@ -196,16 +198,21 @@ describe('StatsAtAGlanceWidget', () => {
       expect(screen.queryByTestId('sparkline')).not.toBeInTheDocument()
     })
 
-    it('renders trend momentum label below sparkline when momentumPoints is positive', async () => {
+    it('renders trend label with sparkline window gain and start date', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue(populatedData)
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(screen.getByText('+12 pts')).toBeInTheDocument()
+      // gain = 128 - 10 = 118
+      expect(screen.getByText('+118 pts')).toBeInTheDocument()
+      expect(
+        screen.getByText('hub.statsAtAGlance.since({"date":"Apr 17"})')
+      ).toBeInTheDocument()
     })
 
-    it('does not render trend momentum label when momentumPoints is zero', async () => {
+    it('does not render trend label when sparkline gain is zero', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
         ...populatedData,
-        momentumPoints: 0,
+        sparklineData: [128, 128],
+        sparklineStartDateLabel: 'Apr 22',
       })
       render(await StatsAtAGlanceWidget(defaultProps))
       expect(screen.queryByText('+0 pts')).not.toBeInTheDocument()
