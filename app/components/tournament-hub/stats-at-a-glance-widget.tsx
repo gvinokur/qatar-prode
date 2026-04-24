@@ -29,7 +29,7 @@ function Sparkline({ data }: { data: number[] }) {
   const pathData = 'M ' + points.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ')
   return (
     <Box
-      sx={{ color: 'primary.main', width: '100%', bgcolor: 'action.selected', borderRadius: 1, p: 1 }}
+      sx={{ color: 'primary.main', width: '100%', bgcolor: 'action.selected', borderRadius: 1, px: 1, py: 2 }}
       data-testid="sparkline"
     >
       <svg
