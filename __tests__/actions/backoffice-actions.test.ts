@@ -547,6 +547,15 @@ describe('Backoffice Actions', () => {
       await deleteDBTournamentTree(inactiveTournament);
 
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/tournaments/${mockTournament.id}/backoffice`);
+      expect(mockUpdateTournament).toHaveBeenCalledWith(mockTournament.id, {
+        best_player_id: null,
+        best_goalkeeper_player_id: null,
+        top_goalscorer_player_id: null,
+        best_young_player_id: null,
+        champion_team_id: null,
+        runner_up_team_id: null,
+        third_place_team_id: null,
+      });
       expect(mockDeleteAllGameGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentGuessesByTournamentId).toHaveBeenCalledWith(mockTournament.id);
       expect(mockDeleteAllTournamentGroupPositionsPredictions).toHaveBeenCalledWith(mockTournament.id);

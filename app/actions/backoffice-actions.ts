@@ -117,6 +117,17 @@ export async function deleteDBTournamentTree(tournament: Tournament, locale: Loc
 
   revalidatePath(`/tournaments/${tournament.id}/backoffice`);
 
+  // Clear foreign key references to prevent constraint violations during deletion
+  await updateTournament(tournament.id, {
+    best_player_id: null,
+    best_goalkeeper_player_id: null,
+    top_goalscorer_player_id: null,
+    best_young_player_id: null,
+    champion_team_id: null,
+    runner_up_team_id: null,
+    third_place_team_id: null,
+  });
+
   // Delete all related entities in reverse order of dependencies
   // User-related data
   await deleteAllGameGuessesByTournamentId(tournament.id);
