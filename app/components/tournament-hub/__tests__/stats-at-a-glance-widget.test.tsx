@@ -116,16 +116,16 @@ describe('StatsAtAGlanceWidget', () => {
     it('renders momentum chip with point delta when momentumPoints is positive', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue(populatedData)
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(screen.getByText('12 pts')).toBeInTheDocument()
+      expect(screen.getByText('+12 pts')).toBeInTheDocument()
     })
 
-    it('does not render momentum chip when momentumPoints is zero', async () => {
+    it('renders momentum chip as 0 pts in neutral color when momentumPoints is zero and snapshotDateLabel exists', async () => {
       vi.mocked(hubActions.getStatsAtAGlanceData).mockResolvedValue({
         ...populatedData,
         momentumPoints: 0,
       })
       render(await StatsAtAGlanceWidget(defaultProps))
-      expect(screen.queryByText('0 pts')).not.toBeInTheDocument()
+      expect(screen.getByText('0 pts')).toBeInTheDocument()
     })
 
     it('renders since-yesterday caption when isYesterday is true', async () => {

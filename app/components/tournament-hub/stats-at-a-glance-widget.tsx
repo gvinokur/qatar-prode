@@ -79,15 +79,19 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5 }}>
                 pts
               </Typography>
-              {data.momentumPoints > 0 && (
+              {data.snapshotDateLabel && (
                 <Stack
                   direction="row"
                   alignItems="center"
-                  sx={{ color: 'success.main', mb: 0.5, ml: 'auto' }}
+                  sx={{
+                    color: data.momentumPoints > 0 ? 'success.main' : 'text.secondary',
+                    mb: 0.5,
+                    ml: 'auto',
+                  }}
                 >
-                  <ArrowDropUpIcon />
+                  {data.momentumPoints > 0 && <ArrowDropUpIcon />}
                   <Typography variant="body2" fontWeight="bold">
-                    {data.momentumPoints} pts
+                    {data.momentumPoints > 0 ? `+${data.momentumPoints} pts` : '0 pts'}
                   </Typography>
                 </Stack>
               )}
@@ -170,6 +174,15 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
 
           {data.sparklineData.length >= 2 && (
             <Box sx={{ mt: 'auto', mb: 1.5 }}>
+              <Typography
+                variant="overline"
+                display="block"
+                textAlign="center"
+                color="text.secondary"
+                sx={{ lineHeight: 1.5, mb: 0.5 }}
+              >
+                {t('trendLabel')}
+              </Typography>
               <Sparkline data={data.sparklineData} />
               {data.sparklineStartDateLabel && (() => {
                 const gain =
@@ -178,6 +191,7 @@ export async function StatsAtAGlanceWidget({ tournamentId, locale }: Props) {
                   <Stack
                     direction="row"
                     alignItems="center"
+                    justifyContent="center"
                     spacing={0.25}
                     sx={{ mt: 0.5, color: 'success.main' }}
                   >
