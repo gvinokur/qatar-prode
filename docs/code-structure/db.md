@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ---
 
@@ -196,10 +196,14 @@ Repository for short_urls table. Manages short invite links for groups.
 - **incrementClickCount(code: string)**: `Promise<void>` — Increments click counter (fire-and-forget).
 
 ### app/db/score-history-repository.ts
-Repository for `tournament_score_history` table. Writes and reads daily per-user score snapshots for rank/score history charts (Story #272).
+Repository for `tournament_score_history` table. Writes and reads daily per-user score snapshots for rank/score history charts (Story #272). Automatically inserts a zero-score "Day Zero" baseline entry on first write (Story #381).
 
-- **writeScoreSnapshot(snapshot: TournamentScoreHistoryNew)**: `Promise<TournamentScoreHistory>` — Upserts daily snapshot; on conflict by (user_id, tournament_id, snapshot_date) overwrites all 6 score segment fields.
+- **hasScoreHistory(userId: string, tournamentId: string)**: `Promise<boolean>` — Returns true if at least one row exists in `tournament_score_history` for the given user+tournament. Used internally by `writeScoreSnapshot` to guard Day Zero creation.
+  Calls: db
+- **writeScoreSnapshot(snapshot: TournamentScoreHistoryNew)**: `Promise<TournamentScoreHistory>` — Upserts daily snapshot; on conflict by (user_id, tournament_id, snapshot_date) overwrites all 6 score segment fields. On first write for a user+tournament, automatically inserts a zero-score entry for `getPreviousDayYYYYMMDD(snapshot_date)` before the original upsert, giving score history charts a consistent zero baseline.
+  Calls: hasScoreHistory, getPreviousDayYYYYMMDD
 - **getScoreHistoryForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentScoreHistory[]>` — Fetches all history rows for given users in tournament, ordered by snapshot_date ASC. Returns empty array for empty userIds.
+  Calls: db
 
 ### app/db/team-repository.ts
 Repository for teams table. Manages team records across tournaments. Returns raw data; localization applied in Server Actions.

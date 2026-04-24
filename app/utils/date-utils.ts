@@ -63,3 +63,10 @@ export function getCompactUserTime(date: Date, locale: Locale = 'es'): string {
 export function getTodayYYYYMMDD(): number {
   return Number.parseInt(dayjs().tz('America/Argentina/Buenos_Aires').format('YYYYMMDD'), 10);
 }
+
+export function getPreviousDayYYYYMMDD(date: number): number {
+  return Number.parseInt(
+    dayjs.tz(String(date), 'YYYYMMDD', 'America/Argentina/Buenos_Aires').subtract(1, 'day').format('YYYYMMDD'),
+    10
+  );
+}

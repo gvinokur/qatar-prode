@@ -1,5 +1,5 @@
 import { vi, describe, it, expect } from 'vitest';
-import { getLocalGameTime, getUserLocalTime, getCompactGameTime, getCompactUserTime, getTodayYYYYMMDD } from '../../app/utils/date-utils';
+import { getLocalGameTime, getUserLocalTime, getCompactGameTime, getCompactUserTime, getTodayYYYYMMDD, getPreviousDayYYYYMMDD } from '../../app/utils/date-utils';
 
 // Mock Intl.supportedValuesOf for timezone validation
 const mockSupportedTimezones = ['America/New_York', 'America/Argentina/Buenos_Aires', 'Europe/London', 'Asia/Tokyo'];
@@ -122,6 +122,26 @@ describe('date-utils', () => {
       const result = getTodayYYYYMMDD();
       expect(typeof result).toBe('number');
       // Should be 8 digits (YYYYMMDD)
+      expect(result.toString()).toMatch(/^\d{8}$/);
+    });
+  });
+
+  describe('getPreviousDayYYYYMMDD', () => {
+    it('should return previous year Dec 31 when given Jan 1 (year boundary)', () => {
+      expect(getPreviousDayYYYYMMDD(20260101)).toBe(20251231);
+    });
+
+    it('should return Feb 28 when given Mar 1 in a non-leap year (month boundary)', () => {
+      expect(getPreviousDayYYYYMMDD(20260301)).toBe(20260228);
+    });
+
+    it('should return the previous day for a mid-year date (normal case)', () => {
+      expect(getPreviousDayYYYYMMDD(20260610)).toBe(20260609);
+    });
+
+    it('should return a valid 8-digit YYYYMMDD integer for any input', () => {
+      const result = getPreviousDayYYYYMMDD(20260715);
+      expect(typeof result).toBe('number');
       expect(result.toString()).toMatch(/^\d{8}$/);
     });
   });
