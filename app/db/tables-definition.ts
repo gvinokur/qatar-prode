@@ -45,10 +45,10 @@ export interface TournamentTable extends Identifiable{
   champion_team_id?: string | null
   runner_up_team_id?: string | null
   third_place_team_id?: string | null
-  best_player_id?: string
-  top_goalscorer_player_id?: string
-  best_goalkeeper_player_id?: string
-  best_young_player_id?: string
+  best_player_id?: string | null
+  top_goalscorer_player_id?: string | null
+  best_goalkeeper_player_id?: string | null
+  best_young_player_id?: string | null
   dev_only?: boolean
   display_name?: boolean
 
@@ -352,10 +352,10 @@ export interface TournamentGuessTable extends Identifiable{
   champion_team_id?: string | null
   runner_up_team_id?: string | null
   third_place_team_id?: string | null
-  best_player_id?: string
-  top_goalscorer_player_id?: string
-  best_goalkeeper_player_id?: string
-  best_young_player_id?: string
+  best_player_id?: string | null
+  top_goalscorer_player_id?: string | null
+  best_goalkeeper_player_id?: string | null
+  best_young_player_id?: string | null
   /**
    * undefined - No positions defined or did not calculate them
    * 5 points for champion guess
