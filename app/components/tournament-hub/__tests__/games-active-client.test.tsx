@@ -112,16 +112,16 @@ describe('GamesActiveClient', () => {
   })
 
   describe('navigation', () => {
-    it('left arrow is not rendered when currentIndex is 0', () => {
+    it('left arrow is disabled when currentIndex is 0', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} />)
-      expect(screen.queryByLabelText('previous game')).not.toBeInTheDocument()
+      expect(screen.getByLabelText('previous game')).toBeDisabled()
     })
 
-    it('right arrow is not rendered at the last game', () => {
+    it('right arrow is disabled at the last game', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} />)
       fireEvent.click(screen.getByLabelText('next game'))
       fireEvent.click(screen.getByLabelText('next game'))
-      expect(screen.queryByLabelText('next game')).not.toBeInTheDocument()
+      expect(screen.getByLabelText('next game')).toBeDisabled()
     })
 
     it('clicking right increments currentIndex and renders next game', () => {
