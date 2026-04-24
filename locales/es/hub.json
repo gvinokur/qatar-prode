@@ -153,5 +153,17 @@
     "deadlineText": "Cambios permitidos hasta 1 hora antes de cada partido.",
     "urgentMessage": "¡Predice {count} partidos antes de que sea tarde!",
     "safeMessage": "Algunos partidos están por cerrar, aún puedes cambiar tus resultados."
+  },
+  "statsAtAGlance": {
+    "title": "Estadísticas",
+    "noData": "Aún no tenés puntos",
+    "noDataSubtitle": "¡Empezá a predecir para ver tus estadísticas!",
+    "matchesLabel": "Partidos",
+    "qualifiedTeamsLabel": "Clasificados",
+    "awardsLabel": "Premios",
+    "trendLabel": "Tendencia",
+    "sinceYesterday": "Desde ayer ({date})",
+    "since": "Desde {date}",
+    "seeAllStats": "Ver estadísticas completas"
   }
 }

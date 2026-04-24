@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24 (Story 358 — Dynamic Friend Group Widgets)
+**Last updated:** 2026-04-24
 
 ---
 
@@ -89,6 +89,15 @@ Client Component for a single group card in the Leaderboard Peek widget. Tappabl
 - **LeaderboardPeekCard({ data, groupLeaderboardHref })**: `JSX.Element` — [Client] Outlined Card with `height: '100%'` for CSS Grid alignment. Renders a tappable `CardActionArea` that navigates to `groupLeaderboardHref` on click. Header row shows group name (with Groups icon), `#N` rank chip, and `RankChangeIndicator`. Below a divider, renders up to 3 `LeaderboardCard compact=true` rows converted from `GroupPeekData.rows` (all point-breakdown fields set to 0).
   Uses: useRouter, useTheme, RankChangeIndicator
   Renders: LeaderboardCard (compact=true)
+
+### app/components/tournament-hub/stats-at-a-glance-widget.tsx
+Async Server Component for the Stats at a Glance widget. Fetches the user's score history summary and renders a compact DashboardCard with total score, per-category breakdowns with deltas, a sparkline trend, and a link to the full stats page.
+
+- **StatsAtAGlanceWidget({ tournamentId, locale })**: `Promise<JSX.Element>` — [Server] Fetches `getStatsAtAGlanceData` and `getTranslations('hub.statsAtAGlance')` in parallel. Computes `statsHref = /${locale}/tournaments/${tournamentId}/stats`. Renders `DashboardCard` with `InsightsIcon`. When `!data.hasData`: centered empty state (48px disabled `InsightsIcon`, `noData` body2, `noDataSubtitle` caption). When `data.hasData`: total score `h3` + "pts" + momentum row always shown when `snapshotDateLabel` exists (`+N pts` in `success.main` when positive, `0 pts` in `text.secondary` when zero; `ArrowDropUpIcon` only when positive) + snapshot date caption (uses `sinceYesterday` key when `isYesterday=true`, else `since` key) + `Divider` + 3 category rows (Matches/QualifiedTeams/Awards; per-category `+N` delta chip shown only when category total > 0, color `success.main` when delta > 0 else `text.secondary`) + sparkline SVG with `trendLabel` heading and sparkline gain annotation (only when `sparklineData.length >= 2`) + "See all statistics" `Button` linking to `statsHref`.
+  Calls: getStatsAtAGlanceData, getTranslations
+  Renders: DashboardCard, Sparkline (inline helper — not exported)
+
+- **Sparkline({ data: number[] })**: `JSX.Element | null` — [Server, inline] Returns `null` when `data.length < 2`. Otherwise renders a fixed 120×40 SVG `<path>` connecting normalized data points. `stroke="currentColor"`, wrapped in `Box sx={{ color: 'secondary.main', bgcolor: 'action.selected', borderRadius: 1 }}`.
 
 ### app/components/tournament-hub/tournament-hub-recent-results.tsx
 Async Server Component for the Recent Results widget. Fetches prediction outcome data and the card title translation in parallel, then wraps the result in DashboardCard.

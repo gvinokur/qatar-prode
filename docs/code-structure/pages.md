@@ -142,11 +142,11 @@ Offline fallback page shown when service worker catches offline navigation.
   Calls: getLocale
 
 ### app/[locale]/tournaments/[id]/page.tsx
-Tournament Hub landing page — banner + Games widget + dynamic friend-group widgets + placeholder Standings card (Story #358 wired leaderboard peek).
+Tournament Hub landing page — banner + Games widget + QT/Awards widgets (pre-tournament) + leaderboard peek + Recent Results + Stats at a Glance (post-start).
 
-- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners) and CSS Grid Widget Area with: `GamesPredictionWidget`; one placeholder `DashboardCard` (Standings); `TournamentHubLeaderboardPeek` in `Suspense` (passes `isAuthenticated={!!user}`); `TournamentHubRecentResults` in `Suspense`.
+- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners) and CSS Grid Widget Area with: `GamesPredictionWidget`; `QualifiedTeamsWidget` + `AwardsWidget` when `msUntilPredictionLock > 0`; `TournamentHubLeaderboardPeek` in Suspense (passes `isAuthenticated={!!user}`); `TournamentHubRecentResults` in Suspense when `tournamentHasStarted`; `StatsAtAGlanceWidget` in Suspense when `tournamentHasStarted && user`.
   Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getPublicTournamentTiming, getActionCenterGames (conditional)
-  Renders: DashboardBanner, GamesPredictionWidget, DashboardCard (×1 Standings placeholder), TournamentHubLeaderboardPeek, TournamentHubRecentResults
+  Renders: DashboardBanner, GamesPredictionWidget, QualifiedTeamsWidget (conditional), AwardsWidget (conditional), TournamentHubLeaderboardPeek (Suspense), TournamentHubRecentResults (conditional Suspense), StatsAtAGlanceWidget (conditional Suspense)
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
 Games page (moved from root in Story #338). Shows match predictions for the tournament. Metadata is provided by the parent `layout.tsx`.

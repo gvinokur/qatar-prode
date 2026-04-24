@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { Box } from '@mui/material'
 import HistoryIcon from '@mui/icons-material/History'
 import GroupsIcon from '@mui/icons-material/Groups'
+import InsightsIcon from '@mui/icons-material/Insights'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { toLocale } from '@/app/utils/locale-utils'
 import { getLoggedInUser } from '@/app/actions/user-actions'
@@ -13,6 +14,7 @@ import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
 import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
 import { TournamentHubLeaderboardPeek } from '@/app/components/tournament-hub/tournament-hub-leaderboard-peek'
+import { StatsAtAGlanceWidget } from '@/app/components/tournament-hub/stats-at-a-glance-widget'
 import { GamesPredictionWidget } from '@/app/components/tournament-hub/games-prediction-widget'
 import { QualifiedTeamsWidget } from '@/app/components/tournament-hub/qualified-teams-widget'
 import { AwardsWidget } from '@/app/components/tournament-hub/awards-widget'
@@ -100,6 +102,11 @@ export default async function TournamentHubPage(props: Props) {
         {timing?.tournamentHasStarted && (
           <Suspense fallback={<DashboardCard title="Results" icon={<HistoryIcon fontSize="small" />} />}>
             <TournamentHubRecentResults tournamentId={id} locale={locale} />
+          </Suspense>
+        )}
+        {timing?.tournamentHasStarted && user && (
+          <Suspense fallback={<DashboardCard title="Stats" icon={<InsightsIcon fontSize="small" />} />}>
+            <StatsAtAGlanceWidget tournamentId={id} locale={locale} />
           </Suspense>
         )}
       </Box>

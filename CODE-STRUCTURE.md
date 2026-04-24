@@ -688,6 +688,21 @@ Key flows:
     - GroupSelector [Client] (top nav — Story #338): Hub tab always rendered with DashboardIcon, links to /tournaments/${id}; Matches tab links to /tournaments/${id}/games
     - TournamentBottomNav [Client] Home tab always navigates to /${locale}/tournaments/${id}
 
+34. Stats at a Glance data flow (Story #375)
+    TournamentHubPage → (Suspense, when tournamentHasStarted && user) StatsAtAGlanceWidget (Server)
+      → getStatsAtAGlanceData(tournamentId, locale)
+          → getLoggedInUser
+          → getScoreHistoryForUsers([userId], tournamentId) → all tournament_score_history rows for user, ordered by date ASC
+          → derives latest snapshot and previous snapshot
+          → computes: totalPoints, matchesPoints, qualifiedTeamsPoints, awardsPoints (category breakdowns)
+          → computes: momentumPoints, matchesDelta, qualifiedTeamsDelta, awardsDelta (deltas from prev)
+          → computes: isYesterday (prev.snapshot_date vs Argentina TZ yesterday YYYYMMDD)
+          → computes: snapshotDateLabel (Intl.DateTimeFormat short date of prev snapshot)
+          → returns: sparklineData = last 7 total_points values
+          → returns StatsAtAGlanceData { hasData, totals, deltas, isYesterday, snapshotDateLabel, sparklineData }
+      → [branch: !hasData] renders empty state (InsightsIcon + noData text)
+      → [branch: hasData] renders total score h3 + momentum chip + category rows + Sparkline SVG + "See all statistics" → /${locale}/tournaments/${tournamentId}/stats
+
 33. Rank history read path — History tab (Story #335)
     FriendGroupPage / TournamentScopedFriendGroup (Server):
       └── getGroupRankHistory(groupId, tournamentId) [server action]
