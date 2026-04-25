@@ -239,6 +239,15 @@ No new cross-layer flows. Penalty fields extend the existing Recent Results read
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: GamesActiveClient vertical nav unification
+**Date:** 2026-04-25
+**Reason:** User reported post-implementation that the "Próximos Partidos" games widget (GamesActiveClient) still used horizontal left/right overlay arrows, inconsistent with the vertical nav pattern applied to Recent Results and Action Center.
+**Change:** Replaced horizontal overlay arrows in `games-active-client.tsx` with the same vertical up/down `IconButton` + 3-dot indicator pattern. Updated 2 tests in `games-active-client.test.tsx` that asserted `not.toBeInTheDocument()` (old: arrows conditionally rendered) to assert `toBeDisabled()` (new: always rendered, disabled at boundaries).
+
+---
+
 ## Open Questions
 
 None — requirements are fully specified by mockups and acceptance criteria.
