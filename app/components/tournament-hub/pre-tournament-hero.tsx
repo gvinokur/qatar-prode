@@ -5,10 +5,6 @@ import { Box, Stack, Typography, Paper, useTheme } from '@mui/material'
 import { HourglassEmpty as HourglassEmptyIcon } from '@mui/icons-material'
 import { useTranslations } from 'next-intl'
 
-// ---------------------------------------------------------------------------
-// PreTournamentCountdown — exported so ActionCenterCarousel can render it
-// ABOVE the "Action Center" header title.
-// ---------------------------------------------------------------------------
 
 interface PreTournamentCountdownProps {
   readonly firstGameDate: Date

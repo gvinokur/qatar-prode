@@ -96,9 +96,6 @@ export default async function TournamentHubPage(props: Props) {
             />
           </>
         )}
-        <Suspense fallback={<DashboardCard title="Groups" icon={<GroupsIcon fontSize="small" />} />}>
-          <TournamentHubLeaderboardPeek tournamentId={id} locale={locale} isAuthenticated={!!user} />
-        </Suspense>
         {timing?.tournamentHasStarted && (
           <Suspense fallback={<DashboardCard title="Results" icon={<HistoryIcon fontSize="small" />} />}>
             <TournamentHubRecentResults tournamentId={id} locale={locale} />
@@ -109,6 +106,9 @@ export default async function TournamentHubPage(props: Props) {
             <StatsAtAGlanceWidget tournamentId={id} locale={locale} />
           </Suspense>
         )}
+        <Suspense fallback={<DashboardCard title="Groups" icon={<GroupsIcon fontSize="small" />} />}>
+          <TournamentHubLeaderboardPeek tournamentId={id} locale={locale} isAuthenticated={!!user} />
+        </Suspense>
       </Box>
 
     </Box>

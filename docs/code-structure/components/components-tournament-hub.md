@@ -21,22 +21,6 @@ Reusable presentational Server Component establishing the standard card layout f
 - **DashboardCard({ title, icon, count, children, urgent })**: `JSX.Element` — [Server] Renders MUI `Card variant="outlined"` with a standardized `CardHeader` (32×32 Avatar with purple tint containing `icon`, `Typography subtitle1 fontWeight:700` title, optional `count` Typography caption in action slot) and `CardContent` with `flexGrow:1`. `borderColor` switches to `error.main` when `urgent=true`, otherwise `divider`.
   Calls: (none — pure MUI composition)
 
-### app/components/tournament-hub/tournament-hub-action-center.tsx
-Thin Server Component wrapper for the hub's Action Center widget. Calls the server action and delegates rendering to the client carousel.
-
-- **TournamentHubActionCenter({ tournamentId, locale, data? })**: `JSX.Element | null` — [Server] Uses `data` prop when provided (pre-fetched by page.tsx); otherwise calls `getActionCenterGames`. Returns `null` when `data.tournamentFinished`. Calls `computeIsIncompleteUser(data)`; when true, renders `PreTournamentNewUserActionCenter`; otherwise renders `ActionCenterCarousel`.
-  Calls: getActionCenterGames (conditional), computeIsIncompleteUser
-  Renders: PreTournamentNewUserActionCenter (conditional), ActionCenterCarousel
-
-### app/components/tournament-hub/pre-tournament-new-user-action-center.tsx
-Server Component rendering the full "incomplete user" Action Center layout for pre-tournament users with low prediction progress.
-
-- **PreTournamentNewUserActionCenter({ data, tournamentId, locale })**: `JSX.Element` — [Server] Calls `getTranslations('hub')`, `getTranslations('rules.rules')`, and `getTranslations('rules.constraints')`. Calls `getRulesBySection(data.scoringConfig, tRules)` for scoring rule labels and `getConstraintsBySection(tConstraints, lockDate)` for per-section deadline strings. `lockDate` is computed from `data.firstGameDate + PREDICTION_LOCK_OFFSET_MS` (2 days) formatted via `Intl.DateTimeFormat`. Computes per-track progress percentages and 4-state CTA labels (cta / ctaKeep / ctaFinish / ctaReview) keyed by progress thresholds. Renders: (1) `PreTournamentCountdown` when `data.firstGameDate !== null`; (2) `TutorialCTACard`; (3) three `PredictionTrackCard` sub-components (Matches, Qualified Teams, Awards).
-  Calls: getTranslations, getRulesBySection, getConstraintsBySection
-  Renders: PreTournamentCountdown, TutorialCTACard, PredictionTrackCard
-
-- **PredictionTrackCard(props)**: `JSX.Element` — Server-compatible sub-component (not exported). Props include `deadline: string | null` and `deadlineLabel: string` in addition to icon, title, description, rules, progress, CTA, etc. Renders an outlined Paper card with: icon + title + completed/total count row; description; dashed-border deadline box (`ScheduleIcon` + label + date text, omitted when `deadline === null`); dashed-border scoring rules box (`AddCircleOutlineIcon` + scoringLabel header + one rule per line); `LinearProgress` bar; CTA `Button` (Link). `isComplete=true` switches CTA to outlined variant with `CelebrationIcon`, progress bar color to 'success'.
-  Icon usage: `SportsSoccerIcon` (Matches), `AccountTreeIcon` (Qualified Teams), `EmojiEventsIcon` (Awards), `ScheduleIcon` (deadline), `AddCircleOutlineIcon` (scoring rules).
 
 ### app/components/tournament-hub/tutorial-cta-card.tsx
 Client Component for the "New to Prode?" tutorial CTA. Opens the onboarding dialog on button click.
@@ -69,13 +53,6 @@ Client Component shown in the Leaderboard widget when the user has groups but no
 - **PreTournamentGroupsPreview({ allGroupNames, locale, tournamentId })**: `JSX.Element` — [Client] Outer `Stack` with `height: '100%'` + `justifyContent: 'space-between'` to pin CTA to bottom. Outlined `Paper` with `flexGrow: 1` fills remaining height; inner content is flex-centered (`justifyContent: 'center'`). Paper renders "You're in" text + up to 3 group name `Chip` links (each linking to that group's page); appends "and N others." when `allGroupNames.length > 3`; below that, `EmojiEventsIcon` + "Rankings pending" text. Single full-width outlined "See all your groups" Button (`seeAllGroups` key) anchored to the bottom outside the Paper.
   Uses: useTranslations, Box, Stack, Paper, Typography, Button, Chip, EmojiEventsIcon, Link
 
-### app/components/tournament-hub/action-center-carousel.tsx
-Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.
-
-- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders `PreTournamentCountdown` above header when `!data.tournamentHasStarted && data.firstGameDate !== null`. Renders header (title/subtitle). Optionally renders "Opening Match" overline when `data.openerBackfill`. Branches: empty mode → dashed box; fallback/urgent mode → single-card view with `VerticalNav` (when `data.games.length > 1`) and one `FlippableGameCard` for `data.games[visibleIndex]`. `handleAutoAdvanceNext`/`handleAutoGoPrevious` update both `editingGameId` and `visibleIndex`. When `data.qtAndAwardsOpen`: renders a `Stack direction="row"` of 3 `TrackedCircularProgress` circles (inline helper component) for QT, Awards, and Games, each linking to its page.
-  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), FlippableGameCard, VerticalNav (inline)
-  Uses: GuessesContextProvider, useTranslations, TrackedCircularProgress (inline), AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon, KeyboardArrowUpIcon, KeyboardArrowDownIcon
-- **VerticalNav({ current, total, onUp, onDown })**: `JSX.Element` — [Client, inline in action-center-carousel] Up/down `IconButton` (bordered) + 3-dot position indicator. Up disabled when `current === 0`, down disabled when `current === total - 1`.
 
 ### app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx
 Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and branches on group membership and ranking state.
