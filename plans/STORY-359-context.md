@@ -5,8 +5,8 @@
 - **Story Title:** [Story 6] Dashboard: Hub Page Orchestration
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-359
 - **Branch:** feature/story-359
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 388
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/388
 
 ## State
 - **Current Phase:** planning
