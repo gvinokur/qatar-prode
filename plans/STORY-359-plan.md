@@ -10,7 +10,7 @@ Story 6 is the final chapter: confirm the hub page correctly implements the visi
 
 ## Objectives
 
-1. Confirm the hub page visibility matrix is correct (AC verification)
+1. Fix widget render order in `page.tsx` to match the canonical grid sequence
 2. Delete the three orphaned legacy components and their test files
 3. Clean up stale comments referencing deleted components
 4. Update CODE-STRUCTURE documentation
@@ -19,16 +19,42 @@ Story 6 is the final chapter: confirm the hub page correctly implements the visi
 
 ## Acceptance Criteria
 
-- **Visibility Matrix** — Teams/Awards widgets hidden after prediction lock; Results widget shown after tournament start.
-  - **Status: Already implemented** in `page.tsx`:
-    - `QualifiedTeamsWidget` + `AwardsWidget`: rendered only when `msUntilPredictionLock > 0`
-    - `TournamentHubRecentResults`: rendered only when `timing?.tournamentHasStarted`
-    - `StatsAtAGlanceWidget`: rendered only when `timing?.tournamentHasStarted && user`
-  - No code changes needed to meet this criterion.
+- **Widget Order** — Grid renders widgets in the canonical sequence:
+  1. Games Card (pre-tournament info or active carousel)
+  2. Qualified Teams (pre-lock only)
+  3. Awards (pre-lock only)
+  4. Results (post-start; becomes slot 2 once QT/Awards lock)
+  5. Stats (post-start, authenticated only; becomes slot 3 once QT/Awards lock)
+  6+. Friend Groups (always last)
+
+- **Visibility Matrix** — Teams/Awards widgets hidden after prediction lock; Results/Stats shown after tournament start.
+  - `QualifiedTeamsWidget` + `AwardsWidget`: rendered only when `msUntilPredictionLock > 0`
+  - `TournamentHubRecentResults`: rendered only when `timing?.tournamentHasStarted`
+  - `StatsAtAGlanceWidget`: rendered only when `timing?.tournamentHasStarted && user`
+  - **Visibility rules already implemented; order fix required (see Step 0 below).**
 
 ---
 
 ## Technical Approach
+
+### Step 0: Fix Widget Render Order in `app/[locale]/tournaments/[id]/page.tsx`
+
+**Current order (incorrect):**
+1. `GamesPredictionWidget`
+2. `QualifiedTeamsWidget` + `AwardsWidget` (pre-lock)
+3. `TournamentHubLeaderboardPeek` ← Friend Groups inserted too early
+4. `TournamentHubRecentResults` (post-start)
+5. `StatsAtAGlanceWidget` (post-start, authenticated)
+
+**Correct order:**
+1. `GamesPredictionWidget`
+2. `QualifiedTeamsWidget` (pre-lock)
+3. `AwardsWidget` (pre-lock)
+4. `TournamentHubRecentResults` (post-start)
+5. `StatsAtAGlanceWidget` (post-start, authenticated)
+6. `TournamentHubLeaderboardPeek` ← Friend Groups always last
+
+Change: move the `TournamentHubLeaderboardPeek` `<Suspense>` block to after `StatsAtAGlanceWidget`.
 
 ### Why These Components Can Be Safely Deleted
 
@@ -108,6 +134,7 @@ app/components/tournament-hub/__tests__/action-center-carousel.test.tsx
 ## Files to Modify
 
 ```
+app/[locale]/tournaments/[id]/page.tsx                          # fix widget render order (move LeaderboardPeek to end)
 app/components/tournament-hub/pre-tournament-hero.tsx           # remove stale comment (lines 8–11)
 docs/code-structure/components/components-tournament-hub.md     # remove deleted component entries
 ```
