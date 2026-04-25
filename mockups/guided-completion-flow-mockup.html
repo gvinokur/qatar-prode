@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guided Completion Flow — Mockup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import { 
+      ThemeProvider, createTheme, CssBaseline, 
+      Container, Box, Stack,
+      Card, CardContent, CardHeader, CardActions,
+      Typography, Button, IconButton, Chip,
+      TextField, Divider, Avatar, List, ListItem,
+      ListItemText, ListItemAvatar, ListItemSecondaryAction,
+      Skeleton, Alert, Badge, Tooltip, LinearProgress, CircularProgress,
+      Paper, alpha, Fab
+    } from '@mui/material';
+
+    const html = htm.bind(React.createElement);
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: {
+          default: '#0a0a0a',
+          paper: '#1a1a1a',
+        },
+        primary: {
+          main: '#a78bfa',
+          contrastText: '#ffffff'
+        },
+        secondary: {
+          main: '#f87171',
+        },
+        text: {
+          primary: '#e5e7eb',
+          secondary: '#9ca3af',
+        },
+        divider: 'rgba(255, 255, 255, 0.08)'
+      },
+      typography: {
+        fontFamily: "'Archivo', Roboto, sans-serif",
+      },
+      shape: { borderRadius: 12 },
+    });
+
+    // ── Components ──
+
+    function SystemAlertBanner({ icon, title, actionLabel }) {
+      return html`
+        <${Paper} elevation=${0} sx=${{ 
+          p: 2, 
+          mb: 2, 
+          borderRadius: 3, 
+          backgroundColor: alpha(theme.palette.primary.main, 0.05),
+          border: '1px solid',
+          borderColor: alpha(theme.palette.primary.main, 0.1),
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}>
+          <${Avatar} sx=${{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+            <span class="material-icons">${icon}</span>
+          <//>
+          <${Box} sx=${{ flexGrow: 1 }}>
+            <${Typography} variant="subtitle2" sx=${{ fontWeight: 600 }}>${title}<//>
+          <//>
+          <${Button} variant="contained" size="small" sx=${{ borderRadius: 20 }}>${actionLabel}<//>
+          <${IconButton} size="small" sx=${{ color: 'text.secondary' }}>
+            <span class="material-icons">close</span>
+          <//>
+        <//>
+      `;
+    }
+
+    function PredictNextCTA() {
+      return html`
+        <${Card} sx=${{ 
+          mb: 4, 
+          background: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
+          color: 'white',
+          boxShadow: '0 8px 32px rgba(167, 139, 250, 0.2)'
+        }}>
+          <${CardContent} sx=${{ p: 3, textAlign: 'center' }}>
+            <${Typography} variant="h6" sx=${{ fontWeight: 700, mb: 1 }}>Ready to play?<//>
+            <${Typography} variant="body2" sx=${{ opacity: 0.9, mb: 3 }}>
+              You have 32 unpredicted games. Let's start with Group A.
+            <//>
+            <${Button} 
+              variant="contained" 
+              sx=${{ 
+                bgcolor: 'white', 
+                color: 'primary.main',
+                px: 4,
+                borderRadius: 20,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+              }}
+              startIcon=${html`<span class="material-icons">play_arrow</span>`}
+            >
+              Start Predicting
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function StageTransitionBanner({ nextStage }) {
+      return html`
+        <${Box} sx=${{ gridColumn: '1 / -1', mt: 4, mb: 6 }}>
+          <${Paper} sx=${{ 
+            p: 3, 
+            textAlign: 'center',
+            backgroundColor: 'background.paper',
+            border: '2px dashed',
+            borderColor: 'primary.main'
+          }}>
+            <${Typography} variant="h6" gutterBottom sx=${{ fontWeight: 600 }}>Group Stage Complete!<//>
+            <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 3 }}>
+              Now that you've predicted all games, it's time to define your qualifiers.
+            <//>
+            <${Button} 
+              variant="contained" 
+              color="primary"
+              size="large"
+              endIcon=${html`<span class="material-icons">arrow_forward</span>`}
+              sx=${{ borderRadius: 20, px: 4 }}
+            >
+              Go to Qualified Teams
+            <//>
+          <//>
+        <//>
+      `;
+    }
+
+    function GameCardMockup({ teamA, teamB, scoreA, scoreB, isFocus }) {
+      return html`
+        <${Card} sx=${{ 
+          mb: 2, 
+          position: 'relative',
+          border: isFocus ? '2px solid' : '1px solid',
+          borderColor: isFocus ? 'primary.main' : 'divider',
+          transform: isFocus ? 'scale(1.02)' : 'none',
+          transition: 'all 0.2s',
+          zIndex: isFocus ? 2 : 1
+        }}>
+          <${CardContent} sx=${{ p: 2 }}>
+            <${Stack} direction="row" spacing=${2} alignItems="center" justifyContent="space-between">
+              <${Stack} direction="row" spacing=${1} alignItems="center" sx=${{ width: '35%' }}>
+                <${Avatar} size="small" src="/placeholder.png" sx=${{ width: 24, height: 24 }} />
+                <${Typography} variant="body2" noWrap>${teamA}<//>
+              <//>
+              
+              <${Stack} direction="row" spacing=${1} alignItems="center">
+                <${TextField} size="small" value=${scoreA} sx=${{ width: 45, input: { textAlign: 'center', fontWeight: 600 } }} />
+                <${Typography} variant="body1">:<//>
+                <${TextField} size="small" value=${scoreB} sx=${{ width: 45, input: { textAlign: 'center', fontWeight: 600 } }} />
+              <//>
+
+              <${Stack} direction="row" spacing=${1} alignItems="center" justifyContent="flex-end" sx=${{ width: '35%' }}>
+                <${Typography} variant="body2" noWrap>${teamB}<//>
+                <${Avatar} size="small" src="/placeholder.png" sx=${{ width: 24, height: 24 }} />
+              <//>
+            <//>
+          <//>
+          ${isFocus && html`
+            <${CardActions} sx=${{ justifyContent: 'space-between', bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
+              <${Button} size="small" startIcon=${html`<span class="material-icons">chevron_left</span>`}>Previous<//>
+              <${Button} variant="contained" size="small" sx=${{ borderRadius: 20 }}>Save & Next<//>
+            <//>
+          `}
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      const [view, setView] = React.useState('games');
+
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          
+          <${Box} sx=${{ position: 'fixed', top: 0, width: '100%', zIndex: 1000, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+             <${Container} maxWidth="sm">
+               <${Stack} direction="row" spacing=${1} sx=${{ py: 1 }}>
+                 <${Button} 
+                  variant=${view === 'games' ? 'contained' : 'text'} 
+                  size="small" 
+                  onClick=${() => setView('games')}
+                  sx=${{ borderRadius: 20 }}
+                 >Games Flow<//>
+                 <${Button} 
+                  variant=${view === 'qualifiers' ? 'contained' : 'text'} 
+                  size="small" 
+                  onClick=${() => setView('qualifiers')}
+                  sx=${{ borderRadius: 20 }}
+                 >Qualifiers Flow<//>
+               <//>
+             <//>
+          <//>
+
+          <${Container} maxWidth="sm" sx=${{ pt: 10, pb: 4 }}>
+
+            ${view === 'games' && html`
+              <${Box}>
+                <${SystemAlertBanner} icon="get_app" title="Install Qatar Prode to your home screen" actionLabel="Install" />
+                <${SystemAlertBanner} icon="notifications_active" title="Turn on notifications for game results" actionLabel="Enable" />
+
+                <${PredictNextCTA} />
+
+                <${Typography} variant="overline" color="text.secondary">Group A — Matchday 1<//>
+                <${GameCardMockup} teamA="Qatar" teamB="Ecuador" scoreA="" scoreB="" isFocus=${true} />
+                <${GameCardMockup} teamA="Senegal" teamB="Netherlands" scoreA="" scoreB="" isFocus=${false} />
+
+                <${Typography} variant="overline" color="text.secondary" sx=${{ mt: 4, display: 'block' }}>Group A — Matchday 3<//>
+                <${GameCardMockup} teamA="Netherlands" teamB="Qatar" scoreA="3" scoreB="0" isFocus=${false} />
+                <${GameCardMockup} teamA="Ecuador" teamB="Senegal" scoreA="1" scoreB="1" isFocus=${false} />
+
+                <${StageTransitionBanner} />
+              <//>
+            `}
+
+            ${view === 'qualifiers' && html`
+              <${Box}>
+                <${Alert} severity="info" sx=${{ mb: 3, borderRadius: 3 }}>
+                  Your game predictions for the Group Stage are complete!
+                  <${Button} variant="text" size="small" sx=${{ ml: 2, fontWeight: 700 }}>
+                    Auto-fill Qualifiers
+                  <//>
+                <//>
+
+                <${Typography} variant="h6" sx=${{ mb: 2, fontWeight: 700 }}>Group A<//>
+                <${Paper} sx=${{ p: 2, mb: 4 }}>
+                  <${List} dense>
+                    <${ListItem}>
+                      <${ListItemAvatar}><${Avatar} sx=${{ width: 24, height: 24 }}>1<//><//>
+                      <${ListItemText} primary="Netherlands" />
+                      <${Chip} size="small" label="Qualified" color="success" />
+                    <//>
+                    <${ListItem}>
+                      <${ListItemAvatar}><${Avatar} sx=${{ width: 24, height: 24 }}>2<//><//>
+                      <${ListItemText} primary="Senegal" />
+                      <${Chip} size="small" label="Qualified" color="success" />
+                    <//>
+                    <${ListItem}>
+                      <${ListItemAvatar}><${Avatar} sx=${{ width: 24, height: 24 }}>3<//><//>
+                      <${ListItemText} primary="Ecuador" />
+                    <//>
+                  <//>
+                <//>
+
+                <${Paper} sx=${{ 
+                  p: 3, 
+                  textAlign: 'center', 
+                  bgcolor: alpha(theme.palette.secondary.main, 0.05),
+                  border: '1px solid',
+                  borderColor: alpha(theme.palette.secondary.main, 0.1)
+                }}>
+                  <${Typography} variant="subtitle1" gutterBottom sx=${{ fontWeight: 600 }}>All Qualifiers Ready?<//>
+                  <${Typography} variant="body2" color="text.secondary" sx=${{ mb: 3 }}>
+                    You have defined all qualifiers. Next, choose your individual awards.
+                  <//>
+                  <${Button} 
+                    variant="contained" 
+                    color="secondary"
+                    sx=${{ borderRadius: 20, px: 4 }}
+                  >
+                    Go to Awards
+                  <//>
+                <//>
+              <//>
+            `}
+
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>
