@@ -57,6 +57,66 @@ function VerticalNav({ current, total, onUp, onDown }: VerticalNavProps) {
   )
 }
 
+type TranslationFn = (_key: string, _params?: Record<string, unknown>) => string
+
+function buildSubtext(
+  item: RecentGameResultItem,
+  t: TranslationFn,
+  isPending: boolean,
+  hasGuess: boolean,
+  isCorrect: boolean,
+  isExact: boolean,
+  hasPenalties: boolean,
+  homeWins: boolean,
+): string {
+  const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
+  const predictionText = hasGuess
+    ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+    : t('noPredictionShort')
+
+  if (isPending) return `${statusText} • ${predictionText}`
+  if (!hasGuess) return t('youDidntPredict')
+  if (isExact) return t('exactResult')
+  if (isCorrect) {
+    if (hasPenalties) {
+      return t('correctResultWithPenaltyWinner', {
+        home: item.userHomeGuess!,
+        away: item.userAwayGuess!,
+        team: homeWins ? item.homeTeamName : item.awayTeamName,
+      })
+    }
+    return t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+  }
+  if (hasPenalties && (item.userHomePenaltyWinner || item.userAwayPenaltyWinner)) {
+    return t('yourGuessWithPenaltyPrediction', {
+      home: item.userHomeGuess!,
+      away: item.userAwayGuess!,
+      team: item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName,
+    })
+  }
+  return t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
+}
+
+function buildScoreContent(
+  item: RecentGameResultItem,
+  hasPenalties: boolean,
+  homeWins: boolean,
+): React.ReactNode {
+  if (item.gameStatus === 'finished' && hasPenalties) {
+    return (
+      <>
+        <Box component="span" fontWeight={homeWins ? 700 : 400}>{item.homeTeamName}</Box>
+        {' '}{item.homeScore} ({item.homePenaltyScore})–({item.awayPenaltyScore}) {item.awayScore}{' '}
+        <Box component="span" fontWeight={homeWins ? 400 : 700}>{item.awayTeamName}</Box>
+      </>
+    )
+  }
+  if (item.gameStatus === 'finished') {
+    return <>{item.homeTeamName} {item.homeScore}–{item.awayScore} {item.awayTeamName}</>
+  }
+  return <>{item.homeTeamName} vs {item.awayTeamName}</>
+}
+
 function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const t = useTranslations('hub.recentResults')
   const isPending = item.gameStatus === 'pending' || item.gameStatus === 'about_to_start'
@@ -71,41 +131,8 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const hasPenalties = item.homePenaltyScore != null && item.awayPenaltyScore != null
   const homeWins = hasPenalties && item.homePenaltyScore! > item.awayPenaltyScore!
 
-  const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
-  const predictionText = hasGuess
-    ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
-    : t('noPredictionShort')
-
-  let subtext: string
-  if (isPending) {
-    subtext = `${statusText} • ${predictionText}`
-  } else if (!hasGuess) {
-    subtext = t('youDidntPredict')
-  } else if (isExact) {
-    subtext = t('exactResult')
-  } else if (isCorrect) {
-    if (hasPenalties) {
-      const winnerName = homeWins ? item.homeTeamName : item.awayTeamName
-      subtext = t('correctResultWithPenaltyWinner', {
-        home: item.userHomeGuess!,
-        away: item.userAwayGuess!,
-        team: winnerName,
-      })
-    } else {
-      subtext = t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
-    }
-  } else {
-    if (hasPenalties && (item.userHomePenaltyWinner || item.userAwayPenaltyWinner)) {
-      const predictedWinner = item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName
-      subtext = t('yourGuessWithPenaltyPrediction', {
-        home: item.userHomeGuess!,
-        away: item.userAwayGuess!,
-        team: predictedWinner,
-      })
-    } else {
-      subtext = t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
-    }
-  }
+  const subtext = buildSubtext(item, t as TranslationFn, isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins)
+  const scoreContent = buildScoreContent(item, hasPenalties, homeWins)
 
   let scoreDisplay: string
   let statusIcon
@@ -118,21 +145,6 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   } else {
     scoreDisplay = '0 pts'
     statusIcon = <CancelOutlinedIcon color="error" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
-  }
-
-  let scoreContent: React.ReactNode
-  if (item.gameStatus === 'finished' && hasPenalties) {
-    scoreContent = (
-      <>
-        <Box component="span" fontWeight={homeWins ? 700 : 400}>{item.homeTeamName}</Box>
-        {' '}{item.homeScore} ({item.homePenaltyScore})–({item.awayPenaltyScore}) {item.awayScore}{' '}
-        <Box component="span" fontWeight={!homeWins ? 700 : 400}>{item.awayTeamName}</Box>
-      </>
-    )
-  } else if (item.gameStatus === 'finished') {
-    scoreContent = <>{item.homeTeamName} {item.homeScore}–{item.awayScore} {item.awayTeamName}</>
-  } else {
-    scoreContent = <>{item.homeTeamName} vs {item.awayTeamName}</>
   }
 
   return (
