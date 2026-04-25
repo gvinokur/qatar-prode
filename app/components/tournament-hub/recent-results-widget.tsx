@@ -59,16 +59,17 @@ function VerticalNav({ current, total, onUp, onDown }: VerticalNavProps) {
 
 type TranslationFn = (_key: string, _params?: Record<string, unknown>) => string
 
-function buildSubtext(
-  item: RecentGameResultItem,
-  t: TranslationFn,
-  isPending: boolean,
-  hasGuess: boolean,
-  isCorrect: boolean,
-  isExact: boolean,
-  hasPenalties: boolean,
-  homeWins: boolean,
-): string {
+type SubtextFlags = {
+  isPending: boolean
+  hasGuess: boolean
+  isCorrect: boolean
+  isExact: boolean
+  hasPenalties: boolean
+  homeWins: boolean
+}
+
+function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: SubtextFlags): string {
+  const { isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins } = flags
   const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
   const predictionText = hasGuess
     ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
@@ -131,7 +132,7 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const hasPenalties = item.homePenaltyScore != null && item.awayPenaltyScore != null
   const homeWins = hasPenalties && item.homePenaltyScore! > item.awayPenaltyScore!
 
-  const subtext = buildSubtext(item, t as TranslationFn, isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins)
+  const subtext = buildSubtext(item, t as TranslationFn, { isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins })
   const scoreContent = buildScoreContent(item, hasPenalties, homeWins)
 
   let scoreDisplay: string
