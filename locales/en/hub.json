@@ -37,6 +37,8 @@
     "pendingWithPrediction": "Your prediction: {home}–{away}",
     "noPredictionShort": "No prediction",
     "correctResultWithGuess": "Correct prediction • Your prediction: {home}–{away}",
+    "correctResultWithPenaltyWinner": "Correct prediction • Your prediction: {home}–{away} • Penalty winner: {team}",
+    "yourGuessWithPenaltyPrediction": "Your prediction: {home}–{away} • Predicted penalty winner: {team}",
     "emptyTitle": "No recent results yet.",
     "emptySubtitle": "Your prediction outcomes will appear here!",
     "seeStats": "View full statistics",

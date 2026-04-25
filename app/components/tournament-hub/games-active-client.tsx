@@ -3,10 +3,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Box, Button, IconButton, Stack, Typography } from '@mui/material'
 import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
   SportsSoccer as SportsSoccerIcon,
   WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material'
@@ -92,12 +92,8 @@ export function GamesActiveClient({
   const currentGame = games[currentIndex]
   const guess = currentGame ? gameGuesses[currentGame.id] : undefined
 
-  const handleLeft = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1)
-  }
-  const handleRight = () => {
-    if (currentIndex < games.length - 1) setCurrentIndex((i) => i + 1)
-  }
+  const handleUp = () => setCurrentIndex((i) => Math.max(0, i - 1))
+  const handleDown = () => setCurrentIndex((i) => Math.min(games.length - 1, i + 1))
 
   const renderStatusRow = () => {
     if (effectiveUrgencyLevel === 'empty') return null
@@ -142,61 +138,50 @@ export function GamesActiveClient({
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {renderStatusRow()}
 
-        <Box sx={{ position: 'relative' }}>
-          <FlippableGameCard
-            game={currentGame}
-            teamsMap={teamsMap}
-            isPlayoffs={!!currentGame.playoffStage}
-            tournamentId={tournamentId}
-            homeScore={guess?.home_score}
-            awayScore={guess?.away_score}
-            homePenaltyWinner={guess?.home_penalty_winner}
-            awayPenaltyWinner={guess?.away_penalty_winner}
-            boostType={guess?.boost_type}
-            initialBoostType={guess?.boost_type}
-            isEditing={editingGameId === currentGame.id}
-            onEditStart={() => setEditingGameId(currentGame.id)}
-            onEditEnd={() => setEditingGameId(null)}
-          />
-
-          {editingGameId === null && currentIndex > 0 && (
-            <IconButton
-              size="small"
-              onClick={handleLeft}
-              aria-label="previous game"
-              sx={{
-                position: 'absolute',
-                left: 4,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 1,
-                bgcolor: 'action.selected',
-                boxShadow: 2,
-                '&:hover': { bgcolor: 'action.focus' },
-              }}
-            >
-              <ChevronLeftIcon fontSize="small" />
-            </IconButton>
-          )}
-
-          {editingGameId === null && currentIndex < games.length - 1 && (
-            <IconButton
-              size="small"
-              onClick={handleRight}
-              aria-label="next game"
-              sx={{
-                position: 'absolute',
-                right: 4,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 1,
-                bgcolor: 'action.selected',
-                boxShadow: 2,
-                '&:hover': { bgcolor: 'action.focus' },
-              }}
-            >
-              <ChevronRightIcon fontSize="small" />
-            </IconButton>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <FlippableGameCard
+              game={currentGame}
+              teamsMap={teamsMap}
+              isPlayoffs={!!currentGame.playoffStage}
+              tournamentId={tournamentId}
+              homeScore={guess?.home_score}
+              awayScore={guess?.away_score}
+              homePenaltyWinner={guess?.home_penalty_winner}
+              awayPenaltyWinner={guess?.away_penalty_winner}
+              boostType={guess?.boost_type}
+              initialBoostType={guess?.boost_type}
+              isEditing={editingGameId === currentGame.id}
+              onEditStart={() => setEditingGameId(currentGame.id)}
+              onEditEnd={() => setEditingGameId(null)}
+            />
+          </Box>
+          {games.length > 1 && (
+            <Stack sx={{ justifyContent: 'center', gap: 1, ml: 0.5 }}>
+              <IconButton
+                size="small"
+                disabled={currentIndex === 0}
+                onClick={handleUp}
+                aria-label="previous game"
+                sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+              >
+                <KeyboardArrowUpIcon fontSize="small" />
+              </IconButton>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: currentIndex === 0 ? 'primary.main' : 'divider' }} />
+                <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: currentIndex > 0 && currentIndex < games.length - 1 ? 'primary.main' : 'divider' }} />
+                <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: currentIndex === games.length - 1 ? 'primary.main' : 'divider' }} />
+              </Box>
+              <IconButton
+                size="small"
+                disabled={currentIndex === games.length - 1}
+                onClick={handleDown}
+                aria-label="next game"
+                sx={{ border: '1px solid', borderColor: 'divider', '&.Mui-disabled': { opacity: 0.3 } }}
+              >
+                <KeyboardArrowDownIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           )}
         </Box>
 

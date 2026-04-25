@@ -572,8 +572,12 @@ export interface RecentGameForDashboard {
   awayTeamId: string
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
   userHomeGuess: number | null
   userAwayGuess: number | null
+  userHomePenaltyWinner: boolean | null
+  userAwayPenaltyWinner: boolean | null
   guessScore: number | null
   boostType: BoostType
   boostMultiplier: number | null
@@ -618,8 +622,12 @@ export async function findRecentGamesForDashboard(
       'games.away_team as awayTeamId',
       'game_results.home_score as homeScore',
       'game_results.away_score as awayScore',
+      'game_results.home_penalty_score as homePenaltyScore',
+      'game_results.away_penalty_score as awayPenaltyScore',
       'game_guesses.home_score as userHomeGuess',
       'game_guesses.away_score as userAwayGuess',
+      'game_guesses.home_penalty_winner as userHomePenaltyWinner',
+      'game_guesses.away_penalty_winner as userAwayPenaltyWinner',
       'game_guesses.score as guessScore',
       'game_guesses.boost_type as boostType',
       'game_guesses.boost_multiplier as boostMultiplier',
@@ -636,8 +644,12 @@ export async function findRecentGamesForDashboard(
     awayTeamId: r.awayTeamId ?? '',
     homeScore: r.homeScore ?? null,
     awayScore: r.awayScore ?? null,
+    homePenaltyScore: r.homePenaltyScore ?? null,
+    awayPenaltyScore: r.awayPenaltyScore ?? null,
     userHomeGuess: r.userHomeGuess ?? null,
     userAwayGuess: r.userAwayGuess ?? null,
+    userHomePenaltyWinner: r.userHomePenaltyWinner ?? null,
+    userAwayPenaltyWinner: r.userAwayPenaltyWinner ?? null,
     guessScore: r.guessScore ?? null,
     boostType: (r.boostType as BoostType) ?? null,
     boostMultiplier: r.boostMultiplier ?? null,

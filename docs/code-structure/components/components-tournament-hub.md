@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-04-25
 
 ---
 
@@ -72,9 +72,10 @@ Client Component shown in the Leaderboard widget when the user has groups but no
 ### app/components/tournament-hub/action-center-carousel.tsx
 Client Component for the Action Center carousel. Manages card edit state (one card open at a time) and wires FlippableGameCard instances with GuessesContextProvider for inline prediction saving.
 
-- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders `PreTournamentCountdown` above header when `!data.tournamentHasStarted && data.firstGameDate !== null`. Renders header (title/subtitle). Optionally renders "Opening Match" overline when `data.openerBackfill`. Branches: empty mode → dashed box; fallback/urgent mode → `ScrollShadowContainer` with `FlippableGameCard` per game (single-game carousel centers with `justifyContent: 'center'`). When `data.qtAndAwardsOpen`: renders a `Stack direction="row"` of 3 `TrackedCircularProgress` circles (inline helper component) for QT, Awards, and Games, each linking to its page.
-  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), FlippableGameCard
-  Uses: GuessesContextProvider, ScrollShadowContainer, useTranslations, TrackedCircularProgress (inline), AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon
+- **ActionCenterCarousel({ data, tournamentId, locale })**: `JSX.Element` — [Client] Wraps content in `GuessesContextProvider` (autoSave=true). Renders `TournamentStartBanner` above everything when `data.tournamentJustStarted`. Renders `PreTournamentCountdown` above header when `!data.tournamentHasStarted && data.firstGameDate !== null`. Renders header (title/subtitle). Optionally renders "Opening Match" overline when `data.openerBackfill`. Branches: empty mode → dashed box; fallback/urgent mode → single-card view with `VerticalNav` (when `data.games.length > 1`) and one `FlippableGameCard` for `data.games[visibleIndex]`. `handleAutoAdvanceNext`/`handleAutoGoPrevious` update both `editingGameId` and `visibleIndex`. When `data.qtAndAwardsOpen`: renders a `Stack direction="row"` of 3 `TrackedCircularProgress` circles (inline helper component) for QT, Awards, and Games, each linking to its page.
+  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), FlippableGameCard, VerticalNav (inline)
+  Uses: GuessesContextProvider, useTranslations, TrackedCircularProgress (inline), AccountTreeIcon, EmojiEventsIcon, SportsSoccerIcon, KeyboardArrowUpIcon, KeyboardArrowDownIcon
+- **VerticalNav({ current, total, onUp, onDown })**: `JSX.Element` — [Client, inline in action-center-carousel] Up/down `IconButton` (bordered) + 3-dot position indicator. Up disabled when `current === 0`, down disabled when `current === total - 1`.
 
 ### app/components/tournament-hub/tournament-hub-leaderboard-peek.tsx
 Async Server Component for the Leaderboard Peek widget. Fetches the current user's friend-group standings and branches on group membership and ranking state.
@@ -109,10 +110,11 @@ Async Server Component for the Recent Results widget. Fetches prediction outcome
 ### app/components/tournament-hub/recent-results-widget.tsx
 Client Component for the Recent Results widget content. Renders directly inside DashboardCard's CardContent (no own Paper or title wrapper).
 
-- **RecentResultsWidget({ data, statsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when `recentGames` is empty. Otherwise renders a RECENT GAMES list with one `GameItem` per game, divider-separated. "View full statistics" button anchored to bottom.
-  Uses: useTranslations('hub.recentResults')
-  Renders: GameItem (inline sub-component), BoostBadge
-- **GameItem({ item })**: `JSX.Element` — [Client, inline] Renders one game row with icon (✅/❌/🕐), score/vs display, pts label, subtext. Five visual states: `finished+no-prediction` → CancelOutlined + youDidntPredict; `finished+exact` → CheckCircle + exactResult; `finished+correct-not-exact` → CheckCircle + correctResultWithGuess; `finished+incorrect` → CancelOutlined + yourGuess; `pending/about_to_start` → WatchLaterIcon (warning.main) + status + prediction or noPredictionShort + "-- pts".
+- **RecentResultsWidget({ data, statsHref })**: `JSX.Element` — [Client] Shows empty state (SportsScoreIcon + message) when `recentGames` is empty. Otherwise slices `recentGames` to 5 visible items (via `startIndex` state). When `recentGames.length > 5`: renders `VerticalNav` to the right of the list; up disabled at `startIndex === 0`, down disabled at `startIndex === maxIndex`. "View full statistics" button anchored to bottom.
+  Uses: useTranslations('hub.recentResults'), useState
+  Renders: GameItem (inline sub-component), BoostBadge, VerticalNav (inline)
+- **VerticalNav({ current, total, onUp, onDown })**: `JSX.Element` — [Client, inline in recent-results-widget] Up/down `IconButton` (bordered) + 3-dot position indicator. Up disabled when `current === 0`, down disabled when `current === total - 1`.
+- **GameItem({ item })**: `JSX.Element` — [Client, inline] Renders one game row with icon (✅/❌/🕐), score/vs display, pts label, subtext. When `hasPenalties` (homePenaltyScore != null && awayPenaltyScore != null): score line shows `BoldWinner Score (HomePen)–(AwayPen) Score Loser`. Six visual states: `finished+no-prediction` → CancelOutlined + youDidntPredict; `finished+exact` → CheckCircle + exactResult; `finished+correct-not-exact+hasPenalties` → CheckCircle + correctResultWithPenaltyWinner; `finished+correct-not-exact` → CheckCircle + correctResultWithGuess; `finished+incorrect+hasPenalties+userHadPenaltyPrediction` → CancelOutlined + yourGuessWithPenaltyPrediction; `finished+incorrect` → CancelOutlined + yourGuess; `pending/about_to_start` → WatchLaterIcon (warning.main) + status + prediction or noPredictionShort + "-- pts".
 
 ### app/components/tournament-hub/games-prediction-widget.tsx
 Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.
@@ -165,6 +167,6 @@ Client Component that owns all mutable carousel state and handles independent re
 ### app/components/tournament-hub/games-active-client.tsx
 Client Component managing navigation through the single-card game carousel with reactive predicted-count tracking and urgency status display.
 
-- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) card area — full-width `FlippableGameCard` inside a `position:relative` wrapper; `ChevronLeft`/`ChevronRight` `IconButton`s are absolutely positioned at left/right edges (`top:50%`, `zIndex:1`, `bgcolor:action.selected`) and only rendered when `editingGameId === null` AND there is an adjacent card (hidden at boundaries, not disabled); (3) "View All Matches" Button/Link.
-  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub')
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) card area — flex row with `FlippableGameCard` (flex:1) on the left; when `games.length > 1`, a `Stack` on the right with `KeyboardArrowUpIcon`/`KeyboardArrowDownIcon` `IconButton`s (bordered, disabled at boundaries with opacity:0.3) + 3-dot position indicator between them; (3) "View All Matches" Button/Link.
+  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub'), KeyboardArrowUpIcon, KeyboardArrowDownIcon
   Renders: DashboardCard, FlippableGameCard
