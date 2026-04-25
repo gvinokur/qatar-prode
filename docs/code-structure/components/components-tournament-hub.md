@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-04-25
 
 ---
 
@@ -167,6 +167,6 @@ Client Component that owns all mutable carousel state and handles independent re
 ### app/components/tournament-hub/games-active-client.tsx
 Client Component managing navigation through the single-card game carousel with reactive predicted-count tracking and urgency status display.
 
-- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) card area — full-width `FlippableGameCard` inside a `position:relative` wrapper; `ChevronLeft`/`ChevronRight` `IconButton`s are absolutely positioned at left/right edges (`top:50%`, `zIndex:1`, `bgcolor:action.selected`) and only rendered when `editingGameId === null` AND there is an adjacent card (hidden at boundaries, not disabled); (3) "View All Matches" Button/Link.
-  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub')
+- **GamesActiveClient({ games, teamsMap, tournamentId, gamesHref, urgencyLevel, cardTitle, initialPredicted, totalGames, urgentGameIds, onAllUrgentComplete })**: `JSX.Element` — [Client] Manages `currentIndex` and `editingGameId` in `useState`. Reads `gameGuesses` from `GuessesContext`. Snapshot-tracks initial guesses in `initialGuessesRef` (reset on remount) to compute `delta = countCompleteGuesses(current) - countCompleteGuesses(initial)` for reactive `adjustedPredicted = initialPredicted + delta`. Computes `urgentRemaining` from `urgentGameIds` + live `gameGuesses` to derive `effectiveUrgencyLevel`. Fires `onAllUrgentComplete` once (guarded by `refetchTriggeredRef`) when `urgentRemaining === 0`. Renders: (1) status row (urgency/safe/none); (2) card area — flex row with `FlippableGameCard` (flex:1) on the left; when `games.length > 1`, a `Stack` on the right with `KeyboardArrowUpIcon`/`KeyboardArrowDownIcon` `IconButton`s (bordered, disabled at boundaries with opacity:0.3) + 3-dot position indicator between them; (3) "View All Matches" Button/Link.
+  Uses: useContext(GuessesContext), useState, useRef, useEffect, useTranslations('hub'), KeyboardArrowUpIcon, KeyboardArrowDownIcon
   Renders: DashboardCard, FlippableGameCard
