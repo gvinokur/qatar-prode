@@ -144,10 +144,16 @@ const checkPlayoffPenaltyScenarios = (
   return null;
 }
 
+const DEFAULT_GAME_SCORING: ScoringConfig = {
+  game_exact_score_points: 3,
+  game_correct_outcome_points: 1,
+  game_correct_goal_difference_points: 2,
+}
+
 export const calculateScoreForGame = (
   game: ExtendedGameData,
   gameGuess: GameGuessNew,
-  scoringConfig: ScoringConfig = { game_exact_score_points: 3, game_correct_outcome_points: 1, game_correct_goal_difference_points: 2 }
+  scoringConfig: ScoringConfig = DEFAULT_GAME_SCORING
 ): ScoreResult => {
   if (!hasValidScores(game, gameGuess)) {
     return { score: 0, tier: 'missed' };

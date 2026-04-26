@@ -75,6 +75,8 @@ function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: Subte
   const predictionText = hasGuess
     ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
     : t('noPredictionShort')
+  const actualWinnerTeam = homeWins ? item.homeTeamName : item.awayTeamName
+  const userPenaltyWinnerTeam = item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName
 
   if (isPending) return `${statusText} • ${predictionText}`
   if (!hasGuess) return t('youDidntPredict')
@@ -85,7 +87,7 @@ function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: Subte
       return t('correctResultWithPenaltyWinner', {
         home: item.userHomeGuess!,
         away: item.userAwayGuess!,
-        team: homeWins ? item.homeTeamName : item.awayTeamName,
+        team: actualWinnerTeam,
       })
     }
     return t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
@@ -94,7 +96,7 @@ function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: Subte
     return t('yourGuessWithPenaltyPrediction', {
       home: item.userHomeGuess!,
       away: item.userAwayGuess!,
-      team: item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName,
+      team: userPenaltyWinnerTeam,
     })
   }
   return t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })

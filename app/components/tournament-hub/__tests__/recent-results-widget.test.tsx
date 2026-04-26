@@ -159,6 +159,25 @@ describe('RecentResultsWidget', () => {
       expect(screen.getByText(/hub.recentResults:aboutToStart/)).toBeInTheDocument()
     })
 
+    it('shows yourGuess for finished incorrect prediction with no penalty context', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            finalPoints: 0,
+            homeScore: 1,
+            awayScore: 0,
+            userHomeGuess: 0,
+            userAwayGuess: 1,
+            predictionTier: 'missed',
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(screen.getByText(/hub.recentResults:yourGuess/)).toBeInTheDocument()
+    })
+
     it('shows youDidntPredict for finished game with null guesses', () => {
       const data: RecentResultsData = {
         recentGames: [
