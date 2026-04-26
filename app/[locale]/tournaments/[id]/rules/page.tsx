@@ -61,7 +61,8 @@ export default async function TournamentRulesPage(props: Props) {
 
   // Extract scoring config from tournament
   const scoringConfig: ScoringConfig = {
-    game_exact_score_points: tournament.game_exact_score_points ?? 2,
+    game_exact_score_points: tournament.game_exact_score_points ?? 3,
+    game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? 2,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
     champion_points: tournament.champion_points ?? 5,
     runner_up_points: tournament.runner_up_points ?? 3,

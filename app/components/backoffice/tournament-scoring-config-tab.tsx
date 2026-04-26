@@ -27,6 +27,7 @@ type Props = {
 interface ScoringConfig {
   game_exact_score_points: number;
   game_correct_outcome_points: number;
+  game_correct_goal_difference_points: number;
   champion_points: number;
   runner_up_points: number;
   third_place_points: number;
@@ -97,8 +98,9 @@ export default function TournamentScoringConfigTab({ tournamentId }: Props) {
   };
 
   const scoringFields: { key: keyof ScoringConfig; label: string; description: string }[] = [
-    { key: 'game_exact_score_points', label: 'Exact Score Points', description: 'Points for guessing exact game score' },
     { key: 'game_correct_outcome_points', label: 'Correct Outcome Points', description: 'Points for guessing correct winner' },
+    { key: 'game_correct_goal_difference_points', label: 'Goal Difference Points', description: 'Points for correct winner with exact goal margin' },
+    { key: 'game_exact_score_points', label: 'Exact Score Points', description: 'Points for guessing exact game score' },
     { key: 'champion_points', label: 'Champion Points', description: 'Points for guessing tournament champion' },
     { key: 'runner_up_points', label: 'Runner-up Points', description: 'Points for guessing runner-up' },
     { key: 'third_place_points', label: 'Third Place Points', description: 'Points for guessing third place' },

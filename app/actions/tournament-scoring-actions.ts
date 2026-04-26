@@ -24,8 +24,9 @@ export async function getTournamentScoringConfigAction(tournamentId: string, loc
 
   // Return scoring fields
   return {
-    game_exact_score_points: tournament.game_exact_score_points ?? 2,
+    game_exact_score_points: tournament.game_exact_score_points ?? 3,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
+    game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? 2,
     champion_points: tournament.champion_points ?? 5,
     runner_up_points: tournament.runner_up_points ?? 3,
     third_place_points: tournament.third_place_points ?? 1,
@@ -74,8 +75,9 @@ export async function getRecommendedScoringValues(tournamentId: string, locale: 
   const avgGamePoints = totalGames * 0.75; // Assume 0.75 average points per game
 
   return {
-    game_exact_score_points: 2,
+    game_exact_score_points: 3,
     game_correct_outcome_points: 1,
+    game_correct_goal_difference_points: 2,
     champion_points: Math.max(10, Math.round(avgGamePoints * 0.13)), // ~13% of avg game points
     runner_up_points: Math.max(6, Math.round(avgGamePoints * 0.08)),  // ~8% of avg game points
     third_place_points: Math.max(4, Math.round(avgGamePoints * 0.05)), // ~5% of avg game points

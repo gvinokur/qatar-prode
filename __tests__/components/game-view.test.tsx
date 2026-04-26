@@ -21,7 +21,7 @@ vi.mock('next-auth/react', () => ({
 
 // Mock dependencies
 vi.mock('../../app/utils/game-score-calculator', () => ({
-    calculateScoreForGame: vi.fn(() => 2),
+    calculateScoreForGame: vi.fn(() => ({ score: 2, tier: 'exact' })),
 }));
 
 vi.mock('../../app/utils/playoffs-rule-helper', () => ({

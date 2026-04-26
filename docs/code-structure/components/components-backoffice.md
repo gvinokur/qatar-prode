@@ -26,8 +26,8 @@ Tab container for group and playoff management. [Client] data loading and tab or
   Renders: GroupBackoffice, PlayoffTab, BackofficeTabs
 
 ### app/components/backoffice/tournament-scoring-config-tab.tsx
-Scoring points configuration interface. [Client] form for tournament scoring setup.
-- **TournamentScoringConfigTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Configures points for game predictions, awards, and boost multipliers with recommended values.
+Scoring points configuration interface. [Client] form for tournament scoring setup. Includes game_correct_goal_difference_points field (Story #364).
+- **TournamentScoringConfigTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Configures points for game predictions (outcome/goal_difference/exact), awards, and boost multipliers with recommended values.
   Calls: getTournamentScoringConfigAction, updateTournamentScoringConfigAction, getRecommendedScoringValues
   Renders: TextField, Button, Card, Grid, Alert, Chip
 

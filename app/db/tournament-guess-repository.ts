@@ -163,10 +163,13 @@ export async function recalculateGameScoresForUsers(
       // Prediction accuracy counts (for stats page)
       total_correct_guesses: stats?.total_correct_guesses || 0,
       total_exact_guesses: stats?.total_exact_guesses || 0,
+      total_goal_difference_guesses: stats?.total_goal_difference_guesses || 0,
       group_correct_guesses: stats?.group_correct_guesses || 0,
       group_exact_guesses: stats?.group_exact_guesses || 0,
+      group_goal_difference_guesses: stats?.group_goal_difference_guesses || 0,
       playoff_correct_guesses: stats?.playoff_correct_guesses || 0,
       playoff_exact_guesses: stats?.playoff_exact_guesses || 0,
+      playoff_goal_difference_guesses: stats?.playoff_goal_difference_guesses || 0,
       // Date of last game used in calculation (not current timestamp)
       last_game_score_update_at: stats?.last_game_date || new Date(),
     };

@@ -345,13 +345,13 @@ Server Action for reading daily score history for a friend group in a tournament
 Exported types: `ScoreHistoryDataPoint`, `UserScoreHistory`, `ScoreHistoryResult`
 
 ### app/actions/tournament-scoring-actions.ts
-Manages tournament scoring configuration (points per correct prediction).
+Manages tournament scoring configuration (points per correct prediction). Includes game_correct_goal_difference_points (Story #364).
 
-- **getTournamentScoringConfigAction(tournamentId, locale)**: `Promise<ScoringConfig>` — Gets scoring config for a tournament.
+- **getTournamentScoringConfigAction(tournamentId, locale)**: `Promise<ScoringConfig>` — Gets scoring config including game_correct_goal_difference_points (default 2) and game_exact_score_points (default 3).
   Calls: auth, findTournamentById
 - **updateTournamentScoringConfigAction(tournamentId, update, locale)**: `Promise<Tournament>` — Updates scoring configuration.
   Calls: auth, updateTournament
-- **getRecommendedScoringValues(tournamentId, locale)**: `Promise<RecommendedValues>` — Gets recommended scoring values based on game count.
+- **getRecommendedScoringValues(tournamentId, locale)**: `Promise<RecommendedValues>` — Gets recommended scoring values; recommends goal_difference=2, exact=3.
   Calls: auth, findGamesInTournament
 
 ### app/actions/user-actions.ts

@@ -479,7 +479,7 @@ export default function CompactGameViewCard({
  * @param actualHome - Actual home team score
  * @param actualAway - Actual away team score
  * @param penaltyOptions - Optional penalty data for playoff games
- * @returns 'exact' | 'correct' | 'incorrect'
+ * @returns 'exact' | 'goal_difference' | 'correct' | 'incorrect'
  */
 export function calculatePredictionResult(
   predictedHome: number,
@@ -492,7 +492,7 @@ export function calculatePredictionResult(
     actualHomePenaltyScore?: number | null;
     actualAwayPenaltyScore?: number | null;
   }
-): 'exact' | 'correct' | 'incorrect' {
+): 'exact' | 'goal_difference' | 'correct' | 'incorrect' {
   const {
     predictedHomePenaltyWinner,
     predictedAwayPenaltyWinner,
@@ -520,6 +520,11 @@ export function calculatePredictionResult(
   // EXACT: Predicted scores match actual scores exactly
   if (predictedHome === actualHome && predictedAway === actualAway) {
     return penaltyWinnerResult() ?? 'exact';
+  }
+
+  // GOAL DIFFERENCE: Same margin (home - away) but different scores
+  if ((actualHome - actualAway) === (predictedHome - predictedAway)) {
+    return penaltyWinnerResult() ?? 'goal_difference';
   }
 
   // Determine winners using explicit conditions

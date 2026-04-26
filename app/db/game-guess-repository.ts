@@ -1,6 +1,7 @@
 import {db} from './database'
 import {createBaseFunctions} from "./base-repository";
 import {GameGuessTable, GameGuess, GameGuessNew} from "./tables-definition";
+import {PredictionTier} from "../utils/game-score-calculator";
 import {GameStatisticForUser} from "../../types/definitions";
 import {cache} from "react";
 import {sql, ExpressionBuilder} from 'kysely';
@@ -91,6 +92,16 @@ export async function legacyGetGameGuessStatisticsForUsers(userIds: string[], to
         'integer'
       ).as('total_exact_guesses'),
       eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when('game_guesses.prediction_tier', '=', 'goal_difference')
+            .then(1)
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('total_goal_difference_guesses'),
+      eb.cast<number>(
         eb.fn.sum(eb.cast<number>('game_guesses.score', 'integer'))
         ,'integer'
       ).as('total_score'),
@@ -130,6 +141,18 @@ export async function legacyGetGameGuessStatisticsForUsers(userIds: string[], to
         ),
         'integer'
       ).as('group_exact_guesses'),
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when('games.game_type', '<>', 'group')
+            .then(0)
+            .when('game_guesses.prediction_tier', '=', 'goal_difference')
+            .then(1)
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('group_goal_difference_guesses'),
       eb.cast<number>(
         eb.fn.sum(
           eb.case()
@@ -178,6 +201,18 @@ export async function legacyGetGameGuessStatisticsForUsers(userIds: string[], to
         ),
         'integer'
       ).as('playoff_exact_guesses'),
+      eb.cast<number>(
+        eb.fn.sum(
+          eb.case()
+            .when('games.game_type', '=', 'group')
+            .then(0)
+            .when('game_guesses.prediction_tier', '=', 'goal_difference')
+            .then(1)
+            .else(0)
+            .end()
+        ),
+        'integer'
+      ).as('playoff_goal_difference_guesses'),
       eb.cast<number>(
         eb.fn.sum(
           eb.case()
@@ -241,10 +276,13 @@ export async function getGameGuessStatisticsForUsers(
       // Prediction accuracy counts (for stats page)
       'total_correct_guesses',
       'total_exact_guesses',
+      'total_goal_difference_guesses',
       'group_correct_guesses',
       'group_exact_guesses',
+      'group_goal_difference_guesses',
       'playoff_correct_guesses',
       'playoff_exact_guesses',
+      'playoff_goal_difference_guesses',
     ])
     .execute();
 
@@ -279,12 +317,13 @@ export async function deleteAllGameGuessesByTournamentId(tournamentId: string) {
 }
 
 /**
- * Update game guess with calculated score and boost
+ * Update game guess with calculated score, boost, and prediction tier
  */
 export async function updateGameGuessWithBoost(
   guessId: string,
   baseScore: number,
-  boostType: 'silver' | 'golden' | null
+  boostType: 'silver' | 'golden' | null,
+  tier: PredictionTier
 ): Promise<GameGuess> {
   const boostMultiplier = boostType === 'golden' ? 3.0 : boostType === 'silver' ? 2.0 : 1.0;
   const finalScore = Math.round(baseScore * boostMultiplier);
@@ -295,6 +334,7 @@ export async function updateGameGuessWithBoost(
       score: baseScore,
       boost_multiplier: boostMultiplier,
       final_score: finalScore,
+      prediction_tier: tier,
     })
     .where('id', '=', guessId)
     .returningAll()

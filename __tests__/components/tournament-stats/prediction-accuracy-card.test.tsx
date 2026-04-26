@@ -13,16 +13,22 @@ describe('PredictionAccuracyCard', () => {
     overallCorrectPercentage: 62.5,
     overallExact: 8,
     overallExactPercentage: 25.0,
+    overallGoalDifference: 0,
+    overallGoalDifferencePercentage: 0,
     overallMissed: 4,
     overallMissedPercentage: 12.5,
     groupCorrect: 15,
     groupCorrectPercentage: 46.9,
     groupExact: 6,
     groupExactPercentage: 18.8,
+    groupGoalDifference: 0,
+    groupGoalDifferencePercentage: 0,
     playoffCorrect: 5,
     playoffCorrectPercentage: 15.6,
     playoffExact: 2,
-    playoffExactPercentage: 6.3
+    playoffExactPercentage: 6.3,
+    playoffGoalDifference: 0,
+    playoffGoalDifferencePercentage: 0,
   };
 
   describe('Rendering with data', () => {
@@ -82,16 +88,22 @@ describe('PredictionAccuracyCard', () => {
         overallCorrectPercentage: 0,
         overallExact: 0,
         overallExactPercentage: 0,
+        overallGoalDifference: 0,
+        overallGoalDifferencePercentage: 0,
         overallMissed: 0,
         overallMissedPercentage: 0,
         groupCorrect: 0,
         groupCorrectPercentage: 0,
         groupExact: 0,
         groupExactPercentage: 0,
+        groupGoalDifference: 0,
+        groupGoalDifferencePercentage: 0,
         playoffCorrect: 0,
         playoffCorrectPercentage: 0,
         playoffExact: 0,
-        playoffExactPercentage: 0
+        playoffExactPercentage: 0,
+        playoffGoalDifference: 0,
+        playoffGoalDifferencePercentage: 0,
       };
 
       renderWithTheme(<PredictionAccuracyCard {...emptyProps} />);

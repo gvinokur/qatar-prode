@@ -942,7 +942,7 @@ describe('Backoffice Actions', () => {
       mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([
         { id: 'guess2', game_id: 'game2', game_number: 2, user_id: 'user2', home_team: 'team3', away_team: 'team4', home_score: 2, away_score: 1, home_penalty_winner: false, away_penalty_winner: false, score: 5, boost_type: null, boost_multiplier: 1.0, final_score: 5, updated_at: new Date() }
       ]);
-      mockCalculateScoreForGame.mockReturnValue(2);
+      mockCalculateScoreForGame.mockReturnValue({ score: 2, tier: 'exact' });
       mockUpdateGameGuessWithBoost.mockResolvedValue({ id: 'guess1', game_number: 1, home_team: 'team1', away_team: 'team2', game_id: 'game1', home_score: 1, away_score: 2, user_id: 'user1', home_penalty_winner: false, away_penalty_winner: false, score: 2, boost_type: null, boost_multiplier: 1.0, final_score: 2, updated_at: new Date() });
     });
 
@@ -950,7 +950,7 @@ describe('Backoffice Actions', () => {
       const result = await calculateGameScores(false, false);
 
       expect(mockCalculateScoreForGame).toHaveBeenCalled();
-      expect(mockUpdateGameGuessWithBoost).toHaveBeenCalledWith('guess1', 2, null);
+      expect(mockUpdateGameGuessWithBoost).toHaveBeenCalledWith('guess1', 2, null, 'exact');
       expect(mockUpdateGameGuess).toHaveBeenCalledWith('guess2', {
         score: null,
         final_score: null,

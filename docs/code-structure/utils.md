@@ -34,8 +34,8 @@ Pure utility functions for evaluating game guess completeness — shared between
 ### app/utils/scoring-config.ts
 Shared scoring configuration types and defaults — kept in a neutral (non-client, non-server) file so it can be imported from Server Components/Actions and Client Components alike.
 
-- **ScoringConfig**: TypeScript interface — `{ game_exact_score_points, game_correct_outcome_points, champion_points, runner_up_points, third_place_points, individual_award_points, qualified_team_points, exact_position_qualified_points, max_silver_games, max_golden_games }` (all `number`). Re-exported from `rules.tsx` for backward compatibility.
-- **DEFAULT_SCORING**: `ScoringConfig` — Default scoring values (1pt correct outcome, +1 exact bonus, 5/3/1 podium, 3 awards, 1+2 QT, no boosts). Used as fallback when a tournament has no scoring config.
+- **ScoringConfig**: TypeScript interface — `{ game_exact_score_points, game_correct_outcome_points, game_correct_goal_difference_points, champion_points, runner_up_points, third_place_points, individual_award_points, qualified_team_points, exact_position_qualified_points, max_silver_games, max_golden_games }` (all `number`). Re-exported from `rules.tsx` for backward compatibility.
+- **DEFAULT_SCORING**: `ScoringConfig` — Default scoring values: correct_outcome=1, goal_difference=2, exact=3; 5/3/1 podium, 3 awards, 1+2 QT, no boosts. Used as fallback when a tournament has no scoring config.
 
 ### app/utils/scoring-rules-utils.ts
 Pure utility that organises scoring rule labels into the three prediction tracks (Matches, Qualified Teams, Awards) using the same i18n keys and pluralisation logic as `rules.tsx`.
@@ -108,10 +108,13 @@ Game outcome determination utilities for winner and loser identification.
 - **getWinner(homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner, homeTeam, awayTeam)**: `string | undefined` — Core logic to determine the winner considering scores and penalty results.
 
 ### app/utils/game-score-calculator.ts
-Game prediction scoring calculation with boost multiplier support for accuracy and exact matches.
+Game prediction scoring calculation with three tiers: exact score (3pt), goal difference (2pt), correct outcome (1pt).
 
-- **calculateScoreForGame(game, gameGuess, scoringConfig)**: `number` — Calculates points earned for a game prediction, supporting exact score (2 points) and correct outcome (1 point) with penalty handling.
-  Calls: none
+- **PredictionTier**: `'exact' | 'goal_difference' | 'correct' | 'missed'` — exported type for prediction result category.
+- **ScoreResult**: `{ score: number; tier: PredictionTier }` — return type of calculateScoreForGame.
+- **calculateScoreForGame(game, gameGuess, scoringConfig)**: `ScoreResult` — Calculates points and tier for a game prediction. Checks exact → goal_difference → correct → playoff penalty scenarios in order. Default scoringConfig: exact=3, goal_diff=2, outcome=1.
+  Calls: checkExactMatch, checkGoalDifferenceMatch, checkCorrectOutcome, checkPlayoffPenaltyScenarios, hasValidScores, getPenaltyWinners
+- **checkGoalDifferenceMatch(gameHomeScore, gameAwayScore, gameGuess, homePenaltyWin, awayPenaltyWin, goalDifferencePoints)**: `ScoreResult | null` — Returns goal_difference tier when `(gameHomeScore - gameAwayScore) === (guessHome - guessAway)`. Returns null when margin doesn't match; returns score=0/tier=missed when margin matches but penalty winner wrong.
 
 ### app/utils/group-position-calculator.ts
 Group stage team ranking calculator implementing FIFA tiebreaker rules and two-team head-to-head logic.

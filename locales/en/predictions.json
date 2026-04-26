@@ -35,6 +35,7 @@
     "noPrediction": "No Prediction",
     "actualResult": "Actual Result",
     "predictionResultExact": "Exact ({points} points)",
+    "predictionResultGoalDifference": "Goal Difference ({points} points)",
     "predictionResultCorrect": "Correct ({points} points)",
     "predictionResultIncorrect": "Incorrect (0 points)",
     "matchday": "Matchday {number}"

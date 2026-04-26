@@ -853,7 +853,8 @@ describe('getRecentResultsData', () => {
 // ---------------------------------------------------------------------------
 
 const defaultScoringConfig = {
-  game_exact_score_points: 2,
+  game_exact_score_points: 3,
+  game_correct_goal_difference_points: 2,
   game_correct_outcome_points: 1,
   champion_points: 5,
   runner_up_points: 3,
@@ -1033,7 +1034,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(undefined)
     const result = await getTournamentHubPageData(TOURNAMENT_ID)
     expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
-    expect(result.scoringConfig.game_exact_score_points).toBe(2)
+    expect(result.scoringConfig.game_exact_score_points).toBe(3)
   })
 
   it('returns custom scoring config when tournament has custom scoring fields', async () => {
@@ -1067,7 +1068,7 @@ describe('getTournamentHubPageData', () => {
     )
     const result = await getTournamentHubPageData(TOURNAMENT_ID)
     expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
-    expect(result.scoringConfig.game_exact_score_points).toBe(2)
+    expect(result.scoringConfig.game_exact_score_points).toBe(3)
   })
 
   it('returns correct totalGames count from db query', async () => {

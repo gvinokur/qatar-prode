@@ -86,6 +86,7 @@ function buildScoringConfig(
   if (!tournament) return DEFAULT_SCORING
   return {
     game_exact_score_points: tournament.game_exact_score_points ?? DEFAULT_SCORING.game_exact_score_points,
+    game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? DEFAULT_SCORING.game_correct_goal_difference_points,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? DEFAULT_SCORING.game_correct_outcome_points,
     champion_points: tournament.champion_points ?? DEFAULT_SCORING.champion_points,
     runner_up_points: tournament.runner_up_points ?? DEFAULT_SCORING.runner_up_points,

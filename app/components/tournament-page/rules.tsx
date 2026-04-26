@@ -16,6 +16,7 @@ import {useState} from "react";
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import WinnerDrawExample from './rules-examples/winner-draw';
+import GoalDifferenceExample from './rules-examples/goal-difference';
 import ExactScoreExample from './rules-examples/exact-score';
 import RoundOf16Example from './rules-examples/round-of-16';
 import ChampionExample from './rules-examples/champion';
@@ -75,6 +76,10 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
         label: getPluralized('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
         component: <WinnerDrawExample points={config.game_correct_outcome_points} />
       },
+      ...(config.game_correct_goal_difference_points > 0 ? [{
+        label: getPluralized('goalDifference', config.game_correct_goal_difference_points, { points: config.game_correct_goal_difference_points }),
+        component: <GoalDifferenceExample points={config.game_correct_goal_difference_points} />
+      }] : []),
       {
         label: getPluralized('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
         component: <ExactScoreExample

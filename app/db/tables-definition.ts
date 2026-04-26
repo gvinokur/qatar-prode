@@ -61,6 +61,7 @@ export interface TournamentTable extends Identifiable{
   // Scoring configuration fields
   game_exact_score_points?: number
   game_correct_outcome_points?: number
+  game_correct_goal_difference_points?: number
   champion_points?: number
   runner_up_points?: number
   third_place_points?: number
@@ -328,10 +329,17 @@ export interface GameGuessTable extends Identifiable{
   /**
    * Undefined - The game has not been played or the calculation did not happen
    * 0 - Missed guess
-   * 1- Correct guess with wrong score
-   * 2- Exact guess
+   * 1 - Correct outcome only
+   * 2 - Goal difference match (correct winner + exact margin)
+   * 3 - Exact score match
    */
   score?:number
+
+  /**
+   * Denormalized prediction tier for FE badge rendering without client-side recalculation.
+   * Null for rows predating story #364.
+   */
+  prediction_tier?: 'exact' | 'goal_difference' | 'correct' | 'missed' | null
 
   // Boost fields
   boost_type?: 'silver' | 'golden' | null
@@ -409,10 +417,13 @@ export interface TournamentGuessTable extends Identifiable{
    */
   total_correct_guesses?: number
   total_exact_guesses?: number
+  total_goal_difference_guesses?: number
   group_correct_guesses?: number
   group_exact_guesses?: number
+  group_goal_difference_guesses?: number
   playoff_correct_guesses?: number
   playoff_exact_guesses?: number
+  playoff_goal_difference_guesses?: number
   /**
    * Timestamp of last game score update (date of last game used in calculation)
    */
