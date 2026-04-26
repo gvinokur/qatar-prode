@@ -35,6 +35,7 @@ interface UnifiedGamesPageContentProps {
   readonly closingGames: ExtendedGameData[];
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
   readonly tournamentStartDate: Date | undefined;
+  readonly qualifiedTeamsHref: string;
 }
 
 function UnifiedGamesPageContent({
@@ -47,7 +48,8 @@ function UnifiedGamesPageContent({
   tournament,
   closingGames,
   tournamentPredictionCompletion,
-  tournamentStartDate
+  tournamentStartDate,
+  qualifiedTeamsHref
 }: UnifiedGamesPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -280,6 +282,8 @@ function UnifiedGamesPageContent({
           activeFilter={activeFilter}
           tournament={tournament}
           onGameStageClick={handleGameStageClick}
+          qtPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked ?? false}
+          qualifiedTeamsHref={qualifiedTeamsHref}
         />
 
         {/* Floating Action Button - Scroll to Next Game (mobile only) */}
@@ -333,6 +337,7 @@ interface UnifiedGamesPageClientProps {
   readonly closingGames: ExtendedGameData[];
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
   readonly tournamentStartDate: Date | undefined;
+  readonly qualifiedTeamsHref: string;
 }
 
 export function UnifiedGamesPageClient(props: UnifiedGamesPageClientProps) {

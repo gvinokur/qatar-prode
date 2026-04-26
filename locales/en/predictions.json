@@ -74,7 +74,12 @@
     "noBoost": "None",
     "penaltyWinner": "Penalty Winner",
     "penaltyWinnerFull": "Penalty shootout winner",
-    "penaltyWinnerPrompt": "Since the match ended in a draw, please select the penalty shootout winner."
+    "penaltyWinnerPrompt": "Since the match ended in a draw, please select the penalty shootout winner.",
+    "saveAndNext": "Save & Next"
+  },
+  "stageTransition": {
+    "predictQualifiedTeams": "Predict Qualified Teams",
+    "checkQtPredictions": "Check your QT Predictions"
   },
   "boost": {
     "silver": {

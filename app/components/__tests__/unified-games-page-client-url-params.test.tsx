@@ -151,6 +151,7 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
         closingGames={[]}
         tournamentPredictionCompletion={null}
         tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
       />
     );
 
@@ -191,6 +192,7 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
         closingGames={[]}
         tournamentPredictionCompletion={null}
         tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
       />
     );
 
@@ -238,6 +240,7 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
         closingGames={[]}
         tournamentPredictionCompletion={null}
         tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/123/qualified-teams"
       />
     );
 
@@ -271,6 +274,7 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
         closingGames={[]}
         tournamentPredictionCompletion={null}
         tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
       />
     );
 

@@ -87,6 +87,9 @@ interface GamePredictionEditControlsProps {
   // Refs for Save/Cancel buttons
   readonly saveButtonRef?: React.RefObject<HTMLButtonElement | null>;
   readonly cancelButtonRef?: React.RefObject<HTMLButtonElement | null>;
+
+  // Guided mode: shows "Save & Next" as primary desktop action
+  readonly isGuidedMode?: boolean;
 }
 
 export default function GamePredictionEditControls({
@@ -124,7 +127,8 @@ export default function GamePredictionEditControls({
   onSaveAndAdvance,
   onShiftTabFromFirstField,
   onEscapePressed,
-  retryCallback
+  retryCallback,
+  isGuidedMode = false
 }: GamePredictionEditControlsProps) {
   const t = useTranslations('predictions');
   const theme = useTheme();
@@ -1219,6 +1223,10 @@ export default function GamePredictionEditControls({
     }
 
     if (!isMobile && onSave && onCancel) {
+      const showSaveAndNext = isGuidedMode && !!onSaveAndAdvance;
+      const buttonSize = compact ? 'small' : 'medium';
+      const idleLabel = showSaveAndNext ? t('edit.saveAndNext') : t('edit.save');
+      const saveLabel = loading ? t('edit.saving') : idleLabel;
       return (
         <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
           <Button
@@ -1229,7 +1237,7 @@ export default function GamePredictionEditControls({
             onKeyDown={(e) => handleKeyDown(e, 'cancel')}
             onFocus={() => setCurrentField('cancel')}
             disabled={loading}
-            size={compact ? 'small' : 'medium'}
+            size={buttonSize}
             fullWidth
             sx={{
               '&:focus': {
@@ -1244,11 +1252,11 @@ export default function GamePredictionEditControls({
           <Button
             ref={saveButtonRef}
             variant="contained"
-            onClick={onSave}
+            onClick={showSaveAndNext ? onSaveAndAdvance : onSave}
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
-            size={compact ? 'small' : 'medium'}
+            size={buttonSize}
             fullWidth
             sx={{
               '&:focus': {
@@ -1258,7 +1266,7 @@ export default function GamePredictionEditControls({
               }
             }}
           >
-            {loading ? t('edit.saving') : t('edit.save')}
+            {saveLabel}
           </Button>
         </Box>
       );

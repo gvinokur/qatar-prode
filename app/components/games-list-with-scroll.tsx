@@ -8,6 +8,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import FlippableGameCard from './flippable-game-card';
 import { StageSeparator } from './stage-separator';
+import { StageTransitionBanner } from './stage-transition-banner';
 import { ExtendedGameData } from '../definitions';
 import { Game, GameGuessNew, Team, Tournament } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -17,6 +18,7 @@ import { EmptyGamesState } from './empty-games-state';
 import { FilterType } from '../utils/game-filters';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 import { calculateTeamNamesForPlayoffGame } from '../utils/playoff-utils';
+import { isGamePredictionComplete } from '../utils/game-prediction-helpers';
 
 type GameSection = { sectionKey: string; label: string; games: ExtendedGameData[] }
 
@@ -27,6 +29,8 @@ interface GamesListWithScrollProps {
   readonly activeFilter: FilterType;
   readonly tournament: Tournament;
   readonly onGameStageClick?: (game: ExtendedGameData) => void;
+  readonly qtPredictionLocked: boolean;
+  readonly qualifiedTeamsHref: string;
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -48,7 +52,9 @@ export function GamesListWithScroll({
   tournamentId,
   activeFilter,
   tournament,
-  onGameStageClick
+  onGameStageClick,
+  qtPredictionLocked,
+  qualifiedTeamsHref
 }: GamesListWithScrollProps) {
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
@@ -173,25 +179,38 @@ export function GamesListWithScroll({
   const handleAutoAdvanceNext = useCallback((currentGameId: string) => {
     const idx = games.findIndex(g => g.id === currentGameId);
 
-    // Find next enabled game (skip disabled games)
+    // Find next unpredicted group-stage game (never crosses into playoffs)
     for (let i = idx + 1; i < games.length; i++) {
       const nextGame = games[i];
-      const ONE_HOUR = 60 * 60 * 1000;
-      const isDisabled = Date.now() + ONE_HOUR > nextGame.game_date.getTime();
 
-      if (!isDisabled) {
+      // Stop at group stage boundary — never advance into playoff games
+      if (nextGame.playoffStage !== null && nextGame.playoffStage !== undefined) {
+        return;
+      }
+
+      const nextGuess = gameGuesses[nextGame.id];
+      const isPredicted = isGamePredictionComplete(
+        nextGame.game_type,
+        nextGuess?.home_score,
+        nextGuess?.away_score,
+        nextGuess?.home_penalty_winner,
+        nextGuess?.away_penalty_winner
+      );
+
+      if (!isPredicted) {
         handleEditStart(nextGame.id);
 
-        // Scroll to next card
+        // Scroll after edit form opens so the expanded card stays in view
         setTimeout(() => {
           const cardElement = document.getElementById(`game-${nextGame.id}`);
-          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
+          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
 
         return;
       }
     }
-  }, [games, handleEditStart]);
+    // No unpredicted group game found — stop silently
+  }, [games, gameGuesses, handleEditStart]);
 
   const handleAutoGoPrevious = useCallback((currentGameId: string) => {
     const idx = games.findIndex(g => g.id === currentGameId);
@@ -267,43 +286,62 @@ export function GamesListWithScroll({
           width: '100%',
         }}
       >
-        {gameSections.map(section => (
-          <Fragment key={section.sectionKey}>
-            {section.label && <StageSeparator label={section.label} />}
-            {section.games.map(game => {
-              const gameGuess = gameGuesses[game.id];
-              const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
+        {gameSections.map((section, sectionIdx) => {
+          const isFirstPlayoffSection = section.sectionKey.startsWith('playoff-') &&
+            !gameSections.slice(0, sectionIdx).some(s => s.sectionKey.startsWith('playoff-'));
+          const ctaLabel = qtPredictionLocked
+            ? t('stageTransition.checkQtPredictions')
+            : t('stageTransition.predictQualifiedTeams');
 
-              return (
-                <Box
-                  key={game.id}
-                  id={`game-${game.id}`}
-                  data-game-id={game.id}
-                >
-                  <FlippableGameCard
-                    game={game}
-                    teamsMap={teamsMap}
-                    isPlayoffs={isPlayoffGame}
-                    tournamentId={tournamentId}
-                    homeScore={gameGuess?.home_score}
-                    awayScore={gameGuess?.away_score}
-                    homePenaltyWinner={gameGuess?.home_penalty_winner}
-                    awayPenaltyWinner={gameGuess?.away_penalty_winner}
-                    boostType={gameGuess?.boost_type}
-                    initialBoostType={gameGuess?.boost_type}
-                    isEditing={editingGameId === game.id}
-                    onEditStart={() => handleEditStart(game.id)}
-                    onEditEnd={handleEditEnd}
-                    disabled={false}
-                    onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
-                    onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
-                    onStageClick={onGameStageClick ? () => onGameStageClick(game) : undefined}
+          return (
+            <Fragment key={section.sectionKey}>
+              {section.label && (
+                isFirstPlayoffSection ? (
+                  <StageTransitionBanner
+                    label={section.label}
+                    ctaLabel={ctaLabel}
+                    ctaHref={qualifiedTeamsHref}
                   />
-                </Box>
-              );
-            })}
-          </Fragment>
-        ))}
+                ) : (
+                  <StageSeparator label={section.label} />
+                )
+              )}
+              {section.games.map(game => {
+                const gameGuess = gameGuesses[game.id];
+                const isPlayoffGame = game.playoffStage !== null && game.playoffStage !== undefined;
+
+                return (
+                  <Box
+                    key={game.id}
+                    id={`game-${game.id}`}
+                    data-game-id={game.id}
+                  >
+                    <FlippableGameCard
+                      game={game}
+                      teamsMap={teamsMap}
+                      isPlayoffs={isPlayoffGame}
+                      tournamentId={tournamentId}
+                      homeScore={gameGuess?.home_score}
+                      awayScore={gameGuess?.away_score}
+                      homePenaltyWinner={gameGuess?.home_penalty_winner}
+                      awayPenaltyWinner={gameGuess?.away_penalty_winner}
+                      boostType={gameGuess?.boost_type}
+                      initialBoostType={gameGuess?.boost_type}
+                      isEditing={editingGameId === game.id}
+                      onEditStart={() => handleEditStart(game.id)}
+                      onEditEnd={handleEditEnd}
+                      disabled={false}
+                      onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
+                      onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
+                      onStageClick={onGameStageClick ? () => onGameStageClick(game) : undefined}
+                      isGuidedMode={true}
+                    />
+                  </Box>
+                );
+              })}
+            </Fragment>
+          );
+        })}
       </Box>
 
       {/* Back to top button - only show on desktop if more than 1 game */}

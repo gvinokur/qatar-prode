@@ -67,6 +67,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
     : undefined;
 
+  const qualifiedTeamsHref = `/${locale}/tournaments/${tournamentId}/qualified-teams`;
+
   const localizedGames = games.map(game => ({
     ...game,
     playoffStage: game.playoffStage
@@ -96,6 +98,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
           closingGames={closingGames}
           tournamentPredictionCompletion={tournamentPredictionCompletion}
           tournamentStartDate={tournamentStartDate}
+          qualifiedTeamsHref={qualifiedTeamsHref}
         />
       </EditTriggerContextProvider>
     </GuessesContextProvider>

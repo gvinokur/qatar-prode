@@ -43,6 +43,9 @@ interface FlippableGameCardProps {
 
   // Stage click handler (optional — omit for static stage label)
   readonly onStageClick?: () => void;
+
+  // Guided mode: passed through to GamePredictionEditControls
+  readonly isGuidedMode?: boolean;
 }
 
 export default function FlippableGameCard({
@@ -62,7 +65,8 @@ export default function FlippableGameCard({
   disabled = false,
   onAutoAdvanceNext,
   onAutoGoPrevious,
-  onStageClick
+  onStageClick,
+  isGuidedMode = false
 }: FlippableGameCardProps) {
   const t = useTranslations('predictions');
   const theme = useTheme();
@@ -355,6 +359,7 @@ export default function FlippableGameCard({
                   onShiftTabFromFirstField={handleShiftTabToPrevious}
                   onEscapePressed={handleCancel}
                   retryCallback={handleSave}
+                  isGuidedMode={isGuidedMode}
                 />
               </CardContent>
             </Card>
