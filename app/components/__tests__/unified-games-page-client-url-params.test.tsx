@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, act } from '@testing-library/react';
 import { UnifiedGamesPageClient } from '../unified-games-page-client';
+import { GuessesContext } from '../context-providers/guesses-context-provider';
 import * as nextNavigation from 'next/navigation';
 import * as autoScroll from '../../utils/auto-scroll';
 import { testFactories } from '@/__tests__/db/test-factories';
@@ -340,6 +341,72 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
 
     expect(mockSetActiveFilter).not.toHaveBeenCalledWith('all');
     expect(mockTriggerEdit).not.toHaveBeenCalled();
+  });
+
+  it('should resolve ?edit=next to first unpredicted upcoming game (skipping predicted ones)', async () => {
+    mockSearchParams.set('edit', 'next');
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // tomorrow
+    const predictedGame = testFactories.game({ id: 'predicted-game', game_date: futureDate });
+    const unpredictedGame = testFactories.game({ id: 'unpredicted-game', game_date: new Date(futureDate.getTime() + 3600_000) });
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+    const completeGuess = testFactories.gameGuess({ game_id: 'predicted-game', home_score: 1, away_score: 0 });
+
+    render(
+      <GuessesContext.Provider value={{ gameGuesses: { 'predicted-game': completeGuess }, boostCounts: { silver: { used: 0, max: 5 }, golden: { used: 0, max: 3 } } } as any}>
+        <UnifiedGamesPageClient
+          games={[predictedGame, unpredictedGame] as any}
+          gameCounts={{ total: 2, predicted: 1, remaining: 1 }}
+          teamsMap={{ [team.id]: team }}
+          tournamentId={tournament.id}
+          groups={[]}
+          rounds={[]}
+          tournament={tournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={null}
+          tournamentStartDate={undefined}
+          qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+        />
+      </GuessesContext.Provider>
+    );
+
+    await act(async () => { vi.runAllTimers(); });
+
+    // triggerEdit should be called with the unpredicted game, not the predicted one
+    expect(mockTriggerEdit).toHaveBeenCalledWith('unpredicted-game');
+    expect(mockTriggerEdit).not.toHaveBeenCalledWith('predicted-game');
+  });
+
+  it('should fall back to findScrollTarget when all upcoming games are predicted', () => {
+    vi.mocked(autoScroll.findScrollTarget).mockReturnValue('game-predicted-game');
+    mockSearchParams.set('edit', 'next');
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const predictedGame = testFactories.game({ id: 'predicted-game', game_date: futureDate });
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+    const completeGuess = testFactories.gameGuess({ game_id: 'predicted-game', home_score: 1, away_score: 0 });
+
+    render(
+      <GuessesContext.Provider value={{ gameGuesses: { 'predicted-game': completeGuess }, boostCounts: { silver: { used: 0, max: 5 }, golden: { used: 0, max: 3 } } }}>
+        <UnifiedGamesPageClient
+          games={[predictedGame] as any}
+          gameCounts={{ total: 1, predicted: 1, remaining: 0 }}
+          teamsMap={{ [team.id]: team }}
+          tournamentId={tournament.id}
+          groups={[]}
+          rounds={[]}
+          tournament={tournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={null}
+          tournamentStartDate={undefined}
+          qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+        />
+      </GuessesContext.Provider>
+    );
+
+    // All upcoming games predicted → falls back to findScrollTarget
+    expect(autoScroll.findScrollTarget).toHaveBeenCalled();
+    expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
   });
 
   it('should do nothing when no edit parameter', () => {
