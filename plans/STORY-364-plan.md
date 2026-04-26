@@ -34,11 +34,11 @@ With the new middle tier, the point hierarchy is recalibrated to be clearly dist
 
 ### Core Design Decision: `prediction_tier` column in `game_guesses`
 
-The `game_guesses.score` column stores the actual point *value* (e.g., 2). Since goal difference and exact score can award the same points (both default to 2), a separate `prediction_tier` column is required to distinguish them in stats queries.
+With the recalibrated defaults (correct=1, goal_difference=2, exact=3), the point values are now distinct — stats queries can distinguish tiers by score thresholds alone. However, `prediction_tier` is still stored as a **denormalization for the frontend**: the FE receives the pre-computed tier from the server and renders badges directly without recomputing the result on every render.
 
 **Scoring tier values:** `'exact' | 'goal_difference' | 'correct' | 'missed'`
 
-**Existing stats queries** currently determine "exact" by checking `score > 1`. After this story, they must check `prediction_tier = 'exact'` instead. For backward compat with existing rows (where `prediction_tier` is NULL), the query falls back: `prediction_tier = 'exact' OR (prediction_tier IS NULL AND score > 1)`.
+**Stats queries** continue to use score thresholds: `score > 2` → exact, `score = 2` → goal_difference, `score = 1` → correct. The `prediction_tier` column is a convenience, not a correctness requirement for queries.
 
 ### Goal Difference Logic
 
@@ -109,10 +109,12 @@ For tie predictions in playoff (penalty winner required): goal difference check 
 ```
 
 **Badge Colors:**
-- `exact` → primary/blue (existing)
-- `goal_difference` → warning/amber (new, visually between correct and exact)
+- `exact` → success/green (same as correct — all "you got something right" tiers are green)
+- `goal_difference` → success/green (same family)
 - `correct` → success/green (existing)
 - `incorrect` → error/red (existing)
+
+Differentiation between tiers is purely through the **label text**, not color.
 
 **Icon for goal_difference:** `CompareArrowsIcon` or `DragHandleIcon` (representing "same difference")
 
@@ -303,8 +305,8 @@ Tests:
 **Changed:**
 - `PredictionResult` type: `'exact' | 'goal_difference' | 'correct' | 'incorrect'`
 - `getPredictionResultLabel()`: add `goal_difference` case using `t('game.predictionResultGoalDifference', { points })`
-- `getPredictionResultIcon()`: add `goal_difference` → `CompareArrowsIcon` (amber color)
-- Badge color: `goal_difference` → `warning` MUI color
+- `getPredictionResultIcon()`: add `goal_difference` → `CompareArrowsIcon` (green, same as `correct`)
+- Badge color: `goal_difference` → `success` MUI color (all correct tiers are green; differentiation is via label text only)
 
 Tests:
 - renders amber badge with "Misma Diferencia" label for goal_difference result
@@ -406,12 +408,23 @@ UPDATE game_guesses SET prediction_tier =
     ELSE 'exact'
   END
 WHERE prediction_tier IS NULL;
+
+-- Bump score for existing exact-match guesses from 2 → 3 to reflect the new default.
+-- These rows had score=2 (old exact default); they should now be worth 3pts.
+UPDATE game_guesses
+SET score = 3,
+    final_score = ROUND(3 * COALESCE(boost_multiplier, 1))
+WHERE prediction_tier = 'exact'
+  AND score = 2;
+
+-- Rematerialize tournament_guesses totals for all affected users.
+-- (Handled in application layer post-migration via recalculateGameScoresForUsers)
 ```
 
 **Notes:**
 - Existing active tournaments get `game_exact_score_points` bumped to 3 automatically (only if still at the old default of 2). Admins who had set a custom value are unaffected.
-- Admins who want retroactive goal_difference recalculation for existing tournaments can retrigger score calculation from the Backoffice (out of scope per story requirements, but the recalculation pipeline will auto-set `prediction_tier` correctly going forward).
-- Score recalculation must be re-triggered by admins for historical games to reflect the new 3-pt exact score value — this is an intentional admin-controlled action.
+- Existing exact-match game guesses are automatically updated from 2 → 3 pts in the migration. No admin action required.
+- `tournament_guesses` totals are rematerialized via application code triggered after migration (same path as normal score recalculation).
 
 ## Testing Strategy
 
