@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-04-26
 
 ---
 
@@ -289,7 +289,7 @@ Playoff bracket team determination from group predictions with third-place rule 
 Shared statistics calculation utilities for performance and accuracy analysis.
 
 - **calculatePercentage(numerator, denominator, decimalPlaces)**: `number` — Calculates percentage with configurable decimal places.
-- **calculateAccuracyStats(userGameStats, totalPredictionsMade, totalGamesAvailable, totalGamesPlayed)**: `AccuracyStats` — Calculates prediction accuracy including correct/exact rates by stage.
+- **calculateAccuracyStats(userGameStats, totalPredictionsMade, totalGamesAvailable, totalGamesPlayed)**: `AccuracyStats` — Calculates prediction accuracy including correct/goal_difference/exact rates by stage. `goalDifference` is cumulative (uses `total_exact_guesses` from DB = goal_diff + exact combined); `exact` is pure tier (`total_exact_guesses - total_goal_difference_guesses`). Mirrors the same cumulative hierarchy as `correct` (which includes all positive tiers).
 - **calculateBoostStats(boostData, maxGames, boostType)**: `BoostStats` — Calculates boost usage statistics including success rate, ROI, and allocation by group.
 
 ### app/utils/avatar-utils.ts
