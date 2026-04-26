@@ -256,6 +256,13 @@ All new functions/branches need ≥80% line coverage on new code.
 **Wave 4** (docs):
 - Update `docs/code-structure/components/components-tournament-games.md`
 
+## Implementation Amendments
+
+### Amendment 1: Scroll-then-open → Open-then-scroll in handleAutoAdvanceNext
+**Date:** 2026-04-26
+**Reason:** Post-implementation feedback: the expanded inline edit form pushes the card downward after scroll fires, leaving score inputs out of view. Reversing the order (open edit form first, scroll after 150ms) ensures the scroll targets the already-expanded card height.
+**Change:** `handleAutoAdvanceNext` now calls `handleEditStart(nextGame.id)` immediately, then fires `scrollIntoView` in a `setTimeout(..., 150)` with `block: 'start'` instead of `block: 'center'`. The AC description "smooth scroll before opening next card" was incorrect; the shipped behavior is the opposite.
+
 ## Validation Considerations
 
 - **SonarCloud**: 0 new issues.
