@@ -15,82 +15,65 @@
 ## Objective
 
 Provide a smooth, auto-advancing prediction experience within the Games page that:
-1. Shows "Save & Next" as the primary action when the user is in guided mode
+1. Always shows "Save & Next" as the primary desktop action (guided mode is always active on the games page)
 2. Auto-advances to the next **unpredicted** group game (using `isGamePredictionComplete`)
 3. Stops auto-advance at the Group Stage boundary (never crosses into Playoffs)
-4. Replaces the static divider between Group Stage and Playoffs with a contextual banner linking to Qualified Teams predictions
+4. Replaces the static divider between Group Stage and Playoffs with a contextual 2-state banner linking to Qualified Teams predictions
 
-## Acceptance Criteria
+## Acceptance Criteria (revised after PR feedback)
 
-1. **Save & Next Button** — In edit mode, "Save & Next" is primary when `?guided=true` URL param is present
+1. **Save & Next Button** — "Save & Next" is always the primary button in edit mode on the games page (no URL param toggle; guided mode is the default)
 2. **Unpredicted Game Detection** — `isGamePredictionComplete` (existing utility) identifies the next target, not the time-based disabled check
-3. **Contextual Stage Transition Banner** — Between Group Stage and Playoffs, 3 states:
-   - **State A** (tournament started, QT open): CTA "Predict Qualified Teams"
-   - **State B** (tournament started, QT closed): CTA "Check your QT Predictions"
-   - **State C** (pre-tournament): No CTA, static separator
+3. **Contextual Stage Transition Banner** — Between Group Stage and Playoffs, always shows a CTA with 2 states based purely on `isPredictionLocked`:
+   - **State A** (`isPredictionLocked = false`): CTA "Predict Qualified Teams"
+   - **State B** (`isPredictionLocked = true`): CTA "Check your QT Predictions"
 4. **Flow Boundaries** — Auto-advance stops at end of Group Stage; smooth scroll before opening next card
+5. **Cancel keeps guided mode** — Cancelling a card just flips it back without advancing; the user remains in guided mode (the next card they open will still show "Save & Next" as primary)
 
 ## Technical Approach
 
-### Guided Mode Activation
-- `?guided=true` URL param marks the user as being in guided mode
-- `UnifiedGamesPageContent` reads this via `useSearchParams()` and derives `isGuidedMode: boolean`
-- Param is NOT cleared after reading (persists throughout the session on that page)
-- Story #391 will later set this param when entering from guided entry points; this story defines the behavior
+### Guided Mode — Always On
+The games page always operates in guided mode. No URL param or state toggle is needed.
+- `GamesListWithScroll` always passes `isGuidedMode={true}` to each `FlippableGameCard`
+- `FlippableGameCard` threads it to `GamePredictionEditControls`
+- `GamePredictionEditControls` shows "Save & Next" as primary when `isGuidedMode && onSaveAndAdvance` provided (desktop layout only)
+- Cancel behavior is unchanged: just calls `onEditEnd()`, no advance, no mode change
 
 ### "Save & Next" as Primary Button
-Prop flows from URL param down through component tree:
+Prop flows down the component tree:
 ```
-UnifiedGamesPageContent → GamesListWithScroll → FlippableGameCard → GamePredictionEditControls
+GamesListWithScroll (always true) → FlippableGameCard → GamePredictionEditControls
 ```
-When `isGuidedMode=true` on **desktop** with `onSaveAndAdvance` provided:
+On **desktop** when `isGuidedMode=true` and `onSaveAndAdvance` provided:
 - Show `[Cancel]` `[Save & Next (contained)]` instead of `[Cancel]` `[Save (contained)]`
-- Mobile already has `getMobileButtonLabel()` returning "next" dynamically; no change needed there
+- Mobile layout unchanged: `getMobileButtonLabel()` already returns "next" dynamically
 
 ### Auto-Advance Logic Fix
-Current `handleAutoAdvanceNext` finds the next game by skipping time-disabled ones. The story requires:
+Current `handleAutoAdvanceNext` finds the next game by skipping time-disabled ones. Changed to:
 1. Only look within **group-stage games** (`game.playoffStage === null`)
 2. Skip games where `isGamePredictionComplete` returns **true** (already predicted)
-3. Stop silently if no unpredicted group game follows
+3. Stop silently if no unpredicted group game follows (flow boundary reached)
 
-### QT State Derivation
-In `UnifiedGamesPageContent`:
-```typescript
-const qtState = useMemo(() => {
-  if (!tournamentStartDate || Date.now() < tournamentStartDate.getTime()) {
-    return 'pre-tournament' as const;  // State C
-  }
-  if (tournamentPredictionCompletion?.isPredictionLocked) {
-    return 'closed-progressing' as const;  // State B
-  }
-  return 'open' as const;  // State A
-}, [tournamentStartDate, tournamentPredictionCompletion?.isPredictionLocked]);
-```
+### Contextual Stage Transition Banner (2 states only)
+- Always renders a CTA in the first-playoff-section separator
+- State A (`isPredictionLocked = false`): "Predict Qualified Teams" → links to QT page
+- State B (`isPredictionLocked = true`): "Check your QT Predictions" → links to QT page
+- `qualifiedTeamsHref` built in `UnifiedGamesPage` server component (has `locale`)
+- `isPredictionLocked` from `tournamentPredictionCompletion` already passed to `UnifiedGamesPageClient`
 
-`qualifiedTeamsHref` is built in `UnifiedGamesPage` (server component, has `locale`) and passed down.
-
-### Contextual Stage Transition Banner
-- Renders in place of `StageSeparator` for the **first playoff section** only
-- Maintains identical typography/divider visual as `StageSeparator`
-- When CTA present: adds a small Button below the separator line, right-aligned
-- When no CTA: renders exactly like the current `StageSeparator`
-
-Detection in `GamesListWithScroll`:
+Detection in `GamesListWithScroll` render loop:
 ```typescript
 const isFirstPlayoffSection = section.sectionKey.startsWith('playoff-') &&
-  !sections.slice(0, idx).some(s => s.sectionKey.startsWith('playoff-'));
+  !gameSections.slice(0, sectionIdx).some(s => s.sectionKey.startsWith('playoff-'));
 ```
 
 ## Visual Prototype
 
 ### Contextual Stage Transition Banner
 
-**State A (QT Open) — between group and playoff sections:**
-
+**State A (`isPredictionLocked = false`):**
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                                                               │
-│  GROUP STAGE ───────────────────────────────────────────────  │
 │  ... last group game cards ...                                │
 │                                                               │
 │  PLAYOFFS ────────────────────────── [Predict Qual. Teams →]  │
@@ -99,25 +82,13 @@ const isFirstPlayoffSection = section.sectionKey.startsWith('playoff-') &&
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**State B (QT Closed, groups progressing):**
+**State B (`isPredictionLocked = true`):**
 ```
   PLAYOFFS ──────────────────────── [Check your QT Predictions →]
 ```
 
-**State C (Pre-tournament, or no CTA):**
-```
-  PLAYOFFS ────────────────────────────────────────────────────
-  (same as current StageSeparator - no button)
-```
+### Guided Mode Button Layout (Desktop) — Always Active
 
-### Guided Mode Button Layout (Desktop)
-
-**Default mode (current):**
-```
- [Cancel]  [Save]
-```
-
-**Guided mode (`?guided=true`):**
 ```
  [Cancel]  [Save & Next]
 ```
@@ -125,28 +96,26 @@ const isFirstPlayoffSection = section.sectionKey.startsWith('playoff-') &&
 ## Files to Create
 
 ### `app/components/stage-transition-banner.tsx` (new)
-Reuses `StageSeparator` styling, adds optional CTA button right-aligned on the divider row.
+Reuses `StageSeparator` styling; adds a required CTA button right-aligned on the divider row.
 
 ## Files to Modify
 
 ### `app/components/game-prediction-edit-controls.tsx`
-Add `isGuidedMode?: boolean` prop. In `renderActionButtons()`, when `isGuidedMode && onSaveAndAdvance`, replace "Save" with "Save & Next" as the primary button on desktop.
+Add `isGuidedMode?: boolean` prop. In `renderActionButtons()`, when `isGuidedMode && onSaveAndAdvance` on desktop, show [Cancel] [Save & Next (contained)] instead of [Cancel] [Save (contained)].
 
 ### `app/components/flippable-game-card.tsx`
 Add `isGuidedMode?: boolean` to `FlippableGameCardProps`. Pass through to `GamePredictionEditControls`.
 
 ### `app/components/games-list-with-scroll.tsx`
-- Add props: `isGuidedMode?`, `qtState?`, `qualifiedTeamsHref?`
+- Add props: `qtPredictionLocked: boolean`, `qualifiedTeamsHref: string`
 - Import and use `isGamePredictionComplete` in `handleAutoAdvanceNext`
 - Filter to group-stage games only in `handleAutoAdvanceNext`
-- In render loop: detect first playoff section, render `StageTransitionBanner` there
-- Pass `isGuidedMode` to each `FlippableGameCard`
+- Always pass `isGuidedMode={true}` to each `FlippableGameCard`
+- In render loop: detect first playoff section, render `StageTransitionBanner` there with CTA derived from `qtPredictionLocked`
 
 ### `app/components/unified-games-page-client.tsx`
-- Derive `isGuidedMode` from `searchParams.get('guided') === 'true'`
-- Derive `qtState` from `tournamentStartDate` + `isPredictionLocked`
-- Pass `isGuidedMode`, `qtState`, `qualifiedTeamsHref` to `GamesListWithScroll`
-- Add `qualifiedTeamsHref` to `UnifiedGamesPageClientProps` (passed from server component)
+- Add `qualifiedTeamsHref` to `UnifiedGamesPageClientProps`
+- Pass `qtPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked ?? false}` and `qualifiedTeamsHref` to `GamesListWithScroll`
 
 ### `app/components/unified-games-page.tsx`
 - Build `qualifiedTeamsHref = \`/${locale}/tournaments/${tournamentId}/qualified-teams\``
@@ -165,20 +134,21 @@ Update entries for all modified components.
 
 ### Call Graph Changes
 
-**Modified flows:**
-- **No new cross-layer flows** — all changes are within the Client component tree. `UnifiedGamesPageContent` passes new props to `GamesListWithScroll`, which passes `isGuidedMode` to `FlippableGameCard`, which passes it to `GamePredictionEditControls`.
-- The QT href is pre-built in the Server component and passed as a string prop.
+**No new cross-layer flows.** All changes are within the Client component tree:
+- `UnifiedGamesPageContent` gains two new props (`qtPredictionLocked`, `qualifiedTeamsHref`) forwarded to `GamesListWithScroll`
+- `GamesListWithScroll` hardcodes `isGuidedMode={true}` when rendering `FlippableGameCard`
+- QT href is a string prop pre-built in the Server component
 
 ### `app/components/stage-transition-banner.tsx` *(new)*
 
-- **StageTransitionBanner({ label, ctaLabel?, ctaHref? })**: `JSX.Element`
-  Renders a full-width grid row (same layout as `StageSeparator`) with the section label and optional right-aligned CTA button. When `ctaLabel` and `ctaHref` are omitted, renders identically to `StageSeparator`.
+- **StageTransitionBanner({ label, ctaLabel, ctaHref })**: `JSX.Element`
+  Renders a full-width grid row (same layout as `StageSeparator`) with the section label and a right-aligned CTA button. Always has a CTA — callers supply the label and href.
   Calls: none (pure presentational)
   Tests:
   - renders label text using overline typography matching StageSeparator visual
-  - renders CTA button when both ctaLabel and ctaHref are provided
-  - does NOT render a button when ctaLabel is undefined (State C fallback)
+  - renders CTA button with provided ctaLabel
   - CTA button is right-aligned inside the banner row
+  - CTA button navigates to ctaHref when clicked
 
 ### `app/components/game-prediction-edit-controls.tsx` *(modified)*
 
@@ -202,7 +172,7 @@ No new logic — only prop threading. `isGuidedMode` added to `FlippableGameCard
 **Changed functions:**
 
 - **handleAutoAdvanceNext(currentGameId: string)**: `void` *(was: time-based enabled check)*
-  Finds the next group-stage game (no `playoffStage`) after `currentGameId` where `isGamePredictionComplete` returns false. Scrolls to it and calls `handleEditStart`. If no unpredicted group game remains, stops silently (flow boundary reached). Guards against missing DOM element (card not found in DOM).
+  Finds the next group-stage game (no `playoffStage`) after `currentGameId` where `isGamePredictionComplete` returns false. Scrolls to it and calls `handleEditStart`. If no unpredicted group game remains, stops silently. Guards against missing DOM element.
   Calls: `handleEditStart`, `isGamePredictionComplete`
   Tests:
   - advances to next group game where prediction is incomplete
@@ -212,51 +182,53 @@ No new logic — only prop threading. `isGuidedMode` added to `FlippableGameCard
   - calls scrollIntoView on the target card element
   - stops silently when target card element is not found in DOM (defensive guard)
 
-- **GamesListWithScroll({ ..., isGuidedMode?, qtState?, qualifiedTeamsHref? })**: `JSX.Element` *(was: no guided/qt props)*
-  Accepts 3 new optional props. Passes `isGuidedMode` to each `FlippableGameCard`. For the first playoff section, renders `StageTransitionBanner` instead of `StageSeparator`, with CTA derived from `qtState`.
+- **GamesListWithScroll({ ..., qtPredictionLocked, qualifiedTeamsHref })**: `JSX.Element` *(was: no qt/banner props)*
+  Always passes `isGuidedMode={true}` to each `FlippableGameCard`. For the first playoff section, renders `StageTransitionBanner` with CTA label derived from `qtPredictionLocked`.
   Calls: none (render only)
   Tests:
-  - renders StageTransitionBanner for first playoff section when qtState is 'open'
-  - renders StageTransitionBanner with "Check" CTA when qtState is 'closed-progressing'
-  - renders standard StageSeparator (no CTA) for first playoff section when qtState is 'pre-tournament'
-  - renders standard StageSeparator for non-playoff sections regardless of qtState
-  - passes isGuidedMode=true to FlippableGameCard when prop is true
+  - renders StageTransitionBanner for first playoff section when qtPredictionLocked=false (State A, "Predict" CTA)
+  - renders StageTransitionBanner for first playoff section when qtPredictionLocked=true (State B, "Check" CTA)
+  - renders standard StageSeparator for non-first-playoff sections
+  - renders standard StageSeparator for group sections regardless of qtPredictionLocked
+  - always passes isGuidedMode={true} to each FlippableGameCard
 
 ### `app/components/unified-games-page-client.tsx` *(modified)*
 
 **Changed functions:**
 
-- **UnifiedGamesPageContent(props)**: `JSX.Element` *(was: no guided mode)*
-  Reads `?guided=true` URL param to set `isGuidedMode`. Derives `qtState` from `tournamentStartDate` + `isPredictionLocked`. Passes new props to `GamesListWithScroll`.
-  Calls: none (logic only)
+- **UnifiedGamesPageContent(props)**: `JSX.Element` *(was: no qt/banner props)*
+  Receives `qualifiedTeamsHref` and passes it along with `isPredictionLocked` to `GamesListWithScroll`.
+  Calls: none (prop forwarding)
   Tests:
-  - isGuidedMode is true when searchParams contains guided=true
-  - isGuidedMode is false when guided param is absent
-  - qtState is 'pre-tournament' when tournamentStartDate is undefined
-  - qtState is 'open' when tournament started and isPredictionLocked=false
-  - qtState is 'closed-progressing' when tournament started and isPredictionLocked=true
+  - passes qtPredictionLocked=true to GamesListWithScroll when isPredictionLocked is true
+  - passes qtPredictionLocked=false to GamesListWithScroll when isPredictionLocked is false or completion is null
+  - passes qualifiedTeamsHref unchanged to GamesListWithScroll
 
 ## Testing Strategy
 
 ### Unit Tests
 
-**New tests** (`./__tests__/stage-transition-banner.test.tsx`):
-- Renders with label only (no CTA) — matches StageSeparator appearance
-- Renders with ctaLabel+ctaHref — CTA button appears
-- CTA button absence when props omitted
+**New tests** (`app/components/__tests__/stage-transition-banner.test.tsx`):
+- Renders label with correct overline typography
+- Renders CTA button with provided ctaLabel
+- CTA button positioned right-aligned
+- CTA navigates to ctaHref
 
-**Modified tests** (`game-prediction-edit-controls.test.tsx` or new file):
+**Modified tests** (new file or existing `game-prediction-edit-controls` tests):
 - isGuidedMode=true desktop: "Save & Next" button rendered as contained
 - isGuidedMode=false desktop: "Save" button rendered as contained (regression)
 - clicking "Save & Next" invokes onSaveAndAdvance
 
-**Modified tests** (`games-list-with-scroll.test.tsx` or new file):
+**Modified tests** (new `games-list-with-scroll` test file):
 - auto-advance skips predicted games
 - auto-advance stops at group stage boundary
-- banner renders for first playoff section with correct CTA per qtState
+- banner renders with "Predict" CTA for first playoff section when qtPredictionLocked=false
+- banner renders with "Check" CTA for first playoff section when qtPredictionLocked=true
+- group sections always get plain StageSeparator
 
-**Modified tests** (`unified-games-page-client.test.tsx` - existing):
-- guided param detected correctly
+**Modified tests** (`unified-games-page-client` tests):
+- qualifiedTeamsHref forwarded correctly
+- qtPredictionLocked derived from completion prop
 
 ### Test Utilities
 - Use `testFactories.createGame()` / `testFactories.createTournament()` for mock data
@@ -275,22 +247,22 @@ All new functions/branches need ≥80% line coverage on new code.
 **Wave 2** (depends on Wave 1 for banner):
 - Modify `game-prediction-edit-controls.tsx` (add `isGuidedMode` prop + button swap)
 - Modify `flippable-game-card.tsx` (thread `isGuidedMode`)
-- Modify `games-list-with-scroll.tsx` (auto-advance fix + banner insertion + guided prop threading)
+- Modify `games-list-with-scroll.tsx` (auto-advance fix + banner insertion + always-guided)
 
 **Wave 3** (depends on Wave 2):
-- Modify `unified-games-page-client.tsx` (derive+pass new props)
-- Modify `unified-games-page.tsx` (pass qualifiedTeamsHref)
+- Modify `unified-games-page-client.tsx` (pass qt props to list)
+- Modify `unified-games-page.tsx` (build + pass qualifiedTeamsHref)
 
 **Wave 4** (docs):
 - Update `docs/code-structure/components/components-tournament-games.md`
 
 ## Validation Considerations
 
-- **SonarCloud**: 0 new issues. All new exported functions must have JSDoc only where needed.
+- **SonarCloud**: 0 new issues.
 - **Coverage**: ≥80% on new code. Focus on `StageTransitionBanner`, `handleAutoAdvanceNext` logic, `renderActionButtons` guided branch.
-- **Regression**: Existing button layout (non-guided mode) must be unchanged. Existing `handleAutoAdvanceNext` keyboard Tab behavior must still work.
+- **Regression**: Existing desktop button layout when `isGuidedMode=false` (other contexts like GamesGrid) must be unchanged.
 - **i18n**: New keys added to both `en` and `es` locale files.
 
 ## Open Questions
 
-None — all requirements are clear from the story and codebase exploration.
+None — all design decisions resolved via PR feedback.
