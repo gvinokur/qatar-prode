@@ -36,6 +36,7 @@
     "matchInProgress": "Match in progress",
     "pendingWithPrediction": "Your prediction: {home}–{away}",
     "noPredictionShort": "No prediction",
+    "goalDifferenceResultWithGuess": "Goal difference • Your prediction: {home}–{away}",
     "correctResultWithGuess": "Correct prediction • Your prediction: {home}–{away}",
     "correctResultWithPenaltyWinner": "Correct prediction • Your prediction: {home}–{away} • Penalty winner: {team}",
     "yourGuessWithPenaltyPrediction": "Your prediction: {home}–{away} • Predicted penalty winner: {team}",

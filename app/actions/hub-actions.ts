@@ -769,6 +769,7 @@ export interface RecentGameResultItem {
   boostType: 'silver' | 'golden' | null
   boostBonus: number
   finalPoints: number
+  predictionTier: 'exact' | 'goal_difference' | 'correct' | 'missed' | null
   gameDate: Date
   gameStatus: GameStatus
 }
@@ -834,6 +835,7 @@ export async function getRecentResultsData(
       boostType: g.boostType,
       boostBonus,
       finalPoints,
+      predictionTier: g.predictionTier,
       gameDate: g.gameDate,
       gameStatus,
     }

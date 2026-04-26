@@ -31,6 +31,7 @@ const makeRecentGameItem = (overrides?: Partial<RecentGameResultItem>): RecentGa
   boostType: null,
   boostBonus: 0,
   finalPoints: 3,
+  predictionTier: 'exact',
   gameDate: new Date('2022-12-18'),
   gameStatus: 'finished',
   ...overrides,
@@ -174,11 +175,12 @@ describe('RecentResultsWidget', () => {
       const data: RecentResultsData = {
         recentGames: [
           makeRecentGameItem({
-            finalPoints: 2,
+            finalPoints: 1,
             homeScore: 1,
             awayScore: 0,
             userHomeGuess: 2,
             userAwayGuess: 0,
+            predictionTier: 'correct',
           }),
         ],
       }
@@ -190,10 +192,31 @@ describe('RecentResultsWidget', () => {
       ).toBeInTheDocument()
     })
 
+    it('shows goalDifferenceResultWithGuess for goal_difference tier', () => {
+      const data: RecentResultsData = {
+        recentGames: [
+          makeRecentGameItem({
+            finalPoints: 2,
+            homeScore: 2,
+            awayScore: 1,
+            userHomeGuess: 3,
+            userAwayGuess: 2,
+            predictionTier: 'goal_difference',
+          }),
+        ],
+      }
+
+      renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
+
+      expect(
+        screen.getByText(/hub.recentResults:goalDifferenceResultWithGuess/)
+      ).toBeInTheDocument()
+    })
+
     it('shows exactResult for exact prediction', () => {
       const data: RecentResultsData = {
         recentGames: [
-          makeRecentGameItem({ finalPoints: 5, homeScore: 2, awayScore: 1, userHomeGuess: 2, userAwayGuess: 1 }),
+          makeRecentGameItem({ finalPoints: 5, homeScore: 2, awayScore: 1, userHomeGuess: 2, userAwayGuess: 1, predictionTier: 'exact' }),
         ],
       }
 
@@ -359,6 +382,7 @@ describe('RecentResultsWidget', () => {
           userAwayGuess: 0,
           userHomePenaltyWinner: null,
           userAwayPenaltyWinner: null,
+          predictionTier: 'correct',
         })],
       }
       renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)
@@ -379,6 +403,7 @@ describe('RecentResultsWidget', () => {
           userAwayGuess: 0,
           userHomePenaltyWinner: false,
           userAwayPenaltyWinner: true,
+          predictionTier: 'missed',
         })],
       }
       renderWithTheme(<RecentResultsWidget data={data} {...defaultHrefs} />)

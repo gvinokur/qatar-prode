@@ -582,6 +582,7 @@ export interface RecentGameForDashboard {
   boostType: BoostType
   boostMultiplier: number | null
   finalScore: number | null
+  predictionTier: 'exact' | 'goal_difference' | 'correct' | 'missed' | null
   gameDate: Date
 }
 
@@ -632,6 +633,7 @@ export async function findRecentGamesForDashboard(
       'game_guesses.boost_type as boostType',
       'game_guesses.boost_multiplier as boostMultiplier',
       'game_guesses.final_score as finalScore',
+      'game_guesses.prediction_tier as predictionTier',
       'games.game_date as gameDate',
     ])
     .orderBy('games.game_date', 'desc')
@@ -654,6 +656,7 @@ export async function findRecentGamesForDashboard(
     boostType: (r.boostType as BoostType) ?? null,
     boostMultiplier: r.boostMultiplier ?? null,
     finalScore: r.finalScore ?? null,
+    predictionTier: (r.predictionTier as RecentGameForDashboard['predictionTier']) ?? null,
     gameDate: r.gameDate,
   }))
 }

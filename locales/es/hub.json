@@ -36,6 +36,7 @@
     "matchInProgress": "Partido en progreso",
     "pendingWithPrediction": "Tu predicción: {home}–{away}",
     "noPredictionShort": "Sin predicción",
+    "goalDifferenceResultWithGuess": "Misma diferencia • Tu predicción: {home}–{away}",
     "correctResultWithGuess": "Predicción correcta • Tu predicción: {home}–{away}",
     "correctResultWithPenaltyWinner": "Predicción correcta • Tu predicción: {home}–{away} • Ganador de penales: {team}",
     "yourGuessWithPenaltyPrediction": "Tu predicción: {home}–{away} • Ganador de penales predicho: {team}",

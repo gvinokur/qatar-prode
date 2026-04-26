@@ -22,6 +22,7 @@ const makeRawRow = (overrides?: Partial<any>) => ({
   boostType: null,
   boostMultiplier: null,
   finalScore: null,
+  predictionTier: null,
   gameDate: new Date('2022-12-18'),
   ...overrides,
 })
@@ -123,6 +124,7 @@ describe('findRecentGamesForDashboard', () => {
       boostType: 'silver',
       boostMultiplier: 2,
       finalScore: 4,
+      predictionTier: null,
       gameDate: new Date('2022-12-18'),
     })
   })
