@@ -1225,7 +1225,8 @@ export default function GamePredictionEditControls({
     if (!isMobile && onSave && onCancel) {
       const showSaveAndNext = isGuidedMode && !!onSaveAndAdvance;
       const buttonSize = compact ? 'small' : 'medium';
-      const saveLabel = loading ? t('edit.saving') : showSaveAndNext ? t('edit.saveAndNext') : t('edit.save');
+      const idleLabel = showSaveAndNext ? t('edit.saveAndNext') : t('edit.save');
+      const saveLabel = loading ? t('edit.saving') : idleLabel;
       return (
         <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
           <Button
