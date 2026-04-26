@@ -14,42 +14,41 @@ describe('calculateAccuracyStats — goal_difference fields', () => {
     playoff_goal_difference_guesses: 1,
   }
 
-  it('returns 0 for goal_difference counts when fields are absent (backward compat)', () => {
-    const stats = calculateAccuracyStats(
-      { total_correct_guesses: 10, total_exact_guesses: 5 } as any,
-      20, 64, 30
-    )
-    expect(stats.overallGoalDifference).toBe(0)
-    expect(stats.overallGoalDifferencePercentage).toBe(0)
-    expect(stats.groupGoalDifference).toBe(0)
-    expect(stats.playoffGoalDifference).toBe(0)
-  })
-
-  it('returns 0 for all fields when userGameStats is null', () => {
+  it('returns 0 for goal_difference and exact when userGameStats is null', () => {
     const stats = calculateAccuracyStats(null, 0, 64, 30)
     expect(stats.overallGoalDifference).toBe(0)
+    expect(stats.overallExact).toBe(0)
     expect(stats.groupGoalDifference).toBe(0)
     expect(stats.playoffGoalDifference).toBe(0)
   })
 
-  it('correctly computes overallGoalDifferencePercentage', () => {
+  it('goal_difference is cumulative: total_exact_guesses (goal_diff + exact combined)', () => {
     const stats = calculateAccuracyStats(baseStats, 20, 64, 30)
-    // 3/30 = 10.0%
-    expect(stats.overallGoalDifference).toBe(3)
-    expect(stats.overallGoalDifferencePercentage).toBe(10.0)
+    // total_exact_guesses=5 (goal_diff 3 + exact 2), so cumulative goal_difference = 5
+    // 5/30 = 16.7%
+    expect(stats.overallGoalDifference).toBe(5)
+    expect(stats.overallGoalDifferencePercentage).toBe(16.7)
   })
 
-  it('correctly computes group and playoff goal_difference counts', () => {
+  it('exact is exclusive: total_exact_guesses - total_goal_difference_guesses', () => {
     const stats = calculateAccuracyStats(baseStats, 20, 64, 30)
-    expect(stats.groupGoalDifference).toBe(2)
-    expect(stats.playoffGoalDifference).toBe(1)
+    // 5 - 3 = 2 pure exact predictions
+    expect(stats.overallExact).toBe(2)
   })
 
-  it('does not affect existing exact and correct fields', () => {
+  it('correctly computes group and playoff goal_difference as cumulative', () => {
+    const stats = calculateAccuracyStats(baseStats, 20, 64, 30)
+    // group: exact_or_better=3, playoff: exact_or_better=2
+    expect(stats.groupGoalDifference).toBe(3)
+    expect(stats.playoffGoalDifference).toBe(2)
+    // group exact: 3 - 2 = 1, playoff exact: 2 - 1 = 1
+    expect(stats.groupExact).toBe(1)
+    expect(stats.playoffExact).toBe(1)
+  })
+
+  it('correct field is unaffected by goal_difference change', () => {
     const stats = calculateAccuracyStats(baseStats, 20, 64, 30)
     expect(stats.overallCorrect).toBe(10)
-    expect(stats.overallExact).toBe(5)
     expect(stats.groupCorrect).toBe(6)
-    expect(stats.groupExact).toBe(3)
   })
 })

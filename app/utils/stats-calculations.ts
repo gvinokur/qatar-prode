@@ -87,8 +87,18 @@ export function calculateAccuracyStats(
   totalGamesPlayed: number
 ): AccuracyStats {
   const overallCorrect = userGameStats?.total_correct_guesses ?? 0
-  const overallGoalDifference = userGameStats?.total_goal_difference_guesses ?? 0
-  const overallExact = userGameStats?.total_exact_guesses ?? 0
+  // total_exact_guesses in DB = score > 1 = goal_difference + exact combined
+  // total_goal_difference_guesses = only goal_difference tier (exclusive)
+  // "Goal difference" display is cumulative (includes exact), "Exact" is the strict tier only
+  const overallGoalDifferenceExclusive = userGameStats?.total_goal_difference_guesses ?? 0
+  const overallGoalDifferenceOrBetter = userGameStats?.total_exact_guesses ?? 0
+  const overallGoalDifference = overallGoalDifferenceOrBetter
+  const overallExact = overallGoalDifferenceOrBetter - overallGoalDifferenceExclusive
+
+  const groupExactOrBetter = userGameStats?.group_exact_guesses ?? 0
+  const groupGoalDifferenceExclusive = userGameStats?.group_goal_difference_guesses ?? 0
+  const playoffExactOrBetter = userGameStats?.playoff_exact_guesses ?? 0
+  const playoffGoalDifferenceExclusive = userGameStats?.playoff_goal_difference_guesses ?? 0
 
   return {
     totalPredictionsMade,
@@ -105,16 +115,16 @@ export function calculateAccuracyStats(
     overallMissedPercentage: calculatePercentage(totalGamesPlayed - overallCorrect, totalGamesPlayed),
     groupCorrect: userGameStats?.group_correct_guesses ?? 0,
     groupCorrectPercentage: calculatePercentage(userGameStats?.group_correct_guesses ?? 0, totalGamesPlayed),
-    groupGoalDifference: userGameStats?.group_goal_difference_guesses ?? 0,
-    groupGoalDifferencePercentage: calculatePercentage(userGameStats?.group_goal_difference_guesses ?? 0, totalGamesPlayed),
-    groupExact: userGameStats?.group_exact_guesses ?? 0,
-    groupExactPercentage: calculatePercentage(userGameStats?.group_exact_guesses ?? 0, totalGamesPlayed),
+    groupGoalDifference: groupExactOrBetter,
+    groupGoalDifferencePercentage: calculatePercentage(groupExactOrBetter, totalGamesPlayed),
+    groupExact: groupExactOrBetter - groupGoalDifferenceExclusive,
+    groupExactPercentage: calculatePercentage(groupExactOrBetter - groupGoalDifferenceExclusive, totalGamesPlayed),
     playoffCorrect: userGameStats?.playoff_correct_guesses ?? 0,
     playoffCorrectPercentage: calculatePercentage(userGameStats?.playoff_correct_guesses ?? 0, totalGamesPlayed),
-    playoffGoalDifference: userGameStats?.playoff_goal_difference_guesses ?? 0,
-    playoffGoalDifferencePercentage: calculatePercentage(userGameStats?.playoff_goal_difference_guesses ?? 0, totalGamesPlayed),
-    playoffExact: userGameStats?.playoff_exact_guesses ?? 0,
-    playoffExactPercentage: calculatePercentage(userGameStats?.playoff_exact_guesses ?? 0, totalGamesPlayed),
+    playoffGoalDifference: playoffExactOrBetter,
+    playoffGoalDifferencePercentage: calculatePercentage(playoffExactOrBetter, totalGamesPlayed),
+    playoffExact: playoffExactOrBetter - playoffGoalDifferenceExclusive,
+    playoffExactPercentage: calculatePercentage(playoffExactOrBetter - playoffGoalDifferenceExclusive, totalGamesPlayed),
   }
 }
 
