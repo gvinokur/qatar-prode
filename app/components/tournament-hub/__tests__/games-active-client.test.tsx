@@ -332,10 +332,11 @@ describe('GamesActiveClient', () => {
   })
 
   describe('view all link', () => {
-    it('renders "View All Matches" link button with correct gamesHref', () => {
+    it('renders "View All Matches" link button with current game ID in href', () => {
       renderWithContext(<GamesActiveClient {...defaultProps} />)
       const link = screen.getByRole('link', { name: /gamesWidget.ctaViewAll/i })
-      expect(link).toHaveAttribute('href', '/en/tournaments/t-1/games')
+      // href includes ?edit=<currentGameId> to open the currently-displayed game for editing
+      expect(link).toHaveAttribute('href', '/en/tournaments/t-1/games?edit=game-1')
     })
   })
 

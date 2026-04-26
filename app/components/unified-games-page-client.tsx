@@ -19,6 +19,8 @@ import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 import { isGamePredictionComplete } from '../utils/game-prediction-helpers';
+import { isGuessComplete } from '../utils/guess-utils';
+import { EDIT_NEXT_TOKEN } from '../utils/prediction-constants';
 
 // Timing constants for edit parameter handling
 const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
@@ -93,18 +95,38 @@ function UnifiedGamesPageContent({
 
   // Effect 1: Detect edit parameter and clear filters
   useEffect(() => {
-    const editGameId = searchParams.get('edit');
+    const editParam = searchParams.get('edit');
 
-    if (editGameId && !pendingEditGameId) {
-      // Step 1: Store the game ID to trigger scroll/edit after filters update
-      setPendingEditGameId(editGameId);
+    if (editParam && !pendingEditGameId) {
+      let targetGameId: string | null;
+      if (editParam === EDIT_NEXT_TOKEN) {
+        const guesses = guessesContext.gameGuesses;
+        const now = new Date();
+        const unpredictedUpcoming = games.find(
+          g => g.game_date >= now && !isGuessComplete(guesses[g.id], !!g.playoffStage)
+        );
+        if (unpredictedUpcoming) {
+          targetGameId = unpredictedUpcoming.id;
+        } else {
+          // All upcoming games are predicted — fall back to first upcoming (chronological)
+          const scrollTarget = findScrollTarget(games);
+          targetGameId = scrollTarget ? scrollTarget.slice('game-'.length) : null;
+        }
+      } else {
+        targetGameId = editParam;
+      }
 
-      // Step 2: Clear all filters to ensure game is visible
-      setActiveFilter('all');
-      setGroupFilter(null);
-      setRoundFilter(null);
+      if (targetGameId) {
+        // Step 1: Store the game ID to trigger scroll/edit after filters update
+        setPendingEditGameId(targetGameId);
+
+        // Step 2: Clear all filters to ensure game is visible
+        setActiveFilter('all');
+        setGroupFilter(null);
+        setRoundFilter(null);
+      }
     }
-  }, [searchParams, setActiveFilter, setGroupFilter, setRoundFilter, pendingEditGameId]);
+  }, [searchParams, games, guessesContext.gameGuesses, setActiveFilter, setGroupFilter, setRoundFilter, pendingEditGameId]);
 
   // Effect 2: Scroll and trigger edit AFTER filters have updated
   useEffect(() => {

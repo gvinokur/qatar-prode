@@ -65,8 +65,8 @@ describe('UrgencyAccordionGroup Navigation', () => {
     const editButton = screen.getByLabelText('game.editPrediction');
     editButton.click();
 
-    // Verify router.push was called with correct URL
-    expect(mockPush).toHaveBeenCalledWith('/en/tournaments/tournament-456?edit=game-123');
+    // Verify router.push was called with correct URL (games page, not hub page)
+    expect(mockPush).toHaveBeenCalledWith('/en/tournaments/tournament-456/games?edit=game-123');
     expect(mockPush).toHaveBeenCalledTimes(1);
   });
 
@@ -100,8 +100,8 @@ describe('UrgencyAccordionGroup Navigation', () => {
     const editButton = screen.getByLabelText('game.editPrediction');
     editButton.click();
 
-    // Verify Spanish locale is used
-    expect(mockPush).toHaveBeenCalledWith('/es/tournaments/tournament-456?edit=game-789');
+    // Verify Spanish locale is used and routes to games page
+    expect(mockPush).toHaveBeenCalledWith('/es/tournaments/tournament-456/games?edit=game-789');
   });
 
   it('should not render GameResultEditDialog', () => {

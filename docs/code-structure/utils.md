@@ -12,6 +12,7 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 Shared constants for prediction lock timing — neutral (no `'use server'`) so it can be imported in Server Actions, repositories, and components alike.
 
 - **PREDICTION_LOCK_OFFSET_MS**: `number` — Milliseconds after tournament start before QT/awards predictions lock (`2 * 24 * 60 * 60 * 1000` = 2 days).
+- **EDIT_NEXT_TOKEN**: `"next"` — Special `?edit` URL param value meaning "resolve to first upcoming game at page load time". Used by hub widget CTAs to avoid coupling server render to specific game IDs.
 
 ### app/utils/urgency-utils.ts
 Shared urgency derivation for the active games carousel and status widgets (Qualified Teams, Awards).
