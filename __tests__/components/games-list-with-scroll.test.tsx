@@ -672,7 +672,7 @@ describe('GamesListWithScroll', () => {
       await waitFor(() => {
         expect(mockElement.scrollIntoView).toHaveBeenCalledWith({
           behavior: 'smooth',
-          block: 'center',
+          block: 'start',
         });
       }, { timeout: 200 });
     });

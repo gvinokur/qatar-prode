@@ -198,13 +198,13 @@ export function GamesListWithScroll({
       );
 
       if (!isPredicted) {
-        // Scroll to next card before opening it
-        const cardElement = document.getElementById(`game-${nextGame.id}`);
-        cardElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        handleEditStart(nextGame.id);
 
+        // Scroll after edit form opens so the expanded card stays in view
         setTimeout(() => {
-          handleEditStart(nextGame.id);
-        }, 100);
+          const cardElement = document.getElementById(`game-${nextGame.id}`);
+          cardElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
 
         return;
       }
