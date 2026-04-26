@@ -136,9 +136,9 @@ Card showing silver/golden boost allocation, usage, success rate, ROI, and distr
   Uses: useTheme, useTranslations('stats')
 
 ### app/components/tournament-stats/prediction-accuracy-card.tsx
-Card displaying prediction completion and accuracy metrics (correct, exact, missed) by overall and stage.
+Card displaying prediction completion and accuracy metrics (correct, goal_difference, exact, missed) by overall and stage (Story #364).
 
-- **PredictionAccuracyCard(props: PredictionAccuracyCardProps)**: `JSX.Element` — [Client] Summary section (predictions made, completion %, games played) + overall accuracy section (correct %, exact %, missed %) + by-phase breakdown (group/playoff with correct/exact %). Empty state if totalPredictionsMade = 0.
+- **PredictionAccuracyCard(props: PredictionAccuracyCardProps)**: `JSX.Element` — [Client] Summary section (predictions made, completion %, games played) + overall accuracy section (correct %, goal_difference %, exact %, missed %) + by-phase breakdown (group/playoff with correct/goal_difference/exact %). Props include overallGoalDifference, groupGoalDifference, playoffGoalDifference fields (Story #364). Empty state if totalPredictionsMade = 0.
   Uses: useTheme, useTranslations('stats')
 
 ### app/components/qualified-teams/qualified-teams-context.tsx

@@ -12,6 +12,10 @@
       "singular": "{points} Punto por Ganador/Empate acertado",
       "plural": "{points} Puntos por Ganador/Empate acertado"
     },
+    "goalDifference": {
+      "singular": "{points} Punto por misma diferencia de gol (ganador correcto, margen exacto)",
+      "plural": "{points} Puntos por misma diferencia de gol (ganador correcto, margen exacto)"
+    },
     "exactScore": {
       "singular": "{bonus} punto extra por resultado exacto (total: {total} punto)",
       "plural": "{bonus} puntos extra por resultado exacto (total: {total} puntos)"
@@ -59,6 +63,7 @@
   },
   "examples": {
     "winnerDraw": "Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.",
+    "goalDifference": "Ejemplo: Si predices que Argentina ganará 2-1 y el resultado final es 3-2 (ambos triunfos locales por 1), obtienes {points} {points, plural, one {punto} other {puntos}} por la misma diferencia de gol.",
     "exactScore": "Ejemplo: Si predices que Argentina ganará 2-1 contra Brasil y el resultado final es exactamente 2-1, obtienes {total} {total, plural, one {punto} other {puntos}} ({correctOutcome} por el ganador + {bonus} extra por el resultado exacto).",
     "roundOf32": "Ejemplo: Si predices que Argentina clasificará a dieciseisavos de final y efectivamente clasifica, obtienes {points} {points, plural, one {punto} other {puntos}} por ese equipo clasificado.",
     "groupPosition": "Ejemplo: Si predices que Argentina clasificará primero del Grupo A y efectivamente termina primero, obtienes {totalPoints} {totalPoints, plural, one {punto} other {puntos}} adicionales ({qualifiedPoints} por clasificar + {exactPositionPoints} por posición exacta = {totalPoints} {totalPoints, plural, one {punto} other {puntos}} totales).",

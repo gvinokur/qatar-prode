@@ -461,13 +461,13 @@ describe('CompactGameViewCard', () => {
       expect(screen.getByText(/Exacto \(10 puntos\)|Exact \(10 points\)/)).toBeInTheDocument();
     });
 
-    it('should show correct result badge when winner matches', () => {
+    it('should show correct result badge when winner matches but margins differ', () => {
       const propsCorrect = {
         ...guessProps,
-        homeScore: 3,
-        awayScore: 1,
+        homeScore: 1,   // predicted: margin +1
+        awayScore: 0,
         gameResult: {
-          home_score: 2,
+          home_score: 3, // actual: margin +3 (different margin → correct tier, not goal_difference)
           away_score: 0,
           game_id: 'g1',
           is_draft: false,

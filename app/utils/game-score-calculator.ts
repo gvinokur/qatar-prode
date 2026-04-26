@@ -1,10 +1,18 @@
 import {GameGuessNew} from "../db/tables-definition";
 import {ExtendedGameData} from "../definitions";
 
+export type PredictionTier = 'exact' | 'goal_difference' | 'correct' | 'missed'
+
+export interface ScoreResult {
+  score: number
+  tier: PredictionTier
+}
+
 // Define scoring config type
 interface ScoringConfig {
   game_exact_score_points: number;
   game_correct_outcome_points: number;
+  game_correct_goal_difference_points: number;
 }
 
 /**
@@ -52,13 +60,34 @@ const checkExactMatch = (
   homePenaltyWin: boolean,
   awayPenaltyWin: boolean,
   exactScorePoints: number
-): number | null => {
+): ScoreResult | null => {
   if (gameHomeScore === gameGuess.home_score && gameAwayScore === gameGuess.away_score) {
     // If penalty guess is wrong, no points
     if ((homePenaltyWin && !gameGuess.home_penalty_winner) || (awayPenaltyWin && !gameGuess.away_penalty_winner)) {
-      return 0;
+      return { score: 0, tier: 'missed' };
     }
-    return exactScorePoints;
+    return { score: exactScorePoints, tier: 'exact' };
+  }
+  return null;
+}
+
+/**
+ * Checks for goal difference match (same winner direction AND same margin)
+ */
+export const checkGoalDifferenceMatch = (
+  gameHomeScore: number,
+  gameAwayScore: number,
+  gameGuess: GameGuessNew,
+  homePenaltyWin: boolean,
+  awayPenaltyWin: boolean,
+  goalDifferencePoints: number
+): ScoreResult | null => {
+  if ((gameHomeScore - gameAwayScore) === (gameGuess.home_score! - gameGuess.away_score!)) {
+    // If penalty guess is wrong, no points
+    if ((homePenaltyWin && !gameGuess.home_penalty_winner) || (awayPenaltyWin && !gameGuess.away_penalty_winner)) {
+      return { score: 0, tier: 'missed' };
+    }
+    return { score: goalDifferencePoints, tier: 'goal_difference' };
   }
   return null;
 }
@@ -73,13 +102,13 @@ const checkCorrectOutcome = (
   homePenaltyWin: boolean,
   awayPenaltyWin: boolean,
   correctOutcomePoints: number
-): number | null => {
+): ScoreResult | null => {
   if (Math.sign(gameHomeScore - gameAwayScore) === Math.sign(gameGuess.home_score! - gameGuess.away_score!)) {
     // If penalty guess is wrong, no points
     if ((homePenaltyWin && !gameGuess.home_penalty_winner) || (awayPenaltyWin && !gameGuess.away_penalty_winner)) {
-      return 0;
+      return { score: 0, tier: 'missed' };
     }
-    return correctOutcomePoints;
+    return { score: correctOutcomePoints, tier: 'correct' };
   }
   return null;
 }
@@ -93,7 +122,7 @@ const checkPlayoffPenaltyScenarios = (
   gameFlags: { isPlayoff: boolean; isTie: boolean; guessTie: boolean },
   penaltyFlags: { homePenaltyWin: boolean; awayPenaltyWin: boolean },
   correctOutcomePoints: number
-): number | null => {
+): ScoreResult | null => {
   const { isPlayoff, isTie, guessTie } = gameFlags;
   const { homePenaltyWin, awayPenaltyWin } = penaltyFlags;
   const { homeScore: gameHomeScore, awayScore: gameAwayScore } = gameScores;
@@ -102,26 +131,32 @@ const checkPlayoffPenaltyScenarios = (
   if (isPlayoff && isTie &&
     (((homePenaltyWin && (gameGuess.home_penalty_winner || gameGuess.home_score! > gameGuess.away_score!)) ||
       (awayPenaltyWin && (gameGuess.away_penalty_winner || gameGuess.home_score! < gameGuess.away_score!))))) {
-    return correctOutcomePoints;
+    return { score: correctOutcomePoints, tier: 'correct' };
   }
 
   // Guess was tie with penalty, actual game was straight win
   if (isPlayoff && guessTie &&
     ((gameGuess.home_penalty_winner && (gameHomeScore > gameAwayScore)) ||
       (gameGuess.away_penalty_winner && (gameHomeScore < gameAwayScore)))) {
-    return correctOutcomePoints;
+    return { score: correctOutcomePoints, tier: 'correct' };
   }
 
   return null;
 }
 
+const DEFAULT_GAME_SCORING: ScoringConfig = {
+  game_exact_score_points: 3,
+  game_correct_outcome_points: 1,
+  game_correct_goal_difference_points: 2,
+}
+
 export const calculateScoreForGame = (
   game: ExtendedGameData,
   gameGuess: GameGuessNew,
-  scoringConfig: ScoringConfig = { game_exact_score_points: 2, game_correct_outcome_points: 1 }
-) => {
+  scoringConfig: ScoringConfig = DEFAULT_GAME_SCORING
+): ScoreResult => {
   if (!hasValidScores(game, gameGuess)) {
-    return 0;
+    return { score: 0, tier: 'missed' };
   }
 
   const gameHomeScore = game.gameResult!.home_score!;
@@ -144,6 +179,17 @@ export const calculateScoreForGame = (
   );
   if (exactMatch !== null) return exactMatch;
 
+  // Check for goal difference match (same winner + same margin, different score)
+  const goalDiffMatch = checkGoalDifferenceMatch(
+    gameHomeScore,
+    gameAwayScore,
+    gameGuess,
+    homePenaltyWin,
+    awayPenaltyWin,
+    scoringConfig.game_correct_goal_difference_points
+  );
+  if (goalDiffMatch !== null) return goalDiffMatch;
+
   // Check for correct outcome
   const correctOutcome = checkCorrectOutcome(
     gameHomeScore,
@@ -165,5 +211,5 @@ export const calculateScoreForGame = (
   );
   if (penaltyScenario !== null) return penaltyScenario;
 
-  return 0;
+  return { score: 0, tier: 'missed' };
 }

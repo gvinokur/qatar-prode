@@ -48,6 +48,7 @@
     "note": "Nota: Solo los partidos finalizados cuentan para los porcentajes de precisión",
     "overallAccuracy": "Precisión General",
     "resultCorrect": "Resultado Correcto",
+    "goalDifference": "Misma Diferencia de Gol",
     "exactScore": "Marcador Exacto",
     "missed": "Falladas",
     "byPhase": "Por Fase",

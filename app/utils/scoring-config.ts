@@ -7,6 +7,7 @@
 export interface ScoringConfig {
   game_exact_score_points: number
   game_correct_outcome_points: number
+  game_correct_goal_difference_points: number
   champion_points: number
   runner_up_points: number
   third_place_points: number
@@ -18,8 +19,9 @@ export interface ScoringConfig {
 }
 
 export const DEFAULT_SCORING: ScoringConfig = {
-  game_exact_score_points: 2,
+  game_exact_score_points: 3,
   game_correct_outcome_points: 1,
+  game_correct_goal_difference_points: 2,
   champion_points: 5,
   runner_up_points: 3,
   third_place_points: 1,

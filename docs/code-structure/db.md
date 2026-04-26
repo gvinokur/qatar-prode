@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-04-26
 
 ---
 
@@ -41,6 +41,12 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 
 `TournamentTable` includes `locations: ColumnType<string[], string[] | string | undefined, string[] | string>` — ordered list of city/country location names (e.g., `["Qatar", "Lusail"]`) stored as JSONB NOT NULL DEFAULT '[]'; select returns `string[]`, insert is optional (uses DB default), update accepts array or raw JSON string; used for SportsEvent JSON-LD structured data (Story #310).
 
+`TournamentTable` includes `game_correct_goal_difference_points?: number` — points awarded for correct winner with exact goal margin (default 2, Story #364). Also: `game_exact_score_points` default bumped to 3 (was 2) to maintain clear tier separation (1/2/3).
+
+`GameGuessTable` includes `prediction_tier?: 'exact' | 'goal_difference' | 'correct' | 'missed' | null` — denormalized tier for FE badge rendering; null for rows predating Story #364. `score` field updated: 0=missed, 1=correct, 2=goal_difference, 3=exact (was 0/1/2).
+
+`TournamentGuessTable` includes `total_goal_difference_guesses`, `group_goal_difference_guesses`, `playoff_goal_difference_guesses` — materialized counts for stats page (Story #364).
+
 `GameTable` includes `matchday?: number | null` — group-stage matchday number (1-indexed). Null for playoff games or group games not yet assigned a matchday. Used by `getAllTournamentGames` sort and `GamesListWithScroll` section grouping (Story #376).
 
 `TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
@@ -65,12 +71,12 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **findGameGuessesByUserId(userId: string, tournamentId: string)**: `Promise<GameGuess[]>` — Returns all game guesses for user in tournament (cached).
 - **updateGameGuessByGameId(gameId: string, userId: string, update: object)**: `Promise<GameGuess | undefined>` — Updates home/away scores for a specific game guess.
 - **updateOrCreateGuess(guess: GameGuessNew)**: `Promise<GameGuess>` — Upserts a game guess (deletes existing, creates new).
-- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; used for backfill and validation.
+- **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; includes goal_difference_guesses count (via prediction_tier column); used for backfill and validation.
 - **getGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Reads materialized game scores from tournament_guesses table. Snapshot fields (`latestSnapshotPoints`, `penultimateSnapshotPoints`) are patched onto UserScore by pages after calling `computeSnapshotScores`.
 - **findAllGuessesForGamesWithResultsInDraft()**: `Promise<GameGuess[]>` — Finds guesses for games with draft results.
 - **deleteAllUserGameGuesses(userId: string)**: `Promise<void>` — Deletes all game guesses for user (account deletion).
 - **deleteAllGameGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all game guesses for tournament.
-- **updateGameGuessWithBoost(guessId: string, baseScore: number, boostType: 'silver' | 'golden' | null)**: `Promise<GameGuess>` — Updates score and boost multiplier.
+- **updateGameGuessWithBoost(guessId: string, baseScore: number, boostType: 'silver' | 'golden' | null, tier: PredictionTier)**: `Promise<GameGuess>` — Updates score, boost multiplier, and prediction_tier.
 - **setGameGuessBoost(userId: string, gameId: string, boostType: 'silver' | 'golden' | null)**: `Promise<GameGuess>` — Sets boost type for a game guess.
 - **countUserBoostsByType(userId: string, tournamentId: string)**: `Promise<{ silver: number; golden: number }>` — Counts silver and golden boosts used.
 - **getGameGuessWithBoost(userId: string, gameId: string)**: `Promise<GameGuess | undefined>` — Gets game guess with boost information.
@@ -100,7 +106,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **getTournamentGameCounts(userId: string | null, tournamentId: string)**: `Promise<TournamentGameCounts>` — Counts for filter badges (total, groups, playoffs, unpredicted, closing soon) (cached).
 - **findRecentGamesWithUserGuesses(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameWithGuess[]>` — Returns games with published (non-draft) results where the user has a guess, ordered by game_date desc, up to `limit` rows. Returns empty array when limit is 0.
 - **BoostType**: `'silver' | 'golden' | null` — Type alias for boost type values; used in `RecentGameForDashboard` and `RecentGameWithGuess`.
-- **findRecentGamesForDashboard(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameForDashboard[]>` — Returns all games where `game_date <= now() + 1h`, LEFT JOINing game_guesses (nullable) and published game_results (is_draft=false, nullable). Ordered by game_date desc, limited to `limit`. Returns empty array when limit is 0. Interface: `RecentGameForDashboard { gameId, homeTeamId, awayTeamId, homeScore: number|null, awayScore: number|null, homePenaltyScore: number|null, awayPenaltyScore: number|null, userHomeGuess: number|null, userAwayGuess: number|null, userHomePenaltyWinner: boolean|null, userAwayPenaltyWinner: boolean|null, guessScore: number|null, boostType: BoostType, boostMultiplier: number|null, finalScore: number|null, gameDate: Date }`.
+- **findRecentGamesForDashboard(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameForDashboard[]>` — Returns all games where `game_date <= now() + 1h`, LEFT JOINing game_guesses (nullable) and published game_results (is_draft=false, nullable). Ordered by game_date desc, limited to `limit`. Returns empty array when limit is 0. Interface: `RecentGameForDashboard { gameId, homeTeamId, awayTeamId, homeScore: number|null, awayScore: number|null, homePenaltyScore: number|null, awayPenaltyScore: number|null, userHomeGuess: number|null, userAwayGuess: number|null, userHomePenaltyWinner: boolean|null, userAwayPenaltyWinner: boolean|null, guessScore: number|null, boostType: BoostType, boostMultiplier: number|null, finalScore: number|null, predictionTier: 'exact'|'goal_difference'|'correct'|'missed'|null, gameDate: Date }`.
 
 ### app/db/game-result-repository.ts
 Repository for game_results table. Manages actual game outcomes (scores, penalties).
@@ -251,7 +257,7 @@ Repository for tournament_guesses table. Tracks overall tournament scores and ma
 - **findTournamentGuessByTournament(tournamentId: string)**: `Promise<TournamentGuess[]>` — Finds all for tournament.
 - **deleteAllUserTournamentGuesses(userId: string)**: `Promise<void>` — Deletes all for user (account deletion).
 - **deleteAllTournamentGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all for tournament.
-- **recalculateGameScoresForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Recalculates and materializes game scores from aggregation. Also writes a daily score snapshot (writeScoreSnapshot) per user inside the loop.
+- **recalculateGameScoresForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Recalculates and materializes game scores from aggregation, including goal_difference counts. Also writes a daily score snapshot (writeScoreSnapshot) per user inside the loop.
 
 ### app/db/tournament-playoff-repository.ts
 Repository for tournament_playoff_rounds and playoff games. Manages playoff bracket structure.

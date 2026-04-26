@@ -10,16 +10,22 @@ type Props = {
   readonly completionPercentage: number
   readonly overallCorrect: number
   readonly overallCorrectPercentage: number
+  readonly overallGoalDifference: number
+  readonly overallGoalDifferencePercentage: number
   readonly overallExact: number
   readonly overallExactPercentage: number
   readonly overallMissed: number
   readonly overallMissedPercentage: number
   readonly groupCorrect: number
   readonly groupCorrectPercentage: number
+  readonly groupGoalDifference: number
+  readonly groupGoalDifferencePercentage: number
   readonly groupExact: number
   readonly groupExactPercentage: number
   readonly playoffCorrect: number
   readonly playoffCorrectPercentage: number
+  readonly playoffGoalDifference: number
+  readonly playoffGoalDifferencePercentage: number
   readonly playoffExact: number
   readonly playoffExactPercentage: number
 }
@@ -114,6 +120,17 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+              {t('accuracy.goalDifference')}
+            </Typography>
+          </Grid>
+          <Grid size={4}>
+            <Typography variant='body1' fontWeight={700} align='right'>
+              {props.overallGoalDifference} / {props.totalGamesPlayed} ({props.overallGoalDifferencePercentage.toFixed(1)}%)
+            </Typography>
+          </Grid>
+
+          <Grid size={8}>
+            <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
               {t('accuracy.exactScore')}
             </Typography>
           </Grid>
@@ -171,6 +188,17 @@ export function PredictionAccuracyCard(props: Props) {
 
           <Grid size={8}>
             <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+              {t('accuracy.goalDifference')}
+            </Typography>
+          </Grid>
+          <Grid size={4}>
+            <Typography variant='body1' fontWeight={700} align='right'>
+              {props.groupGoalDifference} ({props.groupGoalDifferencePercentage.toFixed(1)}%)
+            </Typography>
+          </Grid>
+
+          <Grid size={8}>
+            <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
               {t('accuracy.exactScore')}
             </Typography>
           </Grid>
@@ -195,6 +223,17 @@ export function PredictionAccuracyCard(props: Props) {
           <Grid size={4}>
             <Typography variant='body1' fontWeight={700} align='right'>
               {props.playoffCorrect} ({props.playoffCorrectPercentage.toFixed(1)}%)
+            </Typography>
+          </Grid>
+
+          <Grid size={8}>
+            <Typography variant='body1' color='primary.light' sx={{ pl: 2 }}>
+              {t('accuracy.goalDifference')}
+            </Typography>
+          </Grid>
+          <Grid size={4}>
+            <Typography variant='body1' fontWeight={700} align='right'>
+              {props.playoffGoalDifference} ({props.playoffGoalDifferencePercentage.toFixed(1)}%)
             </Typography>
           </Grid>
 

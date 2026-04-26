@@ -456,17 +456,18 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
 
     // Extract scoring config
     const scoringConfig = {
-      game_exact_score_points: tournament.game_exact_score_points ?? 2,
+      game_exact_score_points: tournament.game_exact_score_points ?? 3,
       game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
+      game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? 2,
     };
 
     const gameGuesses = game.gameGuesses
     return Promise.all(gameGuesses.map(gameGuess => {
-      // Calculate base score with config
-      const baseScore = calculateScoreForGame(game, gameGuess, scoringConfig)
+      // Calculate base score and tier with config
+      const { score: baseScore, tier } = calculateScoreForGame(game, gameGuess, scoringConfig)
 
       // Boost type is already in gameGuess.boost_type
-      return updateGameGuessWithBoost(gameGuess.id, baseScore, gameGuess.boost_type ?? null)
+      return updateGameGuessWithBoost(gameGuess.id, baseScore, gameGuess.boost_type ?? null, tier)
     }))
   }))
 
@@ -726,6 +727,7 @@ export async function copyTournament(
     // Copy scoring configuration
     game_exact_score_points: originalTournament.game_exact_score_points,
     game_correct_outcome_points: originalTournament.game_correct_outcome_points,
+    game_correct_goal_difference_points: originalTournament.game_correct_goal_difference_points,
     champion_points: originalTournament.champion_points,
     runner_up_points: originalTournament.runner_up_points,
     third_place_points: originalTournament.third_place_points,

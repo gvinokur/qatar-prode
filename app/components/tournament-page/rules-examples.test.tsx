@@ -13,6 +13,7 @@ import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time
 import SinglePredictionExample from './rules-examples/single-prediction'
 import GroupPositionExample from './rules-examples/group-position'
 import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time'
+import GoalDifferenceExample from './rules-examples/goal-difference'
 
 describe('Rules Examples Components', () => {
   describe('Spanish translations', () => {
@@ -20,6 +21,12 @@ describe('Rules Examples Components', () => {
       renderWithProviders(<WinnerDrawExample points={1} />)
       expect(screen.getByText(/Si predices que Argentina ganará contra Brasil/i)).toBeInTheDocument()
       expect(screen.getByText(/1 punto/i)).toBeInTheDocument()
+    })
+
+    it('renders GoalDifferenceExample in Spanish with points', () => {
+      renderWithProviders(<GoalDifferenceExample points={2} />)
+      expect(screen.getByText(/misma diferencia de gol/i)).toBeInTheDocument()
+      expect(screen.getByText(/2 puntos/i)).toBeInTheDocument()
     })
 
     it('renders ExactScoreExample in Spanish with point values', () => {

@@ -3,11 +3,12 @@
 import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import { useTranslations } from 'next-intl';
 import { Theme } from '../db/tables-definition';
 import { TeamScoreRow } from './team-score-row';
 
-type PredictionResult = 'exact' | 'correct' | 'incorrect';
+export type PredictionResult = 'exact' | 'goal_difference' | 'correct' | 'incorrect';
 
 interface ActualResultDisplayProps {
   homeTeamName: string;
@@ -59,7 +60,7 @@ export function ActualResultDisplay({
   // Determine badge styling based on boost type
   const getBadgeColor = () => {
     if (effectiveResult === 'incorrect') return 'error';
-    // Use boost colors for correct/exact predictions with boosts
+    // Use boost colors for correct/exact/goal_difference predictions with boosts
     if (boostType) {
       return undefined; // Will use custom sx styling
     }
@@ -154,8 +155,9 @@ function getPredictionResultLabel(
   points: number,
   t: ReturnType<typeof useTranslations>
 ): string {
-  const labels = {
+  const labels: Record<PredictionResult, string> = {
     exact: t('game.predictionResultExact', { points }),
+    goal_difference: t('game.predictionResultGoalDifference', { points }),
     correct: t('game.predictionResultCorrect', { points }),
     incorrect: t('game.predictionResultIncorrect'),
   };
@@ -166,8 +168,10 @@ function getPredictionResultLabel(
  * Returns the appropriate icon for a prediction result.
  *
  * @param result - The prediction result type
- * @returns CheckIcon for exact/correct, CloseIcon for incorrect
+ * @returns CompareArrowsIcon for goal_difference, CheckIcon for exact/correct, CloseIcon for incorrect
  */
 function getPredictionResultIcon(result: PredictionResult) {
-  return result === 'incorrect' ? <CloseIcon /> : <CheckIcon />;
+  if (result === 'incorrect') return <CloseIcon />;
+  if (result === 'goal_difference') return <CompareArrowsIcon />;
+  return <CheckIcon />;
 }

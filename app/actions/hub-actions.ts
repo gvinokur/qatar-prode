@@ -86,6 +86,7 @@ function buildScoringConfig(
   if (!tournament) return DEFAULT_SCORING
   return {
     game_exact_score_points: tournament.game_exact_score_points ?? DEFAULT_SCORING.game_exact_score_points,
+    game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? DEFAULT_SCORING.game_correct_goal_difference_points,
     game_correct_outcome_points: tournament.game_correct_outcome_points ?? DEFAULT_SCORING.game_correct_outcome_points,
     champion_points: tournament.champion_points ?? DEFAULT_SCORING.champion_points,
     runner_up_points: tournament.runner_up_points ?? DEFAULT_SCORING.runner_up_points,
@@ -768,6 +769,7 @@ export interface RecentGameResultItem {
   boostType: 'silver' | 'golden' | null
   boostBonus: number
   finalPoints: number
+  predictionTier: 'exact' | 'goal_difference' | 'correct' | 'missed' | null
   gameDate: Date
   gameStatus: GameStatus
 }
@@ -833,6 +835,7 @@ export async function getRecentResultsData(
       boostType: g.boostType,
       boostBonus,
       finalPoints,
+      predictionTier: g.predictionTier,
       gameDate: g.gameDate,
       gameStatus,
     }

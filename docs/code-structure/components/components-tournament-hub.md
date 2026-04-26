@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-25
+**Last updated:** 2026-04-26
 
 ---
 
@@ -91,7 +91,7 @@ Client Component for the Recent Results widget content. Renders directly inside 
   Uses: useTranslations('hub.recentResults'), useState
   Renders: GameItem (inline sub-component), BoostBadge, VerticalNav (inline)
 - **VerticalNav({ current, total, onUp, onDown })**: `JSX.Element` — [Client, inline in recent-results-widget] Up/down `IconButton` (bordered) + 3-dot position indicator. Up disabled when `current === 0`, down disabled when `current === total - 1`.
-- **GameItem({ item })**: `JSX.Element` — [Client, inline] Renders one game row with icon (✅/❌/🕐), score/vs display, pts label, subtext. When `hasPenalties` (homePenaltyScore != null && awayPenaltyScore != null): score line shows `BoldWinner Score (HomePen)–(AwayPen) Score Loser`. Six visual states: `finished+no-prediction` → CancelOutlined + youDidntPredict; `finished+exact` → CheckCircle + exactResult; `finished+correct-not-exact+hasPenalties` → CheckCircle + correctResultWithPenaltyWinner; `finished+correct-not-exact` → CheckCircle + correctResultWithGuess; `finished+incorrect+hasPenalties+userHadPenaltyPrediction` → CancelOutlined + yourGuessWithPenaltyPrediction; `finished+incorrect` → CancelOutlined + yourGuess; `pending/about_to_start` → WatchLaterIcon (warning.main) + status + prediction or noPredictionShort + "-- pts".
+- **GameItem({ item })**: `JSX.Element` — [Client, inline] Renders one game row with icon (✅/❌/🕐), score/vs display, pts label, subtext. Reads `predictionTier` from `RecentGameResultItem` directly (no tier re-derivation). When `hasPenalties` (homePenaltyScore != null && awayPenaltyScore != null): score line shows `BoldWinner Score (HomePen)–(AwayPen) Score Loser`. Visual states: `finished+no-prediction` → CancelOutlined + youDidntPredict; `finished+exact` → CheckCircle + exactResult; `finished+goal_difference` → CheckCircle + goalDifferenceResultWithGuess; `finished+correct+hasPenalties` → CheckCircle + correctResultWithPenaltyWinner; `finished+correct` → CheckCircle + correctResultWithGuess; `finished+incorrect+hasPenalties+userHadPenaltyPrediction` → CancelOutlined + yourGuessWithPenaltyPrediction; `finished+incorrect` → CancelOutlined + yourGuess; `pending/about_to_start` → WatchLaterIcon (warning.main) + status + prediction or noPredictionShort + "-- pts".
 
 ### app/components/tournament-hub/games-prediction-widget.tsx
 Zero-fetch Server Component that routes to the correct Games widget state based on auth and tournament phase.

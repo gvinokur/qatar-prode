@@ -165,11 +165,11 @@ Key flows:
    calculateGameScores [server action]
      ├── findAllGamesWithPublishedResultsAndGameGuesses
      ├── findAllGuessesForGamesWithResultsInDraft (draft recalc)
-     ├── calculateScoreForGame (util)
-     ├── updateGameGuessWithBoost
+     ├── calculateScoreForGame (util) → returns { score, tier: PredictionTier } [Story #364]
+     ├── updateGameGuessWithBoost(guessId, baseScore, boostType, tier) [writes prediction_tier, Story #364]
      ├── updateGameGuess
      ├── recalculateGameScoresForUsers
-     │     ├── (materializes scores → tournament_guesses)
+     │     ├── (materializes scores + goal_difference counts → tournament_guesses, Story #364)
      │     └── writeScoreSnapshot (per user, using updated game scores + existing award scores)
      └── recalculateGroupRankingsForUsers(tournamentId, changedUserIds) [see flow 27]
 

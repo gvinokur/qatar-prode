@@ -39,7 +39,7 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageCli
   if(!gameGuess.game_id) gameGuess.game_id = game.id
 
   const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
-  const scoreForGame = calculateScoreForGame(game, gameGuess)
+  const { score: scoreForGame } = calculateScoreForGame(game, gameGuess)
 
   let stageLabel: string | undefined
   if (game.playoffStage) {

@@ -15,10 +15,11 @@ Now let me compile the complete report with all the file information.
 ## Component Reference Report
 
 **File:** `app/components/actual-result-display.tsx`
-Displays actual game result with scores and prediction result badge. Shows "Actual Result" label, team names, scores, logos, penalty scores, and prediction accuracy with points earned. Derives homeIsWinner/awayIsWinner inline using typeof null-safety guard on penalty scores and passes C2 winner props to TeamScoreRow.
+Displays actual game result with scores and prediction result badge. Shows "Actual Result" label, team names, scores, logos, penalty scores, and prediction accuracy with points earned. Derives homeIsWinner/awayIsWinner inline using typeof null-safety guard on penalty scores and passes C2 winner props to TeamScoreRow. `PredictionResult` type exported (Story #364).
+- **PredictionResult**: `'exact' | 'goal_difference' | 'correct' | 'incorrect'` — exported type (Story #364)
 - **ActualResultDisplay** (FC) - `[Client]` - Calls: none (inline winner derivation) - Uses: `useTranslations` - Renders: `TeamScoreRow` (with homeIsWinner/awayIsWinner)
-- **getPredictionResultLabel** (fn) - Helper to format prediction result labels with translations
-- **getPredictionResultIcon** (fn) - Returns icon for prediction result (Check/Close)
+- **getPredictionResultLabel** (fn) - Helper to format prediction result labels with translations; includes goal_difference case (Story #364)
+- **getPredictionResultIcon** (fn) - Returns icon: CompareArrowsIcon for goal_difference, CheckIcon for exact/correct, CloseIcon for incorrect (Story #364)
 
 **File:** `app/components/boost-badge.tsx`
 Reusable boost badge component displaying boost type and multiplier with trophy icon.
@@ -51,7 +52,7 @@ Full-width banner replacing StageSeparator at the Group Stage→Playoff boundary
 Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay. When `isGameGuess && stageLabel` is provided, renders a stage label row below the location — clickable (with ArrowForwardIos icon) when `onStageClick` is provided, static otherwise.
 - **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
 - Props `GameGuessProps` include: `stageLabel?: string`, `onStageClick?: () => void`
-- **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/correct/incorrect). `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or winner match but penalty winner is wrong or unpredicted in a game that went to penalties.
+- **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/goal_difference/correct/incorrect). Checks exact → goal_difference (same margin) → correct winner → incorrect. `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or margin match but penalty winner wrong (Story #364).
 
 **File:** `app/components/compact-prediction-dashboard.tsx`
 Compact dashboard showing game and tournament prediction progress with urgency indicators and boost counts.

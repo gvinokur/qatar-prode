@@ -48,6 +48,7 @@
     "note": "Note: Only finished games count toward accuracy percentages",
     "overallAccuracy": "Overall Accuracy",
     "resultCorrect": "Result Correct",
+    "goalDifference": "Goal Difference",
     "exactScore": "Exact Score",
     "missed": "Missed",
     "byPhase": "By Phase",

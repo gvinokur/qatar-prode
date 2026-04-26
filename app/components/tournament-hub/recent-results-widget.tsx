@@ -63,27 +63,31 @@ type SubtextFlags = {
   isPending: boolean
   hasGuess: boolean
   isCorrect: boolean
+  isGoalDifference: boolean
   isExact: boolean
   hasPenalties: boolean
   homeWins: boolean
 }
 
 function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: SubtextFlags): string {
-  const { isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins } = flags
+  const { isPending, hasGuess, isCorrect, isGoalDifference, isExact, hasPenalties, homeWins } = flags
   const statusText = item.gameStatus === 'about_to_start' ? t('aboutToStart') : t('matchInProgress')
   const predictionText = hasGuess
     ? t('pendingWithPrediction', { home: item.userHomeGuess!, away: item.userAwayGuess! })
     : t('noPredictionShort')
+  const actualWinnerTeam = homeWins ? item.homeTeamName : item.awayTeamName
+  const userPenaltyWinnerTeam = item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName
 
   if (isPending) return `${statusText} • ${predictionText}`
   if (!hasGuess) return t('youDidntPredict')
   if (isExact) return t('exactResult')
+  if (isGoalDifference) return t('goalDifferenceResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
   if (isCorrect) {
     if (hasPenalties) {
       return t('correctResultWithPenaltyWinner', {
         home: item.userHomeGuess!,
         away: item.userAwayGuess!,
-        team: homeWins ? item.homeTeamName : item.awayTeamName,
+        team: actualWinnerTeam,
       })
     }
     return t('correctResultWithGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
@@ -92,7 +96,7 @@ function buildSubtext(item: RecentGameResultItem, t: TranslationFn, flags: Subte
     return t('yourGuessWithPenaltyPrediction', {
       home: item.userHomeGuess!,
       away: item.userAwayGuess!,
-      team: item.userHomePenaltyWinner ? item.homeTeamName : item.awayTeamName,
+      team: userPenaltyWinnerTeam,
     })
   }
   return t('yourGuess', { home: item.userHomeGuess!, away: item.userAwayGuess! })
@@ -122,25 +126,23 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
   const t = useTranslations('hub.recentResults')
   const isPending = item.gameStatus === 'pending' || item.gameStatus === 'about_to_start'
   const hasGuess = item.userHomeGuess !== null
-  const isCorrect = item.finalPoints > 0
-  const isExact =
-    hasGuess &&
-    item.gameStatus === 'finished' &&
-    item.userHomeGuess === item.homeScore &&
-    item.userAwayGuess === item.awayScore
+  const isExact = item.predictionTier === 'exact'
+  const isGoalDifference = item.predictionTier === 'goal_difference'
+  const isCorrect = item.predictionTier === 'correct'
 
   const hasPenalties = item.homePenaltyScore != null && item.awayPenaltyScore != null
   const homeWins = hasPenalties && item.homePenaltyScore! > item.awayPenaltyScore!
 
-  const subtext = buildSubtext(item, t as TranslationFn, { isPending, hasGuess, isCorrect, isExact, hasPenalties, homeWins })
+  const subtext = buildSubtext(item, t as TranslationFn, { isPending, hasGuess, isCorrect, isGoalDifference, isExact, hasPenalties, homeWins })
   const scoreContent = buildScoreContent(item, hasPenalties, homeWins)
 
+  const earnedPoints = item.finalPoints > 0
   let scoreDisplay: string
   let statusIcon
   if (isPending) {
     scoreDisplay = '-- pts'
     statusIcon = <WatchLaterIcon sx={{ color: 'warning.main', fontSize: 'small', mt: 0.3, flexShrink: 0 }} />
-  } else if (isCorrect) {
+  } else if (earnedPoints) {
     scoreDisplay = `+${item.finalPoints} pts`
     statusIcon = <CheckCircleOutlineIcon color="success" fontSize="small" sx={{ mt: 0.3, flexShrink: 0 }} />
   } else {
@@ -160,7 +162,7 @@ function GameItem({ item }: { readonly item: RecentGameResultItem }) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
               <Typography
                 variant="body2"
-                color={isCorrect && !isPending ? 'success.main' : 'text.secondary'}
+                color={earnedPoints && !isPending ? 'success.main' : 'text.secondary'}
                 fontWeight="medium"
               >
                 {scoreDisplay}
