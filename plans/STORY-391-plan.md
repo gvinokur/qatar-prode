@@ -186,6 +186,13 @@ Tests:
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: ?edit=next resolution uses isGuessComplete, not findScrollTarget
+**Date:** 2026-04-26
+**Reason:** Post-preview bug report — `?edit=next` was opening the first chronological upcoming game, not the first *unpredicted* upcoming game. Users who had already predicted some games were being sent to re-edit a predicted game.
+**Change:** Effect 1's `EDIT_NEXT_TOKEN` branch now uses `isGuessComplete` + `guessesContext.gameGuesses` to find the first upcoming game where the guess is not complete. `findScrollTarget` is retained as a fallback when all upcoming games are predicted. `guessesContext.gameGuesses` added to Effect 1 dependency array. Two new tests added: one for the primary "skips predicted" path, one for the "all predicted → fallback" path.
+
 ## Testing Strategy
 
 **Unit tests (Vitest) for each changed file:**
