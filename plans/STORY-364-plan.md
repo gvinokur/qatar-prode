@@ -13,9 +13,15 @@ The current scoring system has only two game prediction tiers:
 
 There is no reward for predictions that got the exact margin right (e.g., predicted 2-1, actual 3-2 — both "home win by 1"). Adding a "Exact Goal Difference" middle tier improves competitive depth.
 
+With the new middle tier, the point hierarchy is recalibrated to be clearly distinct:
+- **Correct Outcome**: 1 pt (unchanged)
+- **Goal Difference**: 2 pts (new)
+- **Exact Score**: **3 pts** (bumped from 2 to create clear separation)
+
 ## Acceptance Criteria
 
-- [ ] Admins can set `game_correct_goal_difference_points` per tournament in Backoffice (default: 2)
+- [ ] Admins can set `game_correct_goal_difference_points` per tournament in Backoffice (default: 2) and `game_exact_score_points` is recalibrated to default 3 (was 2)
+- [ ] Migration updates `game_exact_score_points` to 3 for all existing active tournaments
 - [ ] Scoring logic awards goal difference tier: same winner AND same margin (home_score - away_score), higher than correct outcome but lower than exact score (non-cumulative, highest tier wins)
 - [ ] Ties with different scores (1-1 vs 2-2) receive goal difference points
 - [ ] Playoff games ending in ties: user must have correctly predicted the penalty winner to receive goal difference tier
@@ -120,7 +126,7 @@ New field inserted between "Correct Outcome Points" and "Exact Score Points":
 ├─────────────────────────────────────────────┤
 │ Correct Outcome Points    [1]  Rec: 1       │
 │ Goal Difference Points    [2]  Rec: 2       │  ← NEW
-│ Exact Score Points        [2]  Rec: 2       │
+│ Exact Score Points        [3]  Rec: 3       │  ← default bumped to 3
 │ Champion Points           [5]  Rec: 5       │
 │ ...                                         │
 └─────────────────────────────────────────────┘
@@ -220,9 +226,11 @@ New rule entry between winnerDraw and exactScore:
 
 **Changed:**
 - `ScoringConfig`: add `game_correct_goal_difference_points: number`
-- `DEFAULT_SCORING`: add `game_correct_goal_difference_points: 2`
+- `DEFAULT_SCORING`: add `game_correct_goal_difference_points: 2`; change `game_exact_score_points` from 2 → 3
 
-Tests: (existing tests; the field addition is non-breaking)
+Tests:
+- DEFAULT_SCORING.game_exact_score_points equals 3
+- DEFAULT_SCORING.game_correct_goal_difference_points equals 2 (new field)
 
 ---
 
@@ -366,6 +374,18 @@ Tests:
 ALTER TABLE tournaments 
 ADD COLUMN IF NOT EXISTS game_correct_goal_difference_points INTEGER DEFAULT 2;
 
+-- Recalibrate exact score default from 2 → 3 (to create clear tier separation: 1/2/3)
+ALTER TABLE tournaments 
+ALTER COLUMN game_exact_score_points SET DEFAULT 3;
+
+-- Update existing active tournaments to use the new exact score default of 3.
+-- This ensures currently-running prodes reflect the new intended point hierarchy.
+-- Tournaments where admins had already customized the value (i.e. not the old default of 2)
+-- are left untouched; only those still at the old default are migrated.
+UPDATE tournaments
+SET game_exact_score_points = 3
+WHERE game_exact_score_points = 2 OR game_exact_score_points IS NULL;
+
 -- Add prediction tier to game_guesses (nullable for backward compat)
 ALTER TABLE game_guesses 
 ADD COLUMN IF NOT EXISTS prediction_tier VARCHAR(20);
@@ -376,11 +396,8 @@ ADD COLUMN IF NOT EXISTS total_goal_difference_guesses INTEGER NOT NULL DEFAULT 
 ADD COLUMN IF NOT EXISTS group_goal_difference_guesses INTEGER NOT NULL DEFAULT 0,
 ADD COLUMN IF NOT EXISTS playoff_goal_difference_guesses INTEGER NOT NULL DEFAULT 0;
 
--- Backfill prediction_tier for existing rows based on current score values
--- score = null → NULL (not yet calculated)
--- score = 0 → 'missed'
--- score = 1 → 'correct' (was correct outcome tier)
--- score > 1 → 'exact' (was exact score tier; no GD data exists pre-migration)
+-- Backfill prediction_tier for existing rows based on current score values.
+-- Pre-migration: score=0 → missed, score=1 → correct, score≥2 → exact (no GD rows existed).
 UPDATE game_guesses SET prediction_tier = 
   CASE 
     WHEN score IS NULL THEN NULL
@@ -391,7 +408,10 @@ UPDATE game_guesses SET prediction_tier =
 WHERE prediction_tier IS NULL;
 ```
 
-**Note:** Admins who want retroactive goal_difference recalculation for existing tournaments can retrigger score calculation from the Backoffice (out of scope per story requirements, but the recalculation pipeline will auto-set `prediction_tier` correctly going forward).
+**Notes:**
+- Existing active tournaments get `game_exact_score_points` bumped to 3 automatically (only if still at the old default of 2). Admins who had set a custom value are unaffected.
+- Admins who want retroactive goal_difference recalculation for existing tournaments can retrigger score calculation from the Backoffice (out of scope per story requirements, but the recalculation pipeline will auto-set `prediction_tier` correctly going forward).
+- Score recalculation must be re-triggered by admins for historical games to reflect the new 3-pt exact score value — this is an intentional admin-controlled action.
 
 ## Testing Strategy
 
