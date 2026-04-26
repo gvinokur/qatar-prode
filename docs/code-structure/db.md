@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-24
+**Last updated:** 2026-04-26
 
 ---
 
@@ -106,7 +106,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **getTournamentGameCounts(userId: string | null, tournamentId: string)**: `Promise<TournamentGameCounts>` — Counts for filter badges (total, groups, playoffs, unpredicted, closing soon) (cached).
 - **findRecentGamesWithUserGuesses(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameWithGuess[]>` — Returns games with published (non-draft) results where the user has a guess, ordered by game_date desc, up to `limit` rows. Returns empty array when limit is 0.
 - **BoostType**: `'silver' | 'golden' | null` — Type alias for boost type values; used in `RecentGameForDashboard` and `RecentGameWithGuess`.
-- **findRecentGamesForDashboard(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameForDashboard[]>` — Returns all games where `game_date <= now() + 1h`, LEFT JOINing game_guesses (nullable) and published game_results (is_draft=false, nullable). Ordered by game_date desc, limited to `limit`. Returns empty array when limit is 0. Interface: `RecentGameForDashboard { gameId, homeTeamId, awayTeamId, homeScore: number|null, awayScore: number|null, homePenaltyScore: number|null, awayPenaltyScore: number|null, userHomeGuess: number|null, userAwayGuess: number|null, userHomePenaltyWinner: boolean|null, userAwayPenaltyWinner: boolean|null, guessScore: number|null, boostType: BoostType, boostMultiplier: number|null, finalScore: number|null, gameDate: Date }`.
+- **findRecentGamesForDashboard(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameForDashboard[]>` — Returns all games where `game_date <= now() + 1h`, LEFT JOINing game_guesses (nullable) and published game_results (is_draft=false, nullable). Ordered by game_date desc, limited to `limit`. Returns empty array when limit is 0. Interface: `RecentGameForDashboard { gameId, homeTeamId, awayTeamId, homeScore: number|null, awayScore: number|null, homePenaltyScore: number|null, awayPenaltyScore: number|null, userHomeGuess: number|null, userAwayGuess: number|null, userHomePenaltyWinner: boolean|null, userAwayPenaltyWinner: boolean|null, guessScore: number|null, boostType: BoostType, boostMultiplier: number|null, finalScore: number|null, predictionTier: 'exact'|'goal_difference'|'correct'|'missed'|null, gameDate: Date }`.
 
 ### app/db/game-result-repository.ts
 Repository for game_results table. Manages actual game outcomes (scores, penalties).
