@@ -1224,6 +1224,8 @@ export default function GamePredictionEditControls({
 
     if (!isMobile && onSave && onCancel) {
       const showSaveAndNext = isGuidedMode && !!onSaveAndAdvance;
+      const buttonSize = compact ? 'small' : 'medium';
+      const saveLabel = loading ? t('edit.saving') : showSaveAndNext ? t('edit.saveAndNext') : t('edit.save');
       return (
         <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
           <Button
@@ -1234,7 +1236,7 @@ export default function GamePredictionEditControls({
             onKeyDown={(e) => handleKeyDown(e, 'cancel')}
             onFocus={() => setCurrentField('cancel')}
             disabled={loading}
-            size={compact ? 'small' : 'medium'}
+            size={buttonSize}
             fullWidth
             sx={{
               '&:focus': {
@@ -1253,7 +1255,7 @@ export default function GamePredictionEditControls({
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
-            size={compact ? 'small' : 'medium'}
+            size={buttonSize}
             fullWidth
             sx={{
               '&:focus': {
@@ -1263,7 +1265,7 @@ export default function GamePredictionEditControls({
               }
             }}
           >
-            {loading ? t('edit.saving') : showSaveAndNext ? t('edit.saveAndNext') : t('edit.save')}
+            {saveLabel}
           </Button>
         </Box>
       );
