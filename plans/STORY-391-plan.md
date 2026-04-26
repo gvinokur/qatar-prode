@@ -156,6 +156,8 @@ Tests:
 
 ### `app/components/urgency-accordion-group.tsx` *(modified)*
 
+**Important:** This component is used from three pages — Games, Qualified Teams, and Awards. The fix applies uniformly; all three should navigate to `/games?edit=<gameId>` since the edit flow lives on the games page.
+
 **Changed functions:**
 
 - **`handleEditGame(gameId: string)`**: void *(was: navigating to hub page with broken ?edit param)*
