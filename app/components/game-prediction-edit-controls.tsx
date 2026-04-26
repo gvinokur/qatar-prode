@@ -87,6 +87,9 @@ interface GamePredictionEditControlsProps {
   // Refs for Save/Cancel buttons
   readonly saveButtonRef?: React.RefObject<HTMLButtonElement | null>;
   readonly cancelButtonRef?: React.RefObject<HTMLButtonElement | null>;
+
+  // Guided mode: shows "Save & Next" as primary desktop action
+  readonly isGuidedMode?: boolean;
 }
 
 export default function GamePredictionEditControls({
@@ -124,7 +127,8 @@ export default function GamePredictionEditControls({
   onSaveAndAdvance,
   onShiftTabFromFirstField,
   onEscapePressed,
-  retryCallback
+  retryCallback,
+  isGuidedMode = false
 }: GamePredictionEditControlsProps) {
   const t = useTranslations('predictions');
   const theme = useTheme();
@@ -1219,6 +1223,7 @@ export default function GamePredictionEditControls({
     }
 
     if (!isMobile && onSave && onCancel) {
+      const showSaveAndNext = isGuidedMode && !!onSaveAndAdvance;
       return (
         <Box sx={{ display: 'flex', gap: 1, mt: compact ? 2 : 3 }}>
           <Button
@@ -1244,7 +1249,7 @@ export default function GamePredictionEditControls({
           <Button
             ref={saveButtonRef}
             variant="contained"
-            onClick={onSave}
+            onClick={showSaveAndNext ? onSaveAndAdvance : onSave}
             onKeyDown={(e) => handleKeyDown(e, 'save')}
             onFocus={() => setCurrentField('save')}
             disabled={loading}
@@ -1258,7 +1263,7 @@ export default function GamePredictionEditControls({
               }
             }}
           >
-            {loading ? t('edit.saving') : t('edit.save')}
+            {loading ? t('edit.saving') : showSaveAndNext ? t('edit.saveAndNext') : t('edit.save')}
           </Button>
         </Box>
       );

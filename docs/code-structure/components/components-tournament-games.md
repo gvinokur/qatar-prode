@@ -43,6 +43,10 @@ Popover showing detailed boost allocation breakdown by group, playoff, and perfo
 Full-width header row that spans a CSS grid column (gridColumn: '1 / -1') to visually separate game groups by matchday or round.
 - **StageSeparator({ label: string })** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Box (gridColumn 1/-1), Typography (overline, primary.main), Divider`
 
+**File:** `app/components/stage-transition-banner.tsx`
+Full-width banner replacing StageSeparator at the Group Stage→Playoff boundary. Renders the same overline label + divider layout as StageSeparator, plus a right-aligned outlined CTA Button linking to ctaHref.
+- **StageTransitionBanner({ label: string, ctaLabel: string, ctaHref: string })** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Box (gridColumn 1/-1), Typography (overline), Divider, Button (outlined, Link)`
+
 **File:** `app/components/compact-game-view-card.tsx`
 Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay. When `isGameGuess && stageLabel` is provided, renders a stage label row below the location — clickable (with ArrowForwardIos icon) when `onStageClick` is provided, static otherwise.
 - **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
@@ -56,7 +60,7 @@ Compact dashboard showing game and tournament prediction progress with urgency i
 **File:** `app/components/flippable-game-card.tsx`
 3D flip card for inline game editing. Shows game view on front, edit controls on back with keyboard navigation support.
 - **FlippableGameCard** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useReducedMotion` - Renders: `Box, GameView, Card, GamePredictionEditControls`
-- Props include: `onStageClick?: () => void` — passed through to `GameView`
+- Props include: `onStageClick?: () => void` — passed through to `GameView`; `isGuidedMode?: boolean` — threaded to `GamePredictionEditControls`
 
 **File:** `app/components/game-boost-selector.tsx`
 Interactive boost selector with silver/golden buttons, count badges, and dialog for boost limit warnings.
@@ -79,8 +83,9 @@ Game filter selector with counts for all/groups/playoffs/unpredicted/closingSoon
 - **GameFilters** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `FormControl, Select, MenuItem`
 
 **File:** `app/components/game-prediction-edit-controls.tsx`
-(Output too large - read separately) Full game prediction edit form with scores, penalties, boosts, keyboard navigation, and save/cancel controls.
+Full game prediction edit form with scores, penalties, boosts, keyboard navigation, and save/cancel controls. When `isGuidedMode=true` and `onSaveAndAdvance` is provided, renders "Save & Next" as the primary desktop action instead of "Save".
 - **GamePredictionEditControls** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useTranslations` - Renders: `Box, TextField, Checkbox, ToggleButtonGroup, GameBoostSelector, StepperScoreInput, Alert`
+- Props include: `isGuidedMode?: boolean` — when true and `onSaveAndAdvance` is provided, desktop shows [Cancel] [Save & Next] instead of [Cancel] [Save]
 
 **File:** `app/components/game-result-edit-dialog.tsx`
 Dialog for editing game results or guesses. Supports penalty shootouts, game date (for results), and game guess forms.
@@ -103,8 +108,8 @@ Skeleton loading component displaying game card loaders.
 - **GamesListLoading** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Stack, GameCardSkeleton`
 
 **File:** `app/components/games-list-with-scroll.tsx`
-Scrollable list of games with stage separators, filter integration, auto-scroll to first unpredicted game, and keyboard navigation support. Groups games into `GameSection[]` (by matchday for group games, by round for playoff games) and renders `StageSeparator` before each group.
-- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick? })** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator, FlippableGameCard, EmptyGamesState`
+Scrollable list of games with stage separators, filter integration, auto-scroll to first unpredicted game, and keyboard navigation support. Groups games into `GameSection[]` (by matchday for group games, by round for playoff games). Renders `StageTransitionBanner` at the Group Stage→Playoff boundary (first playoff section) and `StageSeparator` for all other sections. Always passes `isGuidedMode={true}` to each `FlippableGameCard`. Auto-advance skips predicted games and stops at the group stage boundary.
+- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick?, qtPredictionLocked, qualifiedTeamsHref })** (FC) - `[Client]` - Calls: `isGamePredictionComplete` - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator, StageTransitionBanner, FlippableGameCard, EmptyGamesState`
 
 **File:** `app/components/stepper-score-input.tsx`
 Stepper input for scores with increment/decrement buttons, imperatively expose focus method.
@@ -136,12 +141,13 @@ Helper functions and constants for urgency level calculations, color mapping, an
 **File:** `app/components/unified-games-page-client.tsx`
 Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler.
 - **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
+- Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` is derived inline from `tournamentPredictionCompletion?.isPredictionLocked ?? false`
 - `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
 - **UnifiedGamesPageClient** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `FilterContextProvider, UnifiedGamesPageContent`
 
 **File:** `app/components/unified-games-page.tsx`
-Server component that fetches all tournament data and renders client page with GuessesContext and EditTriggerContext.
-- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, applyLocalization` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
+Server component that fetches all tournament data and renders client page with GuessesContext and EditTriggerContext. Builds `qualifiedTeamsHref = /${locale}/tournaments/${tournamentId}/qualified-teams` and passes it to `UnifiedGamesPageClient`.
+- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, applyLocalization, getLocale` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
 
 **File:** `app/components/prediction-dashboard.tsx`
 Dashboard with status bar and games grid. Recalculates prediction stats client-side when guesses change.

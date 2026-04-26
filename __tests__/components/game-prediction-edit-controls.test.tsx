@@ -671,4 +671,76 @@ describe('GamePredictionEditControls', () => {
       expect(onHomeScoreChange).toHaveBeenCalledWith(3);
     });
   });
+
+  describe('Guided Mode (isGuidedMode prop)', () => {
+    beforeEach(() => {
+      // Desktop layout
+      mockUseMediaQuery.mockReturnValue(false);
+    });
+
+    it('renders "Guardar y Siguiente" button when isGuidedMode=true and onSaveAndAdvance provided', () => {
+      const onSaveAndAdvance = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isGuidedMode={true}
+          onSaveAndAdvance={onSaveAndAdvance}
+        />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      expect(screen.getByRole('button', { name: /guardar y siguiente/i })).toBeInTheDocument();
+    });
+
+    it('renders "Guardar" (not "Guardar y Siguiente") when isGuidedMode=false', () => {
+      renderWithProviders(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isGuidedMode={false}
+        />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      expect(screen.getByText(/^guardar$/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /guardar y siguiente/i })).not.toBeInTheDocument();
+    });
+
+    it('renders "Guardar" (not "Guardar y Siguiente") when isGuidedMode is not provided (default)', () => {
+      renderWithProviders(
+        <GamePredictionEditControls {...defaultProps} />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      expect(screen.getByText(/^guardar$/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /guardar y siguiente/i })).not.toBeInTheDocument();
+    });
+
+    it('clicking "Guardar y Siguiente" calls onSaveAndAdvance', () => {
+      const onSaveAndAdvance = vi.fn();
+      renderWithProviders(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isGuidedMode={true}
+          onSaveAndAdvance={onSaveAndAdvance}
+        />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /guardar y siguiente/i }));
+
+      expect(onSaveAndAdvance).toHaveBeenCalledTimes(1);
+    });
+
+    it('still renders "Guardar" when isGuidedMode=true but onSaveAndAdvance is not provided', () => {
+      renderWithProviders(
+        <GamePredictionEditControls
+          {...defaultProps}
+          isGuidedMode={true}
+        />,
+        { guessesContext: createMockGuessesContext({ boostCounts: defaultBoostCounts }) }
+      );
+
+      expect(screen.getByText(/^guardar$/i)).toBeInTheDocument();
+    });
+  });
 });

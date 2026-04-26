@@ -74,7 +74,12 @@
     "noBoost": "Ninguno",
     "penaltyWinner": "Ganador Penales",
     "penaltyWinnerFull": "Ganador de la tanda de penales",
-    "penaltyWinnerPrompt": "Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales."
+    "penaltyWinnerPrompt": "Dado que el pártido terminó empatado, por favor seleccione el ganador de la tanda de penales.",
+    "saveAndNext": "Guardar y Siguiente"
+  },
+  "stageTransition": {
+    "predictQualifiedTeams": "Predecir Equipos Clasificados",
+    "checkQtPredictions": "Ver tus Predicciones de Clasificados"
   },
   "boost": {
     "silver": {
