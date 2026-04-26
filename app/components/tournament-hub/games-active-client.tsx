@@ -187,7 +187,7 @@ export function GamesActiveClient({
 
         <Button
           component={Link}
-          href={gamesHref}
+          href={`${gamesHref}?edit=${currentGame.id}`}
           variant="text"
           size="small"
           fullWidth

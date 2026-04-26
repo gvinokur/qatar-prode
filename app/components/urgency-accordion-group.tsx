@@ -98,8 +98,7 @@ export function UrgencyAccordionGroup({
   const handleEditGame = (gameId: string) => {
     const game = games.find(g => g.id === gameId);
     if (game) {
-      // Navigate to tournament page with edit parameter
-      router.push(`/${locale}/tournaments/${tournamentId}?edit=${gameId}`);
+      router.push(`/${locale}/tournaments/${tournamentId}/games?edit=${gameId}`);
     }
   };
 

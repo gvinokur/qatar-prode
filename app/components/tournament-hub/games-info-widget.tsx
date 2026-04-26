@@ -100,7 +100,7 @@ export async function GamesInfoWidget({
         )}
 
         {/* CTA */}
-        <GamesInfoWidgetCta isLoggedOff={isLoggedOff} href={gamesHref} label={ctaText} />
+        <GamesInfoWidgetCta isLoggedOff={isLoggedOff} href={isLoggedOff ? gamesHref : `${gamesHref}?edit=next`} label={ctaText} />
       </Stack>
     </DashboardCard>
   )

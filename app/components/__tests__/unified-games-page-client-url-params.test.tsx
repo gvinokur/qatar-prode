@@ -3,6 +3,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react';
 import { UnifiedGamesPageClient } from '../unified-games-page-client';
 import * as nextNavigation from 'next/navigation';
+import * as autoScroll from '../../utils/auto-scroll';
 import { testFactories } from '@/__tests__/db/test-factories';
 
 // Mock dependencies
@@ -30,7 +31,7 @@ vi.mock('../context-providers/guesses-context-provider', () => ({
   })
 }));
 
-vi.mock('../utils/auto-scroll', () => ({
+vi.mock('../../utils/auto-scroll', () => ({
   scrollToGame: vi.fn(),
   findScrollTarget: vi.fn()
 }));
@@ -252,6 +253,93 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
     // Cleanup
     globalThis.localStorage.removeItem('tournamentFilter-123');
     globalThis.localStorage.removeItem('tournamentGroupFilter-123');
+  });
+
+  it('should resolve ?edit=next to first upcoming game and clear filters', async () => {
+    vi.mocked(autoScroll.findScrollTarget).mockReturnValue('game-upcoming-id');
+    mockSearchParams.set('edit', 'next');
+
+    const game = testFactories.game({ id: 'upcoming-id' });
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+
+    render(
+      <UnifiedGamesPageClient
+        games={[game]}
+        gameCounts={{ total: 1, predicted: 0, remaining: 1 }}
+        teamsMap={{ [team.id]: team }}
+        tournamentId={tournament.id}
+        groups={[]}
+        rounds={[]}
+        tournament={tournament}
+        closingGames={[]}
+        tournamentPredictionCompletion={null}
+        tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+      />
+    );
+
+    expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
+    expect(mockSetGroupFilter).toHaveBeenCalledWith(null);
+    expect(mockSetRoundFilter).toHaveBeenCalledWith(null);
+  });
+
+  it('should trigger edit on resolved game ID when ?edit=next', async () => {
+    vi.mocked(autoScroll.findScrollTarget).mockReturnValue('game-upcoming-id');
+    mockSearchParams.set('edit', 'next');
+
+    const game = testFactories.game({ id: 'upcoming-id' });
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+
+    render(
+      <UnifiedGamesPageClient
+        games={[game]}
+        gameCounts={{ total: 1, predicted: 0, remaining: 1 }}
+        teamsMap={{ [team.id]: team }}
+        tournamentId={tournament.id}
+        groups={[]}
+        rounds={[]}
+        tournament={tournament}
+        closingGames={[]}
+        tournamentPredictionCompletion={null}
+        tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+      />
+    );
+
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
+    expect(mockTriggerEdit).toHaveBeenCalledWith('upcoming-id');
+  });
+
+  it('should not set pending edit when ?edit=next with no scroll target', () => {
+    vi.mocked(autoScroll.findScrollTarget).mockReturnValue(null);
+    mockSearchParams.set('edit', 'next');
+
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+
+    render(
+      <UnifiedGamesPageClient
+        games={[]}
+        gameCounts={{ total: 0, predicted: 0, remaining: 0 }}
+        teamsMap={{ [team.id]: team }}
+        tournamentId={tournament.id}
+        groups={[]}
+        rounds={[]}
+        tournament={tournament}
+        closingGames={[]}
+        tournamentPredictionCompletion={null}
+        tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+      />
+    );
+
+    expect(mockSetActiveFilter).not.toHaveBeenCalledWith('all');
+    expect(mockTriggerEdit).not.toHaveBeenCalled();
   });
 
   it('should do nothing when no edit parameter', () => {

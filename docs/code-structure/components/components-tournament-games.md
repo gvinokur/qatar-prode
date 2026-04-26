@@ -116,8 +116,9 @@ Stepper input for scores with increment/decrement buttons, imperatively expose f
 - **StepperScoreInput** (FC) - `[Client]` - Calls: none - Uses: `useRef, useImperativeHandle` - Renders: `Box, IconButton, Typography`
 
 **File:** `app/components/urgency-accordion-group.tsx`
-Groups games into urgency tiers (urgent/warning/notice) with auto-expansion for unpredicted urgent games.
+Groups games into urgency tiers (urgent/warning/notice) with auto-expansion for unpredicted urgent games. Used from the Games, Qualified Teams, and Awards pages.
 - **UrgencyAccordionGroup** (FC) - `[Client]` - Calls: none - Uses: `useRouter, useTranslations, useLocale, useCountdownContext, useMemo, useState, useEffect` - Renders: `Box, UrgencyAccordion`
+- `handleEditGame(gameId)` — navigates to `/${locale}/tournaments/${tournamentId}/games?edit=${gameId}` (games page, not hub page), opening the game in edit mode via the `?edit` URL param flow.
 
 **File:** `app/components/urgency-accordion.tsx`
 Accordion for single urgency tier showing unpredicted games first, then predicted games.
@@ -139,9 +140,10 @@ Helper functions and constants for urgency level calculations, color mapping, an
 - **hasUrgentGames** (fn) - Checks if games need urgent attention
 
 **File:** `app/components/unified-games-page-client.tsx`
-Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler.
+Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler. Imports `EDIT_NEXT_TOKEN` from `prediction-constants` and `findScrollTarget` from `auto-scroll`.
 - **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
 - Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` is derived inline from `tournamentPredictionCompletion?.isPredictionLocked ?? false`
+- Effect 1 handles `?edit` param: if value equals `EDIT_NEXT_TOKEN` ("next"), calls `findScrollTarget(games)` and strips the `"game-"` prefix to get the target ID; otherwise uses the param value directly. Clears all filters and sets `pendingEditGameId` so Effect 2 can scroll+trigger edit.
 - `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
 - **UnifiedGamesPageClient** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `FilterContextProvider, UnifiedGamesPageContent`
 
