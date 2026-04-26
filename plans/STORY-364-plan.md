@@ -475,3 +475,15 @@ WHERE prediction_tier = 'exact'
 ## Open Questions
 
 None.
+
+## Implementation Amendments
+
+### Amendment 1: Thread prediction_tier through hub pipeline
+**Date:** 2026-04-26
+**Reason:** Discovered during testing that the recent results widget was re-deriving tier from score margins. This breaks for penalty games where a draw has margin=0 on both sides — both teams have the same margin, so the wrong winner looked like "goal difference."
+**Change:** Added `prediction_tier` to `findRecentGamesForDashboard` query in `game-repository.ts`; threaded it through `RecentGameForDashboard` → `hub-actions.ts` → `RecentGameResultItem` → `recent-results-widget.tsx` so the widget reads the DB-stored tier directly. Added i18n keys for `goalDifferenceResultWithGuess` in hub namespace.
+
+### Amendment 2: Goal difference accuracy stat is cumulative (includes exact tier)
+**Date:** 2026-04-26
+**Reason:** The "Goal Difference" accuracy percentage was only counting `prediction_tier = 'goal_difference'` rows, but an exact score inherently satisfies the goal difference condition. The same cumulative logic applies as "Correct" (which includes all positive tiers). The DB column `total_exact_guesses` = `score > 1` = goal_diff + exact combined, which was already the right denominator.
+**Change:** Updated `calculateAccuracyStats()` in `stats-calculations.ts` to use `total_exact_guesses` (= goal_diff + exact combined) for the "Goal Difference" display value, and derive pure exact as `total_exact_guesses - total_goal_difference_guesses`. Updated `stats-calculations-goal-diff.test.ts` to reflect the cumulative semantics.
