@@ -362,7 +362,7 @@ export async function bulkAutoFillFromPredictions(
     gamesByGroup.get(game.group_id)!.push(game);
   }
 
-  for (const [groupId, games] of gamesByGroup) {
+  for (const [_groupId, games] of gamesByGroup) {
     const incompleteCount = games.filter((g) => {
       const guess = guessMap[g.game_id];
       return !guess || guess.home_score === null || guess.away_score === null;
