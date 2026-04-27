@@ -1,18 +1,16 @@
 import { Stack } from '@mui/material'
-import { computeIsIncompleteUser } from '../../actions/hub-actions'
-import type { ActionCenterData, TournamentTiming } from '../../actions/hub-actions'
+import type { TournamentTiming } from '../../actions/hub-actions'
 import { LoggedOffBanner } from '../tournament-page/public-cta-bar'
-import { TutorialCTACard } from './tutorial-cta-card'
 import { TournamentStartBanner } from './tournament-start-banner'
 import { PreTournamentCountdown } from './pre-tournament-hero'
 
 interface DashboardBannerProps {
   readonly user: { id?: string } | null | undefined
   readonly timing: TournamentTiming | null
-  readonly data: ActionCenterData | null
+  readonly data?: unknown
 }
 
-export async function DashboardBanner({ user, timing, data }: DashboardBannerProps) {
+export async function DashboardBanner({ user, timing }: DashboardBannerProps) {
   // Hero layer: uses public timing data so it shows even for logged-out users
   let hero: React.ReactNode = null
   if (timing?.tournamentJustStarted) {
@@ -26,13 +24,8 @@ export async function DashboardBanner({ user, timing, data }: DashboardBannerPro
     )
   }
 
-  // Secondary layer: shown based on user auth/completion state
-  let secondary: React.ReactNode = null
-  if (!user) {
-    secondary = <LoggedOffBanner />
-  } else if (data && (await computeIsIncompleteUser(data))) {
-    secondary = <TutorialCTACard fullWidth />
-  }
+  // Secondary layer: logged-off users only
+  const secondary: React.ReactNode = !user ? <LoggedOffBanner /> : null
 
   if (!hero && !secondary) return null
 

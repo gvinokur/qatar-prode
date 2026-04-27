@@ -445,10 +445,10 @@ Key flows:
             ├── writeScoreSnapshot (per user, with all 6 score segments from updated guess)
             └── recalculateGroupRankingsForUsers(tournamentId, affectedUserIds) [see flow 27]
 
-15. Push notifications
-    InstallPwa [Client] (first-time prompt)
-      └── NotificationsSubscriptionPrompt [renders]
-            └── subscribeUser [server action]
+15. Push notifications (Story #390: InstallPwa + NotificationsSubscriptionPrompt global snackbars removed; functionality absorbed into EngagementRotatorWidget on the hub page)
+    EngagementRotatorWidget [Client] (notification-opt-in card in rotation)
+      └── Notification.requestPermission() [browser API, on user click]
+      └── subscribeUser [server action, called externally when permission granted]
                   └── addNotificationSubscription
     UserSettingsDialog [Client] (manage from settings)
       ├── subscribeUser [server action]
@@ -597,20 +597,23 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic; #356 — Games widget)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic; #356 — Games widget; #390 — Priority Attention Widget)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
       → getTournamentHubPageData(tournamentId) + getLoggedInUser() [parallel; Story #356]
       → getRulesBySection(scoringConfig, tRules)  [page-level, shared scoringRules; Story #356]
       → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer; Story #355]
       → getActionCenterGames(id, locale)  [conditional: user && !isFinished; null otherwise]
-      → renders DashboardBanner(user, timing, data) [Story #355: hero + secondary banner stack]
+      → renders DashboardBanner(user, timing) [Story #355: hero + secondary banner stack; Story #390: TutorialCTACard removed]
           DashboardBanner (Server)
             → [hero reads from timing — available for all users]
             → [hero] TournamentStartBanner [Client] (when timing.tournamentJustStarted)
             → [hero] PreTournamentCountdown [Client] (when !timing.tournamentHasStarted && timing.firstGameDate set)
             → [secondary] LoggedOffBanner [Client] (when !user)
-            → computeIsIncompleteUser(data)  [only when user is logged in and data is non-null]
-            → [secondary] TutorialCTACard fullWidth [Client] (when user && computeIsIncompleteUser)
+      → renders PriorityAttentionWidget(data, gamesHref, qtHref, awardsHref, locale, tournamentId) [Story #390: only when user && actionCenterData]
+          PriorityAttentionWidget (Server)
+            → computePriorityAttention(data)  [pure; returns PriorityAttentionState | null]
+            → [null] EngagementRotatorWidget [Client] (Tier 3: pre-tournament CTA / app install / notification opt-in rotation)
+            → [non-null] Paper card (outlined; Avatar + title + subtitle + Button[Link])
       → renders GamesPredictionWidget (zero-fetch orchestrator; Story #356)
           → [isFinished] → null
           → [!actionCenterData] → GamesInfoWidget(isLoggedOff=true, predictedGames=0)

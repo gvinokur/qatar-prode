@@ -13,7 +13,6 @@ import {findUserById} from "../../../db/users-repository";
 import VerificationBanner from "../../../components/verification/verification-banner";
 import {VerificationOverlay} from "../../../components/verification/verification-overlay";
 import Link from "next/link";
-import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notification";
 import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
@@ -355,19 +354,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Box>
         </Box>
       </Box>
-      {user &&
-        (((!tournamentGuesses?.best_player_id ||
-          !tournamentGuesses?.best_young_player_id ||
-          !tournamentGuesses?.best_goalkeeper_player_id ||
-          !tournamentGuesses?.top_goalscorer_player_id
-        ) &&
-        playersInTournament > 0) ||
-          !tournamentGuesses?.champion_team_id ||
-          !tournamentGuesses?.runner_up_team_id
-        ) &&
-        isWithin5DaysOfTournamentStart && (
-        <EmptyAwardsSnackbar tournamentId={params.id}/>
-      )}
       <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}

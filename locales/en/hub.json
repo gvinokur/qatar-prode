@@ -157,6 +157,63 @@
     "urgentMessage": "Predict {count} games before it's too late!",
     "safeMessage": "Some games are closing soon, you can still change their scores."
   },
+  "attentionWidget": {
+    "urgentGames": {
+      "title": "{count, plural, one {1 game closing soon} other {{count} games closing soon}}",
+      "subtitle": "Predict before kickoff — scores lock 1 hour before each match",
+      "cta": "Predict Now"
+    },
+    "qtDeadline": {
+      "title": "Qualified Teams closing soon",
+      "subtitle": "{completed} of {total} predicted",
+      "cta": "Finish QT"
+    },
+    "awardsDeadline": {
+      "title": "Awards closing soon",
+      "subtitle": "{completed} of {total} predicted",
+      "cta": "Finish Awards"
+    },
+    "transitionToQt": {
+      "title": "Games locked in — pick your qualifiers!",
+      "subtitle": "Choose who advances from each group before the window closes",
+      "cta": "Pick Qualifiers"
+    },
+    "transitionToAwards": {
+      "title": "Qualifiers done — now choose your awards",
+      "subtitle": "Golden Boot, Best Goalkeeper and more",
+      "cta": "Choose Awards"
+    },
+    "fallbackGames": {
+      "title": "Games to predict",
+      "subtitle": "{completed} of {total} games predicted",
+      "cta": "Predict Games"
+    },
+    "qtNudge": {
+      "title": "Don't forget Qualified Teams",
+      "subtitle": "{completed} of {total} slots predicted",
+      "cta": "Go to QT"
+    },
+    "awardsNudge": {
+      "title": "Don't forget Awards",
+      "subtitle": "{completed} of {total} awards predicted",
+      "cta": "Go to Awards"
+    },
+    "preTournamentCta": {
+      "title": "Start predicting before kickoff",
+      "subtitle": "Lock in your picks — you can edit right up until each match starts",
+      "cta": "Let's Go"
+    },
+    "appInstall": {
+      "title": "Install for a better experience",
+      "subtitle": "Add Qatar Prode to your home screen",
+      "cta": "Install"
+    },
+    "notificationOptIn": {
+      "title": "Get notified when games start",
+      "subtitle": "Never miss a result or a closing deadline",
+      "cta": "Enable"
+    }
+  },
   "statsAtAGlance": {
     "title": "Stats at a Glance",
     "noData": "No points yet",

@@ -150,26 +150,6 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
   }
 }
 
-/**
- * Returns true when the user is in the "incomplete" pre-tournament state:
- * tournament hasn't started, prediction window is open, and at least one
- * prediction track is below its completion threshold.
- *
- * Zero-total sections (not yet configured) are treated as complete (100%)
- * to avoid false positives when sections haven't been set up yet.
- */
-export async function computeIsIncompleteUser(data: ActionCenterData): Promise<boolean> {
-  if (data.tournamentHasStarted) return false
-  if (!data.qtAndAwardsOpen) return false
-  if (data.firstGameDate === null) return false
-
-  const gamesProgress = data.totalGames > 0 ? (data.predictedGames / data.totalGames) * 100 : 100
-  const awardsProgress = data.awardsTotal > 0 ? (data.awardsCompleted / data.awardsTotal) * 100 : 100
-  const qtProgress = data.qualifiersTotal > 0 ? (data.qualifiersCompleted / data.qualifiersTotal) * 100 : 100
-
-  return gamesProgress < 30 || awardsProgress < 90 || qtProgress < 90
-}
-
 const MAX_URGENT_CARDS = 5
 const FALLBACK_CARD_COUNT = 5
 const FALLBACK_WINDOW_MS = 5 * 24 * 60 * 60 * 1000 // 5-day lookahead for fallback carousel
