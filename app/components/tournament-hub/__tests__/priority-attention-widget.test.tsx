@@ -14,10 +14,9 @@ vi.mock('@/app/utils/priority-attention', async (importOriginal) => {
 })
 
 vi.mock('../engagement-rotator-widget', () => ({
-  EngagementRotatorWidget: ({ gamesHref, tournamentStarted }: { gamesHref: string; tournamentStarted: boolean }) => (
+  EngagementRotatorWidget: ({ tournamentStarted }: { tournamentStarted: boolean }) => (
     <div
       data-testid="engagement-rotator-widget"
-      data-games-href={gamesHref}
       data-tournament-started={String(tournamentStarted)}
     />
   ),

@@ -82,8 +82,12 @@ export function computePriorityAttention(data: ActionCenterData): PriorityAttent
     }
   }
 
-  // Tier 2 — fallback games nudge (upcoming games exist but no urgency)
-  if (data.mode === 'fallback' && data.predictedGames < data.totalGames) {
+  // Tier 2 — fallback games nudge (upcoming games in window, or pre-tournament with games to predict)
+  const hasPendingGamePredictions = data.totalGames > 0 && data.predictedGames < data.totalGames
+  if (
+    hasPendingGamePredictions &&
+    (data.mode === 'fallback' || (!data.tournamentHasStarted && data.mode === 'empty'))
+  ) {
     return {
       type: 'fallback-games',
       completedCount: data.predictedGames,

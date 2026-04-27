@@ -57,52 +57,52 @@ afterEach(() => {
 })
 
 describe('EngagementRotatorWidget', () => {
-  it('shows pre-tournament-cta card when tournament not started', () => {
+  it('shows pre-tournament-cta (tutorial card) when tournament not started', () => {
     // Seed count=1 so nextCount=2, index=2%2=0 → pre-tournament-cta
     localStorage.setItem(VISIT_COUNT_KEY, '1')
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={false} />)
-    expect(screen.getByText('hub.attentionWidget.preTournamentCta.cta')).toBeInTheDocument()
+    render(<EngagementRotatorWidget tournamentStarted={false} />)
+    expect(screen.getByText('hub.newUser.tutorial.cta')).toBeInTheDocument()
   })
 
   it('does NOT show pre-tournament-cta when tournamentStarted is true', () => {
     vi.stubGlobal('Notification', { permission: 'granted', requestPermission: vi.fn() })
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
-    expect(screen.queryByText('hub.attentionWidget.preTournamentCta.cta')).not.toBeInTheDocument()
+    render(<EngagementRotatorWidget tournamentStarted={true} />)
+    expect(screen.queryByText('hub.newUser.tutorial.cta')).not.toBeInTheDocument()
   })
 
   it('returns null when all cards are inapplicable (tournament started, notification granted)', () => {
     vi.stubGlobal('Notification', { permission: 'granted', requestPermission: vi.fn() })
-    const { container } = render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
+    const { container } = render(<EngagementRotatorWidget tournamentStarted={true} />)
     expect(container.firstChild).toBeNull()
   })
 
   it('returns null when all cards dismissed', () => {
     dismissalState['engagement-notification-dismissed'] = true
     vi.stubGlobal('Notification', { permission: 'granted', requestPermission: vi.fn() })
-    const { container } = render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
+    const { container } = render(<EngagementRotatorWidget tournamentStarted={true} />)
     expect(container.firstChild).toBeNull()
   })
 
   it('increments visit counter in localStorage on mount', () => {
     localStorage.setItem(VISIT_COUNT_KEY, '3')
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={false} />)
+    render(<EngagementRotatorWidget tournamentStarted={false} />)
     expect(localStorage.getItem(VISIT_COUNT_KEY)).toBe('4')
   })
 
   it('shows notification-opt-in card when permission is default and not dismissed and tournament started', () => {
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
+    render(<EngagementRotatorWidget tournamentStarted={true} />)
     expect(screen.getByText('hub.attentionWidget.notificationOptIn.cta')).toBeInTheDocument()
   })
 
   it('does not show notification card when dismissed', () => {
     dismissalState['engagement-notification-dismissed'] = true
-    const { container } = render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
+    const { container } = render(<EngagementRotatorWidget tournamentStarted={true} />)
     expect(container.firstChild).toBeNull()
   })
 
   it('dismisses notification card and removes it from pool when dismiss clicked', async () => {
     const user = userEvent.setup({ delay: null })
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={true} />)
+    render(<EngagementRotatorWidget tournamentStarted={true} />)
 
     const dismissBtn = screen.getByRole('button', { name: /dismiss/i })
     await user.click(dismissBtn)
@@ -111,12 +111,11 @@ describe('EngagementRotatorWidget', () => {
     expect(dismissalState['engagement-notification-dismissed']).toBe(true)
   })
 
-  it('pre-tournament CTA link href contains ?edit=next', () => {
+  it('pre-tournament-cta shows tutorial title text', () => {
     // Seed count=1 so nextCount=2, index=2%2=0 → pre-tournament-cta
     localStorage.setItem(VISIT_COUNT_KEY, '1')
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={false} />)
-    const link = screen.getByRole('link')
-    expect(link.getAttribute('href')).toBe('/en/t/games?edit=next')
+    render(<EngagementRotatorWidget tournamentStarted={false} />)
+    expect(screen.getByText('hub.newUser.tutorial.title')).toBeInTheDocument()
   })
 
   it('gracefully renders null when localStorage is unavailable', () => {
@@ -125,7 +124,7 @@ describe('EngagementRotatorWidget', () => {
     Storage.prototype.getItem = () => { throw new Error('unavailable') }
     Storage.prototype.setItem = () => { throw new Error('unavailable') }
 
-    const { container } = render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={false} />)
+    const { container } = render(<EngagementRotatorWidget tournamentStarted={false} />)
     expect(container.firstChild).toBeNull()
 
     Storage.prototype.getItem = originalGetItem
@@ -136,9 +135,8 @@ describe('EngagementRotatorWidget', () => {
     dismissalState['engagement-app-install-dismissed'] = true
     // tournamentStarted=false, notification=default, install dismissed
     // pool = [pre-tournament-cta, notification-opt-in] (no app-install)
-    localStorage.setItem(VISIT_COUNT_KEY, '0') // visit 1 → index 1 → notification-opt-in
-    render(<EngagementRotatorWidget gamesHref="/en/t/games" tournamentStarted={false} />)
-    // Either pre-tournament-cta or notification-opt-in should render (not app-install)
+    localStorage.setItem(VISIT_COUNT_KEY, '0') // nextCount=1, index=1%2=1 → notification-opt-in
+    render(<EngagementRotatorWidget tournamentStarted={false} />)
     expect(screen.queryByText('hub.attentionWidget.appInstall.cta')).not.toBeInTheDocument()
   })
 })

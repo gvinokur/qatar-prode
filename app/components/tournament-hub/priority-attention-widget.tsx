@@ -136,7 +136,6 @@ export async function PriorityAttentionWidget({
   if (!state) {
     return (
       <EngagementRotatorWidget
-        gamesHref={gamesHref}
         tournamentStarted={data.tournamentHasStarted}
       />
     )

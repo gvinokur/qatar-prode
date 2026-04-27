@@ -221,6 +221,26 @@ describe('computePriorityAttention', () => {
       expect(computePriorityAttention(data)?.type).not.toBe('transition-to-awards')
     })
 
+    it('returns fallback-games when pre-tournament (mode=empty, !started) and predictedGames < totalGames', () => {
+      const data = makeData({
+        mode: 'empty',
+        tournamentHasStarted: false,
+        predictedGames: 10,
+        totalGames: 64,
+      })
+      expect(computePriorityAttention(data)?.type).toBe('fallback-games')
+    })
+
+    it('does NOT return fallback-games when pre-tournament mode=empty and all games predicted', () => {
+      const data = makeData({
+        mode: 'empty',
+        tournamentHasStarted: false,
+        predictedGames: 64,
+        totalGames: 64,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('fallback-games')
+    })
+
     it('returns fallback-games when mode is fallback and predictedGames < totalGames', () => {
       const data = makeData({
         mode: 'fallback',

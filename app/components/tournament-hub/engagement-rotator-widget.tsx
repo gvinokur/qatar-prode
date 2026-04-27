@@ -1,12 +1,16 @@
 'use client'
 
 import { Paper, Stack, Avatar, Typography, Button, IconButton } from '@mui/material'
-import Link from 'next/link'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage'
-import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
+
+const OnboardingDialogClient = dynamic(
+  () => import('../onboarding/onboarding-dialog-client'),
+  { ssr: false }
+)
 
 const VISIT_COUNT_KEY = 'hub-engagement-visit-count'
 const APP_INSTALL_DISMISSED_KEY = 'engagement-app-install-dismissed'
@@ -20,12 +24,11 @@ interface CardProps {
   title: string
   subtitle: string
   cta: string
-  href?: string
   onCtaClick?: () => void
   onDismiss?: () => void
 }
 
-function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, href, onCtaClick, onDismiss }: CardProps) {
+function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss }: CardProps) {
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack direction="row" alignItems="center" gap={2}>
@@ -51,26 +54,14 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, href,
         </Stack>
 
         <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
-          {href ? (
-            <Button
-              variant="contained"
-              size="small"
-              color="info"
-              component={Link}
-              href={href}
-            >
-              {cta}
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              size="small"
-              color="info"
-              onClick={onCtaClick}
-            >
-              {cta}
-            </Button>
-          )}
+          <Button
+            variant="contained"
+            size="small"
+            color="info"
+            onClick={onCtaClick}
+          >
+            {cta}
+          </Button>
           {onDismiss && (
             <IconButton size="small" onClick={onDismiss} aria-label="dismiss">
               <CloseIcon fontSize="small" />
@@ -83,17 +74,17 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, href,
 }
 
 interface EngagementRotatorWidgetProps {
-  readonly gamesHref: string
   readonly tournamentStarted: boolean
 }
 
-export function EngagementRotatorWidget({ gamesHref, tournamentStarted }: EngagementRotatorWidgetProps) {
+export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotatorWidgetProps) {
   const t = useTranslations('hub')
   const [mounted, setMounted] = useState(false)
   const [pool, setPool] = useState<EngagementCardType[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null)
   const [showIosInstallHint, setShowIosInstallHint] = useState(false)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -177,18 +168,20 @@ export function EngagementRotatorWidget({ gamesHref, tournamentStarted }: Engage
   if (!mounted || pool.length === 0) return null
 
   const currentCard = pool[currentIndex % pool.length]
-  const gamesEditHref = `${gamesHref}?edit=${EDIT_NEXT_TOKEN}`
 
   if (currentCard === 'pre-tournament-cta') {
     return (
-      <EngagementCard
-        avatarBgColor="primary.main"
-        avatarIcon="🎯"
-        title={t('attentionWidget.preTournamentCta.title')}
-        subtitle={t('attentionWidget.preTournamentCta.subtitle')}
-        cta={t('attentionWidget.preTournamentCta.cta')}
-        href={gamesEditHref}
-      />
+      <>
+        <EngagementCard
+          avatarBgColor="primary.main"
+          avatarIcon="🆕"
+          title={t('newUser.tutorial.title')}
+          subtitle={t('newUser.tutorial.subtitle')}
+          cta={t('newUser.tutorial.cta')}
+          onCtaClick={() => setTutorialOpen(true)}
+        />
+        {tutorialOpen && <OnboardingDialogClient initialOpen={true} onClose={() => setTutorialOpen(false)} />}
+      </>
     )
   }
 
