@@ -118,16 +118,20 @@ describe('EngagementRotatorWidget', () => {
     expect(screen.getByText('hub.newUser.tutorial.title')).toBeInTheDocument()
   })
 
-  it('pre-tournament-cta shows "Start Predicting" secondary button when predictedGames is 0', () => {
+  it('pre-tournament-cta shows "Start Predicting" secondary button with ?edit=next when predictedGames is 0', () => {
     localStorage.setItem(VISIT_COUNT_KEY, '1')
     render(<EngagementRotatorWidget tournamentStarted={false} gamesHref="/en/games" predictedGames={0} />)
-    expect(screen.getByText('hub.newUser.tracks.matches.cta')).toBeInTheDocument()
+    const btn = screen.getByText('hub.newUser.tracks.matches.cta')
+    expect(btn).toBeInTheDocument()
+    expect(btn.closest('a')).toHaveAttribute('href', '/en/games?edit=next')
   })
 
-  it('pre-tournament-cta shows "Keep Predicting" secondary button when predictedGames > 0', () => {
+  it('pre-tournament-cta shows "Keep Predicting" secondary button with ?edit=next when predictedGames > 0', () => {
     localStorage.setItem(VISIT_COUNT_KEY, '1')
     render(<EngagementRotatorWidget tournamentStarted={false} gamesHref="/en/games" predictedGames={10} />)
-    expect(screen.getByText('hub.newUser.tracks.matches.ctaKeep')).toBeInTheDocument()
+    const btn = screen.getByText('hub.newUser.tracks.matches.ctaKeep')
+    expect(btn).toBeInTheDocument()
+    expect(btn.closest('a')).toHaveAttribute('href', '/en/games?edit=next')
   })
 
   it('gracefully renders null when localStorage is unavailable', () => {

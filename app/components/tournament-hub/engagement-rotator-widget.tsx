@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl'
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage'
+import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
 
 const OnboardingDialogClient = dynamic(
   () => import('../onboarding/onboarding-dialog-client'),
@@ -180,6 +181,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
 
   if (currentCard === 'pre-tournament-cta') {
     const gamesCta = predictedGames > 0 ? t('newUser.tracks.matches.ctaKeep') : t('newUser.tracks.matches.cta')
+    const gamesEditHref = `${gamesHref}?edit=${EDIT_NEXT_TOKEN}`
     return (
       <>
         <EngagementCard
@@ -195,7 +197,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
               size="small"
               color="primary"
               component={Link}
-              href={gamesHref}
+              href={gamesEditHref}
               sx={{ flexShrink: 0 }}
             >
               {gamesCta}
