@@ -659,19 +659,25 @@ describe('Tournament Prediction Completion Repository', () => {
             // Second call: count completed game guesses (10)
             return createMockSelectQuery({ count: 10 }) as any;
           } else if (callCount === 3) {
-            // Third call: count silver boosts (3 silver boosts used)
-            return createMockSelectQuery({ count: 3 }) as any;
+            // Third call: count total group-stage games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 4) {
-            // Fourth call: count golden boosts (0)
+            // Fourth call: count completed group-stage game guesses (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 5) {
-            // Fifth call: count total first_round games (0)
-            return createMockSelectQuery({ count: 0 }) as any;
+            // Fifth call: count silver boosts (3 silver boosts used)
+            return createMockSelectQuery({ count: 3 }) as any;
           } else if (callCount === 6) {
-            // Sixth call: count total groups (0)
+            // Sixth call: count golden boosts (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 7) {
+            // Seventh call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 8) {
+            // Eighth call: count total groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else {
-            // Seventh call: count complete groups (0)
+            // Ninth call: count complete groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           }
         });
@@ -706,19 +712,25 @@ describe('Tournament Prediction Completion Repository', () => {
             // Second call: count completed game guesses (10)
             return createMockSelectQuery({ count: 10 }) as any;
           } else if (callCount === 3) {
-            // Third call: count silver boosts (0)
+            // Third call: count total group-stage games (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 4) {
-            // Fourth call: count golden boosts (2 golden boosts used)
-            return createMockSelectQuery({ count: 2 }) as any;
+            // Fourth call: count completed group-stage game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 5) {
-            // Fifth call: count total first_round games (0)
+            // Fifth call: count silver boosts (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 6) {
-            // Sixth call: count total groups (0)
+            // Sixth call: count golden boosts (2 golden boosts used)
+            return createMockSelectQuery({ count: 2 }) as any;
+          } else if (callCount === 7) {
+            // Seventh call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 8) {
+            // Eighth call: count total groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else {
-            // Seventh call: count complete groups (0)
+            // Ninth call: count complete groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           }
         });
@@ -753,19 +765,25 @@ describe('Tournament Prediction Completion Repository', () => {
             // Second call: count completed game guesses (20)
             return createMockSelectQuery({ count: 20 }) as any;
           } else if (callCount === 3) {
-            // Third call: count silver boosts (5 - at max)
-            return createMockSelectQuery({ count: 5 }) as any;
-          } else if (callCount === 4) {
-            // Fourth call: count golden boosts (3 - at max)
-            return createMockSelectQuery({ count: 3 }) as any;
-          } else if (callCount === 5) {
-            // Fifth call: count total first_round games (0)
+            // Third call: count total group-stage games (0)
             return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count completed group-stage game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count silver boosts (5 - at max)
+            return createMockSelectQuery({ count: 5 }) as any;
           } else if (callCount === 6) {
-            // Sixth call: count total groups (0)
+            // Sixth call: count golden boosts (3 - at max)
+            return createMockSelectQuery({ count: 3 }) as any;
+          } else if (callCount === 7) {
+            // Seventh call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 8) {
+            // Eighth call: count total groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else {
-            // Seventh call: count complete groups (0)
+            // Ninth call: count complete groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           }
         });
@@ -807,19 +825,25 @@ describe('Tournament Prediction Completion Repository', () => {
             // Second call: count completed game guesses (10)
             return createMockSelectQuery({ count: 10 }) as any;
           } else if (callCount === 3) {
-            // Third call: count silver boosts (8)
-            return createMockSelectQuery({ count: 8 }) as any;
-          } else if (callCount === 4) {
-            // Fourth call: count golden boosts (5)
-            return createMockSelectQuery({ count: 5 }) as any;
-          } else if (callCount === 5) {
-            // Fifth call: count total first_round games (0)
+            // Third call: count total group-stage games (0)
             return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 4) {
+            // Fourth call: count completed group-stage game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 5) {
+            // Fifth call: count silver boosts (8)
+            return createMockSelectQuery({ count: 8 }) as any;
           } else if (callCount === 6) {
-            // Sixth call: count total groups (0)
+            // Sixth call: count golden boosts (5)
+            return createMockSelectQuery({ count: 5 }) as any;
+          } else if (callCount === 7) {
+            // Seventh call: count total first_round games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
+          } else if (callCount === 8) {
+            // Eighth call: count total groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           } else {
-            // Seventh call: count complete groups (0)
+            // Ninth call: count complete groups (0)
             return createMockSelectQuery({ count: 0 }) as any;
           }
         });
@@ -951,19 +975,25 @@ describe('Tournament Prediction Completion Repository', () => {
             // Second call: count completed game guesses (40)
             return createMockSelectQuery({ count: 40 }) as any;
           } else if (callCount === 3) {
-            // Third call: count silver boosts (7)
-            return createMockSelectQuery({ count: 7 }) as any;
+            // Third call: count total group-stage games (0)
+            return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 4) {
-            // Fourth call: count golden boosts (3)
-            return createMockSelectQuery({ count: 3 }) as any;
+            // Fourth call: count completed group-stage game guesses (0)
+            return createMockSelectQuery({ count: 0 }) as any;
           } else if (callCount === 5) {
-            // Fifth call: count total first_round games (8)
-            return createMockSelectQuery({ count: 8 }) as any;
+            // Fifth call: count silver boosts (7)
+            return createMockSelectQuery({ count: 7 }) as any;
           } else if (callCount === 6) {
-            // Sixth call: count total groups (2)
+            // Sixth call: count golden boosts (3)
+            return createMockSelectQuery({ count: 3 }) as any;
+          } else if (callCount === 7) {
+            // Seventh call: count total first_round games (8)
+            return createMockSelectQuery({ count: 8 }) as any;
+          } else if (callCount === 8) {
+            // Eighth call: count total groups (2)
             return createMockSelectQuery({ count: 2 }) as any;
           } else {
-            // Seventh call: count complete groups (2)
+            // Ninth call: count complete groups (2)
             return createMockSelectQuery({ count: 2 }) as any;
           }
         });
