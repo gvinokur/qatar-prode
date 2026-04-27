@@ -41,14 +41,17 @@ Users on the Qualified Teams page have no contextual guidance about what to do n
 
 | File | Change |
 |------|--------|
+| `app/db/tournament-prediction-completion-repository.ts` | Add `completedGroupGames` + `totalGroupGames` counts |
+| `app/db/tables-definition.ts` | Extend `TournamentPredictionCompletion` type with new fields |
 | `app/actions/qualification-actions.ts` | Add `bulkAutoFillFromPredictions` server action |
-| `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` | Compute `qtBannerState` server-side; pass to client |
+| `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` | Compute `qtBannerState` from `tournamentPredictionCompletion`; pass to client |
 | `app/components/qualified-teams/qualified-teams-client-page.tsx` | Accept `qtBannerState` prop; mount banner |
 | `locales/en/qualified-teams.json` | Add nudge/banner translation keys |
 | `locales/es/qualified-teams.json` | Add nudge/banner translation keys (Spanish) |
 | `docs/code-structure/components/components-leaderboard-stats.md` | Add `QTActionBanner` entry |
 | `docs/code-structure/actions.md` | Add `bulkAutoFillFromPredictions` entry |
 | `docs/code-structure/utils.md` | Add `group-standings-calculator.ts` entry |
+| `docs/code-structure/db.md` | Update `tournament-prediction-completion-repository` entry |
 
 ---
 
@@ -56,30 +59,44 @@ Users on the Qualified Teams page have no contextual guidance about what to do n
 
 ### 1. Banner State (Server-Side, in `page.tsx`)
 
-The server component already fetches `games` and `gameGuessesArray`. Compute state there and pass a simple enum to the client — no game data needed for state determination in the client:
+**No new DB calls or additional data fetches.** The page already calls `getTournamentPredictionCompletion` which we extend with two new fields: `completedGroupGames` and `totalGroupGames`. The banner state is then derived purely from the completion object:
 
 ```typescript
-// In page.tsx, after fetching games + gameGuessesArray:
-const groupGames = games.filter(g => g.game_type === 'group');
-const guessMap = Object.fromEntries(gameGuessesArray.map((g: any) => [g.game_id, g]));
-
-const hasUnpredictedGroupGames = groupGames.some((g: any) => {
-  const guess = guessMap[g.id];
-  return !guess || guess.home_score == null || guess.away_score == null;
-});
-
+// In page.tsx, after fetching tournamentPredictionCompletion:
 const isQTComplete =
   (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
   qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
 
-// Compute qualifiedTeamsCompleted from predictions (same logic as client):
+// qualifiedTeamsCompleted from predictions (already computed):
 const qualifiedTeamsCompleted = predictions.filter(p => p.predicted_to_qualify).length;
+
+const hasUnpredictedGroupGames =
+  (tournamentPredictionCompletion?.completedGroupGames ?? 0) <
+  (tournamentPredictionCompletion?.totalGroupGames ?? 1);
 
 const qtBannerState: QTBannerState =
   hasUnpredictedGroupGames ? 'incomplete-games'
   : !isQTComplete          ? 'games-finished'
   :                          'all-valid';
 ```
+
+**Extending `TournamentPredictionCompletion` (in `tournament-prediction-completion-repository.ts`):**
+Add one SQL query alongside the existing `completedGamesResult` query:
+```sql
+-- completedGroupGames: group games predicted by this user
+SELECT COUNT(*) FROM games
+INNER JOIN game_guesses ON game_guesses.game_id = games.id
+WHERE games.tournament_id = ? AND games.game_type = 'group'
+  AND game_guesses.user_id = ?
+  AND game_guesses.home_score IS NOT NULL
+  AND game_guesses.away_score IS NOT NULL
+
+-- totalGroupGames: total group games in tournament
+SELECT COUNT(*) FROM games
+WHERE games.tournament_id = ? AND games.game_type = 'group'
+```
+
+Return these two values in `TournamentPredictionCompletion` and the `completedGroupGames` / `totalGroupGames` type fields.
 
 Type: `export type QTBannerState = 'incomplete-games' | 'games-finished' | 'all-valid'`
 
@@ -122,7 +139,7 @@ Algorithm:
 3. Fetch all group-stage games for the tournament (with `home_team`, `away_team`, `group_id` via `tournament_group_games` join)
 4. Fetch user's game guesses (`findGameGuessesByUserId`)
 5. For each group: call `computeGroupStandingsFromGuesses(groupGames, guessMap)` → sorted rankings
-6. If a group has no guesses or < full game set predicted, SKIP it (safety guard, though state machine ensures all are predicted)
+6. If ANY group has fewer guesses than its game count (incomplete predictions), ABORT the entire operation — return an error. It's all-or-nothing: either all groups can be computed, or none are saved.
 7. Collect all 3rd-place teams across groups; rank and select top `maxThirdPlace` as qualifiers
 8. For each processed group: call `upsertGroupPositionsPrediction(userId, tournamentId, groupId, positions)`
 9. After all groups: call `updatePlayoffGameGuesses(tournamentId, { id: userId })`
@@ -241,25 +258,36 @@ export interface TeamStanding {
 **New functions:**
 
 - **bulkAutoFillFromPredictions(tournamentId: string, locale: Locale)**: `Promise<{ success: boolean; message: string; groupsProcessed: number }>`
-  Server Action. Computes simulated group standings from the authenticated user's game guesses and saves them as QT predictions for all groups. Skips any group where the user has not predicted all games. Selects top `maxThirdPlace` 3rd-place teams by simulated performance as qualifiers.
-  Calls: getLoggedInUser, findGameGuessesByUserId, computeGroupStandingsFromGuesses, upsertGroupPositionsPrediction, updatePlayoffGameGuesses, revalidatePath
+  Server Action. Computes simulated group standings from the authenticated user's game guesses and saves them as QT predictions for all groups. All-or-nothing: if ANY group has incomplete game predictions, the entire operation fails with an error and nothing is saved. Selects top `maxThirdPlace` 3rd-place teams by simulated performance as qualifiers.
+  Calls: getLoggedInUser, findGameGuessesByUserId, computeGroupStandingsFromGuesses, upsertGroupPositionsPrediction, updatePlayoffGameGuesses
   Tests:
   - returns unauthorized error when no active session
   - returns locked error when tournament is not active
-  - skips groups where not all games are predicted
+  - returns error and saves nothing when any group has incomplete game predictions
   - sets predicted_to_qualify=true for positions 1 and 2
   - selects top maxThirdPlace 3rd-place teams by simulated performance
   - calls updatePlayoffGameGuesses after all upserts
-  - returns groupsProcessed count equal to number of fully predicted groups
+  - returns groupsProcessed count equal to total number of groups
 
 ---
+
+### `app/db/tournament-prediction-completion-repository.ts` *(modified)*
+
+**Changed functions:**
+
+- **getTournamentPredictionCompletion(userId, tournamentId, tournament)** — adds two parallel DB queries alongside the existing `completedGamesResult` query to count group-stage game completions specifically. Returns extended `TournamentPredictionCompletion` with `completedGroupGames: number` and `totalGroupGames: number`.
+  Calls: (same as before, plus 2 new parallel DB count queries run in Promise.all)
+  Tests:
+  - returns completedGroupGames=0 when user has no group game guesses
+  - returns completedGroupGames equal to number of group games with scores
+  - returns totalGroupGames equal to total group game count regardless of guesses
 
 ### `app/[locale]/tournaments/[id]/qualified-teams/page.tsx` *(modified)*
 
 **Changed functions:**
 
-- **QualifiedTeamsPage(props)** — after fetching games + guesses + completion data, computes `qtBannerState: QTBannerState` using group-game filter + guess completion check + QT completion check. Passes it as a new prop to `QualifiedTeamsClientPage`.
-  Calls: (no new cross-layer calls — uses already-fetched data)
+- **QualifiedTeamsPage(props)** — derives `qtBannerState: QTBannerState` from the extended completion object (`completedGroupGames`, `totalGroupGames`, `qualifiers`). No new DB calls. Passes `qtBannerState` to `QualifiedTeamsClientPage`.
+  Calls: (no new cross-layer calls — uses already-fetched completion data)
   Tests: (page is a server component; tested by verifying the state prop is computed correctly in the existing page test file via mocked DB responses)
 
 ---
@@ -271,7 +299,7 @@ export interface TeamStanding {
 - **QTActionBanner(props: QTActionBannerProps)**: `JSX.Element | null`
   Client component. Renders the banner for the given pre-computed `bannerState`. Shows confirmation dialog for auto-fill. Calls `router.refresh()` after successful auto-fill. Returns null when `bannerState` is undefined or falsy.
   Props: bannerState (QTBannerState), tournamentId (string), isLocked (boolean)
-  Calls: bulkAutoFillFromPredictions (server action), router.refresh (Next.js router)
+  Calls: bulkAutoFillFromPredictions (server action)
   Tests:
   - renders incomplete-games state
   - renders games-finished state with auto-fill button
@@ -335,14 +363,21 @@ export interface TeamStanding {
 - Use hard-coded game arrays and guess maps
 - Cover sorting logic, ties, skipped games, edge cases
 
+### Unit Tests: `getTournamentPredictionCompletion` (extended)
+- Extend existing tests to verify `completedGroupGames` and `totalGroupGames` fields
+- Mock `db` queries using project DB mock pattern
+
 ### Unit Tests: `bulkAutoFillFromPredictions`
 - Mock `db` queries using project DB mock pattern (`vi.mocked`)
 - Mock `getLoggedInUser`, `findGameGuessesByUserId`, `upsertGroupPositionsPrediction`, `updatePlayoffGameGuesses`
+- Use `testFactories` to create mock tournament, group, and game objects
+- Verify all-or-nothing: no `upsertGroupPositionsPrediction` calls when any group is incomplete
 - Verify correct third-place selection logic
-- Verify `updatePlayoffGameGuesses` called exactly once
+- Verify `updatePlayoffGameGuesses` called exactly once after all saves
 
 ### Component Tests: `QTActionBanner`
 - Use `renderWithTheme` test utility
+- Use `testFactories` for mock tournament and prediction data
 - Mock `bulkAutoFillFromPredictions` server action
 - Mock `useRouter` from next/navigation
 - Test all states, locked state, dialog flow, error handling
