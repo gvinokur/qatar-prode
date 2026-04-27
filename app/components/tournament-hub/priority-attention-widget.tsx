@@ -112,6 +112,8 @@ export async function PriorityAttentionWidget({
     return (
       <EngagementRotatorWidget
         tournamentStarted={data.tournamentHasStarted}
+        gamesHref={gamesHref}
+        predictedGames={data.predictedGames}
       />
     )
   }

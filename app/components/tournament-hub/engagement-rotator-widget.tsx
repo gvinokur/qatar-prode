@@ -6,6 +6,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import InstallMobileIcon from '@mui/icons-material/InstallMobile'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
@@ -30,9 +31,10 @@ interface CardProps {
   cta: string
   onCtaClick?: () => void
   onDismiss?: () => void
+  secondaryAction?: React.ReactNode
 }
 
-function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss }: CardProps) {
+function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss, secondaryAction }: CardProps) {
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack direction="row" alignItems="center" gap={2}>
@@ -58,6 +60,7 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCta
         </Stack>
 
         <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
+          {secondaryAction}
           <Button
             variant="contained"
             size="small"
@@ -79,9 +82,11 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCta
 
 interface EngagementRotatorWidgetProps {
   readonly tournamentStarted: boolean
+  readonly gamesHref: string
+  readonly predictedGames: number
 }
 
-export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotatorWidgetProps) {
+export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predictedGames }: EngagementRotatorWidgetProps) {
   const t = useTranslations('hub')
   const [mounted, setMounted] = useState(false)
   const [pool, setPool] = useState<EngagementCardType[]>([])
@@ -174,6 +179,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
   const currentCard = pool[currentIndex % pool.length]
 
   if (currentCard === 'pre-tournament-cta') {
+    const gamesCta = predictedGames > 0 ? t('newUser.tracks.matches.ctaKeep') : t('newUser.tracks.matches.cta')
     return (
       <>
         <EngagementCard
@@ -183,6 +189,18 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
           subtitle={t('newUser.tutorial.subtitle')}
           cta={t('newUser.tutorial.cta')}
           onCtaClick={() => setTutorialOpen(true)}
+          secondaryAction={
+            <Button
+              variant="outlined"
+              size="small"
+              color="primary"
+              component={Link}
+              href={gamesHref}
+              sx={{ flexShrink: 0 }}
+            >
+              {gamesCta}
+            </Button>
+          }
         />
         {tutorialOpen && <OnboardingDialogClient initialOpen={true} onClose={() => setTutorialOpen(false)} />}
       </>
