@@ -11,14 +11,14 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/tournament-hub/dashboard-banner.tsx
 Server Component stacking hero + secondary CTA banners in the dashboard Banner Area.
 
-- **DashboardBanner({ user, timing, data? })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `TournamentTiming | null` (always available, even for guests). Hero layer reads from `timing`: renders `TournamentStartBanner` when `timing?.tournamentJustStarted`; else `PreTournamentCountdown` when `timing && !timing.tournamentHasStarted && timing.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
+- **DashboardBanner({ user, timing })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `TournamentTiming | null` (always available, even for guests). Hero layer reads from `timing`: renders `TournamentStartBanner` when `timing?.tournamentJustStarted`; else `PreTournamentCountdown` when `timing && !timing.tournamentHasStarted && timing.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
   Calls: (none)
   Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), LoggedOffBanner (conditional)
 
 ### app/components/tournament-hub/priority-attention-widget.tsx
 Server Component rendering the single priority action card between DashboardBanner and the widget grid.
 
-- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref, locale, tournamentId })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
+- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
   Calls: computePriorityAttention
   Renders: EngagementRotatorWidget (when priority null), Paper card (when priority non-null)
 
