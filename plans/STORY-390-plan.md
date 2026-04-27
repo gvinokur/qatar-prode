@@ -362,6 +362,46 @@ export interface PriorityAttentionState {
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: 3-Tier Model Refactor (Priority Logic Simplification)
+**Date:** 2026-04-27
+**Reason:** During implementation review, the original 8-type union was found to have too many overlapping, low-signal tiers (`fallback-games`, `qt-nudge`, `awards-nudge`). These created ambiguity — a post-tournament-start user in the fallback window would always see a card even when nothing was urgent. The cleaner model uses 4 types with sharper semantics.
+**Change:**
+- `PriorityAttentionType` reduced from 8 to 4: `urgent-games`, `deadline`, `new-actions-qt`, `new-actions-awards`
+- `qt-deadline` + `awards-deadline` consolidated into single `deadline` type. State carries `qtIncomplete`, `qtCompleted`, `qtTotal`, `awardsIncomplete`, `awardsCompleted`, `awardsTotal` — widget renders 1 or 2 CTA buttons accordingly
+- `transition-to-qt` → `new-actions-qt` with new trigger: `!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted === 0`
+- `transition-to-awards` → `new-actions-awards` with new trigger: `!tournamentHasStarted && qualifiersCompleted === qualifiersTotal && awardsCompleted === 0`
+- `fallback-games`, `qt-nudge`, `awards-nudge` removed entirely
+
+### Amendment 2: `priority-attention.ts` Extracted to `app/utils/`
+**Date:** 2026-04-27
+**Reason:** Plan placed `PriorityAttentionType`, `PriorityAttentionState`, and `computePriorityAttention` in `hub-actions.ts`. Extraction to `app/utils/priority-attention.ts` is cleaner — it's a pure computation utility with no server-action concerns.
+**Change:** New file `app/utils/priority-attention.ts`; `hub-actions.ts` no longer exports these types. Widget imports from the utils path.
+
+### Amendment 3: `stage-utils.ts` New Utility File
+**Date:** 2026-04-27
+**Reason:** `new-actions-qt` trigger requires checking if all group-stage games are predicted, which requires knowing both `groupStageGamesCompleted` and `groupStageGamesTotal`. Extracted to a named utility so the conditional is readable and testable.
+**Change:** New file `app/utils/stage-utils.ts` with `areGroupStageGamesPredicted(data: ActionCenterData): boolean`.
+
+### Amendment 4: `groupStageGamesCompleted` / `groupStageGamesTotal` Added to `ActionCenterData`
+**Date:** 2026-04-27
+**Reason:** Required by Amendment 1 — `new-actions-qt` triggers on group-stage completion, not total-games completion. Two new DB count queries added to `getTournamentPredictionCompletion` filtering on `game_type = 'group'`. Interface fields added to `TournamentPredictionCompletion` and `ActionCenterData`.
+**Change:** `app/db/tables-definition.ts` adds `completedGroupGames`, `totalGroupGames`; `app/db/tournament-prediction-completion-repository.ts` adds two new `selectFrom('games')` count queries; `hub-actions.ts` populates `groupStageGamesCompleted`, `groupStageGamesTotal`.
+
+### Amendment 5: `EngagementRotatorWidget` UX Refinements
+**Date:** 2026-04-27
+**Reason:** Post-implementation feedback on the pre-tournament CTA card and notification dismiss UX.
+**Change:**
+- Added `predictedGames: number` prop; pre-tournament CTA card now shows a secondary "Start Predicting" / "Keep Predicting" outline button (linking to `gamesHref?edit=next`) alongside the tutorial CTA
+- Notification card dismiss: replaced `IconButton` + `CloseIcon` (X) with a text `Button` reading "Not now" (`dismissLabel` prop with i18n key `attentionWidget.notificationOptIn.dismiss`)
+- Notification card title changed from "Get notified when games start" → "Get notified of important events"
+
+### Amendment 6: i18n Key Changes
+**Date:** 2026-04-27
+**Reason:** Direct consequence of Amendments 1 and 5 — card types and copy changed.
+**Change:** Removed keys: `qtDeadline`, `awardsDeadline`, `transitionToQt`, `transitionToAwards`, `fallbackGames`, `qtNudge`, `awardsNudge`. Added keys: `deadline` (with `title`, `subtitle`, `ctaQt`, `ctaAwards`), `newActionsQt`, `newActionsAwards`. Added `notificationOptIn.dismiss = "Not now"` / `"Ahora no"`.
+
 ## Testing Strategy
 
 ### `hub-actions-priority.test.ts` — Unit tests for `computePriorityAttention`
