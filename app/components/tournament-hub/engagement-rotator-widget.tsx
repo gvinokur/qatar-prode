@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Paper, Stack, Avatar, Typography, Button, IconButton } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import InstallMobileIcon from '@mui/icons-material/InstallMobile'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
@@ -32,10 +31,11 @@ interface CardProps {
   cta: string
   onCtaClick?: () => void
   onDismiss?: () => void
+  dismissLabel?: string
   secondaryAction?: React.ReactNode
 }
 
-function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss, secondaryAction }: CardProps) {
+function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss, dismissLabel = 'Dismiss', secondaryAction }: CardProps) {
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack direction="row" alignItems="center" gap={2}>
@@ -71,9 +71,9 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCta
             {cta}
           </Button>
           {onDismiss && (
-            <IconButton size="small" onClick={onDismiss} aria-label="dismiss">
-              <CloseIcon fontSize="small" />
-            </IconButton>
+            <Button size="small" color="inherit" onClick={onDismiss} sx={{ color: 'text.secondary' }}>
+              {dismissLabel}
+            </Button>
           )}
         </Stack>
       </Stack>
@@ -246,6 +246,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
         cta={t('attentionWidget.notificationOptIn.cta')}
         onCtaClick={handleNotificationCta}
         onDismiss={handleDismissNotification}
+        dismissLabel={t('attentionWidget.notificationOptIn.dismiss')}
       />
     )
   }

@@ -225,9 +225,10 @@
       "cta": "Install"
     },
     "notificationOptIn": {
-      "title": "Get notified when games start",
+      "title": "Get notified of important events",
       "subtitle": "Never miss a result or a closing deadline",
-      "cta": "Enable"
+      "cta": "Enable",
+      "dismiss": "Not now"
     }
   },
   "statsAtAGlance": {

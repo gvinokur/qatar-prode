@@ -225,9 +225,10 @@
       "cta": "Instalar"
     },
     "notificationOptIn": {
-      "title": "Recibí notificaciones cuando empiecen los partidos",
+      "title": "Recibí notificaciones de eventos importantes",
       "subtitle": "No te pierdas ningún resultado ni fecha límite",
-      "cta": "Activar"
+      "cta": "Activar",
+      "dismiss": "Ahora no"
     }
   },
   "statsAtAGlance": {
