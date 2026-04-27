@@ -22,6 +22,7 @@ import { getAllTournamentGames } from '../../../../db/game-repository';
 import { findGameGuessesByUserId } from '../../../../db/game-guess-repository';
 import { getTournamentPredictionCompletion } from '../../../../db/tournament-prediction-completion-repository';
 import { getTeamsMap } from '../../../../actions/tournament-actions';
+import type { QTBannerState } from '../../../../components/qualified-teams/qt-action-banner';
 
 interface PageProps {
   readonly params: Promise<{
@@ -221,6 +222,20 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
       getTeamsMap(tournamentId)
     ]);
 
+    // Compute QT banner state from prediction completion (no extra DB calls)
+    const qualifiedTeamsCompleted = predictions.filter((p) => p.predicted_to_qualify).length;
+    const hasUnpredictedGroupGames =
+      (tournamentPredictionCompletion?.completedGroupGames ?? 0) <
+      (tournamentPredictionCompletion?.totalGroupGames ?? 1);
+    const isQTComplete =
+      (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
+      qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
+    const qtBannerState: QTBannerState = hasUnpredictedGroupGames
+      ? 'incomplete-games'
+      : !isQTComplete
+        ? 'games-finished'
+        : 'all-valid';
+
     // Calculate tournament start date from games
     const tournamentStartDate = games.length > 0
       ? new Date(Math.min(...games.map(g => g.game_date.getTime())))
@@ -268,6 +283,7 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
           tournamentPredictionCompletion={tournamentPredictionCompletion}
           tournamentStartDate={tournamentStartDate}
           teamsMap={teamsMap}
+          qtBannerState={qtBannerState}
         />
       </>
     );

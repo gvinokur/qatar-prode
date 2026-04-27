@@ -141,6 +141,14 @@ Card displaying prediction completion and accuracy metrics (correct, goal_differ
 - **PredictionAccuracyCard(props: PredictionAccuracyCardProps)**: `JSX.Element` — [Client] Summary section (predictions made, completion %, games played) + overall accuracy section (correct %, goal_difference %, exact %, missed %) + by-phase breakdown (group/playoff with correct/goal_difference/exact %). Props include overallGoalDifference, groupGoalDifference, playoffGoalDifference fields (Story #364). Empty state if totalPredictionsMade = 0.
   Uses: useTheme, useTranslations('stats')
 
+### app/components/qualified-teams/qt-action-banner.tsx
+State-based inline banner guiding users through the QT prediction flow.
+
+- **QTActionBanner(props: QTActionBannerProps)**: `JSX.Element | null` — [Client] Renders a colored MUI Paper banner for the pre-computed `bannerState`. Three states: `incomplete-games` (warning, link to games page), `games-finished` (info, auto-fill CTA with confirm dialog), `all-valid` (success, link to awards). Calls `router.refresh()` on successful auto-fill. Shows error Snackbar on failure. Returns null when `bannerState` is falsy.
+  Props: bannerState (QTBannerState | undefined | null), tournamentId (string), isLocked (boolean)
+  Calls: bulkAutoFillFromPredictions
+  Uses: useState, useTransition, useTranslations, useLocale, useRouter
+
 ### app/components/qualified-teams/qualified-teams-context.tsx
 Context provider for managing qualified team predictions with optimistic updates, save state, and rollback on error.
 
@@ -154,10 +162,10 @@ Main qualified teams prediction UI with drag-and-drop reordering, third place se
 
 - **QualifiedTeamsClientPage(props: QualifiedTeamsClientPageProps)**: `JSX.Element` — [Client] Root component wrapping QualifiedTeamsUI with QualifiedTeamsContextProvider. Passes initialPredictions, tournamentId, userId, isLocked.
   Renders: QualifiedTeamsContextProvider, QualifiedTeamsUI
-- **QualifiedTeamsUI(...)**: `JSX.Element` — [Client] DnD interface with CompactPredictionDashboard header. Mobile: full-page scroll; Desktop: ScrollShadowContainer. Handles drag-end (batch position/qualification updates), third-place toggle, save state snackbars (success/error/locked alert), and loading backdrop. Wraps QualifiedTeamsGrid in DndContext. Shows instructions popover.
+- **QualifiedTeamsUI(...)**: `JSX.Element` — [Client] DnD interface with CompactPredictionDashboard header + QTActionBanner. Mobile: full-page scroll; Desktop: ScrollShadowContainer. Handles drag-end (batch position/qualification updates), third-place toggle, save state snackbars (success/error/locked alert), and loading backdrop. Wraps QualifiedTeamsGrid in DndContext. Shows instructions popover. Accepts `qtBannerState?: QTBannerState` prop.
   Calls: createDragEndHandler (returns handler for drag-end events)
   Uses: useMemo, useState, useEffect, useCallback, useTheme, useMediaQuery, useTranslations, useSensors, DndContext, GuessesContextProvider, ScrollShadowContainer
-  Renders: CompactPredictionDashboard, Popover, DndContext, QualifiedTeamsGrid, Snackbar (success/error/locked), Backdrop, GuessesContextProvider
+  Renders: CompactPredictionDashboard, QTActionBanner, Popover, DndContext, QualifiedTeamsGrid, Snackbar (success/error/locked), Backdrop, GuessesContextProvider
 
 ### app/components/qualified-teams/qualified-teams-grid.tsx
 Responsive grid layout for group cards (1 column XS-M, 2 columns L+).

@@ -20,6 +20,7 @@ import { GuessesContextProvider } from '../context-providers/guesses-context-pro
 import { customToMap } from '../../utils/ObjectUtils';
 import { ScrollShadowContainer } from '../common/scroll-shadow-container';
 import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
+import { QTActionBanner, type QTBannerState } from './qt-action-banner';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -61,6 +62,7 @@ interface QualifiedTeamsClientPageProps {
   readonly tournamentPredictionCompletion: any;
   readonly tournamentStartDate?: Date;
   readonly teamsMap: Record<string, Team>;
+  readonly qtBannerState?: QTBannerState;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -163,6 +165,7 @@ function QualifiedTeamsUI({
   tournamentPredictionCompletion,
   tournamentStartDate,
   teamsMap,
+  qtBannerState,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -369,6 +372,17 @@ function QualifiedTeamsUI({
             isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
           />
         </Box>
+
+        {/* State-based action banner */}
+        {qtBannerState && (
+          <Box sx={{ flexShrink: 0, px: 0, pt: 1 }}>
+            <QTActionBanner
+              bannerState={qtBannerState}
+              tournamentId={tournament.id}
+              isLocked={isLocked}
+            />
+          </Box>
+        )}
 
         <Popover
           open={infoOpen}

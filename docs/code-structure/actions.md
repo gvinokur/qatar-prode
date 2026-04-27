@@ -225,6 +225,8 @@ Manages qualified team position predictions for group stages.
   Calls: getTournamentStartDate
 - **updateGroupPositionsJsonb(groupId, tournamentId, positionUpdates, locale)**: `Promise<{ success: boolean; message: string }>` — Updates all team positions for a group including qualification flags.
   Calls: getLoggedInUser, validateTeamsInGroup, validateNoDuplicateTeams, validatePositionsValidAndUnique, validateQualificationFlagsForPositions, validateThirdPlaceForGroup, upsertGroupPositionsPrediction, updatePlayoffGameGuesses
+- **bulkAutoFillFromPredictions(tournamentId: string, locale: Locale)**: `Promise<{ success: boolean; message: string; groupsProcessed: number }>` — Computes simulated group standings from user's own game guess scores and saves QT predictions for all groups at once. All-or-nothing: aborts if any group has incomplete game predictions. Selects top `maxThirdPlace` 3rd-place teams by simulated performance.
+  Calls: getLoggedInUser, findGameGuessesByUserId, computeGroupStandingsFromGuesses, upsertGroupPositionsPrediction, updatePlayoffGameGuesses
 
 ### app/actions/qualified-teams-scoring-actions.ts
 Calculates and stores scores for qualified team predictions.
