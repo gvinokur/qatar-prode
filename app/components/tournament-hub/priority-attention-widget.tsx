@@ -1,13 +1,12 @@
 import React from 'react'
 import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
-import SportsSoccerOutlinedIcon from '@mui/icons-material/SportsSoccerOutlined'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { computePriorityAttention } from '../../utils/priority-attention'
 import type { PriorityAttentionState } from '../../utils/priority-attention'
 import type { ActionCenterData } from '../../actions/hub-actions'
 import { EngagementRotatorWidget } from './engagement-rotator-widget'
-import { TutorialDialogButton } from './tutorial-dialog-button'
 import type { Locale } from '../../../i18n.config'
 import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
 
@@ -49,78 +48,53 @@ function buildCardConfig(
         href: gamesEditHref,
         avatarBgColor: 'error.main',
         buttonColor: 'error',
-        avatarIcon: <SportsSoccerOutlinedIcon fontSize="small" />,
+        avatarIcon: <AccessTimeIcon fontSize="small" />,
       }
-    case 'qt-deadline':
+    case 'deadline': {
+      const qtIncomplete = state.qtIncomplete ?? false
+      const awardsIncomplete = state.awardsIncomplete ?? false
       return {
-        title: t('attentionWidget.qtDeadline.title'),
-        subtitle: t('attentionWidget.qtDeadline.subtitle', { completed: state.completedCount, total: state.totalCount }),
-        cta: t('attentionWidget.qtDeadline.cta'),
-        href: qtHref,
+        title: t('attentionWidget.deadline.title'),
+        subtitle: t('attentionWidget.deadline.subtitle'),
+        cta: qtIncomplete ? t('attentionWidget.deadline.ctaQt') : t('attentionWidget.deadline.ctaAwards'),
+        href: qtIncomplete ? qtHref : awardsHref,
         avatarBgColor: 'warning.main',
         buttonColor: 'warning',
-        avatarIcon: '⚠️',
+        avatarIcon: <AccessTimeIcon fontSize="small" />,
+        secondaryAction:
+          qtIncomplete && awardsIncomplete ? (
+            <Button
+              variant="contained"
+              size="small"
+              color="warning"
+              component={Link}
+              href={awardsHref}
+              sx={{ flexShrink: 0 }}
+            >
+              {t('attentionWidget.deadline.ctaAwards')}
+            </Button>
+          ) : undefined,
       }
-    case 'awards-deadline':
+    }
+    case 'new-actions-qt':
       return {
-        title: t('attentionWidget.awardsDeadline.title'),
-        subtitle: t('attentionWidget.awardsDeadline.subtitle', { completed: state.completedCount, total: state.totalCount }),
-        cta: t('attentionWidget.awardsDeadline.cta'),
-        href: awardsHref,
-        avatarBgColor: 'warning.main',
-        buttonColor: 'warning',
-        avatarIcon: '⚠️',
-      }
-    case 'transition-to-qt':
-      return {
-        title: t('attentionWidget.transitionToQt.title'),
-        subtitle: t('attentionWidget.transitionToQt.subtitle'),
-        cta: t('attentionWidget.transitionToQt.cta'),
+        title: t('attentionWidget.newActionsQt.title'),
+        subtitle: t('attentionWidget.newActionsQt.subtitle'),
+        cta: t('attentionWidget.newActionsQt.cta'),
         href: qtHref,
         avatarBgColor: 'success.main',
         buttonColor: 'success',
-        avatarIcon: '✅',
+        avatarIcon: '🆕',
       }
-    case 'transition-to-awards':
+    case 'new-actions-awards':
       return {
-        title: t('attentionWidget.transitionToAwards.title'),
-        subtitle: t('attentionWidget.transitionToAwards.subtitle'),
-        cta: t('attentionWidget.transitionToAwards.cta'),
+        title: t('attentionWidget.newActionsAwards.title'),
+        subtitle: t('attentionWidget.newActionsAwards.subtitle'),
+        cta: t('attentionWidget.newActionsAwards.cta'),
         href: awardsHref,
         avatarBgColor: 'success.main',
         buttonColor: 'success',
-        avatarIcon: '✅',
-      }
-    case 'fallback-games':
-      return {
-        title: t('attentionWidget.fallbackGames.title'),
-        subtitle: t('attentionWidget.fallbackGames.subtitle', { completed: state.completedCount, total: state.totalCount }),
-        cta: t('attentionWidget.fallbackGames.cta'),
-        href: gamesEditHref,
-        avatarBgColor: 'primary.main',
-        buttonColor: 'primary',
-        avatarIcon: <SportsSoccerOutlinedIcon fontSize="small" />,
-        secondaryAction: <TutorialDialogButton label={t('newUser.tutorial.cta')} />,
-      }
-    case 'qt-nudge':
-      return {
-        title: t('attentionWidget.qtNudge.title'),
-        subtitle: t('attentionWidget.qtNudge.subtitle', { completed: state.completedCount, total: state.totalCount }),
-        cta: t('attentionWidget.qtNudge.cta'),
-        href: qtHref,
-        avatarBgColor: 'primary.main',
-        buttonColor: 'primary',
-        avatarIcon: '🏆',
-      }
-    case 'awards-nudge':
-      return {
-        title: t('attentionWidget.awardsNudge.title'),
-        subtitle: t('attentionWidget.awardsNudge.subtitle', { completed: state.completedCount, total: state.totalCount }),
-        cta: t('attentionWidget.awardsNudge.cta'),
-        href: awardsHref,
-        avatarBgColor: 'primary.main',
-        buttonColor: 'primary',
-        avatarIcon: '🥇',
+        avatarIcon: '🆕',
       }
   }
 }

@@ -506,6 +506,8 @@ export interface TournamentPredictionCompletion {
   // Game predictions
   completedGames: number;
   totalGames: number;
+  completedGroupGames: number;
+  totalGroupGames: number;
   // Boost tracking
   silverBoostsUsed: number;
   goldenBoostsUsed: number;

@@ -1,14 +1,11 @@
 import type { ActionCenterData } from '../actions/hub-actions'
+import { areGroupStageGamesPredicted } from './stage-utils'
 
 export type PriorityAttentionType =
   | 'urgent-games'
-  | 'qt-deadline'
-  | 'awards-deadline'
-  | 'transition-to-qt'
-  | 'transition-to-awards'
-  | 'fallback-games'
-  | 'qt-nudge'
-  | 'awards-nudge'
+  | 'deadline'
+  | 'new-actions-qt'
+  | 'new-actions-awards'
 
 export interface PriorityAttentionState {
   type: PriorityAttentionType
@@ -18,19 +15,52 @@ export interface PriorityAttentionState {
   firstUrgentGameId?: string
   completedCount: number
   totalCount: number
+  /** deadline only: whether QT predictions are still incomplete */
+  qtIncomplete?: boolean
+  /** deadline only: number of QT predictions completed */
+  qtCompleted?: number
+  /** deadline only: total QT predictions available */
+  qtTotal?: number
+  /** deadline only: whether awards predictions are still incomplete */
+  awardsIncomplete?: boolean
+  /** deadline only: number of awards predictions completed */
+  awardsCompleted?: number
+  /** deadline only: total awards predictions available */
+  awardsTotal?: number
 }
 
 const HOURS_48_MS = 48 * 60 * 60 * 1000
+
+function buildDeadlineState(data: ActionCenterData): PriorityAttentionState | null {
+  if (!data.tournamentHasStarted || !data.qtAndAwardsOpen || data.msUntilPredictionLock >= HOURS_48_MS) return null
+  const qtIncomplete = data.qualifiersCompleted < data.qualifiersTotal
+  const awardsIncomplete = data.awardsCompleted < data.awardsTotal
+  if (!qtIncomplete && !awardsIncomplete) return null
+  return {
+    type: 'deadline',
+    completedCount: qtIncomplete ? data.qualifiersCompleted : data.awardsCompleted,
+    totalCount: qtIncomplete ? data.qualifiersTotal : data.awardsTotal,
+    qtIncomplete,
+    qtCompleted: data.qualifiersCompleted,
+    qtTotal: data.qualifiersTotal,
+    awardsIncomplete,
+    awardsCompleted: data.awardsCompleted,
+    awardsTotal: data.awardsTotal,
+  }
+}
 
 /**
  * Pure function — no I/O. Evaluates tournament phase and completion state to return the
  * highest-priority actionable item for the attention widget (Tiers 1–2).
  * Returns null when nothing actionable (Tier 3 engagement rotation takes over).
+ *
+ * Tier 1 — Urgent: unpredicted games with open deadlines, or QT/awards deadline < 48h
+ * Tier 2 — New actions: stage transitions (pre-tournament only)
+ * Tier 3 — Engagement rotation (handled by EngagementRotatorWidget)
  */
 export function computePriorityAttention(data: ActionCenterData): PriorityAttentionState | null {
   if (data.tournamentFinished) return null
 
-  // Tier 1 — urgent-games (unpredicted games with open deadlines)
   if (data.mode === 'urgent') {
     return {
       type: 'urgent-games',
@@ -41,76 +71,15 @@ export function computePriorityAttention(data: ActionCenterData): PriorityAttent
     }
   }
 
-  // Tier 1 — QT/awards deadline < 48h (only when tournament is active and lock is approaching)
-  if (data.tournamentHasStarted && data.qtAndAwardsOpen && data.msUntilPredictionLock < HOURS_48_MS) {
-    if (data.qualifiersCompleted < data.qualifiersTotal) {
-      return {
-        type: 'qt-deadline',
-        completedCount: data.qualifiersCompleted,
-        totalCount: data.qualifiersTotal,
-      }
-    }
-    if (data.awardsCompleted < data.awardsTotal) {
-      return {
-        type: 'awards-deadline',
-        completedCount: data.awardsCompleted,
-        totalCount: data.awardsTotal,
-      }
-    }
+  const deadline = buildDeadlineState(data)
+  if (deadline) return deadline
+
+  if (!data.tournamentHasStarted && areGroupStageGamesPredicted(data) && data.qualifiersTotal > 0 && data.qualifiersCompleted === 0) {
+    return { type: 'new-actions-qt', completedCount: data.groupStageGamesCompleted, totalCount: data.groupStageGamesTotal }
   }
 
-  // Tier 2 — stage transitions (all games predicted → pick qualifiers)
-  if (
-    data.totalGames > 0 &&
-    data.predictedGames === data.totalGames &&
-    data.qualifiersTotal > 0 &&
-    data.qualifiersCompleted === 0
-  ) {
-    return {
-      type: 'transition-to-qt',
-      completedCount: data.predictedGames,
-      totalCount: data.totalGames,
-    }
-  }
-
-  // Tier 2 — stage transitions (qualifiers done → pick awards)
-  if (data.qualifiersTotal > 0 && data.qualifiersCompleted === data.qualifiersTotal && data.awardsCompleted === 0) {
-    return {
-      type: 'transition-to-awards',
-      completedCount: data.qualifiersCompleted,
-      totalCount: data.qualifiersTotal,
-    }
-  }
-
-  // Tier 2 — fallback games nudge (upcoming games in window, or pre-tournament with games to predict)
-  const hasPendingGamePredictions = data.totalGames > 0 && data.predictedGames < data.totalGames
-  if (
-    hasPendingGamePredictions &&
-    (data.mode === 'fallback' || (!data.tournamentHasStarted && data.mode === 'empty'))
-  ) {
-    return {
-      type: 'fallback-games',
-      completedCount: data.predictedGames,
-      totalCount: data.totalGames,
-    }
-  }
-
-  // Tier 2 — low-urgency QT/awards nudges (no deadline approaching)
-  if (data.qtAndAwardsOpen) {
-    if (data.qualifiersCompleted < data.qualifiersTotal) {
-      return {
-        type: 'qt-nudge',
-        completedCount: data.qualifiersCompleted,
-        totalCount: data.qualifiersTotal,
-      }
-    }
-    if (data.awardsCompleted < data.awardsTotal) {
-      return {
-        type: 'awards-nudge',
-        completedCount: data.awardsCompleted,
-        totalCount: data.awardsTotal,
-      }
-    }
+  if (!data.tournamentHasStarted && data.qualifiersTotal > 0 && data.qualifiersCompleted === data.qualifiersTotal && data.awardsCompleted === 0 && data.awardsTotal > 0) {
+    return { type: 'new-actions-awards', completedCount: data.qualifiersCompleted, totalCount: data.qualifiersTotal }
   }
 
   return null

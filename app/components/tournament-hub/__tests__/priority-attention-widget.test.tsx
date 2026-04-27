@@ -72,6 +72,8 @@ const makeData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData =
   openerBackfill: false,
   totalGames: 64,
   predictedGames: 0,
+  groupStageGamesCompleted: 0,
+  groupStageGamesTotal: 48,
   awardsCompleted: 0,
   awardsTotal: 7,
   qualifiersCompleted: 0,
@@ -125,69 +127,82 @@ describe('PriorityAttentionWidget', () => {
     it('renders error-color CTA with href containing ?edit=next', async () => {
       mockPriority({ type: 'urgent-games', urgentCount: 3, firstUrgentGameId: 'g1', completedCount: 5, totalCount: 64 })
       render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toContain('?edit=next')
-      expect(link.getAttribute('href')).toContain('/games')
+      const links = screen.getAllByRole('link')
+      expect(links[0].getAttribute('href')).toContain('?edit=next')
+      expect(links[0].getAttribute('href')).toContain('/games')
     })
   })
 
-  describe('qt-deadline card', () => {
+  describe('deadline card', () => {
+    it('renders single QT CTA when only QT is incomplete', async () => {
+      mockPriority({
+        type: 'deadline',
+        completedCount: 10,
+        totalCount: 32,
+        qtIncomplete: true,
+        qtCompleted: 10,
+        qtTotal: 32,
+        awardsIncomplete: false,
+        awardsCompleted: 7,
+        awardsTotal: 7,
+      })
+      render(await PriorityAttentionWidget(defaultProps))
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('href')).toBe('/en/tournaments/t-1/qualified-teams')
+    })
+
+    it('renders single awards CTA when only awards are incomplete', async () => {
+      mockPriority({
+        type: 'deadline',
+        completedCount: 3,
+        totalCount: 7,
+        qtIncomplete: false,
+        qtCompleted: 32,
+        qtTotal: 32,
+        awardsIncomplete: true,
+        awardsCompleted: 3,
+        awardsTotal: 7,
+      })
+      render(await PriorityAttentionWidget(defaultProps))
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(1)
+      expect(links[0].getAttribute('href')).toBe('/en/tournaments/t-1/awards')
+    })
+
+    it('renders two CTAs (QT + awards) when both are incomplete', async () => {
+      mockPriority({
+        type: 'deadline',
+        completedCount: 10,
+        totalCount: 32,
+        qtIncomplete: true,
+        qtCompleted: 10,
+        qtTotal: 32,
+        awardsIncomplete: true,
+        awardsCompleted: 3,
+        awardsTotal: 7,
+      })
+      render(await PriorityAttentionWidget(defaultProps))
+      const links = screen.getAllByRole('link')
+      expect(links).toHaveLength(2)
+      const hrefs = links.map((l) => l.getAttribute('href'))
+      expect(hrefs).toContain('/en/tournaments/t-1/qualified-teams')
+      expect(hrefs).toContain('/en/tournaments/t-1/awards')
+    })
+  })
+
+  describe('new-actions-qt card', () => {
     it('renders CTA href pointing to qtHref', async () => {
-      mockPriority({ type: 'qt-deadline', completedCount: 10, totalCount: 32 })
+      mockPriority({ type: 'new-actions-qt', completedCount: 48, totalCount: 48 })
       render(await PriorityAttentionWidget(defaultProps))
       const link = screen.getByRole('link')
       expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/qualified-teams')
     })
   })
 
-  describe('awards-deadline card', () => {
+  describe('new-actions-awards card', () => {
     it('renders CTA href pointing to awardsHref', async () => {
-      mockPriority({ type: 'awards-deadline', completedCount: 3, totalCount: 7 })
-      render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/awards')
-    })
-  })
-
-  describe('transition-to-qt card', () => {
-    it('renders CTA href pointing to qtHref', async () => {
-      mockPriority({ type: 'transition-to-qt', completedCount: 64, totalCount: 64 })
-      render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/qualified-teams')
-    })
-  })
-
-  describe('transition-to-awards card', () => {
-    it('renders CTA href pointing to awardsHref', async () => {
-      mockPriority({ type: 'transition-to-awards', completedCount: 32, totalCount: 32 })
-      render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/awards')
-    })
-  })
-
-  describe('fallback-games card', () => {
-    it('renders CTA href containing ?edit=next', async () => {
-      mockPriority({ type: 'fallback-games', completedCount: 20, totalCount: 64 })
-      render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toContain('?edit=next')
-    })
-  })
-
-  describe('qt-nudge card', () => {
-    it('renders CTA href pointing to qtHref', async () => {
-      mockPriority({ type: 'qt-nudge', completedCount: 10, totalCount: 32 })
-      render(await PriorityAttentionWidget(defaultProps))
-      const link = screen.getByRole('link')
-      expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/qualified-teams')
-    })
-  })
-
-  describe('awards-nudge card', () => {
-    it('renders CTA href pointing to awardsHref', async () => {
-      mockPriority({ type: 'awards-nudge', completedCount: 4, totalCount: 7 })
+      mockPriority({ type: 'new-actions-awards', completedCount: 32, totalCount: 32 })
       render(await PriorityAttentionWidget(defaultProps))
       const link = screen.getByRole('link')
       expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/awards')

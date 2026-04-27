@@ -61,6 +61,10 @@ export interface ActionCenterData {
   totalGames: number
   /** Number of games the user has fully predicted (both scores, playoff penalty included) */
   predictedGames: number
+  /** Number of group-stage games the user has fully predicted */
+  groupStageGamesCompleted: number
+  /** Total number of group-stage games in the tournament */
+  groupStageGamesTotal: number
   /** Total silver boosts applied across all user games in this tournament */
   silverBoostsUsed: number
   /** Total golden boosts applied across all user games in this tournament */
@@ -280,6 +284,8 @@ export async function getActionCenterGames(
   const firstGameDate = firstGame?.game_date ?? null
   const totalGames = predictionCompletion?.totalGames ?? 0
   const predictedGames = predictionCompletion?.completedGames ?? 0
+  const groupStageGamesCompleted = predictionCompletion?.completedGroupGames ?? 0
+  const groupStageGamesTotal = predictionCompletion?.totalGroupGames ?? 0
   const silverBoostsUsed = predictionCompletion?.silverBoostsUsed ?? 0
   const goldenBoostsUsed = predictionCompletion?.goldenBoostsUsed ?? 0
   const awardsCompleted = (predictionCompletion?.finalStandings.completed ?? 0) + (predictionCompletion?.awards.completed ?? 0)
@@ -330,6 +336,8 @@ export async function getActionCenterGames(
       openerBackfill,
       totalGames,
       predictedGames,
+      groupStageGamesCompleted,
+      groupStageGamesTotal,
       silverBoostsUsed,
       goldenBoostsUsed,
       awardsCompleted,
@@ -414,6 +422,8 @@ export async function getActionCenterGames(
     openerBackfill: false,
     totalGames,
     predictedGames,
+    groupStageGamesCompleted,
+    groupStageGamesTotal,
     silverBoostsUsed,
     goldenBoostsUsed,
     awardsCompleted,

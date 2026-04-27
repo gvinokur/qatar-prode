@@ -34,6 +34,8 @@ const makeData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData =
   openerBackfill: false,
   totalGames: 64,
   predictedGames: 0,
+  groupStageGamesCompleted: 0,
+  groupStageGamesTotal: 48,
   awardsCompleted: 0,
   awardsTotal: 7,
   qualifiersCompleted: 0,
@@ -53,6 +55,8 @@ describe('computePriorityAttention', () => {
 
     it('returns null when all predictions complete and tournament not started', () => {
       const data = makeData({
+        groupStageGamesCompleted: 48,
+        groupStageGamesTotal: 48,
         predictedGames: 64,
         totalGames: 64,
         qualifiersCompleted: 32,
@@ -83,6 +87,8 @@ describe('computePriorityAttention', () => {
       const data = makeData({
         totalGames: 0,
         predictedGames: 0,
+        groupStageGamesTotal: 0,
+        groupStageGamesCompleted: 0,
         qualifiersTotal: 0,
         qualifiersCompleted: 0,
         awardsTotal: 0,
@@ -127,8 +133,8 @@ describe('computePriorityAttention', () => {
     })
   })
 
-  describe('Tier 1 — deadlines', () => {
-    it('returns qt-deadline before awards-deadline when both incomplete and msUntilPredictionLock < 48h', () => {
+  describe('Tier 1 — deadline', () => {
+    it('returns deadline when both QT and awards incomplete and msUntilPredictionLock < 48h', () => {
       const data = makeData({
         tournamentHasStarted: true,
         qtAndAwardsOpen: true,
@@ -138,10 +144,25 @@ describe('computePriorityAttention', () => {
         awardsCompleted: 3,
         awardsTotal: 7,
       })
-      expect(computePriorityAttention(data)?.type).toBe('qt-deadline')
+      expect(computePriorityAttention(data)?.type).toBe('deadline')
     })
 
-    it('returns awards-deadline when QT complete but awards incomplete and deadline < 48h', () => {
+    it('sets qtIncomplete=true and awardsIncomplete=true when both are pending', () => {
+      const data = makeData({
+        tournamentHasStarted: true,
+        qtAndAwardsOpen: true,
+        msUntilPredictionLock: HOURS_48_MS - 1,
+        qualifiersCompleted: 10,
+        qualifiersTotal: 32,
+        awardsCompleted: 3,
+        awardsTotal: 7,
+      })
+      const result = computePriorityAttention(data)
+      expect(result?.qtIncomplete).toBe(true)
+      expect(result?.awardsIncomplete).toBe(true)
+    })
+
+    it('returns deadline with qtIncomplete=false when only awards incomplete', () => {
       const data = makeData({
         tournamentHasStarted: true,
         qtAndAwardsOpen: true,
@@ -151,10 +172,13 @@ describe('computePriorityAttention', () => {
         awardsCompleted: 3,
         awardsTotal: 7,
       })
-      expect(computePriorityAttention(data)?.type).toBe('awards-deadline')
+      const result = computePriorityAttention(data)
+      expect(result?.type).toBe('deadline')
+      expect(result?.qtIncomplete).toBe(false)
+      expect(result?.awardsIncomplete).toBe(true)
     })
 
-    it('does NOT return qt-deadline when msUntilPredictionLock >= 48h', () => {
+    it('does NOT return deadline when msUntilPredictionLock >= 48h', () => {
       const data = makeData({
         tournamentHasStarted: true,
         qtAndAwardsOpen: true,
@@ -162,10 +186,10 @@ describe('computePriorityAttention', () => {
         qualifiersCompleted: 0,
         qualifiersTotal: 32,
       })
-      expect(computePriorityAttention(data)?.type).not.toBe('qt-deadline')
+      expect(computePriorityAttention(data)?.type).not.toBe('deadline')
     })
 
-    it('does NOT return deadline types when tournamentHasStarted is false', () => {
+    it('does NOT return deadline when tournamentHasStarted is false', () => {
       const data = makeData({
         tournamentHasStarted: false,
         qtAndAwardsOpen: true,
@@ -173,157 +197,130 @@ describe('computePriorityAttention', () => {
         qualifiersCompleted: 0,
         qualifiersTotal: 32,
       })
-      const result = computePriorityAttention(data)
-      expect(result?.type).not.toBe('qt-deadline')
-      expect(result?.type).not.toBe('awards-deadline')
-    })
-  })
-
-  describe('Tier 2 — stage transitions', () => {
-    it('returns transition-to-qt when predictedGames === totalGames and qualifiersCompleted === 0', () => {
-      const data = makeData({
-        predictedGames: 64,
-        totalGames: 64,
-        qualifiersCompleted: 0,
-        qualifiersTotal: 32,
-        mode: 'fallback',
-      })
-      expect(computePriorityAttention(data)?.type).toBe('transition-to-qt')
+      expect(computePriorityAttention(data)?.type).not.toBe('deadline')
     })
 
-    it('does NOT return transition-to-qt when qualifiersTotal is 0', () => {
+    it('does NOT return deadline when both QT and awards are complete', () => {
       const data = makeData({
-        predictedGames: 64,
-        totalGames: 64,
-        qualifiersCompleted: 0,
-        qualifiersTotal: 0,
-      })
-      expect(computePriorityAttention(data)?.type).not.toBe('transition-to-qt')
-    })
-
-    it('returns transition-to-awards when qualifiersCompleted === qualifiersTotal and awardsCompleted === 0', () => {
-      const data = makeData({
+        tournamentHasStarted: true,
+        qtAndAwardsOpen: true,
+        msUntilPredictionLock: HOURS_48_MS - 1,
         qualifiersCompleted: 32,
         qualifiersTotal: 32,
-        awardsCompleted: 0,
-        awardsTotal: 7,
-      })
-      expect(computePriorityAttention(data)?.type).toBe('transition-to-awards')
-    })
-
-    it('does NOT return transition-to-awards when qualifiersTotal is 0', () => {
-      const data = makeData({
-        qualifiersCompleted: 0,
-        qualifiersTotal: 0,
-        awardsCompleted: 0,
-        awardsTotal: 7,
-      })
-      expect(computePriorityAttention(data)?.type).not.toBe('transition-to-awards')
-    })
-
-    it('returns fallback-games when pre-tournament (mode=empty, !started) and predictedGames < totalGames', () => {
-      const data = makeData({
-        mode: 'empty',
-        tournamentHasStarted: false,
-        predictedGames: 10,
-        totalGames: 64,
-      })
-      expect(computePriorityAttention(data)?.type).toBe('fallback-games')
-    })
-
-    it('does NOT return fallback-games when pre-tournament mode=empty and all games predicted', () => {
-      const data = makeData({
-        mode: 'empty',
-        tournamentHasStarted: false,
-        predictedGames: 64,
-        totalGames: 64,
-      })
-      expect(computePriorityAttention(data)?.type).not.toBe('fallback-games')
-    })
-
-    it('returns fallback-games when mode is fallback and predictedGames < totalGames', () => {
-      const data = makeData({
-        mode: 'fallback',
-        predictedGames: 30,
-        totalGames: 64,
-        qualifiersCompleted: 5,
-        qualifiersTotal: 32,
-        qtAndAwardsOpen: false,
-      })
-      expect(computePriorityAttention(data)?.type).toBe('fallback-games')
-    })
-
-    it('does NOT return fallback-games when all games are predicted', () => {
-      const data = makeData({
-        mode: 'fallback',
-        predictedGames: 64,
-        totalGames: 64,
-        qualifiersCompleted: 0,
-        qualifiersTotal: 0,
-        qtAndAwardsOpen: false,
         awardsCompleted: 7,
         awardsTotal: 7,
       })
-      expect(computePriorityAttention(data)?.type).not.toBe('fallback-games')
-    })
-  })
-
-  describe('Tier 2 — nudges', () => {
-    it('returns qt-nudge when QT incomplete and qtAndAwardsOpen and no deadline urgency', () => {
-      const data = makeData({
-        qtAndAwardsOpen: true,
-        msUntilPredictionLock: HOURS_48_MS + 1000,
-        qualifiersCompleted: 10,
-        qualifiersTotal: 32,
-        mode: 'empty',
-        predictedGames: 64,
-        totalGames: 64,
-      })
-      expect(computePriorityAttention(data)?.type).toBe('qt-nudge')
+      expect(computePriorityAttention(data)?.type).not.toBe('deadline')
     })
 
-    it('returns awards-nudge when QT complete, awards incomplete, qtAndAwardsOpen, no deadline urgency', () => {
-      const data = makeData({
-        qtAndAwardsOpen: true,
-        msUntilPredictionLock: HOURS_48_MS + 1000,
-        qualifiersCompleted: 32,
-        qualifiersTotal: 32,
-        awardsCompleted: 3,
-        awardsTotal: 7,
-        mode: 'empty',
-        predictedGames: 64,
-        totalGames: 64,
-      })
-      expect(computePriorityAttention(data)?.type).toBe('awards-nudge')
-    })
-  })
-
-  describe('completedCount and totalCount', () => {
-    it('qt-deadline returns correct completedCount/totalCount', () => {
+    it('deadline returns correct qtCompleted/qtTotal/awardsCompleted/awardsTotal', () => {
       const data = makeData({
         tournamentHasStarted: true,
         qtAndAwardsOpen: true,
         msUntilPredictionLock: HOURS_48_MS - 1,
         qualifiersCompleted: 16,
         qualifiersTotal: 32,
+        awardsCompleted: 2,
+        awardsTotal: 7,
       })
       const result = computePriorityAttention(data)
-      expect(result?.completedCount).toBe(16)
-      expect(result?.totalCount).toBe(32)
+      expect(result?.qtCompleted).toBe(16)
+      expect(result?.qtTotal).toBe(32)
+      expect(result?.awardsCompleted).toBe(2)
+      expect(result?.awardsTotal).toBe(7)
+    })
+  })
+
+  describe('Tier 2 — new-actions-qt', () => {
+    it('returns new-actions-qt when group stage complete and qualifiers not started (pre-tournament)', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        groupStageGamesCompleted: 48,
+        groupStageGamesTotal: 48,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 32,
+        mode: 'fallback',
+      })
+      expect(computePriorityAttention(data)?.type).toBe('new-actions-qt')
     })
 
-    it('fallback-games returns games completedCount/totalCount', () => {
+    it('does NOT return new-actions-qt when tournamentHasStarted is true', () => {
       const data = makeData({
-        mode: 'fallback',
-        predictedGames: 20,
-        totalGames: 64,
-        qualifiersTotal: 0,
-        qtAndAwardsOpen: false,
+        tournamentHasStarted: true,
+        groupStageGamesCompleted: 48,
+        groupStageGamesTotal: 48,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 32,
       })
-      const result = computePriorityAttention(data)
-      expect(result?.type).toBe('fallback-games')
-      expect(result?.completedCount).toBe(20)
-      expect(result?.totalCount).toBe(64)
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-qt')
+    })
+
+    it('does NOT return new-actions-qt when groupStageGamesTotal is 0', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        groupStageGamesCompleted: 0,
+        groupStageGamesTotal: 0,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 32,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-qt')
+    })
+
+    it('does NOT return new-actions-qt when group stage is not fully predicted', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        groupStageGamesCompleted: 40,
+        groupStageGamesTotal: 48,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 32,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-qt')
+    })
+
+    it('does NOT return new-actions-qt when qualifiersTotal is 0', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        groupStageGamesCompleted: 48,
+        groupStageGamesTotal: 48,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 0,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-qt')
+    })
+  })
+
+  describe('Tier 2 — new-actions-awards', () => {
+    it('returns new-actions-awards when qualifiers complete and awards not started (pre-tournament)', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        qualifiersCompleted: 32,
+        qualifiersTotal: 32,
+        awardsCompleted: 0,
+        awardsTotal: 7,
+      })
+      expect(computePriorityAttention(data)?.type).toBe('new-actions-awards')
+    })
+
+    it('does NOT return new-actions-awards when tournamentHasStarted is true', () => {
+      const data = makeData({
+        tournamentHasStarted: true,
+        qualifiersCompleted: 32,
+        qualifiersTotal: 32,
+        awardsCompleted: 0,
+        awardsTotal: 7,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-awards')
+    })
+
+    it('does NOT return new-actions-awards when qualifiersTotal is 0', () => {
+      const data = makeData({
+        tournamentHasStarted: false,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 0,
+        awardsCompleted: 0,
+        awardsTotal: 7,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('new-actions-awards')
     })
   })
 })
