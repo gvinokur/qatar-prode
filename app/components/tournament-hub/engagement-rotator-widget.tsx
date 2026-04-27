@@ -57,7 +57,7 @@ function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCta
           <Button
             variant="contained"
             size="small"
-            color="info"
+            color="primary"
             onClick={onCtaClick}
           >
             {cta}
@@ -189,7 +189,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
     if (showIosInstallHint) {
       return (
         <EngagementCard
-          avatarBgColor="info.main"
+          avatarBgColor="primary.main"
           avatarIcon="📲"
           title={t('attentionWidget.appInstall.title')}
           subtitle="Tap the share icon and select 'Add to Home Screen'"
@@ -201,7 +201,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
     }
     return (
       <EngagementCard
-        avatarBgColor="info.main"
+        avatarBgColor="primary.main"
         avatarIcon="📲"
         title={t('attentionWidget.appInstall.title')}
         subtitle={t('attentionWidget.appInstall.subtitle')}
@@ -215,7 +215,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
   if (currentCard === 'notification-opt-in') {
     return (
       <EngagementCard
-        avatarBgColor="info.main"
+        avatarBgColor="primary.main"
         avatarIcon="🔔"
         title={t('attentionWidget.notificationOptIn.title')}
         subtitle={t('attentionWidget.notificationOptIn.subtitle')}
