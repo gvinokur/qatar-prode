@@ -1,10 +1,13 @@
+import React from 'react'
 import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { computePriorityAttention } from '../../utils/priority-attention'
 import type { PriorityAttentionState } from '../../utils/priority-attention'
 import type { ActionCenterData } from '../../actions/hub-actions'
 import { EngagementRotatorWidget } from './engagement-rotator-widget'
+import { TutorialDialogButton } from './tutorial-dialog-button'
 import type { Locale } from '../../../i18n.config'
 import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
 
@@ -24,7 +27,8 @@ type CardConfig = {
   href: string
   avatarBgColor: string
   buttonColor: 'error' | 'warning' | 'success' | 'primary' | 'info'
-  avatarIcon: string
+  avatarIcon: React.ReactNode
+  secondaryAction?: React.ReactNode
 }
 
 function buildCardConfig(
@@ -45,7 +49,7 @@ function buildCardConfig(
         href: gamesEditHref,
         avatarBgColor: 'error.main',
         buttonColor: 'error',
-        avatarIcon: '⚽',
+        avatarIcon: <SportsSoccerIcon fontSize="small" />,
       }
     case 'qt-deadline':
       return {
@@ -95,7 +99,8 @@ function buildCardConfig(
         href: gamesEditHref,
         avatarBgColor: 'primary.main',
         buttonColor: 'primary',
-        avatarIcon: '⚽',
+        avatarIcon: <SportsSoccerIcon fontSize="small" />,
+        secondaryAction: <TutorialDialogButton label={t('newUser.tutorial.cta')} />,
       }
     case 'qt-nudge':
       return {
@@ -164,16 +169,19 @@ export async function PriorityAttentionWidget({
           </Typography>
         </Stack>
 
-        <Button
-          variant="contained"
-          size="small"
-          color={card.buttonColor}
-          component={Link}
-          href={card.href}
-          sx={{ flexShrink: 0 }}
-        >
-          {card.cta}
-        </Button>
+        <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
+          {card.secondaryAction}
+          <Button
+            variant="contained"
+            size="small"
+            color={card.buttonColor}
+            component={Link}
+            href={card.href}
+            sx={{ flexShrink: 0 }}
+          >
+            {card.cta}
+          </Button>
+        </Stack>
       </Stack>
     </Paper>
   )
