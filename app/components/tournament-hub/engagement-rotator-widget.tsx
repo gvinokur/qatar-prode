@@ -126,8 +126,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
         available.push('pre-tournament-cta')
       }
 
-      const debugInstall = new URLSearchParams(window.location.search).has('debug-install')
-      const canInstall = debugInstall || deferredPromptRef.current !== null || (isIos && !isStandalone)
+      const canInstall = deferredPromptRef.current !== null || (isIos && !isStandalone)
       if (canInstall && !appInstallDismissed) {
         available.push('app-install')
       }
@@ -136,13 +135,8 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
         available.push('notification-opt-in')
       }
 
-      if (debugInstall) {
-        setPool(['app-install'])
-        setCurrentIndex(0)
-      } else {
-        setPool(available)
-        setCurrentIndex(nextCount % Math.max(available.length, 1))
-      }
+      setPool(available)
+      setCurrentIndex(nextCount % Math.max(available.length, 1))
       setMounted(true)
     } catch {
       setMounted(true)
