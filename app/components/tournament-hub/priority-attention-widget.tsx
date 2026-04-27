@@ -1,6 +1,6 @@
 import React from 'react'
 import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
-import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'
+import SportsSoccerOutlinedIcon from '@mui/icons-material/SportsSoccerOutlined'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { computePriorityAttention } from '../../utils/priority-attention'
@@ -49,7 +49,7 @@ function buildCardConfig(
         href: gamesEditHref,
         avatarBgColor: 'error.main',
         buttonColor: 'error',
-        avatarIcon: <SportsSoccerIcon fontSize="small" />,
+        avatarIcon: <SportsSoccerOutlinedIcon fontSize="small" />,
       }
     case 'qt-deadline':
       return {
@@ -99,7 +99,7 @@ function buildCardConfig(
         href: gamesEditHref,
         avatarBgColor: 'primary.main',
         buttonColor: 'primary',
-        avatarIcon: <SportsSoccerIcon fontSize="small" />,
+        avatarIcon: <SportsSoccerOutlinedIcon fontSize="small" />,
         secondaryAction: <TutorialDialogButton label={t('newUser.tutorial.cta')} />,
       }
     case 'qt-nudge':
