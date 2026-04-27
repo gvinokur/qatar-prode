@@ -163,6 +163,22 @@
       "subtitle": "Predecí antes del arranque — los resultados se bloquean 1 hora antes",
       "cta": "Predecir Ahora"
     },
+    "deadline": {
+      "title": "La ventana de predicciones se cierra pronto",
+      "subtitle": "Completá tus pronósticos antes del cierre",
+      "ctaQt": "Terminar EQ",
+      "ctaAwards": "Terminar Premios"
+    },
+    "newActionsQt": {
+      "title": "¡Partidos listos — elegí tus clasificados!",
+      "subtitle": "Elegí quién avanza de cada grupo",
+      "cta": "Elegir Clasificados"
+    },
+    "newActionsAwards": {
+      "title": "Clasificados listos — ahora elegí tus premios",
+      "subtitle": "Bota de Oro, Mejor Arquero y más",
+      "cta": "Elegir Premios"
+    },
     "qtDeadline": {
       "title": "Equipos Clasificados se cierra pronto",
       "subtitle": "{completed} de {total} predichos",

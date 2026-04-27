@@ -163,6 +163,22 @@
       "subtitle": "Predict before kickoff — scores lock 1 hour before each match",
       "cta": "Predict Now"
     },
+    "deadline": {
+      "title": "Prediction window closing soon",
+      "subtitle": "Lock in your picks before the deadline",
+      "ctaQt": "Finish QT",
+      "ctaAwards": "Finish Awards"
+    },
+    "newActionsQt": {
+      "title": "Games locked in — pick your qualifiers!",
+      "subtitle": "Choose who advances from each group",
+      "cta": "Pick Qualifiers"
+    },
+    "newActionsAwards": {
+      "title": "Qualifiers done — now choose your awards",
+      "subtitle": "Golden Boot, Best Goalkeeper and more",
+      "cta": "Choose Awards"
+    },
     "qtDeadline": {
       "title": "Qualified Teams closing soon",
       "subtitle": "{completed} of {total} predicted",
