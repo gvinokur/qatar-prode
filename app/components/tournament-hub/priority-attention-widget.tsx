@@ -8,7 +8,6 @@ import { computePriorityAttention } from '../../utils/priority-attention'
 import type { PriorityAttentionState } from '../../utils/priority-attention'
 import type { ActionCenterData } from '../../actions/hub-actions'
 import { EngagementRotatorWidget } from './engagement-rotator-widget'
-import type { Locale } from '../../../i18n.config'
 import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
 
 interface PriorityAttentionWidgetProps {
@@ -16,8 +15,6 @@ interface PriorityAttentionWidgetProps {
   readonly gamesHref: string
   readonly qtHref: string
   readonly awardsHref: string
-  readonly locale: Locale
-  readonly tournamentId: string
 }
 
 type CardConfig = {

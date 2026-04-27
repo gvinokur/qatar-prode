@@ -7,7 +7,6 @@ import { PreTournamentCountdown } from './pre-tournament-hero'
 interface DashboardBannerProps {
   readonly user: { id?: string } | null | undefined
   readonly timing: TournamentTiming | null
-  readonly data?: unknown
 }
 
 export async function DashboardBanner({ user, timing }: DashboardBannerProps) {
@@ -25,7 +24,7 @@ export async function DashboardBanner({ user, timing }: DashboardBannerProps) {
   }
 
   // Secondary layer: logged-off users only
-  const secondary: React.ReactNode = !user ? <LoggedOffBanner /> : null
+  const secondary: React.ReactNode = user ? null : <LoggedOffBanner />
 
   if (!hero && !secondary) return null
 

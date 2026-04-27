@@ -13,7 +13,6 @@ import {findUserById} from "../../../db/users-repository";
 import VerificationBanner from "../../../components/verification/verification-banner";
 import {VerificationOverlay} from "../../../components/verification/verification-overlay";
 import Link from "next/link";
-import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
 import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
@@ -84,15 +83,6 @@ function extractScoringConfig(tournament: any): ScoringConfig | undefined {
   }
 }
 
-// Helper: Check if within 5 days of tournament start
-function isWithinFiveDaysOfStart(startDate: Date): boolean {
-  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000
-  const currentTime = Date.now()
-  const startTime = startDate.getTime()
-  const timeDiff = Math.abs(startTime - currentTime)
-
-  return timeDiff <= FIVE_DAYS_MS
-}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
@@ -131,8 +121,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
-  const playersInTournament = await getPlayersInTournament(params.id)
-
   // Fetch sidebar data
   const tournament = await findTournamentById(params.id)
   const prodeGroups = user ? await getGroupsForUser() : undefined
@@ -156,9 +144,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   // Extract scoring config
   const scoringConfig = extractScoringConfig(tournament)
-
-  // Check if within 5 days of tournament start
-  const isWithin5DaysOfTournamentStart = isWithinFiveDaysOfStart(tournamentStartDate)
 
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 

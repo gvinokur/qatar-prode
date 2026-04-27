@@ -1,13 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
 import InstallMobileIcon from '@mui/icons-material/InstallMobile'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage'
 import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
@@ -24,15 +23,15 @@ const NOTIFICATION_DISMISSED_KEY = 'engagement-notification-dismissed'
 type EngagementCardType = 'pre-tournament-cta' | 'app-install' | 'notification-opt-in'
 
 interface CardProps {
-  avatarBgColor: string
-  avatarIcon: React.ReactNode
-  title: string
-  subtitle: string
-  cta: string
-  onCtaClick?: () => void
-  onDismiss?: () => void
-  dismissLabel?: string
-  secondaryAction?: React.ReactNode
+  readonly avatarBgColor: string
+  readonly avatarIcon: React.ReactNode
+  readonly title: string
+  readonly subtitle: string
+  readonly cta: string
+  readonly onCtaClick?: () => void
+  readonly onDismiss?: () => void
+  readonly dismissLabel?: string
+  readonly secondaryAction?: React.ReactNode
 }
 
 function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss, dismissLabel = 'Dismiss', secondaryAction }: CardProps) {
@@ -101,8 +100,8 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
       e.preventDefault()
       deferredPromptRef.current = e as BeforeInstallPromptEvent
     }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    globalThis.addEventListener('beforeinstallprompt', handler)
+    return () => globalThis.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   useEffect(() => {
@@ -114,7 +113,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
       localStorage.setItem(VISIT_COUNT_KEY, String(nextCount))
 
       // Detect client-side state
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      const isStandalone = globalThis.matchMedia('(display-mode: standalone)').matches
       const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent)
       const notificationPermission = typeof Notification !== 'undefined' ? Notification.permission : 'denied'
       const appInstallDismissed = getDismissalState(APP_INSTALL_DISMISSED_KEY)
@@ -131,7 +130,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
         available.push('app-install')
       }
 
-      if (notificationPermission !== 'denied' && notificationPermission !== 'granted' && !notificationDismissed) {
+      if (notificationPermission === 'default' && !notificationDismissed) {
         available.push('notification-opt-in')
       }
 

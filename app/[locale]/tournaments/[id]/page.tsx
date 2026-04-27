@@ -62,7 +62,7 @@ export default async function TournamentHubPage(props: Props) {
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
       {/* Banner Area */}
-      <DashboardBanner user={user} timing={timing} data={data} />
+      <DashboardBanner user={user} timing={timing} />
 
       {/* Priority Attention Widget — single action card above the grid */}
       {user && actionCenterData && (
@@ -71,8 +71,6 @@ export default async function TournamentHubPage(props: Props) {
           gamesHref={gamesHref}
           qtHref={`/${locale}/tournaments/${id}/qualified-teams`}
           awardsHref={`/${locale}/tournaments/${id}/awards`}
-          locale={locale}
-          tournamentId={id}
         />
       )}
 
