@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-04-27
 
 ---
 
@@ -18,15 +18,15 @@ Server Component stacking hero + secondary CTA banners in the dashboard Banner A
 ### app/components/tournament-hub/priority-attention-widget.tsx
 Server Component rendering the single priority action card between DashboardBanner and the widget grid.
 
-- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref, locale, tournamentId })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → builds title/subtitle/href/color from `PriorityAttentionState` (error for urgent-games, warning for deadline, success for transition, primary for nudge/fallback) and renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` + `Button component={Link}`. CTA href for games types uses `gamesHref?edit=next`; qt types use qtHref; awards types use awardsHref.
+- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref, locale, tournamentId })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
   Calls: computePriorityAttention
   Renders: EngagementRotatorWidget (when priority null), Paper card (when priority non-null)
 
 ### app/components/tournament-hub/engagement-rotator-widget.tsx
 Client Component handling Tier 3 visit-based rotation between pre-tournament CTA, app install, and notification opt-in cards.
 
-- **EngagementRotatorWidget({ gamesHref, tournamentStarted })**: `JSX.Element | null` — [Client] On mount: reads/increments `hub-engagement-visit-count` in localStorage; detects PWA install state (`beforeinstallprompt` event + iOS check), notification permission, dismissal states (`getDismissalState`). Builds pool: `pre-tournament-cta` (when `!tournamentStarted`), `app-install` (when installable + not dismissed), `notification-opt-in` (when permission !== 'denied'/'granted' + not dismissed). Shows `pool[visitCount % pool.length]` or null when pool is empty. Dismiss handlers use `setDismissalState`. App install CTA calls `deferredPrompt.prompt()` or shows iOS share hint. Notification CTA calls `Notification.requestPermission()`. Returns null during SSR (mounted=false).
-  Uses: useState, useEffect, useRef, useTranslations, getDismissalState, setDismissalState, Paper, Stack, Avatar, Typography, Button, IconButton, CloseIcon, Link
+- **EngagementRotatorWidget({ gamesHref, tournamentStarted, predictedGames })**: `JSX.Element | null` — [Client] On mount: reads/increments `hub-engagement-visit-count` in localStorage; detects PWA install state (`beforeinstallprompt` event + iOS check), notification permission, dismissal states (`getDismissalState`). Builds pool: `pre-tournament-cta` (when `!tournamentStarted`), `app-install` (when installable + not dismissed), `notification-opt-in` (when permission !== 'denied'/'granted' + not dismissed). Shows `pool[visitCount % pool.length]` or null when pool is empty. Dismiss handlers use `setDismissalState`. App install CTA calls `deferredPrompt.prompt()` or shows iOS share hint. Notification CTA calls `Notification.requestPermission()`. Dismiss for notification uses text Button ("Not now") instead of icon button. Pre-tournament CTA card has secondary outline Button ("Start/Keep Predicting" based on `predictedGames`) linking to `gamesHref?edit=next`. Returns null during SSR (mounted=false).
+  Uses: useState, useEffect, useRef, useTranslations, getDismissalState, setDismissalState, Paper, Stack, Avatar, Typography, Button, Link
 
 ### app/components/tournament-hub/dashboard-card.tsx
 Reusable presentational Server Component establishing the standard card layout for all hub widgets.

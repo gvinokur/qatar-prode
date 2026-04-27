@@ -2,11 +2,25 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-04-27
 
 ---
 
 ## Files
+
+### app/utils/priority-attention.ts
+Pure priority computation for the Tournament Hub attention widget. No I/O — takes `ActionCenterData` and returns the highest-priority actionable item for Tiers 1–2 (urgent, deadline, stage transition). Tier 3 engagement rotation is handled client-side by `EngagementRotatorWidget`.
+
+- **PriorityAttentionType**: TypeScript type — `'urgent-games' | 'deadline' | 'new-actions-qt' | 'new-actions-awards'`
+- **PriorityAttentionState**: TypeScript interface — `{ type: PriorityAttentionType, urgentCount?: number, firstUrgentGameId?: string, completedCount: number, totalCount: number, qtIncomplete?: boolean, qtCompleted?: number, qtTotal?: number, awardsIncomplete?: boolean, awardsCompleted?: number, awardsTotal?: number }`
+- **computePriorityAttention(data: ActionCenterData)**: `PriorityAttentionState | null` — Priority order: `urgent-games` (mode==='urgent') → `deadline` (tournamentHasStarted && qtAndAwardsOpen && msUntilPredictionLock < 48h && at least one of QT/awards incomplete) → `new-actions-qt` (!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted===0) → `new-actions-awards` (!tournamentHasStarted && qualifiersCompleted===qualifiersTotal && awardsCompleted===0). Returns null when tournamentFinished or no condition matches.
+  Calls: areGroupStageGamesPredicted
+
+### app/utils/stage-utils.ts
+Stage-completion detection helpers for the Priority Attention Widget.
+
+- **areGroupStageGamesPredicted(data: ActionCenterData)**: `boolean` — Returns true when all group-stage games (`game_type='group'`) have been predicted by the user (`groupStageGamesTotal > 0 && groupStageGamesCompleted === groupStageGamesTotal`).
+  Calls: *(none — pure function)*
 
 ### app/utils/prediction-constants.ts
 Shared constants for prediction lock timing — neutral (no `'use server'`) so it can be imported in Server Actions, repositories, and components alike.
