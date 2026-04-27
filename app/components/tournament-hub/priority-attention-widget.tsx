@@ -1,6 +1,7 @@
 import React from 'react'
 import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import NewReleasesIcon from '@mui/icons-material/NewReleases'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { computePriorityAttention } from '../../utils/priority-attention'
@@ -84,7 +85,7 @@ function buildCardConfig(
         href: qtHref,
         avatarBgColor: 'success.main',
         buttonColor: 'success',
-        avatarIcon: '🆕',
+        avatarIcon: <NewReleasesIcon fontSize="small" />,
       }
     case 'new-actions-awards':
       return {
@@ -94,7 +95,7 @@ function buildCardConfig(
         href: awardsHref,
         avatarBgColor: 'success.main',
         buttonColor: 'success',
-        avatarIcon: '🆕',
+        avatarIcon: <NewReleasesIcon fontSize="small" />,
       }
   }
 }
