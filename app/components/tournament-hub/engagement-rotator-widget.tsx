@@ -115,7 +115,7 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
       // Detect client-side state
       const isStandalone = globalThis.matchMedia('(display-mode: standalone)').matches
       const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent)
-      const notificationPermission = typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+      const notificationPermission = typeof Notification === 'undefined' ? 'denied' : Notification.permission
       const appInstallDismissed = getDismissalState(APP_INSTALL_DISMISSED_KEY)
       const notificationDismissed = getDismissalState(NOTIFICATION_DISMISSED_KEY)
 
