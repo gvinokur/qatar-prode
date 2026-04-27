@@ -1,7 +1,11 @@
 'use client'
 
+import React from 'react'
 import { Paper, Stack, Avatar, Typography, Button, IconButton } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
+import InstallMobileIcon from '@mui/icons-material/InstallMobile'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
@@ -20,7 +24,7 @@ type EngagementCardType = 'pre-tournament-cta' | 'app-install' | 'notification-o
 
 interface CardProps {
   avatarBgColor: string
-  avatarIcon: string
+  avatarIcon: React.ReactNode
   title: string
   subtitle: string
   cta: string
@@ -174,7 +178,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
       <>
         <EngagementCard
           avatarBgColor="primary.main"
-          avatarIcon="🆕"
+          avatarIcon={<MenuBookOutlinedIcon fontSize="small" />}
           title={t('newUser.tutorial.title')}
           subtitle={t('newUser.tutorial.subtitle')}
           cta={t('newUser.tutorial.cta')}
@@ -190,7 +194,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
       return (
         <EngagementCard
           avatarBgColor="primary.main"
-          avatarIcon="📲"
+          avatarIcon={<InstallMobileIcon fontSize="small" />}
           title={t('attentionWidget.appInstall.title')}
           subtitle="Tap the share icon and select 'Add to Home Screen'"
           cta="Got it"
@@ -202,7 +206,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
     return (
       <EngagementCard
         avatarBgColor="primary.main"
-        avatarIcon="📲"
+        avatarIcon={<InstallMobileIcon fontSize="small" />}
         title={t('attentionWidget.appInstall.title')}
         subtitle={t('attentionWidget.appInstall.subtitle')}
         cta={t('attentionWidget.appInstall.cta')}
@@ -216,7 +220,7 @@ export function EngagementRotatorWidget({ tournamentStarted }: EngagementRotator
     return (
       <EngagementCard
         avatarBgColor="primary.main"
-        avatarIcon="🔔"
+        avatarIcon={<NotificationsNoneIcon fontSize="small" />}
         title={t('attentionWidget.notificationOptIn.title')}
         subtitle={t('attentionWidget.notificationOptIn.subtitle')}
         cta={t('attentionWidget.notificationOptIn.cta')}
