@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getLeaderboardPeekData, getRecentResultsData, getPublicTournamentTiming, getTournamentHubPageData, getStatsAtAGlanceData } from '../hub-actions'
+import { getActionCenterGames, getCarouselGames, getLeaderboardPeekData, getRecentResultsData, getPublicTournamentTiming, getTournamentHubPageData, getStatsAtAGlanceData } from '../hub-actions'
 import * as scoreHistoryRepository from '@/app/db/score-history-repository'
 import { createMockSelectQuery } from '@/__tests__/db/mock-helpers'
 import * as gameRepository from '@/app/db/game-repository'
@@ -1181,5 +1181,152 @@ describe('getStatsAtAGlanceData', () => {
       [USER_ID],
       TOURNAMENT_ID
     )
+  })
+})
+
+describe('getCarouselGames', () => {
+  const mockDb = vi.mocked(database.db)
+
+  // Helper: mock the 3 parallel db aggregate queries used by getCarouselGames
+  function mockCarouselDb({ predicted = 3, silver = 1, golden = 0 } = {}) {
+    mockDb.selectFrom
+      .mockReturnValueOnce(createMockSelectQuery({ count: predicted }) as any)
+      .mockReturnValueOnce(createMockSelectQuery({ count: silver }) as any)
+      .mockReturnValueOnce(createMockSelectQuery({ count: golden }) as any)
+  }
+
+  beforeEach(() => {
+    mockCarouselDb()
+  })
+
+  describe('authorization', () => {
+    it('throws Unauthorized when user is not logged in', async () => {
+      vi.mocked(userActions.getLoggedInUser).mockResolvedValue(undefined as any)
+      await expect(getCarouselGames(TOURNAMENT_ID, 'en')).rejects.toThrow('Unauthorized')
+    })
+  })
+
+  describe('mode: empty', () => {
+    it('returns mode empty and empty arrays when no window games exist', async () => {
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('empty')
+      expect(result.games).toHaveLength(0)
+      expect(result.gameGuesses).toEqual({})
+      expect(result.urgentGameIds).toEqual([])
+    })
+
+    it('includes aggregate counts even in empty mode', async () => {
+      mockDb.selectFrom.mockReset()
+      mockCarouselDb({ predicted: 7, silver: 2, golden: 1 })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.predictedGames).toBe(7)
+      expect(result.silverBoostsUsed).toBe(2)
+      expect(result.goldenBoostsUsed).toBe(1)
+    })
+  })
+
+  describe('mode: urgent', () => {
+    it('returns mode urgent with unpredicted open-deadline games', async () => {
+      const game = testFactories.game({ id: 'game-1', game_date: future2h })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('urgent')
+      expect(result.games).toHaveLength(1)
+      expect(result.urgentGameIds).toEqual(['game-1'])
+    })
+
+    it('limits urgent games to 5', async () => {
+      const games = [1, 2, 3, 4, 5, 6].map((i) =>
+        testFactories.game({ id: `game-${i}`, game_date: new Date(future2h.getTime() + i * 60 * 60 * 1000) })
+      )
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue(games as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.games).toHaveLength(5)
+      expect(result.urgentGameIds).toHaveLength(5)
+    })
+
+    it('sorts urgent games by game_number ascending when deadlines are equal', async () => {
+      const gameDate = new Date(Date.now() + 5 * 60 * 60 * 1000)
+      const game1 = testFactories.game({ id: 'game-1', game_date: gameDate, game_number: 2 })
+      const game2 = testFactories.game({ id: 'game-2', game_date: gameDate, game_number: 1 })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game1, game2] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.games[0].id).toBe('game-2')
+      expect(result.games[1].id).toBe('game-1')
+    })
+
+    it('populates tournament boost limits from tournament row', async () => {
+      const game = testFactories.game({ id: 'game-1', game_date: future2h })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.tournamentMaxSilver).toBe(5)
+      expect(result.tournamentMaxGolden).toBe(3)
+    })
+  })
+
+  describe('mode: fallback', () => {
+    it('returns mode fallback when all urgent games are predicted and some are within 5-day window', async () => {
+      const game = testFactories.game({ id: 'game-1', game_date: future2h })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: 'game-1' }),
+      ])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('fallback')
+      expect(result.urgentGameIds).toEqual([])
+    })
+
+    it('sorts fallback games by game_number ascending when dates are equal', async () => {
+      const gameDate = new Date(Date.now() + 3 * 60 * 60 * 1000)
+      const game1 = testFactories.game({ id: 'game-1', game_date: gameDate, game_number: 2 })
+      const game2 = testFactories.game({ id: 'game-2', game_date: gameDate, game_number: 1 })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game1, game2] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: 'game-1' }),
+        testFactories.gameGuess({ game_id: 'game-2' }),
+      ])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('fallback')
+      expect(result.games[0].id).toBe('game-2')
+      expect(result.games[1].id).toBe('game-1')
+    })
+
+    it('returns mode empty when all open games are predicted but none are within 5-day window', async () => {
+      const farGame = testFactories.game({
+        id: 'game-far',
+        game_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([farGame] as any)
+      vi.mocked(gameGuessRepository.findGameGuessesByUserId).mockResolvedValue([
+        testFactories.gameGuess({ game_id: 'game-far' }),
+      ])
+
+      const result = await getCarouselGames(TOURNAMENT_ID, 'en')
+
+      expect(result.mode).toBe('empty')
+      expect(result.urgentGameIds).toEqual([])
+    })
   })
 })
