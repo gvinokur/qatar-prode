@@ -146,7 +146,10 @@ export async function getCompletePlayoffData(tournamentId: string, includeDraftR
   const gamesMap: {[k: string]: Game} = toMap(localizedGames)
   const tournamentStartDate: Date =
     // new Date(2024, 4,1) //For debug purposes
-    localizedGames.toSorted((a, b) => a.game_date.getTime() - b.game_date.getTime())[0]?.game_date
+    localizedGames.toSorted((a, b) => {
+      const diff = a.game_date.getTime() - b.game_date.getTime()
+      return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+    })[0]?.game_date
 
   return {
     playoffStages: localizedPlayoffStages,

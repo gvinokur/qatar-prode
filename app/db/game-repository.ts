@@ -117,6 +117,7 @@ export const findFirstGameInTournament = cache(async (tournamentId: string)  => 
    .selectAll()
    .where('tournament_id', '=', tournamentId)
    .orderBy('game_date asc')
+   .orderBy('game_number asc')
    .executeTakeFirst()
 })
 
@@ -165,6 +166,7 @@ export const findFirstGameFullData = cache(async (tournamentId: string): Promise
     ])
     .where('tournament_id', '=', tournamentId)
     .orderBy('game_date', 'asc')
+    .orderBy('game_number', 'asc')
     .executeTakeFirst() as unknown as ExtendedGameData | undefined
 })
 
@@ -176,6 +178,7 @@ export const findLastGameInTournament = cache(async (tournamentId: string) => {
     .selectAll()
     .where('tournament_id', '=', tournamentId)
     .orderBy('game_date', 'desc')
+    .orderBy('game_number', 'desc')
     .executeTakeFirst()
 })
 
@@ -348,7 +351,10 @@ export const findGamesAroundCurrentTime = cache(async (tournamentId: string)  =>
     .limit(5)
     .execute() as ExtendedGameData[]
 
-  return gamesAroundCurrentTime.sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
+  return gamesAroundCurrentTime.sort((a, b) => {
+    const diff = a.game_date.getTime() - b.game_date.getTime()
+    return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+  })
 })
 
 /**
@@ -395,6 +401,7 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
     .where('game_date', '>=', now)
     .where('game_date', '<=', tomorrow)
     .orderBy('game_date', 'asc')
+    .orderBy('game_number', 'asc')
     .execute() as ExtendedGameData[];
 });
 
@@ -452,6 +459,7 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
     // Include games up to 7 days in future (covers inter-round gaps in knockout stage)
     .where('game_date', '<=', future7Days)
     .orderBy('game_date', 'asc')
+    .orderBy('game_number', 'asc')
     .execute() as ExtendedGameData[];
 });
 
@@ -502,6 +510,7 @@ export const getAllTournamentGames = cache(async (tournamentId: string) => {
     .where('tournament_id', '=', tournamentId)
     .orderBy(sql`matchday asc nulls last`)
     .orderBy('game_date', 'asc')
+    .orderBy('game_number', 'asc')
     .execute() as ExtendedGameData[];
 });
 
@@ -637,6 +646,7 @@ export async function findRecentGamesForDashboard(
       'games.game_date as gameDate',
     ])
     .orderBy('games.game_date', 'desc')
+    .orderBy('games.game_number', 'desc')
     .limit(limit)
     .execute()
 
@@ -709,6 +719,7 @@ export async function findRecentGamesWithUserGuesses(
       'games.game_date as gameDate',
     ])
     .orderBy('games.game_date', 'desc')
+    .orderBy('games.game_number', 'desc')
     .limit(limit)
     .execute()
 
