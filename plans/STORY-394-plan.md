@@ -137,7 +137,8 @@ For `StageTransitionBanner` (Group→Playoff boundary):
 | `app/components/stage-separator.tsx` | Add `isNowAvailable?: boolean` prop; render `Chip` badge |
 | `app/components/stage-transition-banner.tsx` | Add `isNowAvailable?: boolean` prop; render `Chip` badge |
 | `app/components/games-list-with-scroll.tsx` | Add `nowAvailableRoundIds?: Set<string>` prop; pass to separators |
-| `app/components/unified-games-page-client.tsx` | Accept `nowAvailableRoundIds: string[]` prop; convert to Set, pass to GamesListWithScroll |
+| `app/components/secondary-filters.tsx` | Accept `nowAvailableRoundIds?: Set<string>`; render a `Chip` badge next to round name in dropdown `MenuItem` when round is available |
+| `app/components/unified-games-page-client.tsx` | Accept `nowAvailableRoundIds: string[]` prop; convert to Set, pass to GamesListWithScroll and SecondaryFilters |
 | Games page server component (`app/(app)/[locale]/[tournamentId]/games/page.tsx`) | Call new `getPlayoffRoundsAvailability` action; pass ids to client |
 | `locales/en/hub.json` | Add `attentionWidget.nowAvailablePlayoff.*` keys |
 | `locales/es/hub.json` | Spanish equivalents |
@@ -310,12 +311,25 @@ export interface PlayoffRoundAvailabilityInfo {
 
 ---
 
+### `app/components/secondary-filters.tsx` *(modified)*
+
+**Changed functions:**
+
+- **SecondaryFilters({ ..., nowAvailableRoundIds? })** *(was: no availability data)*
+  Accepts `nowAvailableRoundIds?: Set<string>`. In the playoffs `Select`, each `MenuItem` for a round renders an inline `<Chip label="Now Available" size="small" color="success" />` when `nowAvailableRoundIds.has(round.id)`.
+  Tests:
+  - renders "Now Available" chip in dropdown item for an available round
+  - does not render chip for rounds not in nowAvailableRoundIds
+  - renders normally when nowAvailableRoundIds is undefined
+
+---
+
 ### `app/components/unified-games-page-client.tsx` *(modified)*
 
 **Changed functions:**
 
 - **UnifiedGamesPageContent({ ..., nowAvailableRoundIds? })** *(was: no availability data)*
-  Accepts `nowAvailableRoundIds?: string[]` prop from server; converts to `Set<string>` via `useMemo`; passes to `GamesListWithScroll`.
+  Accepts `nowAvailableRoundIds?: string[]` prop from server; converts to `Set<string>` via `useMemo`; passes to both `GamesListWithScroll` and `SecondaryFilters`.
 
 ---
 
@@ -393,7 +407,8 @@ export interface PlayoffRoundAvailabilityInfo {
 - `stage-transition-banner.tsx` — add `isNowAvailable` prop
 - `priority-attention-widget.tsx` — handle new card type
 - `games-list-with-scroll.tsx` — accept `nowAvailableRoundIds`
-- `unified-games-page-client.tsx` — pass `nowAvailableRoundIds`
+- `secondary-filters.tsx` — add `nowAvailableRoundIds` prop + MenuItem badge
+- `unified-games-page-client.tsx` — pass `nowAvailableRoundIds` to GamesListWithScroll and SecondaryFilters
 - Games page server component — call `getPlayoffRoundsAvailability`
 
 ---
@@ -405,7 +420,7 @@ export interface PlayoffRoundAvailabilityInfo {
 - `docs/code-structure/actions.md` — update `hub-actions.ts` entry (new field + function)
 - `docs/code-structure/db.md` — update `tournament-prediction-completion-repository.ts` (new field)
 - `docs/code-structure/db.md` — update `tournament-playoff-repository.ts` (new function)
-- `docs/code-structure/components/components-tournament-games.md` — update StageSeparator, StageTransitionBanner, GamesListWithScroll, UnifiedGamesPageClient
+- `docs/code-structure/components/components-tournament-games.md` — update StageSeparator, StageTransitionBanner, GamesListWithScroll, SecondaryFilters, UnifiedGamesPageClient
 - `docs/code-structure/components/components-tournament-hub.md` — update PriorityAttentionWidget
 - `CODE-STRUCTURE.md` — call graph update for Flow 22 and Flow 28
 
