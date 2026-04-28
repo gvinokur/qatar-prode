@@ -165,7 +165,6 @@ function QualifiedTeamsUI({
   tournamentPredictionCompletion,
   tournamentStartDate,
   teamsMap,
-  qtBannerState,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));

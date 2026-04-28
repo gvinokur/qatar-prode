@@ -26,7 +26,7 @@ interface QTActionBannerProps {
   bannerState: QTBannerState | undefined | null;
   tournamentId: string;
   isLocked: boolean;
-  onAutoFillSuccess?: (predictions: QualifiedTeamPrediction[]) => void;
+  onAutoFillSuccess?: (_predictions: QualifiedTeamPrediction[]) => void;
 }
 
 export function QTActionBanner({
