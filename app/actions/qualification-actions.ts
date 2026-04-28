@@ -6,7 +6,7 @@ import {
   upsertGroupPositionsPrediction,
   getAllUserGroupPositionsPredictions,
 } from '../db/qualified-teams-repository';
-import { TeamPositionPrediction } from '../db/tables-definition';
+import { TeamPositionPrediction, QualifiedTeamPrediction } from '../db/tables-definition';
 import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
 import { getTranslations } from 'next-intl/server';
@@ -289,7 +289,7 @@ export async function updateGroupPositionsJsonb(
 export async function bulkAutoFillFromPredictions(
   tournamentId: string,
   locale: Locale = 'es'
-): Promise<{ success: boolean; message: string; groupsProcessed: number }> {
+): Promise<{ success: boolean; message: string; groupsProcessed: number; predictions?: QualifiedTeamPrediction[] }> {
   const t = await getTranslations({ locale, namespace: 'qualified-teams' });
 
   // 1. Auth
@@ -425,8 +425,9 @@ export async function bulkAutoFillFromPredictions(
     }
   }
 
-  // 9. Save all groups
+  // 9. Save all groups and build return predictions
   const { updatePlayoffGameGuesses } = await import('./guesses-actions');
+  const savedPredictions: QualifiedTeamPrediction[] = [];
 
   for (const group of groups) {
     const standings = standingsByGroup.get(group.id) ?? [];
@@ -439,11 +440,30 @@ export async function bulkAutoFillFromPredictions(
     }));
 
     await upsertGroupPositionsPrediction(userId, tournamentId, group.id, positions);
+
+    for (const pos of positions) {
+      savedPredictions.push({
+        id: `${group.id}-${pos.team_id}`,
+        user_id: userId,
+        tournament_id: tournamentId,
+        group_id: group.id,
+        team_id: pos.team_id,
+        predicted_position: pos.predicted_position,
+        predicted_to_qualify: pos.predicted_to_qualify,
+        created_at: undefined,
+        updated_at: new Date(),
+      });
+    }
   }
 
   await updatePlayoffGameGuesses(tournamentId, { id: userId });
 
   revalidatePath(`/[locale]/tournaments/${tournamentId}/qualified-teams`, 'page');
 
-  return { success: true, message: t('nudge.gamesFinished.message'), groupsProcessed: groups.length };
+  return {
+    success: true,
+    message: t('nudge.gamesFinished.message'),
+    groupsProcessed: groups.length,
+    predictions: savedPredictions,
+  };
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import {
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,10 +15,10 @@ import {
   Typography,
 } from '@mui/material';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { bulkAutoFillFromPredictions } from '../../actions/qualification-actions';
 import { toLocale } from '../../utils/locale-utils';
+import type { QualifiedTeamPrediction } from '../../db/tables-definition';
 
 export type QTBannerState = 'incomplete-games' | 'games-finished' | 'all-valid';
 
@@ -25,25 +26,35 @@ interface QTActionBannerProps {
   bannerState: QTBannerState | undefined | null;
   tournamentId: string;
   isLocked: boolean;
+  onAutoFillSuccess?: (predictions: QualifiedTeamPrediction[]) => void;
 }
 
-export function QTActionBanner({ bannerState, tournamentId, isLocked }: QTActionBannerProps) {
+export function QTActionBanner({
+  bannerState,
+  tournamentId,
+  isLocked,
+  onAutoFillSuccess,
+}: QTActionBannerProps) {
   const t = useTranslations('qualified-teams.nudge');
   const locale = toLocale(useLocale());
-  const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   if (!bannerState) return null;
 
   const handleAutoFillConfirm = () => {
-    setDialogOpen(false);
+    setIsCalculating(true);
     startTransition(async () => {
       const result = await bulkAutoFillFromPredictions(tournamentId, locale);
-      if (result.success) {
-        router.refresh();
+      if (result.success && result.predictions) {
+        setIsCalculating(false);
+        setDialogOpen(false);
+        onAutoFillSuccess?.(result.predictions);
       } else {
+        setIsCalculating(false);
+        setDialogOpen(false);
         setErrorOpen(true);
       }
     });
@@ -93,14 +104,14 @@ export function QTActionBanner({ bannerState, tournamentId, isLocked }: QTAction
           )}
         </Box>
 
-        <Box sx={{ flexShrink: 0 }}>
+        <Box sx={{ flexShrink: 0, display: 'flex', gap: 1 }}>
           {bannerState === 'incomplete-games' && (
             <Button
               variant="outlined"
               color="warning"
               size="small"
               component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/games`}
+              href={`/${locale}/tournaments/${tournamentId}/games?edit=next`}
             >
               {t('incompleteGames.cta')}
             </Button>
@@ -111,7 +122,7 @@ export function QTActionBanner({ bannerState, tournamentId, isLocked }: QTAction
               variant="contained"
               color="info"
               size="small"
-              disabled={isLocked || isPending}
+              disabled={isLocked}
               onClick={() => setDialogOpen(true)}
             >
               {t('gamesFinished.cta')}
@@ -119,29 +130,54 @@ export function QTActionBanner({ bannerState, tournamentId, isLocked }: QTAction
           )}
 
           {bannerState === 'all-valid' && (
-            <Button
-              variant="outlined"
-              color="success"
-              size="small"
-              component={Link}
-              href={`/${locale}/tournaments/${tournamentId}/awards`}
-            >
-              {t('allValid.cta')}
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                disabled={isLocked}
+                onClick={() => setDialogOpen(true)}
+                sx={{ color: 'text.secondary' }}
+              >
+                {t('allValid.recalculate')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="success"
+                size="small"
+                component={Link}
+                href={`/${locale}/tournaments/${tournamentId}/awards`}
+              >
+                {t('allValid.cta')}
+              </Button>
+            </>
           )}
         </Box>
       </Paper>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+      <Dialog
+        open={dialogOpen}
+        onClose={isCalculating ? undefined : () => setDialogOpen(false)}
+        disableEscapeKeyDown={isCalculating}
+      >
         <DialogTitle>{t('autoFillDialog.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>{t('autoFillDialog.body')}</DialogContentText>
           <DialogContentText sx={{ mt: 1 }}>{t('autoFillDialog.note')}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>{t('autoFillDialog.cancel')}</Button>
-          <Button onClick={handleAutoFillConfirm} variant="contained" color="info" autoFocus>
-            {t('autoFillDialog.confirm')}
+          <Button onClick={() => setDialogOpen(false)} disabled={isCalculating}>
+            {t('autoFillDialog.cancel')}
+          </Button>
+          <Button
+            onClick={handleAutoFillConfirm}
+            variant="contained"
+            color="info"
+            disabled={isCalculating}
+            autoFocus
+            startIcon={isCalculating ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {isCalculating ? t('autoFillDialog.calculating') : t('autoFillDialog.confirm')}
           </Button>
         </DialogActions>
       </Dialog>

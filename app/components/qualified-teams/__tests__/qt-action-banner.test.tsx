@@ -9,17 +9,19 @@ vi.mock('../../../actions/qualification-actions', () => ({
 
 import { bulkAutoFillFromPredictions } from '../../../actions/qualification-actions';
 
-const mockRefresh = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: mockRefresh }),
+  useRouter: () => ({ refresh: vi.fn() }),
   usePathname: () => '/es',
   useSearchParams: () => new URLSearchParams(),
   useParams: () => ({}),
 }));
 
+const mockOnAutoFillSuccess = vi.fn();
+
 const defaultProps = {
   tournamentId: 'tournament-1',
   isLocked: false,
+  onAutoFillSuccess: mockOnAutoFillSuccess,
 };
 
 describe('QTActionBanner', () => {
@@ -34,13 +36,15 @@ describe('QTActionBanner', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders incomplete-games state', () => {
+  it('renders incomplete-games state with link to next unpredicted game', () => {
     renderWithTheme(
       <QTActionBanner {...defaultProps} bannerState="incomplete-games" />
     );
     // Spanish: "Los partidos de la fase de grupos aún no están completos."
     expect(screen.getAllByText(/fase de grupos|partidos/i).length).toBeGreaterThan(0);
-    expect(screen.getByRole('link')).toBeInTheDocument();
+    const link = screen.getByRole('link');
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', expect.stringContaining('edit=next'));
   });
 
   it('renders games-finished state with auto-fill button', () => {
@@ -50,11 +54,13 @@ describe('QTActionBanner', () => {
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  it('renders all-valid state', () => {
+  it('renders all-valid state with awards link and recalculate button', () => {
     renderWithTheme(
       <QTActionBanner {...defaultProps} bannerState="all-valid" />
     );
     expect(screen.getByRole('link')).toBeInTheDocument();
+    // Spanish: "Recalcular"
+    expect(screen.getByRole('button', { name: /recalcul/i })).toBeInTheDocument();
   });
 
   it('disables auto-fill button when isLocked', () => {
@@ -62,6 +68,13 @@ describe('QTActionBanner', () => {
       <QTActionBanner {...defaultProps} bannerState="games-finished" isLocked={true} />
     );
     expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('disables recalculate button when isLocked', () => {
+    renderWithTheme(
+      <QTActionBanner {...defaultProps} bannerState="all-valid" isLocked={true} />
+    );
+    expect(screen.getByRole('button', { name: /recalcul/i })).toBeDisabled();
   });
 
   it('shows confirm dialog before calling the action', () => {
@@ -84,11 +97,15 @@ describe('QTActionBanner', () => {
     expect(bulkAutoFillFromPredictions).not.toHaveBeenCalled();
   });
 
-  it('calls router.refresh() after successful auto-fill', async () => {
+  it('calls onAutoFillSuccess with predictions after successful auto-fill', async () => {
+    const mockPredictions = [
+      { id: 'p1', user_id: 'u1', tournament_id: 't1', group_id: 'g1', team_id: 'team-1', predicted_position: 1, predicted_to_qualify: true, created_at: undefined, updated_at: undefined },
+    ];
     vi.mocked(bulkAutoFillFromPredictions).mockResolvedValue({
       success: true,
       message: 'done',
       groupsProcessed: 3,
+      predictions: mockPredictions,
     });
 
     renderWithTheme(
@@ -103,7 +120,7 @@ describe('QTActionBanner', () => {
 
     await waitFor(() => {
       expect(bulkAutoFillFromPredictions).toHaveBeenCalledWith('tournament-1', expect.any(String));
-      expect(mockRefresh).toHaveBeenCalled();
+      expect(mockOnAutoFillSuccess).toHaveBeenCalledWith(mockPredictions);
     });
   });
 
@@ -124,7 +141,17 @@ describe('QTActionBanner', () => {
     fireEvent.click(confirmButton!);
 
     await waitFor(() => {
-      expect(mockRefresh).not.toHaveBeenCalled();
+      expect(mockOnAutoFillSuccess).not.toHaveBeenCalled();
     });
+  });
+
+  it('opens confirm dialog from recalculate button in all-valid state', () => {
+    renderWithTheme(
+      <QTActionBanner {...defaultProps} bannerState="all-valid" />
+    );
+    const recalcButton = screen.getByRole('button', { name: /recalcul/i });
+    fireEvent.click(recalcButton);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(bulkAutoFillFromPredictions).not.toHaveBeenCalled();
   });
 });

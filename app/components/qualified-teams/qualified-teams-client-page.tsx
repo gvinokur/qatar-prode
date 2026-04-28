@@ -170,7 +170,7 @@ function QualifiedTeamsUI({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const t = useTranslations('qualified-teams');
-  const { predictions, isSaving, saveState, error, clearError, updateGroupPositions } = useQualifiedTeamsContext();
+  const { predictions, isSaving, saveState, error, clearError, updateGroupPositions, resetPredictions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
 
@@ -323,6 +323,17 @@ function QualifiedTeamsUI({
     return uniqueTeams.size;
   }, [predictions]);
 
+  // Compute banner state reactively so it updates when qualifiers are toggled or auto-filled
+  const localBannerState: QTBannerState = useMemo(() => {
+    const hasUnpredictedGroupGames =
+      (tournamentPredictionCompletion?.completedGroupGames ?? 0) <
+      (tournamentPredictionCompletion?.totalGroupGames ?? 0);
+    const isQTComplete =
+      (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
+      qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
+    return hasUnpredictedGroupGames ? 'incomplete-games' : !isQTComplete ? 'games-finished' : 'all-valid';
+  }, [tournamentPredictionCompletion, qualifiedTeamsCompleted]);
+
   // Filter urgent games (within 48 hours)
   const urgentGames = useMemo(
     () => {
@@ -373,16 +384,15 @@ function QualifiedTeamsUI({
           />
         </Box>
 
-        {/* State-based action banner */}
-        {qtBannerState && (
-          <Box sx={{ flexShrink: 0, px: 0, pt: 1 }}>
-            <QTActionBanner
-              bannerState={qtBannerState}
-              tournamentId={tournament.id}
-              isLocked={isLocked}
-            />
-          </Box>
-        )}
+        {/* State-based action banner — driven by live predictions */}
+        <Box sx={{ flexShrink: 0, px: 0, pt: 1 }}>
+          <QTActionBanner
+            bannerState={localBannerState}
+            tournamentId={tournament.id}
+            isLocked={isLocked}
+            onAutoFillSuccess={resetPredictions}
+          />
+        </Box>
 
         <Popover
           open={infoOpen}

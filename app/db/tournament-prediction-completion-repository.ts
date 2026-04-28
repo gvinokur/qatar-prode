@@ -140,28 +140,6 @@ export async function getTournamentPredictionCompletion(
   const totalFirstRoundGames = Number(totalFirstRoundGamesResult?.count ?? 0);
   const totalQualifierSlots = totalFirstRoundGames * 2; // Each game has 2 teams
 
-  // Group game predictions: separate counts for QT banner state
-  const completedGroupGamesResult = await db
-    .selectFrom('games')
-    .innerJoin('game_guesses', 'game_guesses.game_id', 'games.id')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('games.tournament_id', '=', tournamentId)
-    .where('games.game_type', '=', 'group')
-    .where('game_guesses.user_id', '=', userId)
-    .where('game_guesses.home_score', 'is not', null)
-    .where('game_guesses.away_score', 'is not', null)
-    .executeTakeFirst();
-
-  const totalGroupGamesResult = await db
-    .selectFrom('games')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('tournament_id', '=', tournamentId)
-    .where('game_type', '=', 'group')
-    .executeTakeFirst();
-
-  const completedGroupGames = Number(completedGroupGamesResult?.count ?? 0);
-  const totalGroupGames = Number(totalGroupGamesResult?.count ?? 0);
-
   // Count how many teams the user has predicted to qualify
   // Use the working JSONB-based repository function
   const groupPredictions = await getAllUserGroupPositionsPredictions(userId, tournamentId);
