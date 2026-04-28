@@ -330,7 +330,9 @@ function QualifiedTeamsUI({
     const isQTComplete =
       (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
       qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
-    return hasUnpredictedGroupGames ? 'incomplete-games' : !isQTComplete ? 'games-finished' : 'all-valid';
+    if (hasUnpredictedGroupGames) return 'incomplete-games';
+    if (isQTComplete) return 'all-valid';
+    return 'games-finished';
   }, [tournamentPredictionCompletion, qualifiedTeamsCompleted]);
 
   // Filter urgent games (within 48 hours)

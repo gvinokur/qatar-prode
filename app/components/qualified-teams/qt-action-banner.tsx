@@ -23,10 +23,10 @@ import type { QualifiedTeamPrediction } from '../../db/tables-definition';
 export type QTBannerState = 'incomplete-games' | 'games-finished' | 'all-valid';
 
 interface QTActionBannerProps {
-  bannerState: QTBannerState | undefined | null;
-  tournamentId: string;
-  isLocked: boolean;
-  onAutoFillSuccess?: (_predictions: QualifiedTeamPrediction[]) => void;
+  readonly bannerState: QTBannerState | undefined | null;
+  readonly tournamentId: string;
+  readonly isLocked: boolean;
+  readonly onAutoFillSuccess?: (_predictions: QualifiedTeamPrediction[]) => void;
 }
 
 export function QTActionBanner({
@@ -60,19 +60,18 @@ export function QTActionBanner({
     });
   };
 
-  const borderColor =
-    bannerState === 'incomplete-games'
-      ? 'warning.main'
-      : bannerState === 'games-finished'
-        ? 'info.main'
-        : 'success.main';
-
-  const bgColor =
-    bannerState === 'incomplete-games'
-      ? 'warning.50'
-      : bannerState === 'games-finished'
-        ? 'info.50'
-        : 'success.50';
+  let borderColor: string;
+  let bgColor: string;
+  if (bannerState === 'incomplete-games') {
+    borderColor = 'warning.main';
+    bgColor = 'warning.50';
+  } else if (bannerState === 'games-finished') {
+    borderColor = 'info.main';
+    bgColor = 'info.50';
+  } else {
+    borderColor = 'success.main';
+    bgColor = 'success.50';
+  }
 
   return (
     <>

@@ -44,7 +44,7 @@ export function computeGroupStandingsFromGuesses(
 
   for (const game of groupGames) {
     const guess = guessMap[game.id];
-    if (!guess || guess.home_score === null || guess.away_score === null) continue;
+    if (guess?.home_score == null || guess.away_score == null) continue;
 
     const home = getOrInit(game.home_team);
     const away = getOrInit(game.away_team);

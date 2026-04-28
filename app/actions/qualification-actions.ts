@@ -282,6 +282,86 @@ export async function updateGroupPositionsJsonb(
   }
 }
 
+interface ThirdPlaceCandidate {
+  teamId: string;
+  groupId: string;
+  points: number;
+  goalDiff: number;
+  goalsFor: number;
+}
+
+type RawGroupGame = { game_id: string; home_team: string | null | undefined; away_team: string | null | undefined; group_id: string };
+type GuessMap = Record<string, { home_score: number | null; away_score: number | null }>;
+
+/** Groups raw game rows by group_id. Returns null if any group has incomplete guesses. */
+function groupGamesByGroupId(
+  groupGamesRaw: RawGroupGame[],
+  guessMap: GuessMap
+): Map<string, RawGroupGame[]> | null {
+  const map = new Map<string, RawGroupGame[]>();
+  for (const game of groupGamesRaw) {
+    const arr = map.get(game.group_id) ?? [];
+    arr.push(game);
+    map.set(game.group_id, arr);
+  }
+  for (const games of map.values()) {
+    const hasIncomplete = games.some(
+      (g) => guessMap[g.game_id]?.home_score == null || guessMap[g.game_id]?.away_score == null
+    );
+    if (hasIncomplete) return null;
+  }
+  return map;
+}
+
+/** Computes standings per group and collects third-place candidates. */
+function computeStandingsByGroup(
+  groups: Array<{ id: string; group_letter: string }>,
+  gamesByGroup: Map<string, RawGroupGame[]>,
+  guessMap: GuessMap
+): { standingsByGroup: Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>; thirdPlaceCandidates: ThirdPlaceCandidate[] } {
+  const standingsByGroup = new Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>();
+  const thirdPlaceCandidates: ThirdPlaceCandidate[] = [];
+
+  for (const group of groups) {
+    const games = gamesByGroup.get(group.id) ?? [];
+    const groupGames = games
+      .filter((g) => g.home_team && g.away_team)
+      .map((g) => ({ id: g.game_id, home_team: g.home_team!, away_team: g.away_team! }));
+
+    const standings = computeGroupStandingsFromGuesses(groupGames, guessMap);
+    standingsByGroup.set(group.id, standings);
+
+    const third = standings.find((s) => s.position === 3);
+    if (third) {
+      thirdPlaceCandidates.push({ teamId: third.teamId, groupId: group.id, points: third.points, goalDiff: third.goalDiff, goalsFor: third.goalsFor });
+    }
+  }
+
+  return { standingsByGroup, thirdPlaceCandidates };
+}
+
+/** Returns Set of group IDs whose 3rd-place team qualifies. */
+function selectQualifyingThirdPlaceGroups(
+  candidates: ThirdPlaceCandidate[],
+  maxThirdPlace: number,
+  allowsThirdPlace: boolean
+): Set<string> {
+  const result = new Set<string>();
+  if (!allowsThirdPlace || maxThirdPlace <= 0) return result;
+
+  const sorted = [...candidates].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
+    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+    return a.teamId.localeCompare(b.teamId);
+  });
+
+  for (const candidate of sorted.slice(0, maxThirdPlace)) {
+    result.add(candidate.groupId);
+  }
+  return result;
+}
+
 /**
  * Bulk auto-fill QT predictions for all groups based on user's own game guess scores.
  * All-or-nothing: aborts without saving if any group has incomplete game predictions.
@@ -292,14 +372,12 @@ export async function bulkAutoFillFromPredictions(
 ): Promise<{ success: boolean; message: string; groupsProcessed: number; predictions?: QualifiedTeamPrediction[] }> {
   const t = await getTranslations({ locale, namespace: 'qualified-teams' });
 
-  // 1. Auth
   const user = await getLoggedInUser();
   if (!user?.id) {
     return { success: false, message: t('page.saveError'), groupsProcessed: 0 };
   }
   const userId = user.id;
 
-  // 2. Tournament lock check
   const tournament = await db
     .selectFrom('tournaments')
     .where('id', '=', tournamentId)
@@ -311,14 +389,12 @@ export async function bulkAutoFillFromPredictions(
   }
 
   const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
-  const isDevTournament = tournament.dev_only === true;
-  const allowDevOverride = isDevelopmentEnvironment && isDevTournament;
+  const allowDevOverride = isDevelopmentEnvironment && tournament.dev_only === true;
 
   if (!tournament.is_active && !allowDevOverride) {
     return { success: false, message: t('page.lockedAlert'), groupsProcessed: 0 };
   }
 
-  // 3. Fetch all groups for the tournament
   const groups = await db
     .selectFrom('tournament_groups')
     .where('tournament_id', '=', tournamentId)
@@ -329,7 +405,6 @@ export async function bulkAutoFillFromPredictions(
     return { success: false, message: t('page.saveError'), groupsProcessed: 0 };
   }
 
-  // 4. Fetch all group-stage games with their group assignments
   const groupGamesRaw = await db
     .selectFrom('games')
     .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')
@@ -343,89 +418,23 @@ export async function bulkAutoFillFromPredictions(
     ])
     .execute();
 
-  // 5. Fetch user's game guesses and build a map keyed by game_id
   const guesses = await findGameGuessesByUserId(userId, tournamentId);
-  const guessMap: Record<string, { home_score: number | null; away_score: number | null }> = {};
+  const guessMap: GuessMap = {};
   for (const guess of guesses) {
-    guessMap[guess.game_id] = {
-      home_score: guess.home_score ?? null,
-      away_score: guess.away_score ?? null,
-    };
+    guessMap[guess.game_id] = { home_score: guess.home_score ?? null, away_score: guess.away_score ?? null };
   }
 
-  // 6. Group games by group_id and check completeness (all-or-nothing)
-  const gamesByGroup = new Map<string, typeof groupGamesRaw>();
-  for (const game of groupGamesRaw) {
-    if (!gamesByGroup.has(game.group_id)) {
-      gamesByGroup.set(game.group_id, []);
-    }
-    gamesByGroup.get(game.group_id)!.push(game);
+  const gamesByGroup = groupGamesByGroupId(groupGamesRaw, guessMap);
+  if (!gamesByGroup) {
+    return { success: false, message: t('nudge.autoFillError'), groupsProcessed: 0 };
   }
 
-  for (const [_groupId, games] of gamesByGroup) {
-    const incompleteCount = games.filter((g) => {
-      const guess = guessMap[g.game_id];
-      return !guess || guess.home_score === null || guess.away_score === null;
-    }).length;
-    if (incompleteCount > 0) {
-      return {
-        success: false,
-        message: t('nudge.autoFillError'),
-        groupsProcessed: 0,
-      };
-    }
-  }
+  const { standingsByGroup, thirdPlaceCandidates } = computeStandingsByGroup(groups, gamesByGroup, guessMap);
 
-  // 7. Compute standings per group
-  interface ThirdPlaceCandidate {
-    teamId: string;
-    groupId: string;
-    points: number;
-    goalDiff: number;
-    goalsFor: number;
-  }
-  const thirdPlaceCandidates: ThirdPlaceCandidate[] = [];
-  const standingsByGroup = new Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>();
-
-  for (const group of groups) {
-    const games = gamesByGroup.get(group.id) ?? [];
-    const groupGames = games
-      .filter((g) => g.home_team && g.away_team)
-      .map((g) => ({ id: g.game_id, home_team: g.home_team!, away_team: g.away_team! }));
-
-    const standings = computeGroupStandingsFromGuesses(groupGames, guessMap);
-    standingsByGroup.set(group.id, standings);
-
-    const third = standings.find((s) => s.position === 3);
-    if (third) {
-      thirdPlaceCandidates.push({
-        teamId: third.teamId,
-        groupId: group.id,
-        points: third.points,
-        goalDiff: third.goalDiff,
-        goalsFor: third.goalsFor,
-      });
-    }
-  }
-
-  // 8. Select top maxThirdPlace 3rd-place teams
   const maxThirdPlace = tournament.max_third_place_qualifiers ?? 0;
   const allowsThirdPlace = tournament.allows_third_place_qualification ?? false;
+  const qualifyingThirdPlaceGroupIds = selectQualifyingThirdPlaceGroups(thirdPlaceCandidates, maxThirdPlace, allowsThirdPlace);
 
-  const qualifyingThirdPlaceGroupIds = new Set<string>();
-  if (allowsThirdPlace && maxThirdPlace > 0) {
-    thirdPlaceCandidates.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
-      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-      return a.teamId.localeCompare(b.teamId);
-    });
-    for (const candidate of thirdPlaceCandidates.slice(0, maxThirdPlace)) {
-      qualifyingThirdPlaceGroupIds.add(candidate.groupId);
-    }
-  }
-
-  // 9. Save all groups and build return predictions
   const { updatePlayoffGameGuesses } = await import('./guesses-actions');
   const savedPredictions: QualifiedTeamPrediction[] = [];
 

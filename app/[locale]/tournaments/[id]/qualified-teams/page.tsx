@@ -230,11 +230,14 @@ export default async function QualifiedTeamsPage({ params, searchParams }: PageP
     const isQTComplete =
       (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
       qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
-    const qtBannerState: QTBannerState = hasUnpredictedGroupGames
-      ? 'incomplete-games'
-      : !isQTComplete
-        ? 'games-finished'
-        : 'all-valid';
+    let qtBannerState: QTBannerState;
+    if (hasUnpredictedGroupGames) {
+      qtBannerState = 'incomplete-games';
+    } else if (isQTComplete) {
+      qtBannerState = 'all-valid';
+    } else {
+      qtBannerState = 'games-finished';
+    }
 
     // Calculate tournament start date from games
     const tournamentStartDate = games.length > 0
