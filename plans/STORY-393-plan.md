@@ -356,6 +356,32 @@ export interface TeamStanding {
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: `?edit=next` deep-link in incomplete-games CTA
+**Date:** 2026-04-28
+**Reason:** Post-implementation feedback — the "Complete group games" link should open the next unpredicted game directly instead of navigating to the games list.
+**Change:** `QTActionBanner` `incomplete-games` CTA href changed from `/{locale}/tournaments/{id}/games` to `/{locale}/tournaments/{id}/games?edit=next`. The games page reads `searchParams.get('edit')` and when the value is `'next'`, it scrolls to and opens the first unpredicted game.
+
+### Amendment 2: Dialog stays open with calculating spinner during auto-fill
+**Date:** 2026-04-28
+**Reason:** Post-implementation feedback — after clicking confirm there was no UI feedback; dialog closed immediately.
+**Change:** Added `isCalculating` state to `QTActionBanner`. Confirm button shows `CircularProgress` spinner and is disabled while calculating; dialog `disableEscapeKeyDown={isCalculating}` and `onClose` is suppressed until result. Dialog only closes after success or error. Cancel button also disabled during calculation.
+
+### Amendment 3: Reactive banner state + no-refresh context update
+**Date:** 2026-04-28
+**Reason:** Post-implementation feedback — (a) banner state didn't update after user drag-drop / third-place toggle interactions; (b) successful auto-fill triggered `router.refresh()` causing full page flicker.
+**Change:**
+- `bulkAutoFillFromPredictions` return type extended to include `predictions?: QualifiedTeamPrediction[]` — built from computed standings and returned on success.
+- `QualifiedTeamsContextProvider` gains `resetPredictions(predictions: QualifiedTeamPrediction[])` method that replaces the entire predictions Map without a server roundtrip.
+- `QualifiedTeamsUI` computes `localBannerState` reactively via `useMemo` from live `predictions` context (replaces static `qtBannerState` prop). Banner re-renders on every drag/drop or third-place toggle.
+- `QTActionBanner` prop changed from `onSuccessRefresh` (`router.refresh`) to `onAutoFillSuccess(predictions)` which calls `resetPredictions`.
+
+### Amendment 4: "Recalculate" secondary CTA in all-valid state
+**Date:** 2026-04-28
+**Reason:** Post-implementation feedback — users should be able to re-run auto-fill even when QT is already complete.
+**Change:** `all-valid` banner state now renders two buttons: (1) a secondary outlined "Recalculate" button (same confirm dialog as `games-finished` state, disabled when locked) and (2) the primary "Go to Awards" link. Added `nudge.allValid.recalculate` translation key in both `en` and `es` locales.
+
 ## Testing Strategy
 
 ### Unit Tests: `group-standings-calculator.ts`
