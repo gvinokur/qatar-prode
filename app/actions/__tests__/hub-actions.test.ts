@@ -195,6 +195,26 @@ describe('getActionCenterGames', () => {
       expect(result.games[1].id).toBe('game-1')
     })
 
+    it('sorts urgent games by game_number ascending when deadlines are equal', async () => {
+      const gameDate = new Date(Date.now() + 5 * 60 * 60 * 1000);
+      const game1 = testFactories.game({
+        id: 'game-1',
+        game_date: gameDate,
+        game_number: 2,
+      })
+      const game2 = testFactories.game({
+        id: 'game-2',
+        game_date: gameDate,
+        game_number: 1,
+      })
+      vi.mocked(gameRepository.findGamesForDashboard).mockResolvedValue([game1, game2] as any)
+
+      const result = await getActionCenterGames(TOURNAMENT_ID, 'en')
+
+      expect(result.games[0].id).toBe('game-2')
+      expect(result.games[1].id).toBe('game-1')
+    })
+
     it('excludes games whose deadline has already passed', async () => {
       const openGame = testFactories.game({
         id: 'game-open',

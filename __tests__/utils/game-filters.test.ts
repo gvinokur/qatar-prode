@@ -64,6 +64,19 @@ describe('filterGames', () => {
 
       expect(result.map(g => g.id)).toEqual(['game-1', 'game-2', 'game-3']);
     });
+
+    it('sorts games by game_number ascending when dates are equal', () => {
+      const unsortedGames = [
+        { ...createMockGame('game-3', { gameDate: new Date(2026, 0, 3) }), game_number: 3 },
+        { ...createMockGame('game-2b', { gameDate: new Date(2026, 0, 2) }), game_number: 5 },
+        { ...createMockGame('game-2a', { gameDate: new Date(2026, 0, 2) }), game_number: 4 },
+        { ...createMockGame('game-1', { gameDate: new Date(2026, 0, 1) }), game_number: 1 },
+      ];
+
+      const result = filterGames(unsortedGames, 'all', null, null, {});
+
+      expect(result.map(g => g.id)).toEqual(['game-1', 'game-2a', 'game-2b', 'game-3']);
+    });
   });
 
   describe('filter: groups', () => {

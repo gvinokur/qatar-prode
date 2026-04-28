@@ -117,7 +117,7 @@ Stepper input for scores with increment/decrement buttons, imperatively expose f
 - **StepperScoreInput** (FC) - `[Client]` - Calls: none - Uses: `useRef, useImperativeHandle` - Renders: `Box, IconButton, Typography`
 
 **File:** `app/components/urgency-accordion-group.tsx`
-Groups games into urgency tiers (urgent/warning/notice) with auto-expansion for unpredicted urgent games. Used from the Games, Qualified Teams, and Awards pages.
+Groups games into urgency tiers (urgent/warning/notice) with auto-expansion for unpredicted urgent games. Used from the Games, Qualified Teams, and Awards pages. Secondary sorts by `game_number` for stability.
 - **UrgencyAccordionGroup** (FC) - `[Client]` - Calls: none - Uses: `useRouter, useTranslations, useLocale, useCountdownContext, useMemo, useState, useEffect` - Renders: `Box, UrgencyAccordion`
 - `handleEditGame(gameId)` — navigates to `/${locale}/tournaments/${tournamentId}/games?edit=${gameId}` (games page, not hub page), opening the game in edit mode via the `?edit` URL param flow.
 

@@ -24,7 +24,7 @@
   - `UrgencyAccordionGroup`: Update `sortByDeadline` logic
 
 ## Wave 3: Validation & Commit
-- [ ] Run `npm run test`
-- [ ] Run `npm run lint`
-- [ ] Run `npm run build`
-- [ ] Commit changes
+- [x] Run `npm run test`
+- [x] Run `npm run lint`
+- [x] Run `npm run build`
+- [x] Commit changes
