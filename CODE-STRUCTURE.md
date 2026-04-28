@@ -200,7 +200,9 @@ Key flows:
      ├── getTournamentQualificationConfig [server action]
      ├── findQualifiedTeams
      ├── calculateQualifiedTeamsScore (util)
-     └── getAllTournamentGames
+     ├── getAllTournamentGames
+     ├── getTournamentPredictionCompletion [repo] → returns completedGroupGames + totalGroupGames
+     └── derives qtBannerState: QTBannerState
      └── QualifiedTeamsClientPage [renders]
            └── QualifiedTeamsContextProvider [Provider]
                  ├── holds: position predictions per group (state)
@@ -211,6 +213,13 @@ Key flows:
                                      ├── calculatePlayoffTeamsFromPositions (util)
                                      └── updateGameGuessByGameId
                  └── QualifiedTeamsUI [renders]
+                       ├── QTActionBanner (localBannerState from context via useMemo) [renders]
+                       │     └── on confirm: bulkAutoFillFromPredictions [server action]
+                       │                     ├── findGameGuessesByUserId
+                       │                     ├── computeGroupStandingsFromGuesses (util)
+                       │                     ├── upsertGroupPositionsPrediction
+                       │                     └── updatePlayoffGameGuesses
+                       │     └── on success: onAutoFillSuccess → resetPredictions (context, no refresh)
                        └── DndContext [renders]
                              └── QualifiedTeamsGrid [renders]
                                    └── GroupCard [renders]

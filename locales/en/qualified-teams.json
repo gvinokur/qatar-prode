@@ -45,5 +45,31 @@
   },
   "metadata": {
     "description": "Predict which teams qualify from each group in {name}"
+  },
+  "nudge": {
+    "incompleteGames": {
+      "message": "Group stage games are still incomplete.",
+      "cta": "Complete group games"
+    },
+    "gamesFinished": {
+      "message": "All game predictions are in! Want to auto-fill standings from your predictions?",
+      "note": "You can still edit manually afterwards.",
+      "cta": "Auto-fill from Predictions"
+    },
+    "allValid": {
+      "message": "Your bracket is ready for the knockout stage.",
+      "note": "Feel free to come back and adjust any time.",
+      "cta": "Go to Awards",
+      "recalculate": "Recalculate"
+    },
+    "autoFillDialog": {
+      "title": "Auto-fill Standings from Predictions",
+      "body": "Your group standings will be calculated from your predicted game scores. Any manual team placements will be overwritten.",
+      "note": "You can adjust the results afterwards at any time.",
+      "confirm": "Auto-fill",
+      "cancel": "Cancel",
+      "calculating": "Calculating..."
+    },
+    "autoFillError": "Failed to auto-fill standings. Please try again."
   }
 }

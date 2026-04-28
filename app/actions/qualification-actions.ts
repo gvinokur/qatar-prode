@@ -1,16 +1,19 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { getLoggedInUser } from './user-actions';
 import {
   upsertGroupPositionsPrediction,
   getAllUserGroupPositionsPredictions,
 } from '../db/qualified-teams-repository';
-import { TeamPositionPrediction } from '../db/tables-definition';
+import { TeamPositionPrediction, QualifiedTeamPrediction } from '../db/tables-definition';
 import { db } from '../db/database';
 import { QualificationPredictionError } from './qualification-errors';
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
 import { PREDICTION_LOCK_OFFSET_MS } from '../utils/prediction-constants';
+import { computeGroupStandingsFromGuesses } from '../utils/group-standings-calculator';
+import { findGameGuessesByUserId } from '../db/game-guess-repository';
 
 /**
  * Get tournament configuration for qualified teams feature
@@ -277,4 +280,199 @@ export async function updateGroupPositionsJsonb(
       message: t('qualification.saveFailed')
     };
   }
+}
+
+interface ThirdPlaceCandidate {
+  teamId: string;
+  groupId: string;
+  points: number;
+  goalDiff: number;
+  goalsFor: number;
+}
+
+type RawGroupGame = { game_id: string; home_team: string | null | undefined; away_team: string | null | undefined; group_id: string };
+type GuessMap = Record<string, { home_score: number | null; away_score: number | null }>;
+
+/** Groups raw game rows by group_id. Returns null if any group has incomplete guesses. */
+function groupGamesByGroupId(
+  groupGamesRaw: RawGroupGame[],
+  guessMap: GuessMap
+): Map<string, RawGroupGame[]> | null {
+  const map = new Map<string, RawGroupGame[]>();
+  for (const game of groupGamesRaw) {
+    const arr = map.get(game.group_id) ?? [];
+    arr.push(game);
+    map.set(game.group_id, arr);
+  }
+  for (const games of map.values()) {
+    const hasIncomplete = games.some(
+      (g) => guessMap[g.game_id]?.home_score == null || guessMap[g.game_id]?.away_score == null
+    );
+    if (hasIncomplete) return null;
+  }
+  return map;
+}
+
+/** Computes standings per group and collects third-place candidates. */
+function computeStandingsByGroup(
+  groups: Array<{ id: string; group_letter: string }>,
+  gamesByGroup: Map<string, RawGroupGame[]>,
+  guessMap: GuessMap
+): { standingsByGroup: Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>; thirdPlaceCandidates: ThirdPlaceCandidate[] } {
+  const standingsByGroup = new Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>();
+  const thirdPlaceCandidates: ThirdPlaceCandidate[] = [];
+
+  for (const group of groups) {
+    const games = gamesByGroup.get(group.id) ?? [];
+    const groupGames = games
+      .filter((g) => g.home_team && g.away_team)
+      .map((g) => ({ id: g.game_id, home_team: g.home_team!, away_team: g.away_team! }));
+
+    const standings = computeGroupStandingsFromGuesses(groupGames, guessMap);
+    standingsByGroup.set(group.id, standings);
+
+    const third = standings.find((s) => s.position === 3);
+    if (third) {
+      thirdPlaceCandidates.push({ teamId: third.teamId, groupId: group.id, points: third.points, goalDiff: third.goalDiff, goalsFor: third.goalsFor });
+    }
+  }
+
+  return { standingsByGroup, thirdPlaceCandidates };
+}
+
+/** Returns Set of group IDs whose 3rd-place team qualifies. */
+function selectQualifyingThirdPlaceGroups(
+  candidates: ThirdPlaceCandidate[],
+  maxThirdPlace: number,
+  allowsThirdPlace: boolean
+): Set<string> {
+  const result = new Set<string>();
+  if (!allowsThirdPlace || maxThirdPlace <= 0) return result;
+
+  const sorted = [...candidates].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.goalDiff !== a.goalDiff) return b.goalDiff - a.goalDiff;
+    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+    return a.teamId.localeCompare(b.teamId);
+  });
+
+  for (const candidate of sorted.slice(0, maxThirdPlace)) {
+    result.add(candidate.groupId);
+  }
+  return result;
+}
+
+/**
+ * Bulk auto-fill QT predictions for all groups based on user's own game guess scores.
+ * All-or-nothing: aborts without saving if any group has incomplete game predictions.
+ */
+export async function bulkAutoFillFromPredictions(
+  tournamentId: string,
+  locale: Locale = 'es'
+): Promise<{ success: boolean; message: string; groupsProcessed: number; predictions?: QualifiedTeamPrediction[] }> {
+  const t = await getTranslations({ locale, namespace: 'qualified-teams' });
+
+  const user = await getLoggedInUser();
+  if (!user?.id) {
+    return { success: false, message: t('page.saveError'), groupsProcessed: 0 };
+  }
+  const userId = user.id;
+
+  const tournament = await db
+    .selectFrom('tournaments')
+    .where('id', '=', tournamentId)
+    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
+    .executeTakeFirst();
+
+  if (!tournament) {
+    return { success: false, message: t('page.saveError'), groupsProcessed: 0 };
+  }
+
+  const isDevelopmentEnvironment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+  const allowDevOverride = isDevelopmentEnvironment && tournament.dev_only === true;
+
+  if (!tournament.is_active && !allowDevOverride) {
+    return { success: false, message: t('page.lockedAlert'), groupsProcessed: 0 };
+  }
+
+  const groups = await db
+    .selectFrom('tournament_groups')
+    .where('tournament_id', '=', tournamentId)
+    .select(['id', 'group_letter'])
+    .execute();
+
+  if (groups.length === 0) {
+    return { success: false, message: t('page.saveError'), groupsProcessed: 0 };
+  }
+
+  const groupGamesRaw = await db
+    .selectFrom('games')
+    .innerJoin('tournament_group_games', 'tournament_group_games.game_id', 'games.id')
+    .where('games.tournament_id', '=', tournamentId)
+    .where('games.game_type', '=', 'group')
+    .select([
+      'games.id as game_id',
+      'games.home_team',
+      'games.away_team',
+      'tournament_group_games.tournament_group_id as group_id',
+    ])
+    .execute();
+
+  const guesses = await findGameGuessesByUserId(userId, tournamentId);
+  const guessMap: GuessMap = {};
+  for (const guess of guesses) {
+    guessMap[guess.game_id] = { home_score: guess.home_score ?? null, away_score: guess.away_score ?? null };
+  }
+
+  const gamesByGroup = groupGamesByGroupId(groupGamesRaw, guessMap);
+  if (!gamesByGroup) {
+    return { success: false, message: t('nudge.autoFillError'), groupsProcessed: 0 };
+  }
+
+  const { standingsByGroup, thirdPlaceCandidates } = computeStandingsByGroup(groups, gamesByGroup, guessMap);
+
+  const maxThirdPlace = tournament.max_third_place_qualifiers ?? 0;
+  const allowsThirdPlace = tournament.allows_third_place_qualification ?? false;
+  const qualifyingThirdPlaceGroupIds = selectQualifyingThirdPlaceGroups(thirdPlaceCandidates, maxThirdPlace, allowsThirdPlace);
+
+  const { updatePlayoffGameGuesses } = await import('./guesses-actions');
+  const savedPredictions: QualifiedTeamPrediction[] = [];
+
+  for (const group of groups) {
+    const standings = standingsByGroup.get(group.id) ?? [];
+    const positions: TeamPositionPrediction[] = standings.map((s) => ({
+      team_id: s.teamId,
+      predicted_position: s.position,
+      predicted_to_qualify:
+        s.position <= 2 ||
+        (s.position === 3 && allowsThirdPlace && qualifyingThirdPlaceGroupIds.has(group.id)),
+    }));
+
+    await upsertGroupPositionsPrediction(userId, tournamentId, group.id, positions);
+
+    for (const pos of positions) {
+      savedPredictions.push({
+        id: `${group.id}-${pos.team_id}`,
+        user_id: userId,
+        tournament_id: tournamentId,
+        group_id: group.id,
+        team_id: pos.team_id,
+        predicted_position: pos.predicted_position,
+        predicted_to_qualify: pos.predicted_to_qualify,
+        created_at: undefined,
+        updated_at: new Date(),
+      });
+    }
+  }
+
+  await updatePlayoffGameGuesses(tournamentId, { id: userId });
+
+  revalidatePath(`/[locale]/tournaments/${tournamentId}/qualified-teams`, 'page');
+
+  return {
+    success: true,
+    message: t('nudge.gamesFinished.message'),
+    groupsProcessed: groups.length,
+    predictions: savedPredictions,
+  };
 }

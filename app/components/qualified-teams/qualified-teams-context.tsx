@@ -44,6 +44,8 @@ interface QualifiedTeamsContextValue {
   error: string | null;
   /** Update positions for entire group (batch) */
   updateGroupPositions: (_groupId: string, _updates: Array<{ teamId: string; position: number; qualifies: boolean }>) => Promise<void>;
+  /** Replace all predictions at once (used after bulk auto-fill) */
+  resetPredictions: (_predictions: QualifiedTeamPrediction[]) => void;
   /** Clear error state */
   clearError: () => void;
 }
@@ -168,6 +170,21 @@ export function QualifiedTeamsContextProvider({
   );
 
   /**
+   * Replace all predictions from a bulk auto-fill result
+   */
+  const resetPredictions = useCallback((newPredictions: QualifiedTeamPrediction[]) => {
+    const newMap = new Map<string, QualifiedTeamPrediction>();
+    newPredictions.forEach((p) => newMap.set(p.team_id, p));
+    setState((prev) => ({
+      ...prev,
+      predictions: newMap,
+      serverStateSnapshot: newMap,
+      saveState: 'idle',
+      error: null,
+    }));
+  }, []);
+
+  /**
    * Clear error state
    */
   const clearError = useCallback(() => {
@@ -191,9 +208,10 @@ export function QualifiedTeamsContextProvider({
       lastSaved: state.lastSaved,
       error: state.error,
       updateGroupPositions,
+      resetPredictions,
       clearError,
     }),
-    [state, updateGroupPositions, clearError]
+    [state, updateGroupPositions, resetPredictions, clearError]
   );
 
   return <QualifiedTeamsContext.Provider value={contextValue}>{children}</QualifiedTeamsContext.Provider>;

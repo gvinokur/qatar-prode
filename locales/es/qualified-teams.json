@@ -45,5 +45,31 @@
   },
   "metadata": {
     "description": "Predecí qué equipos clasifican de cada grupo en {name}"
+  },
+  "nudge": {
+    "incompleteGames": {
+      "message": "Los partidos de la fase de grupos aún no están completos.",
+      "cta": "Completar partidos de grupo"
+    },
+    "gamesFinished": {
+      "message": "¡Todas las predicciones de partidos están listas! ¿Querés completar automáticamente las posiciones?",
+      "note": "Podés seguir editando manualmente después.",
+      "cta": "Completar desde mis predicciones"
+    },
+    "allValid": {
+      "message": "Tu bracket está listo para la fase eliminatoria.",
+      "note": "Podés volver a ajustarlo cuando quieras.",
+      "cta": "Ir a Premios",
+      "recalculate": "Recalcular"
+    },
+    "autoFillDialog": {
+      "title": "Completar posiciones desde predicciones",
+      "body": "Las posiciones de cada grupo se calcularán a partir de tus predicciones de partidos. Cualquier posición manual será sobreescrita.",
+      "note": "Podés ajustar los resultados después cuando quieras.",
+      "confirm": "Completar",
+      "cancel": "Cancelar",
+      "calculating": "Calculando..."
+    },
+    "autoFillError": "Error al completar las posiciones. Por favor, intentá de nuevo."
   }
 }

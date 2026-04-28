@@ -122,6 +122,11 @@ Game outcome determination utilities for winner and loser identification.
   Calls: getLoser
 - **getWinner(homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner, homeTeam, awayTeam)**: `string | undefined` — Core logic to determine the winner considering scores and penalty results.
 
+### app/utils/group-standings-calculator.ts
+Pure utility for computing simulated group standings from user's predicted game scores. No DB dependency.
+
+- **computeGroupStandingsFromGuesses(groupGames: GroupGame[], guessMap: Record<string, { home_score: number | null; away_score: number | null }>)**: `TeamStanding[]` — Distributes points (3/1/0), accumulates goals for/against per team. Returns sorted standings (points DESC → goal difference DESC → goals scored DESC → teamId alphabetical). Skips games where home_score or away_score is null.
+
 ### app/utils/game-score-calculator.ts
 Game prediction scoring calculation with three tiers: exact score (3pt), goal difference (2pt), correct outcome (1pt).
 
