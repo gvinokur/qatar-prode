@@ -270,11 +270,13 @@ Repository for tournament_playoff_rounds and playoff games. Manages playoff brac
 - **deletePlayoffRoundGame(gameId: string)**: `Promise<PlayoffRoundGame>` — Removes game from round.
 - **findPlayoffStagesWithGamesInTournament(tournamentId: string)**: `Promise<ExtendedPlayoffRoundData[]>` — Finds all playoff stages with game IDs nested, sorted by round order.
 - **deleteAllPlayoffRoundsInTournament(tournamentId: string)**: `Promise<void>` — Deletes all playoff rounds for tournament.
+- **findPlayoffRoundsWithAvailabilityInfo(tournamentId: string, userId: string)**: `Promise<PlayoffRoundAvailabilityInfo[]>` — Returns per-round availability data ordered by round_order: `hasTeamsDefined` (any game has non-null home/away team), `previousStageLastGameDate` (max game_date of prior stage or group stage), `hasUnpredictedGames` (user completion < total). Used by `computeNowAvailableRoundIds`.
+  Calls: db
 
 ### app/db/tournament-prediction-completion-repository.ts
 Repository for tournament prediction completion tracking.
 
-- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, and qualifier selections. Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation.
+- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, qualifier selections, and per-playoff-round completion (`playoffRoundsCompletion: Record<roundId, PlayoffRoundCompletionData>`). Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation.
   Calls: findTournamentGuessByUserIdTournament, getTournamentStartDate, getAllUserGroupPositionsPredictions
 
 ### app/db/tournament-repository.ts

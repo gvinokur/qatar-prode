@@ -229,6 +229,11 @@
       "subtitle": "No te pierdas ningún resultado ni fecha límite",
       "cta": "Activar",
       "dismiss": "Ahora no"
+    },
+    "nowAvailablePlayoff": {
+      "title": "{roundName} está Disponible ahora",
+      "subtitle": "Predecí los partidos de eliminación",
+      "cta": "Predecir ahora"
     }
   },
   "statsAtAGlance": {

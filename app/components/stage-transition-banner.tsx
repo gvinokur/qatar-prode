@@ -2,18 +2,22 @@
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import { alpha } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 interface StageTransitionBannerProps {
   readonly label: string
   readonly ctaLabel: string
   readonly ctaHref: string
+  readonly isNowAvailable?: boolean
 }
 
-export function StageTransitionBanner({ label, ctaLabel, ctaHref }: StageTransitionBannerProps) {
+export function StageTransitionBanner({ label, ctaLabel, ctaHref, isNowAvailable }: StageTransitionBannerProps) {
+  const t = useTranslations('predictions')
   return (
     <Box
       sx={{
@@ -35,6 +39,13 @@ export function StageTransitionBanner({ label, ctaLabel, ctaHref }: StageTransit
       >
         {label}
       </Typography>
+      {isNowAvailable && (
+        <Chip
+          label={t('stageSeparator.nowAvailable')}
+          size="small"
+          color="success"
+        />
+      )}
       <Divider sx={{ flexGrow: 1, borderColor: (theme) => alpha(theme.palette.primary.main, 0.2) }} />
       <Button
         component={Link}

@@ -76,6 +76,11 @@ vi.mock('@/app/db/tournament-guess-repository', () => ({
   findTournamentGuessByUserIdTournament: vi.fn(),
 }))
 
+vi.mock('@/app/db/tournament-playoff-repository', () => ({
+  findPlayoffRoundBy: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
+}))
+
 vi.mock('next-intl/server', () => ({
   getTranslations: vi.fn(),
   getLocale: vi.fn().mockResolvedValue('en'),

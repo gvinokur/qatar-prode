@@ -6,7 +6,7 @@ WORKTREE_PATH: /Users/gvinokur/Personal/qatar-prode-story-394
 BRANCH_NAME: feature/story-394
 MAIN_REPO: /Users/gvinokur/Personal/qatar-prode
 PR_NUMBER: 400
-PHASE: planning
+PHASE: implementing
 ---
 
 # Story #394 Context File

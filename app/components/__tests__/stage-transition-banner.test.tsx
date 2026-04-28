@@ -65,4 +65,28 @@ describe('StageTransitionBanner', () => {
     const link = screen.getByRole('link', { name: 'Predict Qualified Teams' });
     expect(link).toHaveAttribute('href', href);
   });
+
+  it('renders "Now Available" chip when isNowAvailable=true', () => {
+    render(
+      <StageTransitionBanner
+        label="PLAYOFFS"
+        ctaLabel="Check your QT Predictions"
+        ctaHref="/en/tournaments/t1/qualified-teams"
+        isNowAvailable
+      />
+    );
+    // Global test locale is Spanish; 'stageSeparator.nowAvailable' → "Disponible ahora"
+    expect(screen.getByText('Disponible ahora')).toBeInTheDocument();
+  });
+
+  it('does not render "Now Available" chip when isNowAvailable is not set', () => {
+    render(
+      <StageTransitionBanner
+        label="PLAYOFFS"
+        ctaLabel="Check your QT Predictions"
+        ctaHref="/en/tournaments/t1/qualified-teams"
+      />
+    );
+    expect(screen.queryByText('Disponible ahora')).not.toBeInTheDocument();
+  });
 });

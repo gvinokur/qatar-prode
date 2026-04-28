@@ -42,6 +42,7 @@ vi.mock('../../app/db/tournament-group-repository', () => ({
 
 vi.mock('../../app/db/tournament-playoff-repository', () => ({
   findPlayoffStagesWithGamesInTournament: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../../app/db/tournament-prediction-completion-repository', () => ({

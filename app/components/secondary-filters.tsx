@@ -1,6 +1,6 @@
 'use client'
 
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Chip, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { TournamentGroup, PlayoffRound } from '../db/tables-definition';
 
@@ -12,6 +12,7 @@ interface SecondaryFiltersProps {
   readonly rounds: PlayoffRound[];
   readonly onGroupChange: (groupId: string | null) => void;
   readonly onRoundChange: (roundId: string | null) => void;
+  readonly nowAvailableRoundIds?: Set<string>;
 }
 
 export function SecondaryFilters({
@@ -21,7 +22,8 @@ export function SecondaryFilters({
   groups,
   rounds,
   onGroupChange,
-  onRoundChange
+  onRoundChange,
+  nowAvailableRoundIds,
 }: SecondaryFiltersProps) {
   const t = useTranslations('predictions');
 
@@ -66,7 +68,16 @@ export function SecondaryFilters({
           <MenuItem value="">{t('secondaryFilters.all')}</MenuItem>
           {rounds.map(round => (
             <MenuItem key={round.id} value={round.id}>
-              {round.round_name}
+              <Stack direction="row" alignItems="center" gap={1}>
+                {round.round_name}
+                {nowAvailableRoundIds?.has(round.id) && (
+                  <Chip
+                    label={t('stageSeparator.nowAvailable')}
+                    size="small"
+                    color="success"
+                  />
+                )}
+              </Stack>
             </MenuItem>
           ))}
         </Select>

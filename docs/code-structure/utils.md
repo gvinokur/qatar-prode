@@ -9,12 +9,19 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ## Files
 
 ### app/utils/priority-attention.ts
-Pure priority computation for the Tournament Hub attention widget. No I/O — takes `ActionCenterData` and returns the highest-priority actionable item for Tiers 1–2 (urgent, deadline, stage transition). Tier 3 engagement rotation is handled client-side by `EngagementRotatorWidget`.
+Pure priority computation for the Tournament Hub attention widget. No I/O — takes `ActionCenterData` and returns the highest-priority actionable item for Tiers 1–4 (urgent, now-available-playoff, deadline, stage transition). Tier 5 engagement rotation is handled client-side by `EngagementRotatorWidget`.
 
-- **PriorityAttentionType**: TypeScript type — `'urgent-games' | 'deadline' | 'new-actions-qt' | 'new-actions-awards'`
-- **PriorityAttentionState**: TypeScript interface — `{ type: PriorityAttentionType, urgentCount?: number, firstUrgentGameId?: string, completedCount: number, totalCount: number, qtIncomplete?: boolean, qtCompleted?: number, qtTotal?: number, awardsIncomplete?: boolean, awardsCompleted?: number, awardsTotal?: number }`
-- **computePriorityAttention(data: ActionCenterData)**: `PriorityAttentionState | null` — Priority order: `urgent-games` (mode==='urgent' AND at least one game has `calculateDeadline(game_date) - now <= 24h`) → `deadline` (tournamentHasStarted && qtAndAwardsOpen && msUntilPredictionLock < 48h && at least one of QT/awards incomplete) → `new-actions-qt` (!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted===0) → `new-actions-awards` (!tournamentHasStarted && qualifiersCompleted===qualifiersTotal && awardsCompleted===0). Returns null when tournamentFinished or no condition matches. `urgentCount` reflects only the within-24h game count.
+- **PriorityAttentionType**: TypeScript type — `'urgent-games' | 'now-available-playoff' | 'deadline' | 'new-actions-qt' | 'new-actions-awards'`
+- **PriorityAttentionState**: TypeScript interface — `{ type: PriorityAttentionType, urgentCount?: number, firstUrgentGameId?: string, completedCount: number, totalCount: number, qtIncomplete?: boolean, qtCompleted?: number, qtTotal?: number, awardsIncomplete?: boolean, awardsCompleted?: number, awardsTotal?: number, availableRoundName?: string, availableRoundFirstGameId?: string }`
+- **computePriorityAttention(data: ActionCenterData)**: `PriorityAttentionState | null` — Priority order: `urgent-games` (mode==='urgent' AND at least one game has `calculateDeadline(game_date) - now <= 24h`) → `now-available-playoff` (data.nowAvailablePlayoffRound is set) → `deadline` (tournamentHasStarted && qtAndAwardsOpen && msUntilPredictionLock < 48h && at least one of QT/awards incomplete) → `new-actions-qt` (!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted===0) → `new-actions-awards` (!tournamentHasStarted && qualifiersCompleted===qualifiersTotal && awardsCompleted===0). Returns null when tournamentFinished or no condition matches. `urgentCount` reflects only the within-24h game count.
   Calls: calculateDeadline, areGroupStageGamesPredicted
+
+### app/utils/playoff-availability.ts
+Pure utility for detecting "Now Available" playoff rounds. No I/O — takes availability info and a timestamp, returns qualifying round IDs.
+
+- **PlayoffRoundAvailabilityInfo**: TypeScript interface — `{ roundId: string, roundOrder: number, hasTeamsDefined: boolean, previousStageLastGameDate: Date | null, hasUnpredictedGames: boolean }`
+- **computeNowAvailableRoundIds(rounds: PlayoffRoundAvailabilityInfo[], now: number)**: `string[]` — Returns round IDs where `hasUnpredictedGames` is true AND (Trigger A: `hasTeamsDefined`) OR (Trigger B: `previousStageLastGameDate + 3h < now`).
+  Calls: *(none — pure function)*
 
 ### app/utils/stage-utils.ts
 Stage-completion detection helpers for the Priority Attention Widget.

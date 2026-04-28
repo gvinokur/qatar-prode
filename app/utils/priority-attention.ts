@@ -4,6 +4,7 @@ import { areGroupStageGamesPredicted } from './stage-utils'
 
 export type PriorityAttentionType =
   | 'urgent-games'
+  | 'now-available-playoff'
   | 'deadline'
   | 'new-actions-qt'
   | 'new-actions-awards'
@@ -28,6 +29,10 @@ export interface PriorityAttentionState {
   awardsCompleted?: number
   /** deadline only: total awards predictions available */
   awardsTotal?: number
+  /** now-available-playoff: localized name of the newly available round */
+  availableRoundName?: string
+  /** now-available-playoff: ID of the first unpredicted game in the round (for deep-link) */
+  availableRoundFirstGameId?: string
 }
 
 const HOURS_48_MS = 48 * 60 * 60 * 1000
@@ -56,9 +61,11 @@ function buildDeadlineState(data: ActionCenterData): PriorityAttentionState | nu
  * highest-priority actionable item for the attention widget (Tiers 1–2).
  * Returns null when nothing actionable (Tier 3 engagement rotation takes over).
  *
- * Tier 1 — Urgent: unpredicted games with open deadlines, or QT/awards deadline < 48h
- * Tier 2 — New actions: stage transitions (pre-tournament only)
- * Tier 3 — Engagement rotation (handled by EngagementRotatorWidget)
+ * Tier 1 — Urgent: unpredicted games with open deadlines
+ * Tier 2 — Now Available: playoff round just became open for prediction
+ * Tier 3 — Deadline: QT/awards deadline < 48h
+ * Tier 4 — New actions: stage transitions (pre-tournament only)
+ * Tier 5 — Engagement rotation (handled by EngagementRotatorWidget)
  */
 export function computePriorityAttention(data: ActionCenterData): PriorityAttentionState | null {
   if (data.tournamentFinished) return null
@@ -78,6 +85,16 @@ export function computePriorityAttention(data: ActionCenterData): PriorityAttent
       }
     }
     // No games within 24h — fall through to lower-priority states
+  }
+
+  if (data.nowAvailablePlayoffRound) {
+    return {
+      type: 'now-available-playoff',
+      completedCount: 0,
+      totalCount: 0,
+      availableRoundName: data.nowAvailablePlayoffRound.roundName,
+      availableRoundFirstGameId: data.nowAvailablePlayoffRound.firstGameId,
+    }
   }
 
   const deadline = buildDeadlineState(data)

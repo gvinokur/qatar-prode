@@ -22,6 +22,7 @@ vi.mock('../../../app/db/tournament-group-repository', () => ({
 
 vi.mock('../../../app/db/tournament-playoff-repository', () => ({
   findPlayoffStagesWithGamesInTournament: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock the client component

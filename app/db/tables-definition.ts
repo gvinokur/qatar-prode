@@ -474,6 +474,13 @@ export type TournamentUserGroupPositionsPrediction = Selectable<TournamentUserGr
 export type TournamentUserGroupPositionsPredictionNew = Insertable<TournamentUserGroupPositionsPredictionTable>
 export type TournamentUserGroupPositionsPredictionUpdate = Updateable<TournamentUserGroupPositionsPredictionTable>
 
+// Per-playoff-round completion data (keyed by round ID in TournamentPredictionCompletion)
+export interface PlayoffRoundCompletionData {
+  total: number
+  completed: number
+  round_name: string
+}
+
 // Tournament Prediction Completion Tracking
 export interface TournamentPredictionCompletion {
   // Final standings (3 items: champion, runner-up, third place)
@@ -513,6 +520,8 @@ export interface TournamentPredictionCompletion {
   goldenBoostsUsed: number;
   silverBoostsMax: number;
   goldenBoostsMax: number;
+  // Per-playoff-round completion, keyed by round ID, ordered by round_order ascending
+  playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>;
 }
 
 export interface PlayerTable extends Identifiable {

@@ -132,6 +132,7 @@ vi.mock('../../app/db/tournament-playoff-repository', () => ({
   createPlayoffRoundGame: vi.fn(),
   deleteAllPlayoffRoundsInTournament: vi.fn(),
   findPlayoffStagesWithGamesInTournament: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('../../app/db/game-repository', () => ({

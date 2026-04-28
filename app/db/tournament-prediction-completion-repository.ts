@@ -1,5 +1,5 @@
 import { db } from './database';
-import { TournamentPredictionCompletion, Tournament, TeamPositionPrediction } from './tables-definition';
+import { TournamentPredictionCompletion, Tournament, TeamPositionPrediction, PlayoffRoundCompletionData } from './tables-definition';
 import { findTournamentGuessByUserIdTournament } from './tournament-guess-repository';
 import { getTournamentStartDate } from '../actions/tournament-actions';
 import { getAllUserGroupPositionsPredictions } from './qualified-teams-repository';
@@ -155,6 +155,63 @@ export async function getTournamentPredictionCompletion(
   const overallCompleted = finalStandingsCompleted + awardsCompleted + qualifiersCompleted;
   const overallPercentage = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
+  // Per-playoff-round completion
+  const playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData> = {}
+
+  const playoffRoundsResult = await db
+    .selectFrom('tournament_playoff_rounds')
+    .where('tournament_id', '=', tournamentId)
+    .select(['id', 'round_name', 'round_order'])
+    .orderBy('round_order', 'asc')
+    .execute()
+
+  if (playoffRoundsResult.length > 0) {
+    const roundIds = playoffRoundsResult.map((r) => r.id)
+
+    const totalGamesPerRound = await db
+      .selectFrom('tournament_playoff_round_games')
+      .where('tournament_playoff_round_id', 'in', roundIds)
+      .groupBy('tournament_playoff_round_id')
+      .select([
+        'tournament_playoff_round_id as round_id',
+        (eb) => eb.fn.countAll<number>().as('count'),
+      ])
+      .execute()
+
+    const completedGamesPerRound = await db
+      .selectFrom('tournament_playoff_round_games')
+      .innerJoin('game_guesses', 'game_guesses.game_id', 'tournament_playoff_round_games.game_id')
+      .innerJoin('games', 'games.id', 'tournament_playoff_round_games.game_id')
+      .where('tournament_playoff_round_games.tournament_playoff_round_id', 'in', roundIds)
+      .where('game_guesses.user_id', '=', userId)
+      .where('game_guesses.home_score', 'is not', null)
+      .where('game_guesses.away_score', 'is not', null)
+      .where((eb) =>
+        eb.or([
+          eb('game_guesses.home_score', '!=', eb.ref('game_guesses.away_score')),
+          eb('game_guesses.home_penalty_winner', '=', true),
+          eb('game_guesses.away_penalty_winner', '=', true),
+        ])
+      )
+      .groupBy('tournament_playoff_round_games.tournament_playoff_round_id')
+      .select([
+        'tournament_playoff_round_games.tournament_playoff_round_id as round_id',
+        (eb) => eb.fn.countAll<number>().as('count'),
+      ])
+      .execute()
+
+    const totalByRound = new Map(totalGamesPerRound.map((r) => [r.round_id, Number(r.count)]))
+    const completedByRound = new Map(completedGamesPerRound.map((r) => [r.round_id, Number(r.count)]))
+
+    for (const round of playoffRoundsResult) {
+      playoffRoundsCompletion[round.id] = {
+        total: totalByRound.get(round.id) ?? 0,
+        completed: completedByRound.get(round.id) ?? 0,
+        round_name: round.round_name,
+      }
+    }
+  }
+
   // Check if predictions are locked after the lock window after tournament starts
   const tournamentStartDate = await getTournamentStartDate(tournamentId);
 
@@ -194,5 +251,6 @@ export async function getTournamentPredictionCompletion(
     goldenBoostsUsed,
     silverBoostsMax,
     goldenBoostsMax,
+    playoffRoundsCompletion,
   };
 }

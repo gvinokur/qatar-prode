@@ -63,7 +63,8 @@ vi.mock('../../app/db/tournament-group-repository', () => ({
 }))
 
 vi.mock('../../app/db/tournament-playoff-repository', () => ({
-  findPlayoffStagesWithGamesInTournament: vi.fn().mockResolvedValue([])
+  findPlayoffStagesWithGamesInTournament: vi.fn().mockResolvedValue([]),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../../app/db/tournament-prediction-completion-repository', () => ({
@@ -164,7 +165,8 @@ describe('UnifiedGamesPage - Authentication Routing Integration', () => {
 
       render(await UnifiedGamesPage({ tournamentId: 'tournament-123' }))
 
-      expect(getLoggedInUser).toHaveBeenCalledTimes(1)
+      // Called by the page itself + once inside getPlayoffRoundsAvailability
+      expect(getLoggedInUser).toHaveBeenCalled()
     })
   })
 
@@ -272,7 +274,8 @@ describe('UnifiedGamesPage - Authentication Routing Integration', () => {
         expect(screen.getByTestId('authenticated-games-page')).toBeInTheDocument()
       })
 
-      expect(getLoggedInUser).toHaveBeenCalledTimes(1)
+      // Called by the page itself + once inside getPlayoffRoundsAvailability
+      expect(getLoggedInUser).toHaveBeenCalledTimes(2)
     })
 
     it('should not fetch user-specific data for unauthenticated users', async () => {

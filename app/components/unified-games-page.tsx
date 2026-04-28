@@ -10,6 +10,7 @@ import { findTournamentById } from '../db/tournament-repository';
 import { findGroupsInTournament } from '../db/tournament-group-repository';
 import { findPlayoffStagesWithGamesInTournament } from '../db/tournament-playoff-repository';
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository';
+import { getPlayoffRoundsAvailability } from '../actions/hub-actions';
 import { customToMap } from '../utils/ObjectUtils';
 import { GuessesContextProvider } from './context-providers/guesses-context-provider';
 import { EditTriggerContextProvider } from './context-providers/edit-trigger-context-provider';
@@ -41,7 +42,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     groups,
     rounds,
     closingGames,
-    tournamentPredictionCompletion
+    tournamentPredictionCompletion,
+    nowAvailableRoundIds,
   ] = await Promise.all([
     getAllTournamentGames(tournamentId),
     getTournamentGameCounts(user.id, tournamentId),
@@ -55,7 +57,8 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     (async () => {
       const t = await findTournamentById(tournamentId);
       return t ? getTournamentPredictionCompletion(user.id, tournamentId, t) : null;
-    })()
+    })(),
+    getPlayoffRoundsAvailability(tournamentId),
   ]);
 
   if (!tournament) {
@@ -99,6 +102,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
           tournamentPredictionCompletion={tournamentPredictionCompletion}
           tournamentStartDate={tournamentStartDate}
           qualifiedTeamsHref={qualifiedTeamsHref}
+          nowAvailableRoundIds={nowAvailableRoundIds}
         />
       </EditTriggerContextProvider>
     </GuessesContextProvider>

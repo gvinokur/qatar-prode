@@ -1,4 +1,7 @@
 {
+  "stageSeparator": {
+    "nowAvailable": "Now Available"
+  },
   "dashboard": {
     "games": "Matches",
     "tournament": "Tournament",

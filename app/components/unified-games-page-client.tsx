@@ -38,6 +38,7 @@ interface UnifiedGamesPageContentProps {
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
   readonly tournamentStartDate: Date | undefined;
   readonly qualifiedTeamsHref: string;
+  readonly nowAvailableRoundIds?: string[];
 }
 
 function UnifiedGamesPageContent({
@@ -51,7 +52,8 @@ function UnifiedGamesPageContent({
   closingGames,
   tournamentPredictionCompletion,
   tournamentStartDate,
-  qualifiedTeamsHref
+  qualifiedTeamsHref,
+  nowAvailableRoundIds,
 }: UnifiedGamesPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -62,6 +64,11 @@ function UnifiedGamesPageContent({
   const [pendingEditGameId, setPendingEditGameId] = useState<string | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const nowAvailableRoundIdsSet = useMemo(
+    () => new Set(nowAvailableRoundIds ?? []),
+    [nowAvailableRoundIds]
+  )
 
   // Filter games based on active filters
   const filteredGames = useMemo(() => {
@@ -283,6 +290,7 @@ function UnifiedGamesPageContent({
             rounds={rounds}
             onGroupChange={setGroupFilter}
             onRoundChange={setRoundFilter}
+            nowAvailableRoundIds={nowAvailableRoundIdsSet}
           />
         </Box>
       </Box>
@@ -306,6 +314,7 @@ function UnifiedGamesPageContent({
           onGameStageClick={handleGameStageClick}
           qtPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked ?? false}
           qualifiedTeamsHref={qualifiedTeamsHref}
+          nowAvailableRoundIds={nowAvailableRoundIdsSet}
         />
 
         {/* Floating Action Button - Scroll to Next Game (mobile only) */}
@@ -360,6 +369,7 @@ interface UnifiedGamesPageClientProps {
   readonly tournamentPredictionCompletion: TournamentPredictionCompletion | null;
   readonly tournamentStartDate: Date | undefined;
   readonly qualifiedTeamsHref: string;
+  readonly nowAvailableRoundIds?: string[];
 }
 
 export function UnifiedGamesPageClient(props: UnifiedGamesPageClientProps) {
