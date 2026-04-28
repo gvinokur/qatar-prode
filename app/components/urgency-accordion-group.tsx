@@ -59,8 +59,10 @@ export function UrgencyAccordionGroup({
     });
 
     // Sort by deadline (earliest first)
-    const sortByDeadline = (a: ExtendedGameData, b: ExtendedGameData) =>
-      a.game_date.getTime() - b.game_date.getTime();
+    const sortByDeadline = (a: ExtendedGameData, b: ExtendedGameData) => {
+      const diff = a.game_date.getTime() - b.game_date.getTime();
+      return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff;
+    };
 
     return {
       urgent: urgent.toSorted(sortByDeadline),

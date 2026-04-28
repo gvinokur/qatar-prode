@@ -367,7 +367,10 @@ export async function getActionCenterGames(
       }
       return false
     })
-    .sort((a, b) => calculateDeadline(a.game_date) - calculateDeadline(b.game_date))
+    .sort((a, b) => {
+      const diff = calculateDeadline(a.game_date) - calculateDeadline(b.game_date)
+      return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+    })
     .slice(0, MAX_URGENT_CARDS)
 
   let selectedGames: ExtendedGameData[]
@@ -383,7 +386,10 @@ export async function getActionCenterGames(
     const windowEnd = now + FALLBACK_WINDOW_MS
     const upcomingGames = [...games]
       .filter((g) => calculateDeadline(g.game_date) > now && g.game_date.getTime() <= windowEnd)
-      .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
+      .sort((a, b) => {
+        const diff = a.game_date.getTime() - b.game_date.getTime()
+        return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+      })
       .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
     mode = upcomingGames.length > 0 ? 'fallback' : 'empty'
@@ -564,7 +570,10 @@ export async function getCarouselGames(
       }
       return false
     })
-    .sort((a, b) => calculateDeadline(a.game_date) - calculateDeadline(b.game_date))
+    .sort((a, b) => {
+      const diff = calculateDeadline(a.game_date) - calculateDeadline(b.game_date)
+      return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+    })
     .slice(0, MAX_URGENT_CARDS)
 
   let selectedGames: ExtendedGameData[]
@@ -579,7 +588,10 @@ export async function getCarouselGames(
     const windowEnd = now + FALLBACK_WINDOW_MS
     const upcomingGames = [...games]
       .filter((g) => calculateDeadline(g.game_date) > now && g.game_date.getTime() <= windowEnd)
-      .sort((a, b) => a.game_date.getTime() - b.game_date.getTime())
+      .sort((a, b) => {
+        const diff = a.game_date.getTime() - b.game_date.getTime()
+        return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff
+      })
       .slice(0, FALLBACK_CARD_COUNT)
     selectedGames = upcomingGames
     mode = upcomingGames.length > 0 ? 'fallback' : 'empty'

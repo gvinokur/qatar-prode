@@ -201,7 +201,7 @@ DOM scrolling utilities for automatic navigation to relevant games.
 ### app/utils/game-filters.ts
 Game filtering and badge counting for tournament prediction views.
 
-- **filterGames(games, activeFilter, groupFilter, roundFilter, gameGuesses)**: `ExtendedGameData[]` — Filters games by type (all/groups/playoffs/unpredicted/closingSoon) with secondary group/round filters.
+- **filterGames(games, activeFilter, groupFilter, roundFilter, gameGuesses)**: `ExtendedGameData[]` — Filters games by type (all/groups/playoffs/unpredicted/closingSoon) with secondary group/round filters (sorts by date and game_number).
 - **calculateFilterCounts(games, gameGuesses)**: `{total, groups, playoffs, unpredicted, closingSoon}` — Calculates badge counts for each filter type.
 
 ### app/utils/penalty-result-formatter.ts

@@ -63,7 +63,10 @@ export function filterGames(
   }
 
   // Sort by game date (ascending)
-  return filtered.sort((a, b) => a.game_date.getTime() - b.game_date.getTime());
+  return filtered.sort((a, b) => {
+    const diff = a.game_date.getTime() - b.game_date.getTime();
+    return diff === 0 ? (a.game_number || 0) - (b.game_number || 0) : diff;
+  });
 }
 
 /**
