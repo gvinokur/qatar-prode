@@ -339,6 +339,8 @@ export const DEMO_TOURNAMENT_PREDICTIONS: TournamentPredictionCompletion = {
   isPredictionLocked: false,
   completedGames: 32,
   totalGames: 48,
+  completedGroupGames: 32,
+  totalGroupGames: 48,
   silverBoostsUsed: 3,
   silverBoostsMax: 5,
   goldenBoostsUsed: 1,

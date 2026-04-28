@@ -63,6 +63,29 @@ export async function getTournamentPredictionCompletion(
 
   const completedGames = Number(completedGamesResult?.count ?? 0);
 
+  // Group-stage game counts
+  const totalGroupGamesResult = await db
+    .selectFrom('games')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('tournament_id', '=', tournamentId)
+    .where('game_type', '=', 'group')
+    .executeTakeFirst();
+
+  const totalGroupGames = Number(totalGroupGamesResult?.count ?? 0);
+
+  const completedGroupGamesResult = await db
+    .selectFrom('games')
+    .innerJoin('game_guesses', 'game_guesses.game_id', 'games.id')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('games.tournament_id', '=', tournamentId)
+    .where('games.game_type', '=', 'group')
+    .where('game_guesses.user_id', '=', userId)
+    .where('game_guesses.home_score', 'is not', null)
+    .where('game_guesses.away_score', 'is not', null)
+    .executeTakeFirst();
+
+  const completedGroupGames = Number(completedGroupGamesResult?.count ?? 0);
+
   // Boost tracking: Count silver and golden boost usage
   const silverBoostsResult = await db
     .selectFrom('game_guesses')
@@ -165,6 +188,8 @@ export async function getTournamentPredictionCompletion(
     isPredictionLocked,
     completedGames,
     totalGames,
+    completedGroupGames,
+    totalGroupGames,
     silverBoostsUsed,
     goldenBoostsUsed,
     silverBoostsMax,

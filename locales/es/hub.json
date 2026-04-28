@@ -157,6 +157,80 @@
     "urgentMessage": "¡Predice {count} partidos antes de que sea tarde!",
     "safeMessage": "Algunos partidos están por cerrar, aún puedes cambiar tus resultados."
   },
+  "attentionWidget": {
+    "urgentGames": {
+      "title": "{count, plural, one {1 partido por cerrar} other {{count} partidos por cerrar}}",
+      "subtitle": "Predecí antes del arranque — los resultados se bloquean 1 hora antes",
+      "cta": "Predecir Ahora"
+    },
+    "deadline": {
+      "title": "La ventana de predicciones se cierra pronto",
+      "subtitle": "Completá tus pronósticos antes del cierre",
+      "ctaQt": "Terminar EQ",
+      "ctaAwards": "Terminar Premios"
+    },
+    "newActionsQt": {
+      "title": "¡Partidos listos — elegí tus clasificados!",
+      "subtitle": "Elegí quién avanza de cada grupo",
+      "cta": "Elegir Clasificados"
+    },
+    "newActionsAwards": {
+      "title": "Clasificados listos — ahora elegí tus premios",
+      "subtitle": "Bota de Oro, Mejor Arquero y más",
+      "cta": "Elegir Premios"
+    },
+    "qtDeadline": {
+      "title": "Equipos Clasificados se cierra pronto",
+      "subtitle": "{completed} de {total} predichos",
+      "cta": "Terminar EQ"
+    },
+    "awardsDeadline": {
+      "title": "Premios se cierran pronto",
+      "subtitle": "{completed} de {total} predichos",
+      "cta": "Terminar Premios"
+    },
+    "transitionToQt": {
+      "title": "¡Partidos listos — elegí tus clasificados!",
+      "subtitle": "Elegí quién avanza de cada grupo antes de que se cierre la ventana",
+      "cta": "Elegir Clasificados"
+    },
+    "transitionToAwards": {
+      "title": "Clasificados listos — ahora elegí tus premios",
+      "subtitle": "Bota de Oro, Mejor Arquero y más",
+      "cta": "Elegir Premios"
+    },
+    "fallbackGames": {
+      "title": "Partidos para predecir",
+      "subtitle": "{completed} de {total} partidos predichos",
+      "cta": "Predecir Partidos"
+    },
+    "qtNudge": {
+      "title": "No te olvides de los Equipos Clasificados",
+      "subtitle": "{completed} de {total} lugares predichos",
+      "cta": "Ir a EQ"
+    },
+    "awardsNudge": {
+      "title": "No te olvides de los Premios",
+      "subtitle": "{completed} de {total} premios predichos",
+      "cta": "Ir a Premios"
+    },
+    "preTournamentCta": {
+      "title": "Empezá a predecir antes del arranque",
+      "subtitle": "Guardá tus pronósticos — podés editar hasta que empiece cada partido",
+      "cta": "¡Vamos!"
+    },
+    "appInstall": {
+      "title": "Instalá para una mejor experiencia",
+      "subtitle": "Agregá Qatar Prode a tu pantalla de inicio",
+      "cta": "Instalar"
+    },
+    "notificationOptIn": {
+      "title": "Recibí notificaciones de eventos importantes",
+      "subtitle": "No te pierdas ningún resultado ni fecha límite",
+      "cta": "Activar",
+      "dismiss": "Ahora no"
+    }
+  },
   "statsAtAGlance": {
     "title": "Estadísticas",
     "noData": "Aún no tenés puntos",

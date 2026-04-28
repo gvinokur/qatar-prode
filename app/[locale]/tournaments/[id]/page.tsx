@@ -12,6 +12,7 @@ import { getTournamentHubPageData, getActionCenterGames, getPublicTournamentTimi
 import { PREDICTION_LOCK_OFFSET_MS } from '@/app/utils/prediction-constants'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
+import { PriorityAttentionWidget } from '@/app/components/tournament-hub/priority-attention-widget'
 import { TournamentHubRecentResults } from '@/app/components/tournament-hub/tournament-hub-recent-results'
 import { TournamentHubLeaderboardPeek } from '@/app/components/tournament-hub/tournament-hub-leaderboard-peek'
 import { StatsAtAGlanceWidget } from '@/app/components/tournament-hub/stats-at-a-glance-widget'
@@ -61,7 +62,17 @@ export default async function TournamentHubPage(props: Props) {
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
       {/* Banner Area */}
-      <DashboardBanner user={user} timing={timing} data={data} />
+      <DashboardBanner user={user} timing={timing} />
+
+      {/* Priority Attention Widget — single action card above the grid */}
+      {user && actionCenterData && (
+        <PriorityAttentionWidget
+          data={actionCenterData}
+          gamesHref={gamesHref}
+          qtHref={`/${locale}/tournaments/${id}/qualified-teams`}
+          awardsHref={`/${locale}/tournaments/${id}/awards`}
+        />
+      )}
 
       {/* Widget Grid — CSS Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 2 }}>

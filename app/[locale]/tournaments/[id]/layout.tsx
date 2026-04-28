@@ -13,8 +13,6 @@ import {findUserById} from "../../../db/users-repository";
 import VerificationBanner from "../../../components/verification/verification-banner";
 import {VerificationOverlay} from "../../../components/verification/verification-overlay";
 import Link from "next/link";
-import EmptyAwardsSnackbar from "../../../components/awards/empty-award-notification";
-import {getPlayersInTournament} from "../../../db/player-repository";
 import EnvironmentIndicator from "../../../components/environment-indicator";
 import {Typography, Avatar} from "@mui/material";
 import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
@@ -85,15 +83,6 @@ function extractScoringConfig(tournament: any): ScoringConfig | undefined {
   }
 }
 
-// Helper: Check if within 5 days of tournament start
-function isWithinFiveDaysOfStart(startDate: Date): boolean {
-  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000
-  const currentTime = Date.now()
-  const startTime = startDate.getTime()
-  const timeDiff = Math.abs(startTime - currentTime)
-
-  return timeDiff <= FIVE_DAYS_MS
-}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
@@ -132,8 +121,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
-  const playersInTournament = await getPlayersInTournament(params.id)
-
   // Fetch sidebar data
   const tournament = await findTournamentById(params.id)
   const prodeGroups = user ? await getGroupsForUser() : undefined
@@ -157,9 +144,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
 
   // Extract scoring config
   const scoringConfig = extractScoringConfig(tournament)
-
-  // Check if within 5 days of tournament start
-  const isWithin5DaysOfTournamentStart = isWithinFiveDaysOfStart(tournamentStartDate)
 
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
@@ -355,19 +339,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Box>
         </Box>
       </Box>
-      {user &&
-        (((!tournamentGuesses?.best_player_id ||
-          !tournamentGuesses?.best_young_player_id ||
-          !tournamentGuesses?.best_goalkeeper_player_id ||
-          !tournamentGuesses?.top_goalscorer_player_id
-        ) &&
-        playersInTournament > 0) ||
-          !tournamentGuesses?.champion_team_id ||
-          !tournamentGuesses?.runner_up_team_id
-        ) &&
-        isWithin5DaysOfTournamentStart && (
-        <EmptyAwardsSnackbar tournamentId={params.id}/>
-      )}
       <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}

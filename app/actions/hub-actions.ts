@@ -61,6 +61,10 @@ export interface ActionCenterData {
   totalGames: number
   /** Number of games the user has fully predicted (both scores, playoff penalty included) */
   predictedGames: number
+  /** Number of group-stage games the user has fully predicted */
+  groupStageGamesCompleted: number
+  /** Total number of group-stage games in the tournament */
+  groupStageGamesTotal: number
   /** Total silver boosts applied across all user games in this tournament */
   silverBoostsUsed: number
   /** Total golden boosts applied across all user games in this tournament */
@@ -148,26 +152,6 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
     qualifiersTotal,
     awardsTotal: 7,
   }
-}
-
-/**
- * Returns true when the user is in the "incomplete" pre-tournament state:
- * tournament hasn't started, prediction window is open, and at least one
- * prediction track is below its completion threshold.
- *
- * Zero-total sections (not yet configured) are treated as complete (100%)
- * to avoid false positives when sections haven't been set up yet.
- */
-export async function computeIsIncompleteUser(data: ActionCenterData): Promise<boolean> {
-  if (data.tournamentHasStarted) return false
-  if (!data.qtAndAwardsOpen) return false
-  if (data.firstGameDate === null) return false
-
-  const gamesProgress = data.totalGames > 0 ? (data.predictedGames / data.totalGames) * 100 : 100
-  const awardsProgress = data.awardsTotal > 0 ? (data.awardsCompleted / data.awardsTotal) * 100 : 100
-  const qtProgress = data.qualifiersTotal > 0 ? (data.qualifiersCompleted / data.qualifiersTotal) * 100 : 100
-
-  return gamesProgress < 30 || awardsProgress < 90 || qtProgress < 90
 }
 
 const MAX_URGENT_CARDS = 5
@@ -300,6 +284,8 @@ export async function getActionCenterGames(
   const firstGameDate = firstGame?.game_date ?? null
   const totalGames = predictionCompletion?.totalGames ?? 0
   const predictedGames = predictionCompletion?.completedGames ?? 0
+  const groupStageGamesCompleted = predictionCompletion?.completedGroupGames ?? 0
+  const groupStageGamesTotal = predictionCompletion?.totalGroupGames ?? 0
   const silverBoostsUsed = predictionCompletion?.silverBoostsUsed ?? 0
   const goldenBoostsUsed = predictionCompletion?.goldenBoostsUsed ?? 0
   const awardsCompleted = (predictionCompletion?.finalStandings.completed ?? 0) + (predictionCompletion?.awards.completed ?? 0)
@@ -350,6 +336,8 @@ export async function getActionCenterGames(
       openerBackfill,
       totalGames,
       predictedGames,
+      groupStageGamesCompleted,
+      groupStageGamesTotal,
       silverBoostsUsed,
       goldenBoostsUsed,
       awardsCompleted,
@@ -434,6 +422,8 @@ export async function getActionCenterGames(
     openerBackfill: false,
     totalGames,
     predictedGames,
+    groupStageGamesCompleted,
+    groupStageGamesTotal,
     silverBoostsUsed,
     goldenBoostsUsed,
     awardsCompleted,

@@ -6,7 +6,6 @@ import Script from 'next/script';
 import SessionWrapper from "../components/session-wrapper";
 import ThemeProvider from "../components/context-providers/theme-provider";
 import NextThemeProvider from '../components/context-providers/next-theme-wrapper-provider';
-import InstallPwa from "../components/Install-pwa";
 import OfflineDetection from "../components/offline-detection";
 import Header from "../components/header/header";
 import ConditionalHeader from "../components/header/conditional-header";
@@ -146,7 +145,6 @@ export default async function LocaleLayout({
                     </ConditionalHeader>
                     {children}
                     <Footer message={`${appName} © 2025`} />
-                    <InstallPwa />
                     <OfflineDetection />
                     <AdSensePageViewTracker />
                     <Suspense fallback={null}>
