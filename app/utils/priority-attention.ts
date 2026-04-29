@@ -1,4 +1,5 @@
 import type { ActionCenterData } from '../actions/hub-actions'
+import { calculateDeadline } from './countdown-utils'
 import { areGroupStageGamesPredicted } from './stage-utils'
 
 export type PriorityAttentionType =
@@ -30,6 +31,7 @@ export interface PriorityAttentionState {
 }
 
 const HOURS_48_MS = 48 * 60 * 60 * 1000
+const HOURS_24_MS = 24 * 60 * 60 * 1000
 
 function buildDeadlineState(data: ActionCenterData): PriorityAttentionState | null {
   if (!data.tournamentHasStarted || !data.qtAndAwardsOpen || data.msUntilPredictionLock >= HOURS_48_MS) return null
@@ -62,13 +64,20 @@ export function computePriorityAttention(data: ActionCenterData): PriorityAttent
   if (data.tournamentFinished) return null
 
   if (data.mode === 'urgent') {
-    return {
-      type: 'urgent-games',
-      urgentCount: data.games.length,
-      firstUrgentGameId: data.games[0]?.id,
-      completedCount: data.predictedGames,
-      totalCount: data.totalGames,
+    const now = Date.now()
+    const within24h = data.games.filter(
+      (g) => calculateDeadline(g.game_date) - now <= HOURS_24_MS
+    )
+    if (within24h.length > 0) {
+      return {
+        type: 'urgent-games',
+        urgentCount: within24h.length,
+        firstUrgentGameId: within24h[0]?.id,
+        completedCount: data.predictedGames,
+        totalCount: data.totalGames,
+      }
     }
+    // No games within 24h — fall through to lower-priority states
   }
 
   const deadline = buildDeadlineState(data)
