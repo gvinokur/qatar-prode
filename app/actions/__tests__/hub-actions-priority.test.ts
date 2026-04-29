@@ -101,11 +101,15 @@ describe('computePriorityAttention', () => {
   })
 
   describe('Tier 1 — urgent-games', () => {
-    it('returns urgent-games when mode is urgent', () => {
-      const urgentGame = { id: 'game-1' } as ActionCenterData['games'][0]
+    const gameWithin24h = (id: string) =>
+      ({ id, game_date: new Date(Date.now() + 2 * 60 * 60 * 1000) }) as ActionCenterData['games'][0]
+    const gameOutside24h = (id: string) =>
+      ({ id, game_date: new Date(Date.now() + 30 * 60 * 60 * 1000) }) as ActionCenterData['games'][0]
+
+    it('returns urgent-games when mode is urgent and a game is within 24h', () => {
       const data = makeData({
         mode: 'urgent',
-        games: [urgentGame],
+        games: [gameWithin24h('game-1')],
         tournamentHasStarted: true,
         predictedGames: 10,
         totalGames: 64,
@@ -114,22 +118,65 @@ describe('computePriorityAttention', () => {
       expect(result?.type).toBe('urgent-games')
     })
 
-    it('includes urgentCount = games.length when mode is urgent', () => {
+    it('includes urgentCount = within-24h game count', () => {
       const data = makeData({
         mode: 'urgent',
-        games: [{ id: 'g1' }, { id: 'g2' }, { id: 'g3' }] as ActionCenterData['games'],
+        games: [gameWithin24h('g1'), gameWithin24h('g2'), gameWithin24h('g3')],
         tournamentHasStarted: true,
       })
       expect(computePriorityAttention(data)?.urgentCount).toBe(3)
     })
 
-    it('includes firstUrgentGameId = games[0].id when mode is urgent', () => {
+    it('includes firstUrgentGameId = id of first within-24h game', () => {
       const data = makeData({
         mode: 'urgent',
-        games: [{ id: 'first-urgent' }, { id: 'second-urgent' }] as ActionCenterData['games'],
+        games: [gameWithin24h('first-urgent'), gameWithin24h('second-urgent')],
         tournamentHasStarted: true,
       })
       expect(computePriorityAttention(data)?.firstUrgentGameId).toBe('first-urgent')
+    })
+
+    it('does NOT return urgent-games when mode is urgent but all games are outside 24h', () => {
+      const data = makeData({
+        mode: 'urgent',
+        games: [gameOutside24h('far-game')],
+        tournamentHasStarted: true,
+      })
+      expect(computePriorityAttention(data)?.type).not.toBe('urgent-games')
+    })
+
+    it('urgentCount reflects only within-24h games, not all games in data.games', () => {
+      const data = makeData({
+        mode: 'urgent',
+        games: [gameWithin24h('near'), gameOutside24h('far-1'), gameOutside24h('far-2')],
+        tournamentHasStarted: true,
+      })
+      expect(computePriorityAttention(data)?.urgentCount).toBe(1)
+    })
+
+    it('falls through to deadline state when mode is urgent but no games within 24h', () => {
+      const data = makeData({
+        mode: 'urgent',
+        games: [gameOutside24h('far-game')],
+        tournamentHasStarted: true,
+        qtAndAwardsOpen: true,
+        msUntilPredictionLock: HOURS_48_MS - 1,
+        qualifiersCompleted: 10,
+        qualifiersTotal: 32,
+        awardsCompleted: 3,
+        awardsTotal: 7,
+      })
+      expect(computePriorityAttention(data)?.type).toBe('deadline')
+    })
+
+    it('returns null when mode is urgent, no games within 24h, and no other condition matches', () => {
+      const data = makeData({
+        mode: 'urgent',
+        games: [gameOutside24h('far-game')],
+        tournamentHasStarted: true,
+        qtAndAwardsOpen: false,
+      })
+      expect(computePriorityAttention(data)).toBeNull()
     })
   })
 

@@ -13,8 +13,8 @@ Pure priority computation for the Tournament Hub attention widget. No I/O — ta
 
 - **PriorityAttentionType**: TypeScript type — `'urgent-games' | 'deadline' | 'new-actions-qt' | 'new-actions-awards'`
 - **PriorityAttentionState**: TypeScript interface — `{ type: PriorityAttentionType, urgentCount?: number, firstUrgentGameId?: string, completedCount: number, totalCount: number, qtIncomplete?: boolean, qtCompleted?: number, qtTotal?: number, awardsIncomplete?: boolean, awardsCompleted?: number, awardsTotal?: number }`
-- **computePriorityAttention(data: ActionCenterData)**: `PriorityAttentionState | null` — Priority order: `urgent-games` (mode==='urgent') → `deadline` (tournamentHasStarted && qtAndAwardsOpen && msUntilPredictionLock < 48h && at least one of QT/awards incomplete) → `new-actions-qt` (!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted===0) → `new-actions-awards` (!tournamentHasStarted && qualifiersCompleted===qualifiersTotal && awardsCompleted===0). Returns null when tournamentFinished or no condition matches.
-  Calls: areGroupStageGamesPredicted
+- **computePriorityAttention(data: ActionCenterData)**: `PriorityAttentionState | null` — Priority order: `urgent-games` (mode==='urgent' AND at least one game has `calculateDeadline(game_date) - now <= 24h`) → `deadline` (tournamentHasStarted && qtAndAwardsOpen && msUntilPredictionLock < 48h && at least one of QT/awards incomplete) → `new-actions-qt` (!tournamentHasStarted && areGroupStageGamesPredicted(data) && qualifiersCompleted===0) → `new-actions-awards` (!tournamentHasStarted && qualifiersCompleted===qualifiersTotal && awardsCompleted===0). Returns null when tournamentFinished or no condition matches. `urgentCount` reflects only the within-24h game count.
+  Calls: calculateDeadline, areGroupStageGamesPredicted
 
 ### app/utils/stage-utils.ts
 Stage-completion detection helpers for the Priority Attention Widget.
