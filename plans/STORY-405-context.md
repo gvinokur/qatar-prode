@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Rules UI/UX improvements and bug fixes
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-405
 - **Branch:** feature/story-405
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 406
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/406
 
 ## State
 - **Current Phase:** planning
