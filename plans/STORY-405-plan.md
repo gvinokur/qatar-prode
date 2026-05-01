@@ -48,7 +48,7 @@ The current Rules component (`app/components/tournament-page/rules.tsx`) has fou
 │  │ 🕐 Boosts must be applied before kickoff│  │
 │  └─────────────────────────────────────────┘  │
 │                                                │
-│  🌿 Qualified Teams                           │
+│  🌳 Qualified Teams  (AccountTree icon)       │
 │  ┌─────────────────────────────────────────┐  │
 │  │ SCORING                                 │  │
 │  │ ✓ Correct qualified team           +1   │  │
@@ -81,8 +81,9 @@ The current Rules component (`app/components/tournament-page/rules.tsx`) has fou
 └────────────────────────────────────────────────┘
 ```
 
-### Hub Card Mode (compact, no examples)
-Same category structure, collapsed by default, no expandable examples.
+### Hub Sidebar Card / GamesInfoWidget (compact, no examples)
+The `GamesInfoWidget` ("sidebar card" on the hub) shows scoring rules and a deadline box.
+Same category layout concept but compact — no expandable examples, boost timing moves to the Deadline box.
 
 ## Technical Approach
 
