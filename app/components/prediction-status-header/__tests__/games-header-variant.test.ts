@@ -131,19 +131,25 @@ describe('computeGamesHeaderVariant', () => {
     const urgentGame = createMockGame({
       id: 'urgent-1',
       game_date: new Date('2026-06-01T18:30:00Z'), // 1.5h away
+      home_team: 'team-a-id',
+      away_team: 'team-b-id',
     });
 
     const input = createMockInput({
       games: [urgentGame],
       urgentGames: [urgentGame],
-      gameGuesses: {}, // no guess for this game
+      gameGuesses: {},
+      teamsMap: {
+        'team-a-id': { id: 'team-a-id', name: 'Team A', short_name: 'TMA' } as any,
+        'team-b-id': { id: 'team-b-id', name: 'Team B', short_name: 'TMB' } as any,
+      },
       now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
 
     expect(result.tone).toBe('deadlineNow');
-    expect(result.leadIcon).toBe('error');
+    expect(result.leadIcon).toBe('info');
     expect(result.message).toContain('Team A vs Team B');
   });
 
@@ -164,7 +170,7 @@ describe('computeGamesHeaderVariant', () => {
     const result = computeGamesHeaderVariant(input, mockT);
 
     expect(result.tone).toBe('deadlineUrgent');
-    expect(result.leadIcon).toBe('warning');
+    expect(result.leadIcon).toBe('info');
   });
 
   it('should return deadlineSoon tone when game is 24-48h away', () => {
@@ -387,25 +393,16 @@ describe('computeGamesHeaderVariant', () => {
     const result = computeGamesHeaderVariant(input, mockT);
 
     expect(result.tone).toBe('calm');
-    expect(result.leadIcon).toBe('info');
+    expect(result.leadIcon).toBe('check');
+    expect(result.statusColor).toBe('success.main');
   });
 
-  it('should include playoff round chips when available', () => {
+  it('should show games count chip for stage-active-caught-up', () => {
     const now = new Date('2026-06-20T12:00:00Z');
     const game = createMockGame({ game_date: new Date('2026-06-10T18:00:00Z') });
     const completion = createMockCompletion({
-      playoffRoundsCompletion: {
-        'round-1': {
-          total: 8,
-          completed: 4,
-          round_name: 'Round of 16',
-        },
-        'round-2': {
-          total: 4,
-          completed: 2,
-          round_name: 'Quarterfinals',
-        },
-      },
+      completedGames: 4,
+      totalGames: 10,
     });
 
     const input = createMockInput({
@@ -416,40 +413,31 @@ describe('computeGamesHeaderVariant', () => {
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    expect(result.chip?.label).toContain('4/8');
-    expect(result.chip?.label).toContain('2/4');
+    // chip should show predicted/total games (partidos key)
+    expect(result.chip?.label).toContain('statusHeader.chipLabel.partidos');
+    expect(result.chip?.label).toContain('"predicted":4');
+    expect(result.chip?.label).toContain('"total":10');
   });
 
-  it('should merge Final and Third-place rounds in chip label', () => {
+  it('should show success chip color for stage-active-caught-up when all predicted', () => {
     const now = new Date('2026-07-10T12:00:00Z');
-    const game = createMockGame({ game_date: new Date('2026-07-05T18:00:00Z') });
+    // Past game makes tournament "started"; future game prevents tournament-finished
+    const pastGame = createMockGame({ id: 'past', game_date: new Date('2026-07-01T18:00:00Z') });
+    const futureGame = createMockGame({ id: 'future', game_date: new Date('2026-07-15T18:00:00Z') });
     const completion = createMockCompletion({
-      playoffRoundsCompletion: {
-        'round-final': {
-          total: 1,
-          completed: 1,
-          round_name: 'Final',
-          is_final: true,
-        },
-        'round-third': {
-          total: 1,
-          completed: 0,
-          round_name: 'Third Place',
-          is_third_place: true,
-        },
-      },
+      completedGames: 10,
+      totalGames: 10,
     });
 
     const input = createMockInput({
-      games: [game],
+      games: [pastGame, futureGame],
       completion,
       now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    // Final and third-place should be merged (1+1=2 total, 1+0=1 completed)
-    expect(result.chip?.label).toContain('1/2');
+    expect(result.chip?.color).toBe('success');
   });
 
   // ── Additional Edge Cases ───────────────────────────────────────────────
