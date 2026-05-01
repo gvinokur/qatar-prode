@@ -242,16 +242,20 @@ describe('computeGamesHeaderVariant', () => {
   // ── VARIANT 3: pre-groups-complete-nudge-qt ─────────────────────────────────
 
   it('should return pre-groups-complete-nudge-qt when groups done, QT open, QT incomplete', () => {
+    const now = new Date('2026-06-10T12:00:00Z');
+    const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') }); // past
     const completion = createMockCompletion({
-      completedGroupGames: 8,
-      totalGroupGames: 8,
+      totalGroupGames: 1,
       isPredictionLocked: false,
       qualifiers: { completed: 2, total: 8 },
     });
 
     const input = createMockInput({
       completion,
-      now: new Date('2026-06-10T12:00:00Z'),
+      games: [game],
+      // Live guess triggers groupsComplete = true
+      gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 1, away_score: 0 } as any },
+      now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
@@ -262,15 +266,19 @@ describe('computeGamesHeaderVariant', () => {
   });
 
   it('should not return nudge-qt when QT is locked', () => {
+    const now = new Date('2026-06-10T12:00:00Z');
+    const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGroupGames: 8,
-      totalGroupGames: 8,
+      totalGroupGames: 1,
       isPredictionLocked: true, // locked
       qualifiers: { completed: 2, total: 8 },
     });
 
     const input = createMockInput({
       completion,
+      games: [game],
+      gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 1, away_score: 0 } as any },
+      now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
@@ -279,15 +287,19 @@ describe('computeGamesHeaderVariant', () => {
   });
 
   it('should not return nudge-qt when QT is complete', () => {
+    const now = new Date('2026-06-10T12:00:00Z');
+    const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGroupGames: 8,
-      totalGroupGames: 8,
+      totalGroupGames: 1,
       isPredictionLocked: false,
       qualifiers: { completed: 8, total: 8 }, // complete
     });
 
     const input = createMockInput({
       completion,
+      games: [game],
+      gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 1, away_score: 0 } as any },
+      now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
@@ -336,10 +348,9 @@ describe('computeGamesHeaderVariant', () => {
 
   it('should show ctaFinish when all groups predicted in pre-tournament', () => {
     const now = new Date('2026-05-20T12:00:00Z');
-    const game = createMockGame({ game_date: new Date('2026-06-01T18:00:00Z') });
+    const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGroupGames: 8,
-      totalGroupGames: 8,
+      totalGroupGames: 1,
       isPredictionLocked: false,
       qualifiers: { completed: 8, total: 8 }, // QT complete - skip nudge variant
     });
@@ -347,6 +358,8 @@ describe('computeGamesHeaderVariant', () => {
     const input = createMockInput({
       completion,
       games: [game],
+      // Complete guess for the only game → liveCompletedGroupGames = 1 = totalGroupGames
+      gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 2, away_score: 0 } as any },
       now,
     });
 
@@ -357,15 +370,17 @@ describe('computeGamesHeaderVariant', () => {
 
   it('should show ctaContinue when some groups predicted', () => {
     const now = new Date('2026-05-20T12:00:00Z');
-    const game = createMockGame({ game_date: new Date('2026-06-01T18:00:00Z') });
+    const game1 = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
+    const game2 = createMockGame({ id: 'game-2', game_date: new Date('2026-06-02T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGroupGames: 4,
-      totalGroupGames: 8,
+      totalGroupGames: 2,
     });
 
     const input = createMockInput({
       completion,
-      games: [game],
+      games: [game1, game2],
+      // Only 1 of 2 predicted → liveCompletedGroupGames = 1, totalGroupGames = 2 → ctaContinue
+      gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 1, away_score: 0 } as any },
       now,
     });
 
@@ -429,6 +444,8 @@ describe('computeGamesHeaderVariant', () => {
     const futureGame = createMockGame({ id: 'future', game_date: new Date('2026-07-15T18:00:00Z') });
     const completion = createMockCompletion({
       totalGames: 2, // matches the 2 games provided
+      totalGroupGames: 2, // both games are group games → stageChipTotal uses this
+      qualifiers: { completed: 8, total: 8 }, // QT complete → skip nudge-qt variant
     });
 
     const input = createMockInput({

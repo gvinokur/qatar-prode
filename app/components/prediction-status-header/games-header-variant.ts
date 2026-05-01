@@ -226,6 +226,13 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
   // Live completed count using isGuessComplete (handles playoff ties needing penalty decisions)
   const liveCompletedGames = games.filter(g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)).length;
 
+  // Live group game completion — uses live guesses (reactive to in-session changes)
+  const groupGames = games.filter(g => !g.playoffStage);
+  const liveCompletedGroupGames = groupGames.filter(g => isGuessComplete(gameGuesses[g.id], false)).length;
+
+  // True when we're in the group stage (pre-tournament or active group phase)
+  const isGroupStagePrimary = stageLabel === 'Grupos';
+
   const collapsedRounds = collapsePlayoffDenominator(completion.playoffRoundsCompletion);
   const roundChipParts = Object.values(collapsedRounds).map(r => `${r.completed}/${r.total}`);
   const roundChipLabel = roundChipParts.join(' · ');
@@ -284,8 +291,8 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
       statusText: t('statusHeader.games.urgentUnpredicted.status', { count, window }),
       chip: {
         label: t('statusHeader.chipLabel.partidos', {
-          predicted: liveCompletedGames,
-          total: completion.totalGames,
+          predicted: isGroupStagePrimary ? liveCompletedGroupGames : liveCompletedGames,
+          total: isGroupStagePrimary ? completion.totalGroupGames : completion.totalGames,
         }),
         color: chipColor,
       },
@@ -299,7 +306,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
   }
 
   // ── VARIANT 3: pre-groups-complete-nudge-qt ─────────────────────────────────
-  const groupsComplete = completion.completedGroupGames >= completion.totalGroupGames && completion.totalGroupGames > 0;
+  const groupsComplete = liveCompletedGroupGames >= completion.totalGroupGames && completion.totalGroupGames > 0;
   const qtOpen = !completion.isPredictionLocked;
   const qtIncomplete = completion.qualifiers.completed < completion.qualifiers.total;
 
@@ -326,11 +333,10 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
     const firstGame = games.reduce((a, b) => new Date(a.game_date) < new Date(b.game_date) ? a : b);
     const daysUntil = Math.ceil((new Date(firstGame.game_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
 
-    const predicted = completion.completedGroupGames;
     let ctaLabel: string;
-    if (predicted === 0) {
+    if (liveCompletedGroupGames === 0) {
       ctaLabel = t('statusHeader.games.preTournament.ctaStart');
-    } else if (predicted >= completion.totalGroupGames) {
+    } else if (liveCompletedGroupGames >= completion.totalGroupGames) {
       ctaLabel = t('statusHeader.games.preTournament.ctaFinish');
     } else {
       ctaLabel = t('statusHeader.games.preTournament.ctaContinue');
@@ -343,7 +349,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
       statusText: t('statusHeader.games.preTournament.status', { days: daysUntil }),
       chip: {
         label: t('statusHeader.chipLabel.partidos', {
-          predicted: completion.completedGroupGames,
+          predicted: liveCompletedGroupGames,
           total: completion.totalGroupGames,
         }),
         color: 'default',
@@ -359,7 +365,9 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
 
   // ── VARIANT 5: stage-active-caught-up ──────────────────────────────────────
   const nextBatchText = getNextBatchSummary(games, now, t);
-  const allPredicted = liveCompletedGames >= completion.totalGames && completion.totalGames > 0;
+  const stageChipPredicted = isGroupStagePrimary ? liveCompletedGroupGames : liveCompletedGames;
+  const stageChipTotal = isGroupStagePrimary ? completion.totalGroupGames : completion.totalGames;
+  const allPredicted = stageChipTotal > 0 && stageChipPredicted >= stageChipTotal;
 
   return {
     tone: 'calm',
@@ -369,8 +377,8 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
     statusText: nextBatchText,
     chip: {
       label: t('statusHeader.chipLabel.partidos', {
-        predicted: liveCompletedGames,
-        total: completion.totalGames,
+        predicted: stageChipPredicted,
+        total: stageChipTotal,
       }),
       color: allPredicted ? 'success' : 'default',
     },
