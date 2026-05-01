@@ -345,6 +345,7 @@ export const DEMO_TOURNAMENT_PREDICTIONS: TournamentPredictionCompletion = {
   silverBoostsMax: 5,
   goldenBoostsUsed: 1,
   goldenBoostsMax: 2,
+  playoffRoundsCompletion: {},
 }
 
 // Props for CompactPredictionDashboard

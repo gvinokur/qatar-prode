@@ -84,6 +84,7 @@ const makeData = (overrides: Partial<ActionCenterData> = {}): ActionCenterData =
   silverBoostsUsed: 0,
   goldenBoostsUsed: 0,
   scoringConfig: defaultScoringConfig,
+  nowAvailablePlayoffRound: null,
   ...overrides,
 })
 
@@ -208,6 +209,34 @@ describe('PriorityAttentionWidget', () => {
       render(await PriorityAttentionWidget(defaultProps))
       const link = screen.getByRole('link')
       expect(link.getAttribute('href')).toBe('/en/tournaments/t-1/awards')
+    })
+  })
+
+  describe('now-available-playoff card', () => {
+    it('renders CTA href containing ?edit=<firstGameId>', async () => {
+      mockPriority({
+        type: 'now-available-playoff',
+        completedCount: 0,
+        totalCount: 0,
+        availableRoundName: 'Round of 16',
+        availableRoundFirstGameId: 'game-r16-001',
+      })
+      render(await PriorityAttentionWidget(defaultProps))
+      const link = screen.getByRole('link')
+      expect(link.getAttribute('href')).toContain('?edit=game-r16-001')
+      expect(link.getAttribute('href')).toContain('/games')
+    })
+
+    it('includes round name in the card title', async () => {
+      mockPriority({
+        type: 'now-available-playoff',
+        completedCount: 0,
+        totalCount: 0,
+        availableRoundName: 'Quarter-Finals',
+        availableRoundFirstGameId: 'game-qf-001',
+      })
+      render(await PriorityAttentionWidget(defaultProps))
+      expect(screen.getByText(/Quarter-Finals/)).toBeInTheDocument()
     })
   })
 })

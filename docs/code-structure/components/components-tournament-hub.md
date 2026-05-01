@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-27
+**Last updated:** 2026-05-01
 
 ---
 
@@ -18,7 +18,7 @@ Server Component stacking hero + secondary CTA banners in the dashboard Banner A
 ### app/components/tournament-hub/priority-attention-widget.tsx
 Server Component rendering the single priority action card between DashboardBanner and the widget grid.
 
-- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
+- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `now-available-playoff` (success/green, PlayCircleOutlineIcon, title="{roundName} is Now Available", href=gamesHref?edit={firstGameId}); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
   Calls: computePriorityAttention
   Renders: EngagementRotatorWidget (when priority null), Paper card (when priority non-null)
 

@@ -28,7 +28,7 @@ vi.mock('@/app/db/tournament-repository', () => ({
 }))
 
 vi.mock('@/app/db/game-repository', () => ({ findGamesInTournament: vi.fn() }))
-vi.mock('@/app/db/tournament-playoff-repository', () => ({ findPlayoffStagesWithGamesInTournament: vi.fn() }))
+vi.mock('@/app/db/tournament-playoff-repository', () => ({ findPlayoffStagesWithGamesInTournament: vi.fn(), findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]) }))
 vi.mock('@/app/actions/tournament-actions', () => ({ getTeamsMap: vi.fn(), getGroupStandingsForTournament: vi.fn() }))
 vi.mock('@/app/components/mui-wrappers', () => ({ Box: () => null, Typography: () => null }))
 vi.mock('@/app/components/results-page/results-page-client', () => ({ default: () => null }))

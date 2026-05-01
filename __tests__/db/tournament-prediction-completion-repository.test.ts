@@ -1033,5 +1033,115 @@ describe('Tournament Prediction Completion Repository', () => {
         expect(result.isPredictionLocked).toBe(false);
       });
     });
+
+    describe('playoffRoundsCompletion', () => {
+      // getTournamentPredictionCompletion makes these db.selectFrom calls in order:
+      // 1: total games (executeTakeFirst)
+      // 2: completed games (executeTakeFirst)
+      // 3: total group games (executeTakeFirst)
+      // 4: completed group games (executeTakeFirst)
+      // 5: silver boosts (executeTakeFirst)
+      // 6: golden boosts (executeTakeFirst)
+      // 7: total first-round qualifier games (executeTakeFirst)
+      // 8: playoff rounds (execute) ← NEW
+      // 9: total games per round (execute) ← NEW (only if rounds > 0)
+      // 10: completed games per round (execute) ← NEW (only if rounds > 0)
+      const PLAYOFF_ROUNDS_CALL = 8
+      const TOTAL_PER_ROUND_CALL = 9
+      const COMPLETED_PER_ROUND_CALL = 10
+
+      const setupBaseMocks = () => {
+        mockFindTournamentGuess.mockResolvedValue(undefined)
+        mockGetAllUserGroupPositionsPredictions.mockResolvedValue([])
+        mockGetTournamentStartDate.mockResolvedValue(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000))
+      }
+
+      it('playoffRoundsCompletion is empty Record when tournament has no playoff rounds', async () => {
+        setupBaseMocks()
+        let callCount = 0
+        mockDb.selectFrom.mockImplementation(() => {
+          callCount++
+          if (callCount === PLAYOFF_ROUNDS_CALL) {
+            return createMockSelectQuery([]) as any
+          }
+          return createMockSelectQuery({ count: 0 }) as any
+        })
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament)
+        expect(result.playoffRoundsCompletion).toEqual({})
+      })
+
+      it('per-round total matches number of games in that round', async () => {
+        setupBaseMocks()
+        let callCount = 0
+        mockDb.selectFrom.mockImplementation(() => {
+          callCount++
+          if (callCount === PLAYOFF_ROUNDS_CALL) {
+            return createMockSelectQuery([{ id: 'r1', round_name: 'Round of 16', round_order: 1 }]) as any
+          }
+          if (callCount === TOTAL_PER_ROUND_CALL) {
+            return createMockSelectQuery([{ round_id: 'r1', count: 8 }]) as any
+          }
+          if (callCount === COMPLETED_PER_ROUND_CALL) {
+            return createMockSelectQuery([]) as any
+          }
+          return createMockSelectQuery({ count: 0 }) as any
+        })
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament)
+        expect(result.playoffRoundsCompletion['r1'].total).toBe(8)
+        expect(result.playoffRoundsCompletion['r1'].completed).toBe(0)
+      })
+
+      it('per-round completed reflects user game guesses', async () => {
+        setupBaseMocks()
+        let callCount = 0
+        mockDb.selectFrom.mockImplementation(() => {
+          callCount++
+          if (callCount === PLAYOFF_ROUNDS_CALL) {
+            return createMockSelectQuery([{ id: 'r1', round_name: 'Quarter-Finals', round_order: 2 }]) as any
+          }
+          if (callCount === TOTAL_PER_ROUND_CALL) {
+            return createMockSelectQuery([{ round_id: 'r1', count: 4 }]) as any
+          }
+          if (callCount === COMPLETED_PER_ROUND_CALL) {
+            return createMockSelectQuery([{ round_id: 'r1', count: 3 }]) as any
+          }
+          return createMockSelectQuery({ count: 0 }) as any
+        })
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament)
+        expect(result.playoffRoundsCompletion['r1'].completed).toBe(3)
+        expect(result.playoffRoundsCompletion['r1'].total).toBe(4)
+      })
+
+      it('returns correct round_name for each entry', async () => {
+        setupBaseMocks()
+        let callCount = 0
+        mockDb.selectFrom.mockImplementation(() => {
+          callCount++
+          if (callCount === PLAYOFF_ROUNDS_CALL) {
+            return createMockSelectQuery([
+              { id: 'r1', round_name: 'Round of 16', round_order: 1 },
+              { id: 'r2', round_name: 'Quarter-Finals', round_order: 2 },
+            ]) as any
+          }
+          if (callCount === TOTAL_PER_ROUND_CALL) {
+            return createMockSelectQuery([
+              { round_id: 'r1', count: 8 },
+              { round_id: 'r2', count: 4 },
+            ]) as any
+          }
+          if (callCount === COMPLETED_PER_ROUND_CALL) {
+            return createMockSelectQuery([]) as any
+          }
+          return createMockSelectQuery({ count: 0 }) as any
+        })
+
+        const result = await getTournamentPredictionCompletion(userId, tournamentId, mockTournament)
+        expect(result.playoffRoundsCompletion['r1'].round_name).toBe('Round of 16')
+        expect(result.playoffRoundsCompletion['r2'].round_name).toBe('Quarter-Finals')
+      })
+    })
   });
 });

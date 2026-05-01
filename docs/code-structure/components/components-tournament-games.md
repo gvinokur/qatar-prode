@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-05-01
 
 ---
 
@@ -42,11 +42,11 @@ Popover showing detailed boost allocation breakdown by group, playoff, and perfo
 
 **File:** `app/components/stage-separator.tsx`
 Full-width header row that spans a CSS grid column (gridColumn: '1 / -1') to visually separate game groups by matchday or round.
-- **StageSeparator({ label: string })** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Box (gridColumn 1/-1), Typography (overline, primary.main), Divider`
+- **StageSeparator({ label: string, isNowAvailable?: boolean })** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `Box (gridColumn 1/-1), Typography (overline, primary.main), Chip (success, when isNowAvailable), Divider`
 
 **File:** `app/components/stage-transition-banner.tsx`
 Full-width banner replacing StageSeparator at the Group Stage→Playoff boundary. Renders the same overline label + divider layout as StageSeparator, plus a right-aligned outlined CTA Button linking to ctaHref.
-- **StageTransitionBanner({ label: string, ctaLabel: string, ctaHref: string })** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `Box (gridColumn 1/-1), Typography (overline), Divider, Button (outlined, Link)`
+- **StageTransitionBanner({ label: string, ctaLabel: string, ctaHref: string, isNowAvailable?: boolean })** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `Box (gridColumn 1/-1), Typography (overline), Chip (success, when isNowAvailable), Divider, Button (outlined, Link)`
 
 **File:** `app/components/compact-game-view-card.tsx`
 Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay. When `isGameGuess && stageLabel` is provided, renders a stage label row below the location — clickable (with ArrowForwardIos icon) when `onStageClick` is provided, static otherwise.
@@ -110,7 +110,7 @@ Skeleton loading component displaying game card loaders.
 
 **File:** `app/components/games-list-with-scroll.tsx`
 Scrollable list of games with stage separators, filter integration, auto-scroll to first unpredicted game, and keyboard navigation support. Groups games into `GameSection[]` (by matchday for group games, by round for playoff games). Renders `StageTransitionBanner` at the Group Stage→Playoff boundary (first playoff section) and `StageSeparator` for all other sections. Always passes `isGuidedMode={true}` to each `FlippableGameCard`. Auto-advance skips predicted games and stops at the group stage boundary.
-- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick?, qtPredictionLocked, qualifiedTeamsHref })** (FC) - `[Client]` - Calls: `isGamePredictionComplete` - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator, StageTransitionBanner, FlippableGameCard, EmptyGamesState`
+- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick?, qtPredictionLocked, qualifiedTeamsHref, nowAvailableRoundIds?: Set<string> })** (FC) - `[Client]` - Calls: `isGamePredictionComplete` - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator (with isNowAvailable), StageTransitionBanner (with isNowAvailable), FlippableGameCard, EmptyGamesState`
 
 **File:** `app/components/stepper-score-input.tsx`
 Stepper input for scores with increment/decrement buttons, imperatively expose focus method.
@@ -143,14 +143,14 @@ Helper functions and constants for urgency level calculations, color mapping, an
 **File:** `app/components/unified-games-page-client.tsx`
 Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler. Imports `EDIT_NEXT_TOKEN` from `prediction-constants` and `findScrollTarget` from `auto-scroll`.
 - **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
-- Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` is derived inline from `tournamentPredictionCompletion?.isPredictionLocked ?? false`
+- Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` derived from `tournamentPredictionCompletion?.isPredictionLocked ?? false`; `nowAvailableRoundIds?: string[]` — converted to `Set<string>` via `useMemo`, forwarded to both `GamesListWithScroll` and `SecondaryFilters`
 - Effect 1 handles `?edit` param: if value equals `EDIT_NEXT_TOKEN` ("next"), finds the first upcoming game (`game_date >= now`) where `isGuessComplete` returns false (skipping already-predicted games); falls back to `findScrollTarget(games)` (first chronological upcoming) only when all upcoming games are predicted or no upcoming game exists. For a specific game ID, uses the param value directly. Clears all filters and sets `pendingEditGameId` so Effect 2 can scroll+trigger edit.
 - `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
 - **UnifiedGamesPageClient** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `FilterContextProvider, UnifiedGamesPageContent`
 
 **File:** `app/components/unified-games-page.tsx`
 Server component that fetches all tournament data and renders client page with GuessesContext and EditTriggerContext. Builds `qualifiedTeamsHref = /${locale}/tournaments/${tournamentId}/qualified-teams` and passes it to `UnifiedGamesPageClient`.
-- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, applyLocalization, getLocale` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
+- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, getPlayoffRoundsAvailability, applyLocalization, getLocale` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
 
 **File:** `app/components/prediction-dashboard.tsx`
 Dashboard with status bar and games grid. Recalculates prediction stats client-side when guesses change.
@@ -176,7 +176,7 @@ Popover showing detailed point calculation: base score, boost multiplier, and to
 
 **File:** `app/components/secondary-filters.tsx`
 Conditional filter selector for groups or rounds based on active primary filter.
-- **SecondaryFilters** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `FormControl, Select, MenuItem`
+- **SecondaryFilters({ activeFilter, groupFilter, roundFilter, groups, rounds, onGroupChange, onRoundChange, nowAvailableRoundIds?: Set<string> })** (FC) - `[Client]` - Calls: none - Uses: `useTranslations` - Renders: `FormControl, Select, MenuItem, Chip (success badge on round MenuItem when round is in nowAvailableRoundIds)`
 
 **File:** `app/components/empty-games-state.tsx`
 Empty state component showing contextual message based on filter type (Spanish text).

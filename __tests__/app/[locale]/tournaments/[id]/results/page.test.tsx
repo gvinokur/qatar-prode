@@ -35,6 +35,7 @@ vi.mock('@/app/db/game-repository', () => ({
 // Mock playoff repository
 vi.mock('@/app/db/tournament-playoff-repository', () => ({
   findPlayoffStagesWithGamesInTournament: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }))
 
 // Mock tournament actions

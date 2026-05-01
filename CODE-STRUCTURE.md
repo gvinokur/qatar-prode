@@ -135,7 +135,8 @@ Key flows:
            ├── getTournamentPredictionCompletion
            ├── findGroupsInTournament
            ├── findPlayoffStagesWithGamesInTournament
-           └── getGamesClosingWithin48Hours
+           ├── getGamesClosingWithin48Hours
+           └── getPlayoffRoundsAvailability → findPlayoffRoundsWithAvailabilityInfo → computeNowAvailableRoundIds
            └── GuessesContextProvider [Provider]
                  ├── holds: all game guesses + boost counts (state)
                  └── auto-save: updateOrCreateGameGuesses [server action]
@@ -612,6 +613,7 @@ Key flows:
       → getRulesBySection(scoringConfig, tRules)  [page-level, shared scoringRules; Story #356]
       → getPublicTournamentTiming(id, locale)  [always called; no auth required; used for hero layer; Story #355]
       → getActionCenterGames(id, locale)  [conditional: user && !isFinished; null otherwise]
+          → findPlayoffRoundsWithAvailabilityInfo + computeNowAvailableRoundIds → nowAvailablePlayoffRound
       → renders DashboardBanner(user, timing) [Story #355: hero + secondary banner stack; Story #390: TutorialCTACard removed]
           DashboardBanner (Server)
             → [hero reads from timing — available for all users]

@@ -31,6 +31,7 @@ interface GamesListWithScrollProps {
   readonly onGameStageClick?: (game: ExtendedGameData) => void;
   readonly qtPredictionLocked: boolean;
   readonly qualifiedTeamsHref: string;
+  readonly nowAvailableRoundIds?: Set<string>;
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -54,7 +55,8 @@ export function GamesListWithScroll({
   tournament,
   onGameStageClick,
   qtPredictionLocked,
-  qualifiedTeamsHref
+  qualifiedTeamsHref,
+  nowAvailableRoundIds,
 }: GamesListWithScrollProps) {
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
@@ -293,6 +295,11 @@ export function GamesListWithScroll({
             ? t('stageTransition.checkQtPredictions')
             : t('stageTransition.predictQualifiedTeams');
 
+          const roundId = section.sectionKey.startsWith('playoff-')
+            ? section.sectionKey.slice('playoff-'.length)
+            : null
+          const isNowAvailable = roundId != null && (nowAvailableRoundIds?.has(roundId) ?? false)
+
           return (
             <Fragment key={section.sectionKey}>
               {section.label && (
@@ -301,9 +308,10 @@ export function GamesListWithScroll({
                     label={section.label}
                     ctaLabel={ctaLabel}
                     ctaHref={qualifiedTeamsHref}
+                    isNowAvailable={isNowAvailable}
                   />
                 ) : (
-                  <StageSeparator label={section.label} />
+                  <StageSeparator label={section.label} isNowAvailable={isNowAvailable} />
                 )
               )}
               {section.games.map(game => {

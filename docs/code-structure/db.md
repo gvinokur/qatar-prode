@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-05-01
 
 ---
 
@@ -34,6 +34,11 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **UserFavoriteGroupTable**: Interface for `user_favorite_groups` table with composite PK `(user_id, group_id)`, `is_main` (BOOLEAN DEFAULT FALSE), `created_at` (Generated). Partial unique index on `user_id WHERE is_main = TRUE` enforces at most one main group per user.
 - **UserFavoriteGroup**: `Selectable<UserFavoriteGroupTable>` — full row shape.
 - **UserFavoriteGroupNew**: `Omit<Insertable<UserFavoriteGroupTable>, 'created_at'>` — insert shape.
+
+- **PlayoffRoundCompletionData**: Interface — `{ total: number; completed: number; round_name: string }` — per-round prediction completion summary, used as value type in `TournamentPredictionCompletion.playoffRoundsCompletion`.
+- **PlayoffRoundAvailabilityInfo**: Interface — `{ roundId: string; roundOrder: number; hasTeamsDefined: boolean; previousStageLastGameDate: Date | null; hasUnpredictedGames: boolean }` — per-round availability snapshot for "Now Available" detection; returned by `findPlayoffRoundsWithAvailabilityInfo`.
+
+`TournamentPredictionCompletion` now includes `playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>` — per-round breakdown keyed by round ID, ordered by round_order ascending.
 
 `UserTable` includes `is_ad_free?: boolean` (NOT NULL DEFAULT FALSE in DB — optional in TypeScript because it is omitted from inserts by default).
 
@@ -270,11 +275,13 @@ Repository for tournament_playoff_rounds and playoff games. Manages playoff brac
 - **deletePlayoffRoundGame(gameId: string)**: `Promise<PlayoffRoundGame>` — Removes game from round.
 - **findPlayoffStagesWithGamesInTournament(tournamentId: string)**: `Promise<ExtendedPlayoffRoundData[]>` — Finds all playoff stages with game IDs nested, sorted by round order.
 - **deleteAllPlayoffRoundsInTournament(tournamentId: string)**: `Promise<void>` — Deletes all playoff rounds for tournament.
+- **findPlayoffRoundsWithAvailabilityInfo(tournamentId: string, userId: string)**: `Promise<PlayoffRoundAvailabilityInfo[]>` — Returns per-round availability data ordered by round_order: `hasTeamsDefined` (any game has non-null home/away team), `previousStageLastGameDate` (max game_date of prior stage or group stage), `hasUnpredictedGames` (user completion < total). Used by `computeNowAvailableRoundIds`.
+  Calls: db
 
 ### app/db/tournament-prediction-completion-repository.ts
 Repository for tournament prediction completion tracking.
 
-- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, and qualifier selections. Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation.
+- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, qualifier selections, and per-playoff-round completion (`playoffRoundsCompletion: Record<roundId, PlayoffRoundCompletionData>`). Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation.
   Calls: findTournamentGuessByUserIdTournament, getTournamentStartDate, getAllUserGroupPositionsPredictions
 
 ### app/db/tournament-repository.ts

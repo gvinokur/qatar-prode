@@ -63,6 +63,7 @@ vi.mock('../../app/db/tournament-guess-repository', () => ({
 vi.mock('../../app/db/tournament-playoff-repository', () => ({
   createPlayoffRoundGame: vi.fn(),
   deletePlayoffRoundGame: vi.fn(),
+  findPlayoffRoundsWithAvailabilityInfo: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock user actions

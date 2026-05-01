@@ -84,6 +84,16 @@ function buildCardConfig(
         buttonColor: 'success',
         avatarIcon: <PlayCircleOutlineIcon fontSize="small" />,
       }
+    case 'now-available-playoff':
+      return {
+        title: t('attentionWidget.nowAvailablePlayoff.title', { roundName: state.availableRoundName ?? '' }),
+        subtitle: t('attentionWidget.nowAvailablePlayoff.subtitle'),
+        cta: t('attentionWidget.nowAvailablePlayoff.cta'),
+        href: `${gamesHref}?edit=${state.availableRoundFirstGameId ?? EDIT_NEXT_TOKEN}`,
+        avatarBgColor: 'success.main',
+        buttonColor: 'success',
+        avatarIcon: <PlayCircleOutlineIcon fontSize="small" />,
+      }
     case 'new-actions-awards':
       return {
         title: t('attentionWidget.newActionsAwards.title'),

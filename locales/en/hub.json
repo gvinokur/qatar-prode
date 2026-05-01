@@ -229,6 +229,11 @@
       "subtitle": "Never miss a result or a closing deadline",
       "cta": "Enable",
       "dismiss": "Not now"
+    },
+    "nowAvailablePlayoff": {
+      "title": "{roundName} is Now Available",
+      "subtitle": "Predict the knockout games now",
+      "cta": "Predict Now"
     }
   },
   "statsAtAGlance": {
