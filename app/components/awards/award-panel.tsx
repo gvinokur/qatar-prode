@@ -23,11 +23,11 @@ import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/awar
 import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTranslations } from 'next-intl';
-import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
+import { useTranslations, useLocale } from 'next-intl';
+import { PredictionStatusHeader, computeAwardsHeaderVariant } from '../prediction-status-header';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
-import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
+import { PREDICTION_LOCK_OFFSET_MS } from '../../utils/prediction-constants';
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
@@ -54,11 +54,12 @@ export default function AwardsPanel({
     gameGuessesArray,
     tournamentPredictionCompletion,
     tournamentStartDate,
-    teamsMap
   }: Props) {
   const theme = useTheme()
   const isMobile = useMediaQuery('(max-width:600px)');
   const t = useTranslations('awards');
+  const tPredictions = useTranslations('predictions');
+  const locale = useLocale();
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
@@ -163,26 +164,6 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
-  // Create a map of game_id -> game_type for prediction validation
-  const gameTypeMap = useMemo(
-    () => Object.fromEntries(games.map((g: any) => [g.id, g.game_type])),
-    [games]
-  );
-
-  // Calculate predictedGames correctly (check scores AND penalty winner for tied playoff games)
-  const predictedGames = useMemo(
-    () => gameGuessesArray.filter((g: any) =>
-      isGamePredictionComplete(
-        gameTypeMap[g.game_id],
-        g.home_score,
-        g.away_score,
-        g.home_penalty_winner,
-        g.away_penalty_winner
-      )
-    ).length,
-    [gameGuessesArray, gameTypeMap]
-  );
-
   // Calculate individual awards completion from local state
   const awardsCompleted = useMemo(() => {
     return [
@@ -198,31 +179,43 @@ export default function AwardsPanel({
     tournamentGuesses.best_young_player_id,
   ]);
 
-  // Calculate final standings (honor roll) completion from local state
-  const finalStandingsCompleted = useMemo(() => {
-    return [
-      tournamentGuesses.champion_team_id,
-      tournamentGuesses.runner_up_team_id,
-      tournamentGuesses.third_place_team_id,
-    ].filter(Boolean).length;
-  }, [
-    tournamentGuesses.champion_team_id,
-    tournamentGuesses.runner_up_team_id,
-    tournamentGuesses.third_place_team_id,
-  ]);
+  const awardsLockAt = useMemo(() => {
+    if (!tournamentStartDate) return null;
+    return new Date(tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS);
+  }, [tournamentStartDate]);
 
-  // Filter urgent games (within 48 hours)
-  const urgentGames = useMemo(
-    () => {
-      const now = Date.now();
-      const fortyEightHours = 48 * 60 * 60 * 1000;
-      return games.filter((game: any) => {
-        const gameTime = new Date(game.game_date).getTime();
-        return gameTime > now && gameTime <= now + fortyEightHours;
-      });
+  const decidedSoFar = useMemo(() => {
+    return [
+      tournament.best_player_id,
+      tournament.top_goalscorer_player_id,
+      tournament.best_goalkeeper_player_id,
+      tournament.best_young_player_id,
+    ].filter(Boolean).length;
+  }, [tournament]);
+
+  const correctSoFar = useMemo(() => {
+    return [
+      { result: tournament.best_player_id, pick: tournamentGuesses.best_player_id },
+      { result: tournament.top_goalscorer_player_id, pick: tournamentGuesses.top_goalscorer_player_id },
+      { result: tournament.best_goalkeeper_player_id, pick: tournamentGuesses.best_goalkeeper_player_id },
+      { result: tournament.best_young_player_id, pick: tournamentGuesses.best_young_player_id },
+    ].filter(({ result, pick }) => result && result === pick).length;
+  }, [tournament, tournamentGuesses]);
+
+  const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
+    {
+      isLocked: isPredictionLocked,
+      awardsLockAt,
+      awardsCompleted,
+      awardsTotal: tournamentPredictionCompletion?.awards.total ?? 4,
+      decidedSoFar,
+      correctSoFar,
+      awardsPointsEarned: tournamentGuesses.individual_awards_score ?? undefined,
+      tournamentId: tournament.id,
+      locale,
     },
-    [games]
-  );
+    tPredictions as (key: string, values?: Record<string, unknown>) => string
+  ), [isPredictionLocked, awardsLockAt, awardsCompleted, tournamentPredictionCompletion, decidedSoFar, correctSoFar, tournamentGuesses, tournament.id, locale, tPredictions]);
 
   return (
     <GuessesContextProvider
@@ -231,27 +224,7 @@ export default function AwardsPanel({
       tournamentMaxSilver={tournament.max_silver_games || 0}
       tournamentMaxGolden={tournament.max_golden_games || 0}
     >
-      <CompactPredictionDashboard
-        totalGames={tournamentPredictionCompletion?.totalGames ?? games.length}
-        predictedGames={predictedGames}
-        tournamentId={tournament.id}
-        tournamentStartDate={tournamentStartDate}
-        urgentGames={urgentGames}
-        urgentGameGuesses={gameGuessesMap}
-        teamsMap={teamsMap}
-        silverBoostsUsed={tournamentPredictionCompletion?.silverBoostsUsed ?? 0}
-        silverBoostsMax={tournamentPredictionCompletion?.silverBoostsMax ?? (tournament.max_silver_games || 0)}
-        goldenBoostsUsed={tournamentPredictionCompletion?.goldenBoostsUsed ?? 0}
-        goldenBoostsMax={tournamentPredictionCompletion?.goldenBoostsMax ?? (tournament.max_golden_games || 0)}
-        finalStandingsCompleted={finalStandingsCompleted}
-        finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total ?? 3}
-        awardsCompleted={awardsCompleted}
-        awardsTotal={tournamentPredictionCompletion?.awards.total ?? 4}
-        qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
-        qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
-        overallPercentage={tournamentPredictionCompletion?.overallPercentage}
-        isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
-      />
+      <PredictionStatusHeader variant={awardsHeaderVariant} />
 
       <Card>
         <CardHeader

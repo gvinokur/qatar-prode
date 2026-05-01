@@ -146,8 +146,7 @@ Key flows:
                              └── FilterContextProvider [Provider]
                                    └── UnifiedGamesPageContent [Client]
                                          └── uses: GuessesContext, FilterContext
-                                         ├── CompactPredictionDashboard [renders]
-                                         │     └── uses: GuessesContext (reads boosts, progress)
+                                         ├── computeGamesHeaderVariant → PredictionStatusHeader [renders]
                                          └── GamesListWithScroll [renders]
                                                └── uses: GuessesContext
                                                └── FlippableGameCard [renders]
@@ -214,8 +213,8 @@ Key flows:
                                      ├── calculatePlayoffTeamsFromPositions (util)
                                      └── updateGameGuessByGameId
                  └── QualifiedTeamsUI [renders]
-                       ├── QTActionBanner (localBannerState from context via useMemo) [renders]
-                       │     └── on confirm: bulkAutoFillFromPredictions [server action]
+                       ├── computeQTHeaderVariant → PredictionStatusHeader [renders]
+                       │     └── (auto-fill action) on confirm: bulkAutoFillFromPredictions [server action]
                        │                     ├── findGameGuessesByUserId
                        │                     ├── computeGroupStandingsFromGuesses (util)
                        │                     ├── upsertGroupPositionsPrediction
@@ -353,6 +352,7 @@ Key flows:
       ├── findGameGuessesByUserId
       └── getTournamentPredictionCompletion
       └── AwardsPanel [renders]
+            ├── computeAwardsHeaderVariant → PredictionStatusHeader [renders]
             └── updateOrCreateTournamentGuess [server action]
                   └── dbUpdateOrCreateTournamentGuess
 

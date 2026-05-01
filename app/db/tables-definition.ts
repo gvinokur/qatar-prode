@@ -479,6 +479,8 @@ export interface PlayoffRoundCompletionData {
   total: number
   completed: number
   round_name: string
+  is_final?: boolean
+  is_third_place?: boolean
 }
 
 // Tournament Prediction Completion Tracking

@@ -3,13 +3,15 @@
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { useEditTrigger } from './context-providers/edit-trigger-context-provider';
 import { GameFilters } from './game-filters';
-import { CompactPredictionDashboard } from './compact-prediction-dashboard';
+import { PredictionStatusHeader, computeGamesHeaderVariant } from './prediction-status-header';
+import { useTranslations } from 'next-intl';
 import { SecondaryFilters } from './secondary-filters';
 import { GamesListWithScroll } from './games-list-with-scroll';
 import { ExtendedGameData } from '../definitions';
@@ -18,7 +20,6 @@ import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
-import { isGamePredictionComplete } from '../utils/game-prediction-helpers';
 import { isGuessComplete } from '../utils/guess-utils';
 import { EDIT_NEXT_TOKEN } from '../utils/prediction-constants';
 
@@ -39,6 +40,7 @@ interface UnifiedGamesPageContentProps {
   readonly tournamentStartDate: Date | undefined;
   readonly qualifiedTeamsHref: string;
   readonly nowAvailableRoundIds?: string[];
+  readonly gamePointsEarned?: number;
 }
 
 function UnifiedGamesPageContent({
@@ -54,9 +56,12 @@ function UnifiedGamesPageContent({
   tournamentStartDate,
   qualifiedTeamsHref,
   nowAvailableRoundIds,
+  gamePointsEarned,
 }: UnifiedGamesPageContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('predictions');
   const { activeFilter, groupFilter, roundFilter, setActiveFilter, setGroupFilter, setRoundFilter } = useFilterContext();
   const { triggerEdit, isEditModeRef } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
@@ -85,22 +90,7 @@ function UnifiedGamesPageContent({
     }
   }, [setActiveFilter, setGroupFilter, setRoundFilter]);
 
-  // Calculate progress
-  const totalGames = games.length;
-  const predictedGames = games.filter(game => {
-    const guess = guessesContext.gameGuesses[game.id];
-    if (!guess) return false;
-
-    return isGamePredictionComplete(
-      game.game_type,
-      guess.home_score,
-      guess.away_score,
-      guess.home_penalty_winner,
-      guess.away_penalty_winner
-    );
-  }).length;
-
-  // Effect 1: Detect edit parameter and clear filters
+// Effect 1: Detect edit parameter and clear filters
   useEffect(() => {
     const editParam = searchParams.get('edit');
 
@@ -234,30 +224,26 @@ function UnifiedGamesPageContent({
         gap: 2, // Equivalent to Stack spacing={2}
       }}
     >
-      {/* Compact Prediction Dashboard */}
-      <Box>
-        <CompactPredictionDashboard
-          totalGames={totalGames}
-          predictedGames={predictedGames}
-          tournamentId={tournamentId}
-          tournamentStartDate={tournamentStartDate}
-          urgentGames={closingGames}
-          urgentGameGuesses={guessesContext.gameGuesses as any}
-          teamsMap={teamsMap}
-          silverBoostsUsed={guessesContext.boostCounts.silver.used}
-          silverBoostsMax={guessesContext.boostCounts.silver.max}
-          goldenBoostsUsed={guessesContext.boostCounts.golden.used}
-          goldenBoostsMax={guessesContext.boostCounts.golden.max}
-          finalStandingsCompleted={tournamentPredictionCompletion?.finalStandings.completed}
-          finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total}
-          awardsCompleted={tournamentPredictionCompletion?.awards.completed}
-          awardsTotal={tournamentPredictionCompletion?.awards.total}
-          qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
-          qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
-          overallPercentage={tournamentPredictionCompletion?.overallPercentage}
-          isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
-        />
-      </Box>
+      {/* Prediction Status Header */}
+      {tournamentPredictionCompletion && (
+        <Box>
+          <PredictionStatusHeader
+            variant={computeGamesHeaderVariant(
+              {
+                completion: tournamentPredictionCompletion,
+                games,
+                urgentGames: closingGames,
+                gameGuesses: guessesContext.gameGuesses as Record<string, import('../db/tables-definition').GameGuess>,
+                teamsMap,
+                tournamentId,
+                gamePointsEarned,
+                locale,
+              },
+              t as (key: string, values?: Record<string, unknown>) => string
+            )}
+          />
+        </Box>
+      )}
 
       {/* Filters - Side by side, sticky on mobile */}
       <Box sx={{
@@ -370,6 +356,7 @@ interface UnifiedGamesPageClientProps {
   readonly tournamentStartDate: Date | undefined;
   readonly qualifiedTeamsHref: string;
   readonly nowAvailableRoundIds?: string[];
+  readonly gamePointsEarned?: number;
 }
 
 export function UnifiedGamesPageClient(props: UnifiedGamesPageClientProps) {

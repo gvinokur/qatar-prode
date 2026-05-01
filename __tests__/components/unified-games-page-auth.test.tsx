@@ -44,7 +44,8 @@ vi.mock('../../app/db/game-repository', () => ({
 
 vi.mock('../../app/db/game-guess-repository', () => ({
   findGameGuessesByUserId: vi.fn().mockResolvedValue([]),
-  getPredictionDashboardStats: vi.fn().mockResolvedValue({})
+  getPredictionDashboardStats: vi.fn().mockResolvedValue({}),
+  getGameGuessStatisticsForUsers: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../../app/db/tournament-repository', () => ({

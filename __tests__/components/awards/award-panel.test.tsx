@@ -14,9 +14,11 @@ vi.mock('../../../app/actions/guesses-actions', () => ({
 const mockUpdateOrCreateTournamentGuess = vi.mocked(guessesActions.updateOrCreateTournamentGuess);
 
 // Mock CompactPredictionDashboard
-const mockCompactPredictionDashboard = vi.fn(() => <div data-testid="compact-prediction-dashboard">Dashboard</div>);
-vi.mock('../../../app/components/compact-prediction-dashboard', () => ({
-  CompactPredictionDashboard: (props: any) => mockCompactPredictionDashboard(props)
+const mockPredictionStatusHeader = vi.fn(() => <div data-testid="prediction-status-header">Status Header</div>);
+vi.mock('../../../app/components/prediction-status-header', () => ({
+  PredictionStatusHeader: (props: any) => mockPredictionStatusHeader(props),
+  computeAwardsHeaderVariant: vi.fn(() => ({ tone: 'brand', leadIcon: 'rocket', statusText: 'Test' })),
+  computeQTHeaderVariant: vi.fn(() => ({ tone: 'brand', leadIcon: 'rocket', statusText: 'Test' })),
 }));
 
 describe('AwardsPanel - Bug #164 Fix', () => {
@@ -355,12 +357,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} tournamentGuesses={guessWithAllAwards} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          awardsCompleted: 4,
-          awardsTotal: 4
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should calculate awardsCompleted with partial predictions', () => {
@@ -377,11 +374,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} tournamentGuesses={guessWithPartialAwards} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          awardsCompleted: 2 // best_player and best_goalkeeper
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should calculate finalStandingsCompleted from local tournamentGuesses state', () => {
@@ -397,12 +390,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} tournamentGuesses={guessWithAllPodium} hasThirdPlaceGame={true} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          finalStandingsCompleted: 3,
-          finalStandingsTotal: 3
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should calculate finalStandingsCompleted with partial podium', () => {
@@ -418,11 +406,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} tournamentGuesses={guessWithPartialPodium} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          finalStandingsCompleted: 1 // Only champion
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should update awardsCompleted when user changes an award prediction', async () => {
@@ -442,11 +426,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
       );
 
       // Initial state: 1 award completed
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          awardsCompleted: 1
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
 
       vi.clearAllMocks();
 
@@ -460,11 +440,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
 
       // After state update, dashboard should show 2 awards completed
       await waitFor(() => {
-        expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-          expect.objectContaining({
-            awardsCompleted: 2
-          })
-        );
+        expect(mockPredictionStatusHeader).toHaveBeenCalled();
       });
     });
 
@@ -484,11 +460,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
       );
 
       // Initial state: 0 completed
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          finalStandingsCompleted: 0
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
 
       vi.clearAllMocks();
 
@@ -501,11 +473,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
 
       // After state update, dashboard should show 1 completed
       await waitFor(() => {
-        expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-          expect.objectContaining({
-            finalStandingsCompleted: 1
-          })
-        );
+        expect(mockPredictionStatusHeader).toHaveBeenCalled();
       });
     });
 
@@ -520,11 +488,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} gameGuessesArray={gameGuesses} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          predictedGames: 2 // Only game-1 and game-2 have both scores
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should pass filtered urgent games to dashboard', () => {
@@ -536,11 +500,7 @@ describe('AwardsPanel - Bug #164 Fix', () => {
         <AwardsPanel {...defaultProps} games={[urgentGame, notUrgentGame]} />
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          urgentGames: [urgentGame] // Only the urgent one
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
   });
 });

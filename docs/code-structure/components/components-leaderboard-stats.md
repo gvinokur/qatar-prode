@@ -141,14 +141,6 @@ Card displaying prediction completion and accuracy metrics (correct, goal_differ
 - **PredictionAccuracyCard(props: PredictionAccuracyCardProps)**: `JSX.Element` — [Client] Summary section (predictions made, completion %, games played) + overall accuracy section (correct %, goal_difference %, exact %, missed %) + by-phase breakdown (group/playoff with correct/goal_difference/exact %). Props include overallGoalDifference, groupGoalDifference, playoffGoalDifference fields (Story #364). Empty state if totalPredictionsMade = 0.
   Uses: useTheme, useTranslations('stats')
 
-### app/components/qualified-teams/qt-action-banner.tsx
-State-based inline banner guiding users through the QT prediction flow.
-
-- **QTActionBanner(props: QTActionBannerProps)**: `JSX.Element | null` — [Client] Renders a colored MUI Paper banner for the pre-computed `bannerState`. Three states: `incomplete-games` (warning, link to games page with `?edit=next` to open first unpredicted game), `games-finished` (info, auto-fill CTA with confirm dialog — dialog stays open with calculating spinner until result), `all-valid` (success, outlined "Recalculate" button + "Go to Awards" link). On successful auto-fill calls `onAutoFillSuccess` with returned predictions for context update (no page refresh). Shows error Snackbar on failure. Returns null when `bannerState` is falsy.
-  Props: bannerState (QTBannerState | undefined | null), tournamentId (string), isLocked (boolean), onAutoFillSuccess? ((_predictions: QualifiedTeamPrediction[]) => void)
-  Calls: bulkAutoFillFromPredictions
-  Uses: useState, useTransition, useTranslations, useLocale
-
 ### app/components/qualified-teams/qualified-teams-context.tsx
 Context provider for managing qualified team predictions with optimistic updates, save state, and rollback on error.
 
@@ -162,10 +154,10 @@ Main qualified teams prediction UI with drag-and-drop reordering, third place se
 
 - **QualifiedTeamsClientPage(props: QualifiedTeamsClientPageProps)**: `JSX.Element` — [Client] Root component wrapping QualifiedTeamsUI with QualifiedTeamsContextProvider. Passes initialPredictions, tournamentId, userId, isLocked.
   Renders: QualifiedTeamsContextProvider, QualifiedTeamsUI
-- **QualifiedTeamsUI(...)**: `JSX.Element` — [Client] DnD interface with CompactPredictionDashboard header + QTActionBanner. Mobile: full-page scroll; Desktop: ScrollShadowContainer. Handles drag-end (batch position/qualification updates), third-place toggle, save state snackbars (success/error/locked alert), and loading backdrop. Wraps QualifiedTeamsGrid in DndContext. Shows instructions popover. Banner state is computed reactively via `localBannerState` (useMemo from live context predictions), not from the `qtBannerState` prop.
-  Calls: createDragEndHandler (returns handler for drag-end events)
-  Uses: useMemo, useState, useEffect, useCallback, useTheme, useMediaQuery, useTranslations, useSensors, DndContext, GuessesContextProvider, ScrollShadowContainer
-  Renders: CompactPredictionDashboard, QTActionBanner, Popover, DndContext, QualifiedTeamsGrid, Snackbar (success/error/locked), Backdrop, GuessesContextProvider
+- **QualifiedTeamsUI(...)**: `JSX.Element` — [Client] DnD interface with PredictionStatusHeader (via computeQTHeaderVariant). Mobile: full-page scroll; Desktop: ScrollShadowContainer. Handles drag-end (batch position/qualification updates), third-place toggle, save state snackbars (success/error/locked alert), and loading backdrop. Wraps QualifiedTeamsGrid in DndContext. Shows instructions popover.
+  Calls: createDragEndHandler (returns handler for drag-end events), computeQTHeaderVariant
+  Uses: useMemo, useState, useEffect, useCallback, useTheme, useMediaQuery, useTranslations, useLocale, useSensors, DndContext, GuessesContextProvider, ScrollShadowContainer
+  Renders: PredictionStatusHeader, Popover, DndContext, QualifiedTeamsGrid, Snackbar (success/error/locked), Backdrop, GuessesContextProvider
 
 ### app/components/qualified-teams/qualified-teams-grid.tsx
 Responsive grid layout for group cards (1 column XS-M, 2 columns L+).

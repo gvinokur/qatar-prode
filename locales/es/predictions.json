@@ -146,6 +146,109 @@
     "completed": "{count, plural, one {completado} other {completados}}",
     "close": "Cerrar"
   },
+  "statusHeader": {
+    "games": {
+      "preTournament": {
+        "status": "Inicio en {days, plural, one {1 día} other {{days} días}}",
+        "message": "Completá los partidos de grupos antes del inicio. Después podés auto-completar los clasificados.",
+        "ctaStart": "Empezar",
+        "ctaContinue": "Seguir",
+        "ctaFinish": "Finalizar"
+      },
+      "urgentUnpredicted": {
+        "status": "{count, plural, one {1 partido} other {{count} partidos}} sin predecir cierra{count, plural, one {} other {n}} en {window}",
+        "ctaSingle": "Predecilo",
+        "ctaMultiple": "Predecir"
+      },
+      "nudgeQT": {
+        "status": "Grupos completos · Clasificados cierran en {countdown}",
+        "message": "Grupos al 100%. Ya podés auto-completar tus clasificados.",
+        "cta": "Ir a Clasificados"
+      },
+      "stageActive": {
+        "statusToday": "{count, plural, one {1 partido hoy} other {{count} partidos hoy}}",
+        "statusTomorrow": "{count, plural, one {1 partido mañana} other {{count} partidos mañana}}",
+        "statusDays": "{count, plural, one {1 partido en {days} días} other {{count} partidos en {days} días}}",
+        "cta": "Revisar"
+      },
+      "finished": {
+        "status": "Torneo finalizado · {correct} / {total} aciertos",
+        "message": "Mirá cómo te fue y compará con tus grupos.",
+        "ctaStats": "Mis estadísticas",
+        "ctaGroups": "Mis grupos"
+      }
+    },
+    "qt": {
+      "preTournament": {
+        "status": "Predecí quién clasifica",
+        "message": "Elegí manualmente o predecí los partidos primero.",
+        "cta": "Predecir Partidos"
+      },
+      "autoFillReady": {
+        "status": "Grupos listos · auto-completá tus clasificados",
+        "message": "Tus grupos están listos — auto-completá tus {total} clasificados en un toque o elegí manualmente acá abajo.",
+        "cta": "Auto-completar"
+      },
+      "lockWindowUrgent": {
+        "status": "Clasificados cierran en {countdown}",
+        "message": "Tus clasificados cierran en {countdown}. Auto-completá desde tus grupos o elegí manualmente.",
+        "cta": "Auto-completar"
+      },
+      "completedPreLock": {
+        "status": "Clasificados listos · cierran en {countdown}",
+        "cta": "Recalcular"
+      },
+      "lockedPending": {
+        "status": "Bloqueado · Fase de grupos en juego"
+      },
+      "lockedPartial": {
+        "status": "Bloqueado · {correct} / {total} aciertos hasta ahora"
+      },
+      "lockedComplete": {
+        "status": "Bloqueado · {correct} / {total} aciertos",
+        "message": "Mirá cómo te fue y compará con tus grupos.",
+        "ctaStats": "Mis estadísticas",
+        "ctaGroups": "Mis grupos"
+      },
+      "neverFilled": {
+        "status": "Bloqueado · no completaste a tiempo",
+        "detail": "Sin puntos por clasificados"
+      }
+    },
+    "awards": {
+      "preTournament": {
+        "status": "Premios cierran en {countdown}",
+        "message": "Elegí podio y premios individuales. Pensá en los equipos que predijiste pasar a la final.",
+        "ctaStart": "Definir",
+        "ctaContinue": "Continuar",
+        "ctaFinish": "Finalizar"
+      },
+      "completedPreLock": {
+        "status": "Premios listos · cierran en {countdown}"
+      },
+      "lockedPending": {
+        "status": "Bloqueado · esperando resultados"
+      },
+      "lockedPartial": {
+        "status": "Bloqueado · {correct} / {total} aciertos hasta ahora"
+      },
+      "lockedComplete": {
+        "status": "Bloqueado · {correct} / {total} aciertos",
+        "message": "Mirá cómo te fue y compará con tus grupos.",
+        "ctaStats": "Mis estadísticas",
+        "ctaGroups": "Mis grupos"
+      },
+      "neverFilled": {
+        "status": "Bloqueado · no completaste a tiempo",
+        "detail": "Sin puntos por premios"
+      }
+    },
+    "chipLabel": {
+      "partidos": "{predicted} / {total} partidos",
+      "clasificados": "{predicted} / {total} clasificados",
+      "premios": "{predicted} / {total} premios"
+    }
+  },
   "playoffs": {
     "firstPlace": "Primero Grupo {group}",
     "firstPlaceShort": "1 {group}",
