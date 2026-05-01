@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Phase-aware prediction status header
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-407
 - **Branch:** feature/story-407
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 408
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/408
 
 ## State
 - **Current Phase:** planning
