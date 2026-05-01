@@ -253,6 +253,23 @@ No new cross-layer flows. Changes are confined to existing component/utility lay
   - `scoringConfig` with `thirdPlace = 0` (still renders row but 0 points)
   - `fullpage=false` → no expandable example arrows on individual rule rows
 
+## Implementation Amendments
+
+### Amendment 1: goalDifference missing from hub widget + incremental display fix
+**Date:** 2026-05-01
+**Reason:** Discovered during review that `scoring-rules-utils.ts` never included `goalDifference` in the `matches` array, so hub widgets (GamesInfoWidget pre-tournament card) showed no goal difference rule. Also, the goalDifference translation was using `{points}` (absolute total) instead of `{bonus}/{total}` (incremental bonus), inconsistent with exactScore.
+**Change:**
+- `scoring-rules-utils.ts`: Added `goalDiffBonus` computation and inserted goalDifference entry conditionally (when `game_correct_goal_difference_points > 0`) between winnerDraw and exactScore.
+- `locales/en/rules.json` + `locales/es/rules.json`: Updated `goalDifference` translations to use `{bonus}/{total}` params matching the incremental display pattern.
+- `scoring-rules-utils.test.ts`: Added tests for goalDifference at index 1, exclusion when points=0, updated `toHaveLength` from 2→3.
+
+### Amendment 2: exactScore bonus made incremental over goalDifference
+**Date:** 2026-05-01
+**Reason:** User confirmed that each scoring tier should show its marginal contribution (+1 over the previous tier). The original formula `game_exact_score_points - game_correct_outcome_points` showed the total bonus over base outcome; with goalDifference enabled, the correct incremental bonus is over goalDifference points.
+**Change:**
+- `rules.tsx` and `scoring-rules-utils.ts`: Changed `exactScoreBonus` from `game_exact_score_points - game_correct_outcome_points` to `game_exact_score_points - (game_correct_goal_difference_points || game_correct_outcome_points)`. When goalDifference is disabled, falls back to base outcome (same behavior as before).
+- `scoring-rules-utils.test.ts`: Updated `game_exact_score_points` in baseConfig from 2→3 (to make the incremental bonus non-zero) and updated total assertion from `'"total":2'` to `'"total":3'`.
+
 ## Quality Gate Considerations
 - No new SonarCloud issues (0 tolerance)
 - ≥80% coverage on changed files
