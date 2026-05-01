@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Page Status Header — v5 Audited</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19",
+        "react/": "https://esm.sh/react@19/",
+        "react-dom": "https://esm.sh/react-dom@19",
+        "react-dom/client": "https://esm.sh/react-dom@19/client",
+        "react/jsx-runtime": "https://esm.sh/react@19/jsx-runtime",
+        "@mui/material": "https://esm.sh/@mui/material@7.0.2?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@mui/material/": "https://esm.sh/@mui/material@7.0.2/",
+        "@mui/material/styles": "https://esm.sh/@mui/material@7.0.2/styles?external=react,react-dom,@emotion/react,@emotion/styled",
+        "@emotion/react": "https://esm.sh/@emotion/react@11",
+        "@emotion/styled": "https://esm.sh/@emotion/styled@11",
+        "htm": "https://esm.sh/htm@3"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import htm from 'htm';
+    import {
+      ThemeProvider, createTheme, CssBaseline,
+      Container, Box, Stack,
+      Card, Typography, Button, Chip,
+      Divider, Tooltip,
+    } from '@mui/material';
+    import { alpha } from '@mui/material/styles';
+
+    const html = htm.bind(React.createElement);
+
+    const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        background: { default: '#0a0a0a', paper: '#1a1a1a' },
+        primary:  { main: '#a78bfa' },
+        error:    { main: '#f44336' },
+        success:  { main: '#4caf50' },
+        warning:  { main: '#ff9800' },
+        info:     { main: '#29b6f6' },
+        divider:  'rgba(255,255,255,0.08)',
+        text: { primary: '#e5e7eb', secondary: '#9ca3af' },
+      },
+      typography: { fontFamily: "'Archivo', Roboto, sans-serif" },
+      shape: { borderRadius: 8 },
+    });
+
+    // ============================================================
+    // v5 — AUDITED variant set
+    //
+    // Changes vs v4:
+    //   • Removed dead variants (awaiting-r16, just-missed, awards/coherent-suggestion)
+    //   • Merged urgent variants into severity-parameterized states
+    //   • Merged QT/Awards locked variants into single "with results" rendering
+    //   • Replaced the page name in the top-strip slot:
+    //       Games → current/next stage ("Grupos", "Octavos", "Cuartos", ...)
+    //       QT/Awards → label dropped entirely
+    //   • TONES bg uses alpha() over palette tokens (no hex/rgba literals)
+    //   • Locked variants drop chip + boost
+    //   • tournament-finished drops chip + boost, gains 2 quick links
+    // ============================================================
+
+    const TONES = {
+      calm:           { bg: (t) => 'background.paper',                              accent: null,            color: 'text.secondary' },
+      locked:         { bg: (t) => 'action.hover',                                  accent: null,            color: 'text.secondary' },
+      brand:          { bg: (t) => alpha(t.palette.primary.main, 0.06),             accent: 'primary.main',  color: 'primary.main'   },
+      deadlineSoon:   { bg: (t) => alpha(t.palette.info.main,    0.06),             accent: 'info.main',     color: 'info.main'      },
+      deadlineUrgent: { bg: (t) => alpha(t.palette.warning.main, 0.08),             accent: 'warning.main',  color: 'warning.main'   },
+      deadlineNow:    { bg: (t) => alpha(t.palette.error.main,   0.08),             accent: 'error.main',    color: 'error.main'     },
+      success:        { bg: (t) => alpha(t.palette.success.main, 0.06),             accent: 'success.main',  color: 'success.main'   },
+    };
+
+    function StatusBanner({
+      label,                  // top-strip label (Games: stage; QT/Awards: omit)
+      tone = 'calm',
+      leadingIcon,
+      status,
+      statusColorOverride,
+      chip,                   // { label, color }
+      points,                 // { label } — terminal-state payoff badge (filled, success)
+      boosts,                 // [{ tier, label, tooltip }]
+      detail,                 // compact-only secondary caption
+      message,                // when present → rich expansion
+      action,                 // { label, color, variant }
+      actions,                // [{ label, color, variant }] — rendered inline right of message
+      footer,
+    }) {
+      const t = TONES[tone] || TONES.calm;
+      const iconColor = statusColorOverride || t.color;
+      const expanded = !!message;
+      const defaultIcon = ({
+        calm: 'info', locked: 'lock', brand: 'flag',
+        deadlineSoon: 'schedule', deadlineUrgent: 'schedule', deadlineNow: 'bolt',
+        success: 'check_circle',
+      })[tone];
+      const icon = leadingIcon || defaultIcon;
+      const borderColor = t.accent || 'divider';
+
+      return html`
+        <${Card} sx=${{
+          position: 'relative',
+          bgcolor: (theme) => typeof t.bg === 'function' ? t.bg(theme) : t.bg,
+          borderColor, borderWidth: 1, borderStyle: 'solid',
+          overflow: 'hidden',
+        }}>
+          <${Box} sx=${{
+            pl: 1.25, pr: 1.25, py: 1,
+            display: 'flex', alignItems: 'center', gap: 1, minHeight: 36,
+          }}>
+            ${icon && html`
+              <${Box} component="span" className="material-icons"
+                sx=${{ fontSize: 16, color: iconColor, lineHeight: 1, flexShrink: 0 }}>
+                ${icon}
+              <//>
+            `}
+            ${label && html`
+              <${Typography} variant="overline"
+                sx=${{ fontWeight: 700, fontSize: 10, color: 'text.secondary', letterSpacing: 1, lineHeight: 1, flexShrink: 0 }}>
+                ${label}
+              <//>
+              <${Box} sx=${{ width: '1px', height: 12, bgcolor: 'divider', flexShrink: 0 }} />
+            `}
+            <${Typography}
+              sx=${{ fontWeight: 500, color: iconColor, fontSize: 13, lineHeight: 1.3,
+                     flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              ${status}
+            <//>
+            ${detail && !expanded && html`
+              <${Typography} variant="caption"
+                sx=${{ color: 'text.secondary', fontSize: 11, flexShrink: 0, display: { xs: 'none', sm: 'inline' } }}>
+                ${detail}
+              <//>
+            `}
+            ${boosts && html`
+              <${Box} sx=${{ display: 'inline-flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+                ${boosts.map((b, i) => {
+                  const isGold = b.tier === 'gold';
+                  return html`
+                    <${Tooltip} key=${i} title=${b.tooltip || (isGold ? 'Boost dorado' : 'Boost plateado')} arrow placement="top">
+                      <${Box} sx=${{
+                        display: 'inline-flex', alignItems: 'center', gap: 0.375,
+                        height: 20, px: 0.875, borderRadius: 5, cursor: 'help',
+                        bgcolor: isGold ? 'warning.main'        : 'action.selected',
+                        color:   isGold ? 'warning.contrastText' : 'text.secondary',
+                      }}>
+                        <${Box} component="span" className="material-icons"
+                          sx=${{ fontSize: 13, lineHeight: 1 }}>emoji_events<//>
+                        <${Typography} component="span"
+                          sx=${{ fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
+                          ${b.label}
+                        <//>
+                      <//>
+                    <//>
+                  `;
+                })}
+              <//>
+            `}
+            ${chip && html`
+              <${Chip} size="small"
+                variant=${chip.color === 'default' || !chip.color ? 'outlined' : 'filled'}
+                color=${chip.color || 'default'}
+                label=${chip.label}
+                sx=${{ height: 20, fontSize: 10, fontWeight: 600, flexShrink: 0,
+                       '& .MuiChip-label': { px: 0.75 } }} />
+            `}
+            ${points && html`
+              <${Chip} size="small"
+                variant="filled" color="success"
+                label=${points.label}
+                sx=${{ height: 22, fontSize: 11, fontWeight: 700, flexShrink: 0,
+                       '& .MuiChip-label': { px: 0.875 } }} />
+            `}
+            ${action && !expanded && html`
+              <${Button} size="small" variant=${action.variant || 'text'} color=${action.color || 'primary'}
+                sx=${{ flexShrink: 0, fontSize: 12, py: 0.25, minWidth: 0 }}>
+                ${action.label}
+              <//>
+            `}
+          <//>
+
+          ${expanded && html`
+            <${Divider} />
+            <${Box} sx=${{
+              pl: 1.25, pr: 1.25, py: 1.25,
+              display: 'flex', alignItems: 'center', gap: 1.25,
+            }}>
+              <${Typography} variant="body2"
+                sx=${{ flex: 1, minWidth: 0, fontWeight: 600, lineHeight: 1.4,
+                       color: 'text.primary', fontSize: 14 }}>
+                ${message}
+              <//>
+              ${action && html`
+                <${Button} size="small"
+                  variant=${action.variant || 'contained'}
+                  color=${action.color || 'primary'}
+                  sx=${{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  ${action.label}
+                <//>
+              `}
+              ${actions && html`
+                <${Box} sx=${{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap' }}>
+                  ${actions.map((a, i) => html`
+                    <${Button} key=${i} size="small"
+                      variant=${a.variant || 'outlined'}
+                      color=${a.color || 'primary'}
+                      sx=${{ whiteSpace: 'nowrap' }}>
+                      ${a.label}
+                    <//>
+                  `)}
+                <//>
+              `}
+            <//>
+            ${footer && html`
+              <${Box} sx=${{ pl: 1.25, pr: 1.25, pb: 1.25 }}>
+                ${footer}
+              <//>
+            `}
+          `}
+        <//>
+      `;
+    }
+
+    // ============================================================
+    // GAMES — 5 audited variants (severity/stage shown as samples)
+    // ============================================================
+    const GAMES = {
+      'pre-tournament': {
+        label: 'Grupos', tone: 'brand', leadingIcon: 'flag',
+        status: 'Kickoff en 5 días',
+        boosts: [
+          { tier: 'silver', label: '0 / 2', tooltip: 'Boost plateado: doble puntaje. Te quedan 2 sin asignar.' },
+          { tier: 'gold',   label: '0 / 1', tooltip: 'Boost dorado: triple puntaje. 1 sin asignar.' },
+        ],
+        chip: { label: '12 / 48 partidos', color: 'default' },
+        message: 'Completá los partidos de grupos antes del kickoff — después auto-completás tus clasificados de un toque.',
+        action: { label: 'Seguir' },
+      },
+
+      'urgent-unpredicted__group-error': {
+        label: 'Grupos', tone: 'deadlineNow',
+        status: '3 partidos sin predecir cierran en < 2 h',
+        boosts: [
+          { tier: 'silver', label: '1 / 2', tooltip: 'Te queda 1 boost plateado.' },
+          { tier: 'gold',   label: '0 / 1', tooltip: 'Boost dorado sin asignar.' },
+        ],
+        chip: { label: '38 / 48 partidos', color: 'error' },
+        message: 'ARG vs MEX, BRA vs CRO y POR vs URU cierran en menos de 2 h. ¿Le metés boost?',
+        action: { label: 'Predecir', color: 'primary' },
+      },
+
+      'urgent-unpredicted__group-warning': {
+        label: 'Grupos', tone: 'deadlineUrgent',
+        status: '5 partidos sin predecir cierran en < 24 h',
+        boosts: [
+          { tier: 'silver', label: '2 / 2', tooltip: 'Boosts plateados asignados.' },
+          { tier: 'gold',   label: '0 / 1', tooltip: 'Boost dorado sin asignar.' },
+        ],
+        chip: { label: '40 / 48 partidos', color: 'warning' },
+        message: 'Tenés 5 partidos sin predecir cerrando en menos de 24 h. ¿Le metés boost al dorado?',
+        action: { label: 'Predecir', color: 'primary' },
+      },
+
+      'urgent-unpredicted__playoff-warning': {
+        label: 'Octavos', tone: 'deadlineUrgent',
+        status: '8 partidos sin predecir cierran en < 24 h',
+        boosts: [
+          { tier: 'silver', label: '0 / 2', tooltip: 'Boost plateado de octavos: 2 sin asignar.' },
+          { tier: 'gold',   label: '0 / 1', tooltip: 'Boost dorado de octavos: 1 sin asignar.' },
+        ],
+        chip: { label: '0 / 8 partidos', color: 'warning' },
+        message: 'Los 8 cruces de octavos cierran en menos de 1 día. Países Bajos vs USA arranca primero.',
+        action: { label: 'Predecir', color: 'primary' },
+      },
+
+      'pre-groups-complete-nudge-qt': {
+        label: 'Grupos', tone: 'success',
+        status: 'Grupos completos · Clasificados cierran en 3 días',
+        boosts: [
+          { tier: 'silver', label: '2 / 2', tooltip: 'Boosts plateados asignados.' },
+          { tier: 'gold',   label: '1 / 1', tooltip: 'Boost dorado asignado.' },
+        ],
+        chip: { label: '48 / 48 partidos', color: 'success' },
+        message: 'Grupos al 100%. Ya podés auto-completar tus clasificados.',
+        action: { label: 'Ir a Clasificados' },
+      },
+
+      'stage-active-caught-up__groups': {
+        label: 'Grupos', tone: 'calm', leadingIcon: 'check_circle', statusColorOverride: 'success.main',
+        status: '2 partidos hoy',
+        boosts: [
+          { tier: 'silver', label: '2 / 2', tooltip: 'Boosts plateados asignados.' },
+          { tier: 'gold',   label: '1 / 1', tooltip: 'Boost dorado asignado.' },
+        ],
+        chip: { label: '40 / 48 partidos', color: 'default' },
+        action: { label: 'Revisar' },
+      },
+
+      'stage-active-caught-up__r16': {
+        label: 'Octavos', tone: 'calm', leadingIcon: 'check_circle', statusColorOverride: 'success.main',
+        status: '4 partidos en 3 días',
+        boosts: [
+          { tier: 'silver', label: '1 / 2', tooltip: 'Boost plateado de octavos: te queda 1.' },
+          { tier: 'gold',   label: '1 / 1', tooltip: 'Boost dorado de octavos asignado.' },
+        ],
+        chip: { label: '8 / 8 partidos', color: 'success' },
+        action: { label: 'Revisar' },
+      },
+
+      'tournament-finished': {
+        label: 'Finalizado', tone: 'locked', leadingIcon: 'emoji_events', statusColorOverride: 'success.main',
+        status: 'Torneo finalizado · 32 / 64 aciertos',
+        points: { label: '1.245 pts' },
+        message: 'Mirá cómo te fue y compará con tus grupos.',
+        actions: [
+          { label: 'Mis estadísticas' },
+          { label: 'Mis grupos' },
+        ],
+      },
+    };
+
+    // ============================================================
+    // QT — 7 variants (severity-parameterized samples)
+    // ============================================================
+    const QT = {
+      'pre-tournament': {
+        tone: 'calm', leadingIcon: 'pending',
+        status: 'Predecí quién clasifica',
+        chip: { label: '0 / 8 clasificados', color: 'default' },
+        message: 'Elegí manualmente o predecí los partidos primero.',
+        action: { label: 'Predecir Partidos' },
+      },
+
+      'pre-tournament__urgent-warning': {
+        tone: 'deadlineUrgent', leadingIcon: 'schedule',
+        status: 'Cierra en 18 h',
+        chip: { label: '2 / 8 clasificados', color: 'warning' },
+        message: 'Cierra en 18 h. Elegí manualmente acá abajo o predecí los partidos primero.',
+        action: { label: 'Predecir Partidos', color: 'primary' },
+      },
+
+      'pre-tournament-ready': {
+        tone: 'brand',
+        status: 'Predecí quién clasifica',
+        chip: { label: '0 / 8 clasificados', color: 'default' },
+        message: 'Tus grupos están listos — auto-completá tus 8 clasificados en un toque o elegí manualmente acá abajo.',
+        action: { label: 'Auto-completar' },
+      },
+
+      'lock-window-urgent__warning': {
+        tone: 'deadlineUrgent',
+        status: 'Cierran en 18 h',
+        chip: { label: '5 / 8 clasificados', color: 'warning' },
+        message: 'Tus clasificados cierran en 18 h. Auto-completá desde tus grupos o elegí manualmente.',
+        action: { label: 'Auto-completar', color: 'primary' },
+      },
+
+      'lock-window-urgent__error': {
+        tone: 'deadlineNow',
+        status: 'Cierran en < 2 h',
+        chip: { label: '5 / 8 clasificados', color: 'error' },
+        message: 'Cierran en menos de 2 h. Auto-completá desde tus grupos o elegí manualmente.',
+        action: { label: 'Auto-completar', color: 'primary' },
+      },
+
+      'completed-pre-lock': {
+        tone: 'success', leadingIcon: 'check_circle',
+        status: 'Clasificados listos · cierran en 18 h',
+        chip: { label: '8 / 8 clasificados', color: 'success' },
+        action: { label: 'Recalcular' },
+      },
+
+      'locked-pending': {
+        tone: 'locked',
+        status: 'Bloqueado · Fase de grupos en juego',
+      },
+
+      'locked-with-results__partial': {
+        tone: 'locked', statusColorOverride: 'success.main',
+        status: 'Bloqueado · 3 / 8 aciertos hasta ahora',
+      },
+
+      'locked-with-results__complete': {
+        tone: 'locked', statusColorOverride: 'success.main',
+        status: 'Bloqueado · 6 / 8 aciertos',
+        points: { label: '240 pts' },
+        message: 'Mirá cómo te fue y compará con tus grupos.',
+        actions: [
+          { label: 'Mis estadísticas' },
+          { label: 'Mis grupos' },
+        ],
+      },
+
+      'never-filled-locked': {
+        tone: 'locked', statusColorOverride: 'error.main',
+        status: 'Bloqueado · no completaste a tiempo',
+        detail: 'Sin puntos por clasificados',
+      },
+    };
+
+    // ============================================================
+    // AWARDS — 5 variants (severity-parameterized samples)
+    // ============================================================
+    const AWARDS = {
+      'pre-tournament': {
+        tone: 'brand',
+        status: 'Cierra en 5 días',
+        chip: { label: '0 / 7 premios', color: 'default' },
+        message: 'Elegí podio y premios individuales. Pensá en los equipos que predijiste pasar a la final.',
+        action: { label: 'Definir' },
+      },
+
+      'pre-tournament__in-progress': {
+        tone: 'brand',
+        status: 'Cierra en 3 días',
+        chip: { label: '4 / 7 premios', color: 'default' },
+        message: 'Vas por la mitad. Te falta podio y goleador.',
+        action: { label: 'Continuar' },
+      },
+
+      'pre-tournament__urgent-warning': {
+        tone: 'deadlineUrgent', leadingIcon: 'schedule',
+        status: 'Cierra en 18 h',
+        chip: { label: '5 / 7 premios', color: 'warning' },
+        message: 'Cierra en 18 h. Te faltan goleador y arquero.',
+        action: { label: 'Finalizar', color: 'primary' },
+      },
+
+      'completed-pre-lock': {
+        tone: 'success', leadingIcon: 'check_circle',
+        status: 'Premios listos · cierran en 18 h',
+        chip: { label: '7 / 7 premios', color: 'success' },
+      },
+
+      'locked-pending': {
+        tone: 'locked',
+        status: 'Bloqueado · esperando resultados',
+      },
+
+      'locked-with-results__partial': {
+        tone: 'locked', statusColorOverride: 'success.main',
+        status: 'Bloqueado · 2 / 7 aciertos hasta ahora',
+      },
+
+      'locked-with-results__complete': {
+        tone: 'locked', statusColorOverride: 'success.main',
+        status: 'Bloqueado · 4 / 7 aciertos',
+        points: { label: '180 pts' },
+        message: 'Mirá cómo te fue y compará con tus grupos.',
+        actions: [
+          { label: 'Mis estadísticas' },
+          { label: 'Mis grupos' },
+        ],
+      },
+
+      'never-filled-locked': {
+        tone: 'locked', statusColorOverride: 'error.main',
+        status: 'Bloqueado · no completaste a tiempo',
+        detail: 'Sin puntos por premios',
+      },
+    };
+
+    function GamesHeader({ variant })  { return html`<${StatusBanner} ...${GAMES[variant]} />`; }
+    function QTHeader({ variant })     { return html`<${StatusBanner} ...${QT[variant]}    />`; }
+    function AwardsHeader({ variant }) { return html`<${StatusBanner} ...${AWARDS[variant]} />`; }
+
+    function Panel({ pageColor, page, label, kind, children }) {
+      return html`
+        <${Box} sx=${{ mb: 3 }}>
+          <${Stack} direction="row" spacing=${1} alignItems="center" sx=${{ mb: 1 }}>
+            <${Box} sx=${{ width: 4, height: 18, bgcolor: pageColor, borderRadius: 1 }} />
+            <${Typography} variant="overline" sx=${{ color: 'text.secondary', letterSpacing: 1, fontSize: 10, fontWeight: 700 }}>
+              ${page}
+            <//>
+            <${Typography} variant="overline" sx=${{ color: 'text.primary', letterSpacing: 0.5, fontSize: 11, fontWeight: 500 }}>
+              · ${label}
+            <//>
+            ${kind && html`
+              <${Chip} size="small" label=${kind} variant="outlined"
+                color=${kind === 'rich' ? 'primary' : 'default'}
+                sx=${{ height: 18, fontSize: 9, ml: 0.5 }} />
+            `}
+          <//>
+          ${children}
+        <//>
+      `;
+    }
+
+    function SectionDivider({ title, subtitle }) {
+      return html`
+        <${Box} sx=${{ mt: 5, mb: 3 }}>
+          <${Typography} variant="h6" sx=${{ fontWeight: 700 }}>${title}<//>
+          ${subtitle && html`<${Typography} variant="caption" color="text.secondary">${subtitle}<//>`}
+          <${Divider} sx=${{ mt: 1 }} />
+        <//>
+      `;
+    }
+
+    function MockupApp() {
+      return html`
+        <${ThemeProvider} theme=${theme}>
+          <${CssBaseline} />
+          <${Container} maxWidth="sm" sx=${{ py: 4 }}>
+
+            <${Box} sx=${{ mb: 3 }}>
+              <${Typography} variant="h5" gutterBottom sx=${{ fontWeight: 700 }}>
+                v5 — Audited variant set
+              <//>
+              <${Typography} variant="body2" color="text.secondary">
+                Trimmed and parameterized per the audit at <code>tmp/STORY-status-header-variant-audit.md</code>.
+                Games keeps a stage label in the top-strip slot ("Grupos", "Octavos"…); QT &amp; Awards drop the page label entirely.
+              <//>
+            <//>
+
+            <${SectionDivider} title="Página: Partidos" subtitle="5 base variants — urgent shown × 3 severity samples × 2 stage samples; caught-up shown × 2 stage samples" />
+
+            <${Panel} pageColor="primary.main" page="Partidos" label="Pre-torneo" kind="rich">
+              <${GamesHeader} variant="pre-tournament" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Urgente · grupos · &lt;2h" kind="rich">
+              <${GamesHeader} variant="urgent-unpredicted__group-error" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Urgente · grupos · &lt;24h" kind="rich">
+              <${GamesHeader} variant="urgent-unpredicted__group-warning" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Urgente · octavos · &lt;24h" kind="rich">
+              <${GamesHeader} variant="urgent-unpredicted__playoff-warning" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Grupos 100% · nudge a Clasificados" kind="rich">
+              <${GamesHeader} variant="pre-groups-complete-nudge-qt" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Stage al día · grupos" kind="thin">
+              <${GamesHeader} variant="stage-active-caught-up__groups" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Stage al día · octavos" kind="thin">
+              <${GamesHeader} variant="stage-active-caught-up__r16" />
+            <//>
+            <${Panel} pageColor="primary.main" page="Partidos" label="Torneo finalizado · sin chip/boost · 2 links" kind="rich">
+              <${GamesHeader} variant="tournament-finished" />
+            <//>
+
+            <${SectionDivider} title="Página: Clasificados" subtitle="7 user-facing states (locked-with-results shown × 2 sub-states; pre-tournament + lock-window urgent shown × multiple severities)" />
+
+            <${Panel} pageColor="info.main" page="Clasificados" label="Pre-torneo · grupos incompletos" kind="rich">
+              <${QTHeader} variant="pre-tournament" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Pre-torneo · grupos incompletos · urgente &lt;24h" kind="rich">
+              <${QTHeader} variant="pre-tournament__urgent-warning" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Pre-torneo · grupos listos (auto-fill viable)" kind="rich">
+              <${QTHeader} variant="pre-tournament-ready" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Lock window · QT incompleto · &lt;24h" kind="rich">
+              <${QTHeader} variant="lock-window-urgent__warning" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Lock window · QT incompleto · &lt;2h" kind="rich">
+              <${QTHeader} variant="lock-window-urgent__error" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Completo pre-lock · esperando cierre" kind="thin">
+              <${QTHeader} variant="completed-pre-lock" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Bloqueado · grupos en juego" kind="thin">
+              <${QTHeader} variant="locked-pending" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Bloqueado · resultados parciales" kind="thin">
+              <${QTHeader} variant="locked-with-results__partial" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Bloqueado · resultados completos" kind="thin">
+              <${QTHeader} variant="locked-with-results__complete" />
+            <//>
+            <${Panel} pageColor="info.main" page="Clasificados" label="Cerró sin completar" kind="thin">
+              <${QTHeader} variant="never-filled-locked" />
+            <//>
+
+            <${SectionDivider} title="Página: Premios" subtitle="5 user-facing states (pre-tournament shown × 3 sub-states; locked-with-results shown × 2)" />
+
+            <${Panel} pageColor="warning.main" page="Premios" label="Pre-torneo · empezar" kind="rich">
+              <${AwardsHeader} variant="pre-tournament" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Pre-torneo · en progreso" kind="rich">
+              <${AwardsHeader} variant="pre-tournament__in-progress" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Pre-torneo · urgente &lt;24h · finalizar" kind="rich">
+              <${AwardsHeader} variant="pre-tournament__urgent-warning" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Completo pre-lock · esperando cierre" kind="thin">
+              <${AwardsHeader} variant="completed-pre-lock" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Bloqueado · esperando resultados" kind="thin">
+              <${AwardsHeader} variant="locked-pending" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Bloqueado · resultados parciales" kind="thin">
+              <${AwardsHeader} variant="locked-with-results__partial" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Bloqueado · resultados completos" kind="thin">
+              <${AwardsHeader} variant="locked-with-results__complete" />
+            <//>
+            <${Panel} pageColor="warning.main" page="Premios" label="Cerró sin completar" kind="thin">
+              <${AwardsHeader} variant="never-filled-locked" />
+            <//>
+
+          <//>
+        <//>
+      `;
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(html`<${MockupApp} />`);
+  </script>
+</body>
+</html>
