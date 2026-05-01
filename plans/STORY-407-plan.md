@@ -146,13 +146,15 @@ export interface StatusHeaderVariant {
 
 ### Stage Label Derivation (Games page)
 
-`PlayoffRoundCompletionData` has `round_order: number` (ascending from R16 to Final). Use `round_order` — NOT string matching — to identify rounds:
+The stage label reflects the **current tournament phase** — derived from game dates, not prediction completion.
 
-From `TournamentPredictionCompletion.playoffRoundsCompletion` (keyed by round ID, ordered by `round_order` ascending):
-- Groups not all complete → `"Grupos"`
-- All playoff rounds have `completed === total` (including groups) → `"Finalizado"`
-- Otherwise: find the lowest-`round_order` round where `completed < total` → use that round's `round_name` (localized from `PlayoffRoundCompletionData.round_name`)
-- **Fallback** (no active round found, groups complete, all rounds pending) → use the lowest-`round_order` playoff round name (upcoming stage)
+`deriveStageLabel` receives `games: ExtendedGameData[]` and `now: Date`:
+1. All games in the past (`game_date < now`) → `"Finalizado"`
+2. Any game currently live or most recently started group game (no `playoffStage`) is in the past/present range → `"Grupos"`
+3. Otherwise: find the playoff round whose games have `game_date` closest to `now` (most recent past or nearest future) → use that round's `round_name` (from `game.playoffStage.round_name`)
+4. **Fallback** (no games at all) → `undefined`
+
+Logic: find the latest game with `game_date ≤ now`. If that game is a group game → `"Grupos"`. If it's a playoff game → use its round name. If all games are in the future → use the earliest upcoming game's round name (or `"Grupos"` if first game is a group game).
 
 ### Playoff Final+Third Grouping
 
@@ -310,15 +312,17 @@ interface PredictionStatusHeaderProps {
   - `boosts` object included when `silverMax > 0 OR goldenMax > 0`
   - `boosts` is `undefined` when `silverMax === 0 AND goldenMax === 0`
   - `boosts` included when only `silverMax > 0` (goldenMax = 0)
-  - stage label `"Grupos"` when in group stage
-  - stage label `"Finalizado"` when all rounds complete
+  - stage label `"Grupos"` when most recent game is a group game (date-based)
+  - stage label `"Finalizado"` when all games are in the past (date-based)
 
-- **`deriveStageLabel(playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>, groupsComplete: boolean): string | undefined`**
-  Derives current/next open stage name from completion data.
+- **`deriveStageLabel(games: ExtendedGameData[], now: Date): string | undefined`**
+  Derives the current tournament stage from game dates. Finds the latest game with `game_date ≤ now`; if that game is a group game → `"Grupos"`; if playoff → its `round_name`. If all games are future → earliest game's label. If all games are past → `"Finalizado"`. Returns `undefined` for empty input.
   Tests:
-  - returns `"Grupos"` when groups not complete
-  - returns `"Finalizado"` when all playoff rounds complete
-  - returns playoff round name of lowest-order active round
+  - returns `"Grupos"` when the most recent past game is a group game
+  - returns `"Finalizado"` when all games are in the past
+  - returns playoff round name when most recent past game is a playoff game
+  - returns `"Grupos"` when all games are in the future and first game is a group game
+  - returns `undefined` for empty games array
 
 - **`getNextBatchSummary(games: ExtendedGameData[], now: Date, t: TFunction): string`**
   Returns "N partidos hoy/mañana/en D días" from soonest upcoming game date.
@@ -336,7 +340,9 @@ interface PredictionStatusHeaderProps {
   - handles input where Third-place entry has `total = 0` (no games assigned yet)
   - returns empty object when input is empty
 
-- **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, GameGuess>; teamsMap: Record<string, Team>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
+- **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; games: ExtendedGameData[]; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, GameGuess>; teamsMap: Record<string, Team>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
+  - `games` — full game list (all rounds); used by `deriveStageLabel` to determine current tournament phase from dates
+  - `urgentGames` — games closing soon (already filtered); used for urgent-unpredicted message and urgency level
 
 **Note on message computation:** For the `urgent-unpredicted` variant, `computeGamesHeaderVariant` uses `urgentGames`, `gameGuesses`, and `teamsMap` to build the game list text (team names + countdown) and sets it as `variant.message`. No game data is passed through `PredictionStatusHeader` props — the component simply renders `variant.message` as `white-space: pre-line` text.
 
