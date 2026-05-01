@@ -110,7 +110,7 @@ export interface StatusHeaderVariant {
   message?: string              // rich body text (optional)
   action?: HeaderAction
   secondaryAction?: HeaderAction
-  expandedGames?: Array<{ id: string; homeTeam: string; awayTeam: string; closesAt: Date }>
+  // No expandedGames here — see ExpansionGame prop on PredictionStatusHeader
 }
 ```
 
@@ -228,7 +228,21 @@ Types only — `StatusHeaderTone`, `HeaderAction`, `StatusHeaderVariant` (see ab
 
 ### `app/components/prediction-status-header/prediction-status-header.tsx` *(new)*
 
-- **`PredictionStatusHeader({ variant, onAutoFillSuccess, tournamentId })`**: `JSX.Element`
+**Props:**
+```typescript
+interface PredictionStatusHeaderProps {
+  variant: StatusHeaderVariant
+  // Game list for urgent-unpredicted expansion — passed from page data, NOT in variant descriptor.
+  // UnifiedGamesPageClient computes this from closingGames + gameGuesses + teamsMap.
+  expansionGames?: Array<{ id: string; homeTeam: string; awayTeam: string; closesAt: Date; tournamentId: string }>
+  // QT auto-fill support
+  onAutoFillSuccess?: (predictions: QualifiedTeamPrediction[]) => void
+  isLocked?: boolean
+  tournamentId?: string
+}
+```
+
+- **`PredictionStatusHeader(props: PredictionStatusHeaderProps)`**: `JSX.Element`
   Renders any `StatusHeaderVariant` as a MUI Card with:
   - Left-border accent from tone
   - Background tint from tone (MUI `.50` palette tokens)
@@ -236,17 +250,17 @@ Types only — `StatusHeaderTone`, `HeaderAction`, `StatusHeaderVariant` (see ab
   - Optional: boosts row (Games variants)
   - Optional: points badge (top-right, terminal states)
   - Optional: message + action/secondaryAction buttons
-  - Optional: expandedGames list (urgent-unpredicted variant)
-  - Internal `AutoFillDialog` rendered when action triggers auto-fill and `onAutoFillSuccess` is provided
-  Calls: `bulkAutoFillFromPredictions` (via internal dialog)
+  - Optional: expansion game list — rendered when `expansionGames` is non-empty. Each item shows team names + countdown. Page computes this list; variant descriptor carries no game data.
+  - Internal `AutoFillDialog` for QT auto-fill actions
+  Calls: `bulkAutoFillFromPredictions` (via internal dialog, QT only)
   Tests:
   - renders `statusText` from variant descriptor
   - renders chip when `chip` is defined; omits chip when undefined
-  - action button always has `color="primary"` variant `"contained"` for primary action
-  - secondary action button has `color="primary"` variant `"outlined"`
+  - action button always has `color="primary"` `variant="contained"` for primary action
+  - secondary action button has `color="primary"` `variant="outlined"`
   - applies `success.50` background for `success` tone
   - applies `error.50` background for `deadlineNow` tone
-  - renders `expandedGames` list when provided
+  - renders expansion game list when `expansionGames` is non-empty; omits when empty/undefined
   - renders `pointsBadge` chip when defined; omits when undefined
   - renders boosts row when `boosts` defined; omits when undefined
 
@@ -296,6 +310,8 @@ Types only — `StatusHeaderTone`, `HeaderAction`, `StatusHeaderVariant` (see ab
   - returns empty object when input is empty
 
 - **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, any>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
+
+**Note on expansion games:** `computeGamesHeaderVariant` does NOT produce an `expandedGames` list — that list is derived from the same `GamesHeaderInput.urgentGames` data directly at the `UnifiedGamesPageClient` call site. `UnifiedGamesPageClient` filters `closingGames` by `gameGuesses` to get unpredicted urgent games, maps to `{ id, homeTeam, awayTeam, closesAt }` using `teamsMap`, and passes the result as `expansionGames` to `PredictionStatusHeader`.
 
 ---
 
