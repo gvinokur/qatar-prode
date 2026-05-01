@@ -66,7 +66,7 @@ describe('computePriorityAttention — now-available-playoff tier', () => {
     const result = computePriorityAttention(
       makeData({
         mode: 'urgent',
-        games: [{ id: 'g1' } as any],
+        games: [{ id: 'g1', game_date: new Date(Date.now() + 60 * 60 * 1000) } as any],
         nowAvailablePlayoffRound: {
           roundId: 'round-r16',
           roundName: 'Round of 16',
