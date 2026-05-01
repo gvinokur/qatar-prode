@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-05-01
 
 ---
 
@@ -222,10 +222,10 @@ Read-only game card with optional CTA overlay for authentication.
 ### app/components/tournament-page/rules.tsx
 Comprehensive rules and constraints display with expandable sections and example components.
 
-- **ScoringConfig**: `interface` — Configuration object for tournament-specific point values.
-- **Rules(props: RulesProps)**: `JSX.Element` — [Client] Collapsible card with scoring rules and constraints, supports fullpage and sidebar modes with tooltip/expand examples. Accepts optional `lockDate?: string` prop — a pre-formatted date string for the QT/Awards lock constraint (e.g. "June 6, 2026"); falls back to `lockDateFallback` i18n string when absent.
+- **ScoringConfig**: `type` — Re-exported from `app/utils/scoring-config.ts`. Configuration object for tournament-specific point values.
+- **Rules(props: RulesProps)**: `JSX.Element` — [Client] Renders four `RuleCategory` sections (Matches, Qualified Teams, Awards & Champion, Tournament Logic), each with Scoring/Deadlines/General subsections. Scoring rows show incremental point chips (+1/+1/+1 hierarchy). Zero-point rows use Cancel icon. Boost rows (silver/gold) shown only when `max_silver_games`/`max_golden_games > 0`. Boost timing text rendered in Deadlines subsection. Supports `fullpage` mode (expandable examples per scoring rule) and card mode. Accepts optional `lockDate?: string` (pre-formatted date for QT/Awards lock constraint; falls back to `lockDateFallback` i18n string when absent).
   Uses: useState, useTheme, useLocale, useTranslations
-  Renders: WinnerDrawExample, ExactScoreExample, RoundOf16Example, ChampionExample, RunnerUpExample, ThirdPlaceExample, IndividualAwardsExample, MatchPredictionTimeExample, PodiumPredictionTimeExample, SinglePredictionExample, GroupPositionExample, QualifiedTeamsPredictionTimeExample, ExpandMore
+  Renders: GoalDifferenceExample, WinnerDrawExample, ExactScoreExample, RoundOf16Example, ChampionExample, RunnerUpExample, ThirdPlaceExample, IndividualAwardsExample, MatchPredictionTimeExample, PodiumPredictionTimeExample, SinglePredictionExample, GroupPositionExample, QualifiedTeamsPredictionTimeExample, ExpandMore
 
 ### app/components/tournament-page/tournament-group-card.tsx
 Card component for displaying group info with dual variant support (my-groups and discovery).

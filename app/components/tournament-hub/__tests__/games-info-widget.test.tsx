@@ -171,5 +171,45 @@ describe('GamesInfoWidget', () => {
       )
       expect(screen.getByText('hub.gamesWidget.deadlineText')).toBeInTheDocument()
     })
+
+    it('renders boost deadline text inside deadline box when matchesBoostDeadline is set', async () => {
+      render(
+        await GamesInfoWidget({
+          isLoggedOff: false,
+          scoringRules: { ...defaultScoringRules, matchesBoostDeadline: 'Boosts must be applied before kickoff' },
+          gamesHref: '/en/tournaments/t-1/games',
+          predictedGames: 0,
+          totalGames: 64,
+        })
+      )
+      expect(screen.getByText('Boosts must be applied before kickoff')).toBeInTheDocument()
+    })
+
+    it('does not render boost deadline text when matchesBoostDeadline is undefined', async () => {
+      render(
+        await GamesInfoWidget({
+          isLoggedOff: false,
+          scoringRules: { ...defaultScoringRules, matchesBoostDeadline: undefined },
+          gamesHref: '/en/tournaments/t-1/games',
+          predictedGames: 0,
+          totalGames: 64,
+        })
+      )
+      expect(screen.queryByText('Boosts must be applied before kickoff')).not.toBeInTheDocument()
+    })
+
+    it('renders scoring rules without boost timing when matchesBoostDeadline is absent', async () => {
+      render(
+        await GamesInfoWidget({
+          isLoggedOff: false,
+          scoringRules: { ...defaultScoringRules, matchesBoostDeadline: undefined },
+          gamesHref: '/en/tournaments/t-1/games',
+          predictedGames: 0,
+          totalGames: 64,
+        })
+      )
+      expect(screen.getByText('• 1 point — correct winner/draw')).toBeInTheDocument()
+      expect(screen.queryByText(/boost/i)).not.toBeInTheDocument()
+    })
   })
 })

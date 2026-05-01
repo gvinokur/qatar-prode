@@ -4,6 +4,7 @@ export interface ScoringRulesBySection {
   matches: string[]
   qualifiedTeams: string[]
   awards: string[]
+  matchesBoostDeadline?: string
 }
 
 export interface ConstraintsBySection {
@@ -24,19 +25,27 @@ export function getRulesBySection(
   tRules: (_key: string, _params?: Record<string, unknown>) => string
 ): ScoringRulesBySection {
   const pluralKey = (count: number) => (count === 1 ? 'singular' : 'plural')
-  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+  const exactScoreBonus = config.game_exact_score_points - (config.game_correct_goal_difference_points || config.game_correct_outcome_points)
+  const goalDiffBonus = config.game_correct_goal_difference_points - config.game_correct_outcome_points
 
   // --- matches ---
   const matches: string[] = [
     tRules(`winnerDraw.${pluralKey(config.game_correct_outcome_points)}`, {
       points: config.game_correct_outcome_points,
     }),
+    ...(config.game_correct_goal_difference_points > 0
+      ? [tRules(`goalDifference.${pluralKey(goalDiffBonus)}`, {
+          bonus: goalDiffBonus,
+          total: config.game_correct_goal_difference_points,
+        })]
+      : []),
     tRules(`exactScore.${pluralKey(exactScoreBonus)}`, {
       bonus: exactScoreBonus,
       total: config.game_exact_score_points,
     }),
   ]
 
+  let matchesBoostDeadline: string | undefined
   if (config.max_silver_games > 0 || config.max_golden_games > 0) {
     if (config.max_silver_games > 0) {
       matches.push(
@@ -52,7 +61,7 @@ export function getRulesBySection(
         })
       )
     }
-    matches.push(tRules('boostTiming'))
+    matchesBoostDeadline = tRules('boostTiming')
   }
 
   // --- qualifiedTeams ---
@@ -82,7 +91,7 @@ export function getRulesBySection(
     }),
   ]
 
-  return { matches, qualifiedTeams, awards }
+  return { matches, qualifiedTeams, awards, matchesBoostDeadline }
 }
 
 /**

@@ -63,6 +63,11 @@ export async function GamesInfoWidget({
           <Typography variant="body2" color="text.secondary" display="block">
             {t('gamesWidget.deadlineText')}
           </Typography>
+          {scoringRules.matchesBoostDeadline && (
+            <Typography variant="body2" color="text.secondary" display="block">
+              {scoringRules.matchesBoostDeadline}
+            </Typography>
+          )}
         </Box>
 
         {/* Scoring rules box */}

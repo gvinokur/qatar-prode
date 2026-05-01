@@ -5,7 +5,13 @@
   },
   "sections": {
     "scoring": "Points Calculation",
-    "constraints": "General Conditions"
+    "constraints": "General Conditions",
+    "matches": "Matches",
+    "qualifiedTeams": "Qualified Teams",
+    "awardsChampion": "Awards & Champion",
+    "tournamentLogic": "Tournament Logic",
+    "deadlines": "Deadlines",
+    "general": "General"
   },
   "rules": {
     "winnerDraw": {
@@ -13,8 +19,8 @@
       "plural": "{points} Points for correct Winner/Draw"
     },
     "goalDifference": {
-      "singular": "{points} Point for same goal difference (correct winner, exact margin)",
-      "plural": "{points} Points for same goal difference (correct winner, exact margin)"
+      "singular": "{bonus} extra point for goal difference ({total} total pts)",
+      "plural": "{bonus} extra points for goal difference ({total} total pts)"
     },
     "exactScore": {
       "singular": "{bonus} extra point for exact score (total: {total} point)",
@@ -52,14 +58,19 @@
       "singular": "Golden Boost: You can select up to {count} match that will be worth triple points (3x)",
       "plural": "Golden Boost: You can select up to {count} matches that will be worth triple points (3x)"
     },
-    "boostTiming": "Boosts can only be applied before the match starts"
+    "boostTiming": "Boosts can only be applied before the match starts",
+    "wrongOutcome": "Wrong Winner, Ties not predicted, or disqualified teams",
+    "teamFailedToQualify": "Team fails to qualify",
+    "sharedPrediction": "Same prediction is used across all groups you join",
+    "thirdPlaceCondition": "Third-place rules only apply if the tournament has a 3rd place match"
   },
   "constraints": {
     "matchPredictionTime": "You can change your predictions for each match up to one hour before it starts",
     "podiumPredictionTime": "You can modify podium and individual awards predictions until {date}",
     "qualifiedTeamsPredictionTime": "You can modify qualified teams predictions until {date}",
     "singlePrediction": "Only one prediction per person is allowed, but the same prediction can be used in multiple groups",
-    "lockDateFallback": "5 days after the tournament starts"
+    "boostDeadline": "Boosts can only be applied before the match starts",
+    "lockDateFallback": "2 days after the tournament starts"
   },
   "examples": {
     "winnerDraw": "Example: If you predict Argentina will beat Brazil and Argentina indeed wins, you get {points} {points, plural, one {point} other {points}}. If you predict a draw and the match ends in a draw, you also get {points} {points, plural, one {point} other {points}}.",
