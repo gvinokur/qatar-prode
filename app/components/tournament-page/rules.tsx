@@ -82,7 +82,7 @@ interface RulesProps {
   readonly lockDate?: string
 }
 
-function RuleItemChip({ chip }: { chip: PointChip }) {
+function RuleItemChip({ chip }: Readonly<{ chip: PointChip }>) {
   const baseStyle = {
     px: 0.75,
     py: 0.25,
@@ -123,7 +123,7 @@ function RuleItemChip({ chip }: { chip: PointChip }) {
   )
 }
 
-function RuleItemIcon({ icon }: { icon: RuleItemData['icon'] }) {
+function RuleItemIcon({ icon }: Readonly<{ icon: RuleItemData['icon'] }>) {
   if (icon === 'cancel') return <CancelIcon sx={{ fontSize: 18, color: 'error.main', opacity: 0.7 }} />
   if (icon === 'schedule') return <ScheduleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
   if (icon === 'info') return <InfoIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
@@ -138,13 +138,13 @@ function RuleRow({
   fullpage,
   expandedKeys,
   onToggle,
-}: {
+}: Readonly<{
   item: RuleItemData
   itemKey: string
   fullpage: boolean
   expandedKeys: Set<string>
   onToggle: (key: string) => void
-}) {
+}>) {
   const isExpanded = expandedKeys.has(itemKey)
   const hasExample = fullpage && !!item.example
 
@@ -203,14 +203,14 @@ function RuleCategory({
   onToggle,
   theme,
   tSections,
-}: {
+}: Readonly<{
   category: RuleCategoryData
   fullpage: boolean
   expandedKeys: Set<string>
   onToggle: (key: string) => void
   theme: Theme
   tSections: (key: string) => string
-}) {
+}>) {
   const hasScoring = category.scoring.length > 0
   const hasDeadlines = category.deadlines.length > 0
   const hasGeneral = category.general.length > 0
