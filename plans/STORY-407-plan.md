@@ -148,13 +148,27 @@ export interface StatusHeaderVariant {
 
 The stage label reflects the **current tournament phase** — derived from game dates, not prediction completion.
 
-`deriveStageLabel` receives `games: ExtendedGameData[]` and `now: Date`:
-1. All games in the past (`game_date < now`) → `"Finalizado"`
-2. Any game currently live or most recently started group game (no `playoffStage`) is in the past/present range → `"Grupos"`
-3. Otherwise: find the playoff round whose games have `game_date` closest to `now` (most recent past or nearest future) → use that round's `round_name` (from `game.playoffStage.round_name`)
-4. **Fallback** (no games at all) → `undefined`
+`deriveStageLabel` receives `games: ExtendedGameData[]` and `now: Date`. Each stage owns the interval from the previous stage's last game to this stage's last game:
 
-Logic: find the latest game with `game_date ≤ now`. If that game is a group game → `"Grupos"`. If it's a playoff game → use its round name. If all games are in the future → use the earliest upcoming game's round name (or `"Grupos"` if first game is a group game).
+- **Groups:** `[min(groupGames.date), max(groupGames.date)]`
+- **R16:** `[max(groupGames.date), max(R16Games.date)]`
+- **QF:** `[max(R16Games.date), max(QFGames.date)]`
+- ...each subsequent stage inherits the previous stage's `maxDate` as its start
+
+Algorithm:
+1. Bucket games by stage: group games (no `playoffStage`) into one bucket; each playoff round (by `tournament_playoff_round_id`) into its own bucket.
+2. Sort buckets by `maxDate` ascending (groups first, then playoff rounds by their last-game date).
+3. Groups bucket `startDate = min(groupGames.date)`, all other buckets `startDate = prevBucket.maxDate`.
+4. Current stage = **bucket where `startDate ≤ now ≤ maxDate`**.
+5. If `now < groups.startDate` → `"Grupos"` (pre-tournament).
+6. If `now > maxDate` of last bucket → `"Finalizado"`.
+7. **Fallback** (no games) → `undefined`.
+
+Examples:
+- `min(groupGames.date) ≤ now ≤ max(groupGames.date)` → `"Grupos"`
+- `max(groupGames.date) ≤ now ≤ max(R16Games.date)` → R16 round name
+- `max(R16Games.date) ≤ now ≤ max(QFGames.date)` → QF round name
+- `now > max(allGames.date)` → `"Finalizado"`.
 
 ### Playoff Final+Third Grouping
 
@@ -316,12 +330,13 @@ interface PredictionStatusHeaderProps {
   - stage label `"Finalizado"` when all games are in the past (date-based)
 
 - **`deriveStageLabel(games: ExtendedGameData[], now: Date): string | undefined`**
-  Derives the current tournament stage from game dates. Finds the latest game with `game_date ≤ now`; if that game is a group game → `"Grupos"`; if playoff → its `round_name`. If all games are future → earliest game's label. If all games are past → `"Finalizado"`. Returns `undefined` for empty input.
+  Derives the current tournament stage from game dates using stage interval logic. Groups stage owns `[min(groupGames.date), max(groupGames.date)]`; each playoff round owns `[prevStage.maxDate, thisStage.maxDate]`. Returns the label for the stage whose interval contains `now`, `"Finalizado"` if past all stages, `"Grupos"` if pre-tournament, `undefined` for empty input.
   Tests:
-  - returns `"Grupos"` when the most recent past game is a group game
-  - returns `"Finalizado"` when all games are in the past
-  - returns playoff round name when most recent past game is a playoff game
-  - returns `"Grupos"` when all games are in the future and first game is a group game
+  - returns `"Grupos"` when `now` is within the group games date range
+  - returns `"Grupos"` when `now` is before the first group game (pre-tournament)
+  - returns playoff round name when `now` falls in that round's interval (after groups ended)
+  - returns next playoff round name when `now` is between previous round's end and this round's games
+  - returns `"Finalizado"` when `now` is past the last game of the last stage
   - returns `undefined` for empty games array
 
 - **`getNextBatchSummary(games: ExtendedGameData[], now: Date, t: TFunction): string`**
