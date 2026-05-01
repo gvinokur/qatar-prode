@@ -58,10 +58,21 @@ describe('getRulesBySection', () => {
       expect(result.matches.some((r) => r.includes('goldenBoost'))).toBe(true)
     })
 
-    it('includes boostTiming when either boost is enabled', () => {
+    it('does NOT include boostTiming in matches array when boosts enabled', () => {
       const config = { ...baseConfig, max_silver_games: 1 }
       const result = getRulesBySection(config, mockTranslator)
-      expect(result.matches).toContain('boostTiming')
+      expect(result.matches.some((r) => r.includes('boostTiming'))).toBe(false)
+    })
+
+    it('sets matchesBoostDeadline when either boost is enabled', () => {
+      const config = { ...baseConfig, max_silver_games: 1 }
+      const result = getRulesBySection(config, mockTranslator)
+      expect(result.matchesBoostDeadline).toBe('boostTiming')
+    })
+
+    it('matchesBoostDeadline is undefined when boosts are disabled', () => {
+      const result = getRulesBySection(baseConfig, mockTranslator)
+      expect(result.matchesBoostDeadline).toBeUndefined()
     })
 
     it('uses plural form when points count > 1', () => {

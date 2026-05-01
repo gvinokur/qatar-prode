@@ -4,6 +4,7 @@ export interface ScoringRulesBySection {
   matches: string[]
   qualifiedTeams: string[]
   awards: string[]
+  matchesBoostDeadline?: string
 }
 
 export interface ConstraintsBySection {
@@ -37,6 +38,7 @@ export function getRulesBySection(
     }),
   ]
 
+  let matchesBoostDeadline: string | undefined
   if (config.max_silver_games > 0 || config.max_golden_games > 0) {
     if (config.max_silver_games > 0) {
       matches.push(
@@ -52,7 +54,7 @@ export function getRulesBySection(
         })
       )
     }
-    matches.push(tRules('boostTiming'))
+    matchesBoostDeadline = tRules('boostTiming')
   }
 
   // --- qualifiedTeams ---
@@ -82,7 +84,7 @@ export function getRulesBySection(
     }),
   ]
 
-  return { matches, qualifiedTeams, awards }
+  return { matches, qualifiedTeams, awards, matchesBoostDeadline }
 }
 
 /**

@@ -7,6 +7,7 @@ describe('Rules', () => {
   const mockScoringConfig = {
     game_exact_score_points: 2,
     game_correct_outcome_points: 1,
+    game_correct_goal_difference_points: 2,
     champion_points: 5,
     runner_up_points: 3,
     third_place_points: 1,
@@ -63,18 +64,45 @@ describe('Rules', () => {
     expect(screen.queryByRole('link', { name: /Ver Reglas Completas/i })).not.toBeInTheDocument()
   })
 
+  it('renders four category headings when expanded', () => {
+    renderWithProviders(<Rules scoringConfig={mockScoringConfig} />)
+
+    expect(screen.getByText('Partidos')).toBeInTheDocument()
+    expect(screen.getByText('Equipos Clasificados')).toBeInTheDocument()
+    expect(screen.getByText('Premios y Campeón')).toBeInTheDocument()
+    expect(screen.getByText('Lógica del Torneo')).toBeInTheDocument()
+  })
+
   it('is expanded by default', () => {
     renderWithProviders(<Rules scoringConfig={mockScoringConfig} />)
 
-    // Should show content when expanded
-    expect(screen.getByText(/Calculo de puntos/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Calculo de puntos/i).length).toBeGreaterThan(0)
   })
 
   it('can be collapsed when not fullpage', () => {
     renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={false} fullpage={false} />)
 
-    // Content should not be visible when collapsed
-    expect(screen.queryByText(/Calculo de puntos/i)).not.toBeInTheDocument()
+    expect(screen.queryAllByText(/Calculo de puntos/i)).toHaveLength(0)
+  })
+
+  it('renders zero-point rule for wrong outcome in Matches', () => {
+    renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />)
+
+    expect(screen.getByText(/Ganador incorrecto/i)).toBeInTheDocument()
+  })
+
+  it('renders zero-point rule for team failing to qualify', () => {
+    renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />)
+
+    expect(screen.getByText(/El equipo no clasifica/i)).toBeInTheDocument()
+  })
+
+  it('renders boost timing in Deadlines section (not Scoring)', () => {
+    renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />)
+
+    const deadlinesHeadings = screen.getAllByText(/Fechas Límite/i)
+    expect(deadlinesHeadings.length).toBeGreaterThan(0)
+    expect(screen.getByText(/Los boosts solo pueden aplicarse antes/i)).toBeInTheDocument()
   })
 
   it('shows boost rules when boosts are configured', () => {
@@ -156,11 +184,20 @@ describe('Rules', () => {
       expect(screen.getByText('You are here')).toBeInTheDocument()
     })
 
-    it('renders English section titles', () => {
+    it('renders English category headings', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
 
-      expect(screen.getByText('Points Calculation')).toBeInTheDocument()
-      expect(screen.getByText('General Conditions')).toBeInTheDocument()
+      expect(screen.getByText('Matches')).toBeInTheDocument()
+      expect(screen.getByText('Qualified Teams')).toBeInTheDocument()
+      expect(screen.getByText('Awards & Champion')).toBeInTheDocument()
+      expect(screen.getByText('Tournament Logic')).toBeInTheDocument()
+    })
+
+    it('renders English scoring and deadlines subsection labels', () => {
+      renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
+
+      expect(screen.getAllByText('Points Calculation').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Deadlines').length).toBeGreaterThan(0)
     })
 
     it('renders English button text', () => {
@@ -250,10 +287,10 @@ describe('Rules', () => {
       expect(screen.getByText(/Se permite modificar.*equipos clasificados/i)).toBeInTheDocument()
     })
 
-    it('renders qualified teams constraint in English', () => {
+    it('renders qualified teams constraint in English with 2-day fallback', () => {
       renderWithProviders(<Rules scoringConfig={mockScoringConfig} expanded={true} />, { locale: 'en' })
 
-      expect(screen.getByText(/You can modify qualified teams predictions until 5 days after the tournament starts/i)).toBeInTheDocument()
+      expect(screen.getByText(/You can modify qualified teams predictions until 2 days after the tournament starts/i)).toBeInTheDocument()
     })
   })
 })

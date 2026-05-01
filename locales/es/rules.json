@@ -5,7 +5,13 @@
   },
   "sections": {
     "scoring": "Calculo de puntos",
-    "constraints": "Condiciones generales"
+    "constraints": "Condiciones generales",
+    "matches": "Partidos",
+    "qualifiedTeams": "Equipos Clasificados",
+    "awardsChampion": "Premios y Campeón",
+    "tournamentLogic": "Lógica del Torneo",
+    "deadlines": "Fechas Límite",
+    "general": "General"
   },
   "rules": {
     "winnerDraw": {
@@ -52,14 +58,19 @@
       "singular": "Boost Dorado: Puedes seleccionar hasta {count} partido que valdrá el triple de puntos (3x)",
       "plural": "Boost Dorado: Puedes seleccionar hasta {count} partidos que valdrán el triple de puntos (3x)"
     },
-    "boostTiming": "Los boosts solo pueden aplicarse antes de que comience el partido"
+    "boostTiming": "Los boosts solo pueden aplicarse antes de que comience el partido",
+    "wrongOutcome": "Ganador incorrecto, empate no predicho o equipos descalificados",
+    "teamFailedToQualify": "El equipo no clasifica",
+    "sharedPrediction": "El mismo pronóstico se utiliza en todos los grupos a los que perteneces",
+    "thirdPlaceCondition": "Las reglas del tercer puesto solo aplican si el torneo tiene partido por el mismo"
   },
   "constraints": {
     "matchPredictionTime": "Se permite cambiar los pronosticos de cada partido hasta una hora antes del mismo",
     "podiumPredictionTime": "Se permite modificar pronósticos de podio y premios individuales hasta el {date}",
     "qualifiedTeamsPredictionTime": "Se permite modificar pronósticos de equipos clasificados hasta el {date}",
     "singlePrediction": "No se permite mas de un pronostico por persona, pero el mismo se puede utilizar en multiples grupos",
-    "lockDateFallback": "5 días después del inicio del torneo"
+    "boostDeadline": "Los boosts solo pueden aplicarse antes de que comience el partido",
+    "lockDateFallback": "2 días después del inicio del torneo"
   },
   "examples": {
     "winnerDraw": "Ejemplo: Si predices que Argentina ganará contra Brasil y efectivamente Argentina gana, obtienes {points} {points, plural, one {punto} other {puntos}}. Si predices un empate y el partido termina en empate, también obtienes {points} {points, plural, one {punto} other {puntos}}.",

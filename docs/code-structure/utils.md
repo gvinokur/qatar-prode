@@ -55,11 +55,11 @@ Shared scoring configuration types and defaults — kept in a neutral (non-clien
 ### app/utils/scoring-rules-utils.ts
 Pure utility that organises scoring rule labels into the three prediction tracks (Matches, Qualified Teams, Awards) using the same i18n keys and pluralisation logic as `rules.tsx`.
 
-- **getRulesBySection(config: ScoringConfig, tRules: (key: string, params?: Record<string, unknown>) => string)**: `ScoringRulesBySection` — Maps `ScoringConfig` values to the three prediction track sections. `matches` = winnerDraw + exactScore + optional boost entries (same condition as `rules.tsx`). `qualifiedTeams` = qualifiedTeam + exactPosition. `awards` = champion + runnerUp + thirdPlace + individualAwards. Accepts translator bound to `rules.rules` namespace so it works in both server (`getTranslations`) and client (`useTranslations`) contexts.
+- **getRulesBySection(config: ScoringConfig, tRules: (key: string, params?: Record<string, unknown>) => string)**: `ScoringRulesBySection` — Maps `ScoringConfig` values to the three prediction track sections. `matches` = winnerDraw + exactScore + optional boost entries (silverBoost, goldenBoost — NOT boostTiming). `qualifiedTeams` = qualifiedTeam + exactPosition. `awards` = champion + runnerUp + thirdPlace + individualAwards. When boosts enabled, sets `matchesBoostDeadline` = boostTiming string (moved out of scoring array so hub widget can render it in the deadline box). Accepts translator bound to `rules.rules` namespace so it works in both server (`getTranslations`) and client (`useTranslations`) contexts.
   Calls: *(none — pure function)*
 - **getConstraintsBySection(tConstraints: (key: string, params?: Record<string, unknown>) => string, lockDate: string | null)**: `ConstraintsBySection` — Returns per-section prediction deadline constraint strings sourced from `rules.constraints` namespace. `matches` = `matchPredictionTime`. `qualifiedTeams` = `qualifiedTeamsPredictionTime({date})`. `awards` = `podiumPredictionTime({date})`. When `lockDate` is null, falls back to `tConstraints('lockDateFallback')` as the date value.
   Calls: *(none — pure function)*
-- **ScoringRulesBySection**: TypeScript interface — `{ matches: string[], qualifiedTeams: string[], awards: string[] }`.
+- **ScoringRulesBySection**: TypeScript interface — `{ matches: string[], qualifiedTeams: string[], awards: string[], matchesBoostDeadline?: string }`. The `matchesBoostDeadline` field is set only when boosts are enabled; hub widget renders it in the deadline box.
 - **ConstraintsBySection**: TypeScript interface — `{ matches: string, qualifiedTeams: string, awards: string }`.
 
 ### app/utils/json-ld-utils.ts

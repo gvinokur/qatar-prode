@@ -1,219 +1,545 @@
 'use client'
 
 import {
+  Avatar,
+  Box,
+  Button,
   Card,
-  CardContent,
+  CardActions,
   CardHeader,
   Collapse,
+  Divider,
   List,
   ListItem,
-  ListItemText, Typography,
-  useTheme, Button, CardActions, Box, Tooltip
-} from "@mui/material";
-import {ExpandMore as ExpandMoreIcon, Gavel as GavelIcon} from "@mui/icons-material";
-import {ExpandMore} from './expand-more';
-import {useState} from "react";
-import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
-import WinnerDrawExample from './rules-examples/winner-draw';
-import GoalDifferenceExample from './rules-examples/goal-difference';
-import ExactScoreExample from './rules-examples/exact-score';
-import RoundOf16Example from './rules-examples/round-of-16';
-import ChampionExample from './rules-examples/champion';
-import RunnerUpExample from './rules-examples/runner-up';
-import ThirdPlaceExample from './rules-examples/third-place';
-import IndividualAwardsExample from './rules-examples/individual-awards';
-import MatchPredictionTimeExample from './rules-examples/match-prediction-time';
-import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time';
-import SinglePredictionExample from './rules-examples/single-prediction';
-import GroupPositionExample from './rules-examples/group-position';
-import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time';
-import { DEFAULT_SCORING, type ScoringConfig } from '../../utils/scoring-config';
+  ListItemAvatar,
+  ListItemText,
+  Paper,
+  Stack,
+  Theme,
+  Typography,
+  useTheme,
+} from '@mui/material'
+import {
+  AccountTree as AccountTreeIcon,
+  Cancel as CancelIcon,
+  CheckCircle as CheckCircleIcon,
+  EmojiEvents as EmojiEventsIcon,
+  ExpandMore as ExpandMoreIcon,
+  Gavel as GavelIcon,
+  Info as InfoIcon,
+  Language as LanguageIcon,
+  Schedule as ScheduleIcon,
+  SportsSoccer as SportsSoccerIcon,
+} from '@mui/icons-material'
+import { ExpandMore } from './expand-more'
+import { useState } from 'react'
+import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
+import WinnerDrawExample from './rules-examples/winner-draw'
+import GoalDifferenceExample from './rules-examples/goal-difference'
+import ExactScoreExample from './rules-examples/exact-score'
+import RoundOf16Example from './rules-examples/round-of-16'
+import ChampionExample from './rules-examples/champion'
+import RunnerUpExample from './rules-examples/runner-up'
+import ThirdPlaceExample from './rules-examples/third-place'
+import IndividualAwardsExample from './rules-examples/individual-awards'
+import MatchPredictionTimeExample from './rules-examples/match-prediction-time'
+import PodiumPredictionTimeExample from './rules-examples/podium-prediction-time'
+import SinglePredictionExample from './rules-examples/single-prediction'
+import GroupPositionExample from './rules-examples/group-position'
+import QualifiedTeamsPredictionTimeExample from './rules-examples/qualified-teams-prediction-time'
+import { DEFAULT_SCORING, type ScoringConfig } from '../../utils/scoring-config'
 
-export type { ScoringConfig } from '../../utils/scoring-config';
+export type { ScoringConfig } from '../../utils/scoring-config'
 
-interface Rule {
-  label: string;
-  component?: React.ReactNode;
+const SILVER_COLOR = '#C0C0C0'
+const GOLD_COLOR = '#FFD700'
+
+type PointChip = { type: 'points'; value: string } | { type: 'zero' } | { type: 'silver' } | { type: 'gold' }
+
+interface RuleItemData {
+  label: string
+  chip?: PointChip
+  icon: 'check' | 'cancel' | 'schedule' | 'info' | 'silver' | 'gold'
+  example?: React.ReactNode
+}
+
+interface RuleCategoryData {
+  titleKey: string
+  headerIcon: React.ReactNode
+  scoring: RuleItemData[]
+  deadlines: RuleItemData[]
+  general: RuleItemData[]
 }
 
 interface RulesProps {
-  readonly expanded?: boolean;
-  readonly fullpage?: boolean;
-  readonly scoringConfig?: ScoringConfig;
-  readonly tournamentId?: string;
-  readonly isActive?: boolean;
-  /** Pre-formatted QT/Awards lock date (e.g. "June 16, 2026"). When omitted, falls back to "5 days after the tournament starts". */
-  readonly lockDate?: string;
+  readonly expanded?: boolean
+  readonly fullpage?: boolean
+  readonly scoringConfig?: ScoringConfig
+  readonly tournamentId?: string
+  readonly isActive?: boolean
+  /** Pre-formatted QT/Awards lock date (e.g. "June 16, 2026"). When omitted, falls back to "2 days after the tournament starts". */
+  readonly lockDate?: string
 }
 
-export default function Rules({ expanded: defaultExpanded = true, fullpage = false, scoringConfig, tournamentId, isActive = false, lockDate }: RulesProps) {
-  const locale = useLocale();
-  const theme = useTheme();
-  const t = useTranslations('rules');
-  const tRules = useTranslations('rules.rules');
-  const tConstraints = useTranslations('rules.constraints');
-  const tActions = useTranslations('rules.actions');
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const [expandedRules, setExpandedRules] = useState<number[]>([]);
-  const [expandedConstraints, setExpandedConstraints] = useState<number[]>([]);
+function RuleItemChip({ chip }: { chip: PointChip }) {
+  const baseStyle = {
+    px: 0.75,
+    py: 0.25,
+    borderRadius: 1,
+    ml: 1,
+    fontWeight: 800,
+    fontSize: '0.65rem',
+    minWidth: 28,
+    textAlign: 'center' as const,
+    flexShrink: 0,
+  }
 
-  // Use provided config or defaults
-  const config = scoringConfig || DEFAULT_SCORING;
+  if (chip.type === 'zero') {
+    return (
+      <Box sx={{ ...baseStyle, bgcolor: 'rgba(244,63,94,0.08)', color: 'error.main', border: '1px solid rgba(244,63,94,0.25)' }}>
+        0
+      </Box>
+    )
+  }
+  if (chip.type === 'silver') {
+    return (
+      <Box sx={{ ...baseStyle, bgcolor: 'rgba(192,192,192,0.1)', color: SILVER_COLOR, border: `1px solid ${SILVER_COLOR}` }}>
+        X2
+      </Box>
+    )
+  }
+  if (chip.type === 'gold') {
+    return (
+      <Box sx={{ ...baseStyle, bgcolor: 'rgba(255,215,0,0.1)', color: GOLD_COLOR, border: `1px solid ${GOLD_COLOR}` }}>
+        X3
+      </Box>
+    )
+  }
+  return (
+    <Box sx={{ ...baseStyle, bgcolor: 'rgba(16,185,129,0.1)', color: 'success.main', border: '1px solid rgba(16,185,129,0.3)' }}>
+      {chip.value}
+    </Box>
+  )
+}
 
-  // Helper function to get pluralized translation
-  const getPluralized = (key: string, count: number, params: Record<string, any>): string => {
-    const form = count === 1 ? 'singular' : 'plural';
-    return tRules(`${key}.${form}`, params);
-  };
+function RuleItemIcon({ icon }: { icon: RuleItemData['icon'] }) {
+  if (icon === 'cancel') return <CancelIcon sx={{ fontSize: 18, color: 'error.main', opacity: 0.7 }} />
+  if (icon === 'schedule') return <ScheduleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+  if (icon === 'info') return <InfoIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+  if (icon === 'silver') return <EmojiEventsIcon sx={{ fontSize: 18, color: SILVER_COLOR }} />
+  if (icon === 'gold') return <EmojiEventsIcon sx={{ fontSize: 18, color: GOLD_COLOR }} />
+  return <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main', opacity: 0.8 }} />
+}
 
-  // Helper function to get rules with i18n
-  const getRules = (config: ScoringConfig): Rule[] => {
-    const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points;
+function RuleRow({
+  item,
+  itemKey,
+  fullpage,
+  expandedKeys,
+  onToggle,
+}: {
+  item: RuleItemData
+  itemKey: string
+  fullpage: boolean
+  expandedKeys: Set<string>
+  onToggle: (key: string) => void
+}) {
+  const isExpanded = expandedKeys.has(itemKey)
+  const hasExample = fullpage && !!item.example
 
-    const baseRules: Rule[] = [
-      {
-        label: getPluralized('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
-        component: <WinnerDrawExample points={config.game_correct_outcome_points} />
-      },
-      ...(config.game_correct_goal_difference_points > 0 ? [{
-        label: getPluralized('goalDifference', config.game_correct_goal_difference_points, { points: config.game_correct_goal_difference_points }),
-        component: <GoalDifferenceExample points={config.game_correct_goal_difference_points} />
-      }] : []),
-      {
-        label: getPluralized('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
-        component: <ExactScoreExample
-          total={config.game_exact_score_points}
-          correctOutcome={config.game_correct_outcome_points}
-          bonus={exactScoreBonus}
+  return (
+    <ListItem
+      disableGutters
+      alignItems="flex-start"
+      sx={{ flexDirection: 'column', py: 0.5 }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          width: '100%',
+          alignItems: 'center',
+          ...(hasExample && { cursor: 'pointer' }),
+        }}
+        onClick={() => hasExample && onToggle(itemKey)}
+      >
+        <ListItemAvatar sx={{ minWidth: 30 }}>
+          <RuleItemIcon icon={item.icon} />
+        </ListItemAvatar>
+        <ListItemText
+          primary={item.label}
+          slotProps={{
+            primary: {
+              variant: 'body2',
+              color: item.icon === 'cancel' ? 'text.secondary' : 'text.primary',
+            },
+          }}
         />
-      },
-      {
-        label: getPluralized('qualifiedTeam', config.qualified_team_points, { points: config.qualified_team_points }),
-        component: <RoundOf16Example points={config.qualified_team_points} />
-      },
-      {
-        label: getPluralized('exactPosition', config.exact_position_qualified_points, {
-          points: config.exact_position_qualified_points,
-          total: config.qualified_team_points + config.exact_position_qualified_points
-        }),
-        component: <GroupPositionExample
+        {item.chip && <RuleItemChip chip={item.chip} />}
+        {hasExample && (
+          <ExpandMore
+            expand={isExpanded}
+            onClick={(e) => { e.stopPropagation(); onToggle(itemKey) }}
+            aria-expanded={isExpanded}
+            aria-label="show example"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        )}
+      </Box>
+      {hasExample && (
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+          <Box sx={{ pl: 3.75, pr: 1, py: 1 }}>{item.example}</Box>
+        </Collapse>
+      )}
+    </ListItem>
+  )
+}
+
+function RuleCategory({
+  category,
+  fullpage,
+  expandedKeys,
+  onToggle,
+  theme,
+  tSections,
+}: {
+  category: RuleCategoryData
+  fullpage: boolean
+  expandedKeys: Set<string>
+  onToggle: (key: string) => void
+  theme: Theme
+  tSections: (key: string) => string
+}) {
+  const hasScoring = category.scoring.length > 0
+  const hasDeadlines = category.deadlines.length > 0
+  const hasGeneral = category.general.length > 0
+
+  return (
+    <Box sx={{ mb: fullpage ? 4 : 2.5 }}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.05)',
+            color: 'primary.main',
+            width: 36,
+            height: 36,
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          {category.headerIcon}
+        </Avatar>
+        <Typography variant={fullpage ? 'h6' : 'subtitle1'} fontWeight={700}>
+          {tSections(category.titleKey)}
+        </Typography>
+      </Stack>
+
+      <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+        {hasScoring && (
+          <Box sx={{ p: 1.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ color: 'secondary.main', fontWeight: 900, letterSpacing: 1.5, display: 'block', mb: 0.5 }}
+            >
+              {tSections('scoring')}
+            </Typography>
+            <List disablePadding>
+              {category.scoring.map((item) => (
+                <RuleRow
+                  key={item.label}
+                  item={item}
+                  itemKey={item.label}
+                  fullpage={fullpage}
+                  expandedKeys={expandedKeys}
+                  onToggle={onToggle}
+                />
+              ))}
+            </List>
+          </Box>
+        )}
+
+        {hasScoring && hasDeadlines && <Divider />}
+
+        {hasDeadlines && (
+          <Box sx={{ p: 1.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ color: 'text.secondary', fontWeight: 900, letterSpacing: 1.5, display: 'block', mb: 0.5 }}
+            >
+              {tSections('deadlines')}
+            </Typography>
+            <List disablePadding>
+              {category.deadlines.map((item) => (
+                <RuleRow
+                  key={item.label}
+                  item={item}
+                  itemKey={item.label}
+                  fullpage={fullpage}
+                  expandedKeys={expandedKeys}
+                  onToggle={onToggle}
+                />
+              ))}
+            </List>
+          </Box>
+        )}
+
+        {hasGeneral && (
+          <Box sx={{ p: 1.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ color: 'text.secondary', fontWeight: 900, letterSpacing: 1.5, display: 'block', mb: 0.5 }}
+            >
+              {tSections('general')}
+            </Typography>
+            <List disablePadding>
+              {category.general.map((item) => (
+                <RuleRow
+                  key={item.label}
+                  item={item}
+                  itemKey={item.label}
+                  fullpage={fullpage}
+                  expandedKeys={expandedKeys}
+                  onToggle={onToggle}
+                />
+              ))}
+            </List>
+          </Box>
+        )}
+      </Paper>
+    </Box>
+  )
+}
+
+export default function Rules({
+  expanded: defaultExpanded = true,
+  fullpage = false,
+  scoringConfig,
+  tournamentId,
+  isActive = false,
+  lockDate,
+}: RulesProps) {
+  const locale = useLocale()
+  const theme = useTheme()
+  const t = useTranslations('rules')
+  const tRules = useTranslations('rules.rules')
+  const tConstraints = useTranslations('rules.constraints')
+  const tActions = useTranslations('rules.actions')
+  const tSections = useTranslations('rules.sections')
+  const [expanded, setExpanded] = useState(defaultExpanded)
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
+
+  const config = scoringConfig || DEFAULT_SCORING
+
+  const plural = (key: string, count: number, params: Record<string, string | number | Date>) =>
+    tRules(`${key}.${count === 1 ? 'singular' : 'plural'}`, params)
+
+  const date = lockDate || tConstraints('lockDateFallback')
+
+  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+
+  const matchesScoring: RuleItemData[] = [
+    {
+      label: plural('winnerDraw', config.game_correct_outcome_points, { points: config.game_correct_outcome_points }),
+      chip: { type: 'points', value: `+${config.game_correct_outcome_points}` },
+      icon: 'check',
+      example: <WinnerDrawExample points={config.game_correct_outcome_points} />,
+    },
+    ...(config.game_correct_goal_difference_points > 0
+      ? [{
+          label: plural('goalDifference', config.game_correct_goal_difference_points, { points: config.game_correct_goal_difference_points }),
+          chip: { type: 'points', value: `+${config.game_correct_goal_difference_points}` } as PointChip,
+          icon: 'check' as const,
+          example: <GoalDifferenceExample points={config.game_correct_goal_difference_points} />,
+        }]
+      : []),
+    {
+      label: plural('exactScore', exactScoreBonus, { bonus: exactScoreBonus, total: config.game_exact_score_points }),
+      chip: { type: 'points', value: `+${exactScoreBonus}` },
+      icon: 'check',
+      example: <ExactScoreExample total={config.game_exact_score_points} correctOutcome={config.game_correct_outcome_points} bonus={exactScoreBonus} />,
+    },
+    {
+      label: tRules('wrongOutcome'),
+      chip: { type: 'zero' },
+      icon: 'cancel',
+    },
+    ...(config.max_silver_games > 0
+      ? [{
+          label: plural('silverBoost', config.max_silver_games, { count: config.max_silver_games }),
+          chip: { type: 'silver' } as PointChip,
+          icon: 'silver' as const,
+        }]
+      : []),
+    ...(config.max_golden_games > 0
+      ? [{
+          label: plural('goldenBoost', config.max_golden_games, { count: config.max_golden_games }),
+          chip: { type: 'gold' } as PointChip,
+          icon: 'gold' as const,
+        }]
+      : []),
+  ]
+
+  const matchesDeadlines: RuleItemData[] = [
+    {
+      label: tConstraints('matchPredictionTime'),
+      icon: 'schedule',
+      example: <MatchPredictionTimeExample />,
+    },
+    ...(config.max_silver_games > 0 || config.max_golden_games > 0
+      ? [{ label: tConstraints('boostDeadline'), icon: 'schedule' as const }]
+      : []),
+  ]
+
+  const qtScoring: RuleItemData[] = [
+    {
+      label: plural('qualifiedTeam', config.qualified_team_points, { points: config.qualified_team_points }),
+      chip: { type: 'points', value: `+${config.qualified_team_points}` },
+      icon: 'check',
+      example: <RoundOf16Example points={config.qualified_team_points} />,
+    },
+    {
+      label: plural('exactPosition', config.exact_position_qualified_points, {
+        points: config.exact_position_qualified_points,
+        total: config.qualified_team_points + config.exact_position_qualified_points,
+      }),
+      chip: { type: 'points', value: `+${config.exact_position_qualified_points}` },
+      icon: 'check',
+      example: (
+        <GroupPositionExample
           qualifiedPoints={config.qualified_team_points}
           exactPositionPoints={config.exact_position_qualified_points}
           totalPoints={config.qualified_team_points + config.exact_position_qualified_points}
         />
-      },
-      {
-        label: getPluralized('champion', config.champion_points, { points: config.champion_points }),
-        component: <ChampionExample points={config.champion_points} />
-      },
-      {
-        label: getPluralized('runnerUp', config.runner_up_points, { points: config.runner_up_points }),
-        component: <RunnerUpExample points={config.runner_up_points} />
-      },
-      {
-        label: getPluralized('thirdPlace', config.third_place_points, { points: config.third_place_points }),
-        component: <ThirdPlaceExample points={config.third_place_points} />
-      },
-      {
-        label: getPluralized('individualAwards', config.individual_award_points, { points: config.individual_award_points }),
-        component: <IndividualAwardsExample points={config.individual_award_points} />
-      },
-    ];
-
-    // Add boost rules only if boosts are enabled
-    if (config.max_silver_games > 0 || config.max_golden_games > 0) {
-      const boostRules: Rule[] = [];
-
-      if (config.max_silver_games > 0) {
-        boostRules.push({
-          label: getPluralized('silverBoost', config.max_silver_games, { count: config.max_silver_games }),
-        });
-      }
-
-      if (config.max_golden_games > 0) {
-        boostRules.push({
-          label: getPluralized('goldenBoost', config.max_golden_games, { count: config.max_golden_games }),
-        });
-      }
-
-      boostRules.push({
-        label: tRules('boostTiming'),
-      });
-
-      return [...baseRules, ...boostRules];
-    }
-
-    return baseRules;
-  };
-
-  // Constraints with i18n — use the specific lock date when available, otherwise fall back to
-  // the generic "5 days after the tournament starts" phrase so the text is always complete.
-  const date = lockDate || tConstraints('lockDateFallback');
-  const constraints: Rule[] = [
-    {
-      label: tConstraints('matchPredictionTime'),
-      component: <MatchPredictionTimeExample />
+      ),
     },
     {
-      label: tConstraints('podiumPredictionTime', { date }),
-      component: <PodiumPredictionTimeExample />
+      label: tRules('teamFailedToQualify'),
+      chip: { type: 'zero' },
+      icon: 'cancel',
     },
+  ]
+
+  const qtDeadlines: RuleItemData[] = [
     {
       label: tConstraints('qualifiedTeamsPredictionTime', { date }),
-      component: <QualifiedTeamsPredictionTimeExample />
+      icon: 'schedule',
+      example: <QualifiedTeamsPredictionTimeExample />,
+    },
+  ]
+
+  const awardsScoring: RuleItemData[] = [
+    {
+      label: plural('champion', config.champion_points, { points: config.champion_points }),
+      chip: { type: 'points', value: `+${config.champion_points}` },
+      icon: 'check',
+      example: <ChampionExample points={config.champion_points} />,
     },
     {
+      label: plural('runnerUp', config.runner_up_points, { points: config.runner_up_points }),
+      chip: { type: 'points', value: `+${config.runner_up_points}` },
+      icon: 'check',
+      example: <RunnerUpExample points={config.runner_up_points} />,
+    },
+    {
+      label: plural('thirdPlace', config.third_place_points, { points: config.third_place_points }),
+      chip: { type: 'points', value: `+${config.third_place_points}` },
+      icon: 'check',
+      example: <ThirdPlaceExample points={config.third_place_points} />,
+    },
+    {
+      label: plural('individualAwards', config.individual_award_points, { points: config.individual_award_points }),
+      chip: { type: 'points', value: `+${config.individual_award_points}` },
+      icon: 'check',
+      example: <IndividualAwardsExample points={config.individual_award_points} />,
+    },
+  ]
+
+  const awardsDeadlines: RuleItemData[] = [
+    {
+      label: tConstraints('podiumPredictionTime', { date }),
+      icon: 'schedule',
+      example: <PodiumPredictionTimeExample />,
+    },
+  ]
+
+  const tournamentGeneral: RuleItemData[] = [
+    {
       label: tConstraints('singlePrediction'),
-      component: <SinglePredictionExample />
-    }
-  ];
+      icon: 'info',
+      example: <SinglePredictionExample />,
+    },
+    { label: tRules('sharedPrediction'), icon: 'info' },
+    { label: tRules('thirdPlaceCondition'), icon: 'info' },
+  ]
 
-  const rules = getRules(config);
+  const categories: RuleCategoryData[] = [
+    {
+      titleKey: 'matches',
+      headerIcon: <SportsSoccerIcon sx={{ fontSize: 20 }} />,
+      scoring: matchesScoring,
+      deadlines: matchesDeadlines,
+      general: [],
+    },
+    {
+      titleKey: 'qualifiedTeams',
+      headerIcon: <AccountTreeIcon sx={{ fontSize: 20 }} />,
+      scoring: qtScoring,
+      deadlines: qtDeadlines,
+      general: [],
+    },
+    {
+      titleKey: 'awardsChampion',
+      headerIcon: <EmojiEventsIcon sx={{ fontSize: 20 }} />,
+      scoring: awardsScoring,
+      deadlines: awardsDeadlines,
+      general: [],
+    },
+    {
+      titleKey: 'tournamentLogic',
+      headerIcon: <LanguageIcon sx={{ fontSize: 20 }} />,
+      scoring: [],
+      deadlines: [],
+      general: tournamentGeneral,
+    },
+  ]
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  }
-
-  const handleRuleExpand = (index: number) => {
-    setExpandedRules(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
-    );
-  }
-
-  const handleConstraintExpand = (index: number) => {
-    setExpandedConstraints(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
-    );
+  const handleToggle = (key: string) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
   }
 
   return (
-    <Card sx={{
-      maxWidth: fullpage ? '800px' : '100%',
-      mx: fullpage ? 'auto' : 0,
-      ...(isActive && {
-        borderLeft: 3,
-        borderColor: 'primary.main',
-        backgroundColor: 'action.selected',
-      })
-    }}>
+    <Card
+      sx={{
+        maxWidth: fullpage ? '800px' : '100%',
+        mx: fullpage ? 'auto' : 0,
+        ...(isActive && {
+          borderLeft: 3,
+          borderColor: 'primary.main',
+          backgroundColor: 'action.selected',
+        }),
+      }}
+    >
       <CardHeader
         title={t('title')}
         slotProps={{ title: { variant: fullpage ? 'h4' : 'h6' } }}
         subheader={isActive ? t('status.youAreHere') : undefined}
         sx={{
           color: theme.palette.primary.main,
-          borderBottom: `${theme.palette.primary.light} solid 1px`
+          borderBottom: `${theme.palette.primary.light} solid 1px`,
         }}
         action={
           !fullpage && (
             <ExpandMore
               expand={expanded}
-              onClick={handleExpandClick}
+              onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
               aria-label="show more"
             >
@@ -223,152 +549,19 @@ export default function Rules({ expanded: defaultExpanded = true, fullpage = fal
         }
       />
       <Collapse in={fullpage ? true : expanded} timeout="auto" unmountOnExit>
-        <CardContent sx={{ borderBottom: `${theme.palette.primary.contrastText} 1px solid`, borderTop: `${theme.palette.primary.contrastText} 1px solid` }}>
-          <Typography variant={'h6'}>
-            {t('sections.scoring')}
-          </Typography>
-          <List disablePadding>
-            {rules.map((rule, index) => (
-              <ListItem
-                key={index}
-                alignItems='flex-start'
-                disableGutters
-                sx={{ flexDirection: 'column' }}
-              >
-                <Box sx={{ 
-                  display: 'flex', 
-                  width: '100%', 
-                  alignItems: 'center',
-                  ...(fullpage && rule.component && { cursor: 'pointer' })
-                }}
-                onClick={() => fullpage && rule.component && handleRuleExpand(index)}
-                >
-                  {!fullpage && rule.component ? (
-                    <Tooltip 
-                      title={rule.component} 
-                      placement="bottom"
-                      arrow
-                      slotProps={{
-                        tooltip: {
-                          sx: {
-                            bgcolor: 'background.paper',
-                            color: 'text.primary',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            maxWidth: 400,
-                            '& .MuiTooltip-arrow': {
-                              color: 'background.paper',
-                              '&:before': {
-                                border: '1px solid',
-                                borderColor: 'divider',
-                              }
-                            }
-                          }
-                        }
-                      }}
-                    >
-                      <ListItemText>{rule.label}</ListItemText>
-                    </Tooltip>
-                  ) : (
-                    <ListItemText>{rule.label}</ListItemText>
-                  )}
-                  {fullpage && rule.component && (
-                    <ExpandMore
-                      expand={expandedRules.includes(index)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRuleExpand(index);
-                      }}
-                      aria-expanded={expandedRules.includes(index)}
-                      aria-label="show more"
-                    >
-                      <ExpandMoreIcon />
-                    </ExpandMore>
-                  )}
-                </Box>
-                {fullpage && rule.component && (
-                  <Collapse in={expandedRules.includes(index)} timeout="auto" unmountOnExit>
-                    <Box sx={{ pl: 2, pr: 1, py: 1 }}>
-                      {rule.component}
-                    </Box>
-                  </Collapse>
-                )}
-              </ListItem>
-            ))}
-          </List>
-          <Typography variant={'h6'}>
-            {t('sections.constraints')}
-          </Typography>
-          <List disablePadding>
-            {constraints.map((constraint, index) => (
-              <ListItem
-                key={constraint.label}
-                alignItems='flex-start'
-                disableGutters
-                sx={{ flexDirection: 'column' }}
-              >
-                <Box sx={{ 
-                  display: 'flex', 
-                  width: '100%', 
-                  alignItems: 'center',
-                  ...(fullpage && constraint.component && { cursor: 'pointer' })
-                }}
-                onClick={() => fullpage && constraint.component && handleConstraintExpand(index)}
-                >
-                  {!fullpage && constraint.component ? (
-                    <Tooltip 
-                      title={constraint.component} 
-                      placement="bottom"
-                      arrow
-                      slotProps={{
-                        tooltip: {
-                          sx: {
-                            bgcolor: 'background.paper',
-                            color: 'text.primary',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            maxWidth: 400,
-                            '& .MuiTooltip-arrow': {
-                              color: 'background.paper',
-                              '&:before': {
-                                border: '1px solid',
-                                borderColor: 'divider',
-                              }
-                            }
-                          }
-                        }
-                      }}
-                    >
-                      <ListItemText>{constraint.label}</ListItemText>
-                    </Tooltip>
-                  ) : (
-                    <ListItemText>{constraint.label}</ListItemText>
-                  )}
-                  {fullpage && constraint.component && (
-                    <ExpandMore
-                      expand={expandedConstraints.includes(index)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleConstraintExpand(index);
-                      }}
-                      aria-expanded={expandedConstraints.includes(index)}
-                      aria-label="show more"
-                    >
-                      <ExpandMoreIcon />
-                    </ExpandMore>
-                  )}
-                </Box>
-                {fullpage && constraint.component && (
-                  <Collapse in={expandedConstraints.includes(index)} timeout="auto" unmountOnExit>
-                    <Box sx={{ pl: 2, pr: 1, py: 1 }}>
-                      {constraint.component}
-                    </Box>
-                  </Collapse>
-                )}
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
+        <Box sx={{ p: fullpage ? 3 : 2 }}>
+          {categories.map((category) => (
+            <RuleCategory
+              key={category.titleKey}
+              category={category}
+              fullpage={fullpage}
+              expandedKeys={expandedKeys}
+              onToggle={handleToggle}
+              theme={theme}
+              tSections={tSections}
+            />
+          ))}
+        </Box>
       </Collapse>
       {!fullpage && (
         <CardActions sx={{ justifyContent: 'center', px: 2, py: 1.5 }}>

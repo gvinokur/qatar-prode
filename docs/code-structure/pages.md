@@ -193,7 +193,7 @@ Tournament-specific rules page with scoring configuration.
 
 - **generateMetadata({ params }: { params: Promise<{ id: string }> })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{rules.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentRulesPage(props: Props)**: `JSX.Element` — [Server] Fetches tournament and first game in parallel (`Promise.all`). Computes `lockDate` = first game date + 5 days formatted via `Intl.DateTimeFormat` (undefined when no first game). Passes `lockDate` to `<Rules />` so constraint strings show the actual date rather than the generic fallback.
+- **TournamentRulesPage(props: Props)**: `JSX.Element` — [Server] Fetches tournament and first game in parallel (`Promise.all`). Computes `lockDate` = first game date + `PREDICTION_LOCK_OFFSET_MS` (2 days) formatted via `Intl.DateTimeFormat` (undefined when no first game). Passes `lockDate` to `<Rules />` so constraint strings show the actual date rather than the generic fallback.
   Calls: findTournamentByIdCached, findFirstGameInTournament, getLocale, getTranslations, buildBreadcrumbListJsonLd
   Renders: JsonLd, Rules
 

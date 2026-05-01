@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { buildTournamentMetadata, findTournamentByIdCached } from '../../../../utils/metadata-utils'
 import { findFirstGameInTournament } from '../../../../db/game-repository'
+import { PREDICTION_LOCK_OFFSET_MS } from '../../../../utils/prediction-constants'
 import JsonLd from '../../../../components/shared/json-ld'
 import { buildBreadcrumbListJsonLd } from '../../../../utils/json-ld-utils'
 
@@ -51,11 +52,10 @@ export default async function TournamentRulesPage(props: Props) {
     redirect('/es')
   }
 
-  // Compute the QT/Awards lock date: 5 days after the first game
-  const LOCK_OFFSET_MS = 5 * 24 * 60 * 60 * 1000
+  // Compute the QT/Awards lock date using the system-wide 2-day offset constant
   const lockDate = firstGame?.game_date
     ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
-        new Date(firstGame.game_date.getTime() + LOCK_OFFSET_MS)
+        new Date(firstGame.game_date.getTime() + PREDICTION_LOCK_OFFSET_MS)
       )
     : undefined
 
