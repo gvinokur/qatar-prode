@@ -156,11 +156,16 @@ From `TournamentPredictionCompletion.playoffRoundsCompletion` (keyed by round ID
 
 ### Playoff Final+Third Grouping
 
-`collapsePlayoffDenominator` uses `round_order` to identify Final and Third-place rounds:
-- Final round = highest `round_order`
-- Third-place game = second-highest `round_order` if its `round_name` is identifiable as a third-place game — but since names vary by locale, **use round_order rank instead**: treat the top-2 rounds (by `round_order`) as Final-pair and merge their totals into one slot.
-- If tournament has no Third-place round, only the Final round exists at max order — no merging needed (pair count = 1)
-- Result: Final-pair slot has `total = max(1)`, `completed = completed_final + completed_third`
+`PlayoffRound` has explicit `is_final?: boolean` and `is_third_place?: boolean` flags — use these instead of `round_order` ranking (some tournaments have no Third-place game).
+
+**Required: extend `PlayoffRoundCompletionData`** (in `tables-definition.ts`) with `is_final?: boolean` and `is_third_place?: boolean`. **Also extend the query** in `tournament-prediction-completion-repository.ts` line 164 to add `'is_final'` and `'is_third_place'` to `.select(...)` and propagate them into the `playoffRoundsCompletion[round.id]` object.
+
+`collapsePlayoffDenominator` logic:
+- Final slot = entry where `is_final === true` (exactly 1 per tournament, always present)
+- Third-place slot = entry where `is_third_place === true` (may be absent — tournaments without a 3rd-place game)
+- Merge: if Third-place slot exists → combine totals into one "Final-pair" chip slot
+- If Third-place slot absent → Final slot stands alone (no merging)
+- Result: Final-pair slot has `total = final.total + (third?.total ?? 0)`, `completed = final.completed + (third?.completed ?? 0)`
 
 ### QT Auto-fill Migration
 
@@ -191,6 +196,8 @@ From `TournamentPredictionCompletion.playoffRoundsCompletion` (keyed by round ID
 - `app/components/prediction-status-header/__tests__/prediction-status-header.test.tsx`
 
 ### Modified files
+- `app/db/tables-definition.ts` — extend `PlayoffRoundCompletionData` with `is_final?: boolean; is_third_place?: boolean`
+- `app/db/tournament-prediction-completion-repository.ts` — add `'is_final'` and `'is_third_place'` to the playoff rounds query select, propagate into `playoffRoundsCompletion` object
 - `app/components/unified-games-page.tsx` — add `getUserGameStats()` call, thread `gamePointsEarned`
 - `app/components/unified-games-page-client.tsx` — replace `CompactPredictionDashboard` with `PredictionStatusHeader`
 - `app/components/qualified-teams/qualified-teams-client-page.tsx` — replace `CompactPredictionDashboard` + `QTActionBanner` with `PredictionStatusHeader`
@@ -217,6 +224,29 @@ From `TournamentPredictionCompletion.playoffRoundsCompletion` (keyed by round ID
 - **Awards page flow:** `AwardsPanel` → `PredictionStatusHeader` (was `CompactPredictionDashboard`)
 
 **Removed:** `QTActionBanner` import/usage from `qualified-teams-client-page.tsx`
+
+---
+
+### `app/db/tables-definition.ts` *(modified)*
+
+**Changed type:**
+
+- **`PlayoffRoundCompletionData`**: add `is_final?: boolean` and `is_third_place?: boolean` fields.
+  Required by `collapsePlayoffDenominator` to identify Final/Third-place rounds without relying on `round_order` ranking. Prevents incorrect merging in tournaments with no Third-place game.
+
+---
+
+### `app/db/tournament-prediction-completion-repository.ts` *(modified)*
+
+**Changed function:**
+
+- **`getTournamentPredictionCompletion(userId, tournamentId)`**: *(no signature change)*
+  Add `'is_final'` and `'is_third_place'` to the `.select(...)` at line 164. Propagate both fields into the `playoffRoundsCompletion[round.id]` object alongside existing `total`, `completed`, `round_name`.
+  Calls: `db` (Kysely)
+  Tests:
+  - `is_final` is `true` on the Final round entry, `undefined`/`false` on others
+  - `is_third_place` is `true` on the Third-place round entry when present
+  - `is_third_place` is absent/falsy when tournament has no Third-place round
 
 ---
 
@@ -298,12 +328,12 @@ interface PredictionStatusHeaderProps {
   - returns "en N días" for further games
 
 - **`collapsePlayoffDenominator(playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>): Record<string, PlayoffRoundCompletionData>`**
-  Merges the top-2 `round_order` rounds (Final + Third-place) into a single slot for chip display. Uses `round_order` ranking exclusively — no string matching.
+  Merges Final and Third-place rounds (identified by `is_final` / `is_third_place` flags on `PlayoffRoundCompletionData`) into a single slot for chip display. Does NOT use `round_order` ranking — some tournaments have no Third-place round.
   Tests:
   - merges Final and Third-place round counts into one slot when both exist
-  - leaves other rounds unchanged
-  - returns single Final slot unchanged when tournament has no Third-place round (only 1 round at max order)
-  - merges correctly when `round_order` values are non-sequential (e.g., 1, 3, 5)
+  - leaves other rounds (R16, QF, SF) unchanged
+  - returns single Final slot unchanged when tournament has no Third-place round (no `is_third_place` entry)
+  - handles input where Third-place entry has `total = 0` (no games assigned yet)
   - returns empty object when input is empty
 
 - **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, GameGuess>; teamsMap: Record<string, Team>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
@@ -369,11 +399,13 @@ interface PredictionStatusHeaderProps {
 
 ## Implementation Waves
 
-### Wave 1 — Types and pure functions (parallel tasks)
-1. `types.ts` + `index.ts`
-2. `games-header-variant.ts` (including `deriveStageLabel`, `getNextBatchSummary`, `collapsePlayoffDenominator`)
-3. `qt-header-variant.ts` (including `computeQTLockUrgency`)
-4. `awards-header-variant.ts` (including `computeAwardsActionLabel`)
+### Wave 1 — Data layer extension + types + pure functions (parallel tasks)
+1. Extend `PlayoffRoundCompletionData` in `app/db/tables-definition.ts` — add `is_final?: boolean; is_third_place?: boolean`
+2. Extend query in `app/db/tournament-prediction-completion-repository.ts` — add `'is_final'`, `'is_third_place'` to playoff rounds `.select(...)`, propagate into completion object
+3. `types.ts` + `index.ts`
+4. `games-header-variant.ts` (including `deriveStageLabel`, `getNextBatchSummary`, `collapsePlayoffDenominator`)
+5. `qt-header-variant.ts` (including `computeQTLockUrgency`)
+6. `awards-header-variant.ts` (including `computeAwardsActionLabel`)
 
 **CODE-STRUCTURE files to update:** `components-tournament-games.md` — update after Wave 1 when the new module is established.
 
