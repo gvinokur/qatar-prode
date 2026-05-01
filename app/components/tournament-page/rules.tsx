@@ -336,6 +336,7 @@ export default function Rules({
   const date = lockDate || tConstraints('lockDateFallback')
 
   const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+  const goalDiffBonus = config.game_correct_goal_difference_points - config.game_correct_outcome_points
 
   const matchesScoring: RuleItemData[] = [
     {
@@ -346,8 +347,8 @@ export default function Rules({
     },
     ...(config.game_correct_goal_difference_points > 0
       ? [{
-          label: plural('goalDifference', config.game_correct_goal_difference_points, { points: config.game_correct_goal_difference_points }),
-          chip: { type: 'points', value: `+${config.game_correct_goal_difference_points}` } as PointChip,
+          label: plural('goalDifference', goalDiffBonus, { bonus: goalDiffBonus, total: config.game_correct_goal_difference_points }),
+          chip: { type: 'points', value: `+${goalDiffBonus}` } as PointChip,
           icon: 'check' as const,
           example: <GoalDifferenceExample points={config.game_correct_goal_difference_points} />,
         }]

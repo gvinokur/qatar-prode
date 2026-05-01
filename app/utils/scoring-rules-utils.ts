@@ -26,12 +26,19 @@ export function getRulesBySection(
 ): ScoringRulesBySection {
   const pluralKey = (count: number) => (count === 1 ? 'singular' : 'plural')
   const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+  const goalDiffBonus = config.game_correct_goal_difference_points - config.game_correct_outcome_points
 
   // --- matches ---
   const matches: string[] = [
     tRules(`winnerDraw.${pluralKey(config.game_correct_outcome_points)}`, {
       points: config.game_correct_outcome_points,
     }),
+    ...(config.game_correct_goal_difference_points > 0
+      ? [tRules(`goalDifference.${pluralKey(goalDiffBonus)}`, {
+          bonus: goalDiffBonus,
+          total: config.game_correct_goal_difference_points,
+        })]
+      : []),
     tRules(`exactScore.${pluralKey(exactScoreBonus)}`, {
       bonus: exactScoreBonus,
       total: config.game_exact_score_points,

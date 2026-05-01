@@ -19,8 +19,8 @@
       "plural": "{points} Points for correct Winner/Draw"
     },
     "goalDifference": {
-      "singular": "{points} Point for same goal difference (correct winner, exact margin)",
-      "plural": "{points} Points for same goal difference (correct winner, exact margin)"
+      "singular": "{bonus} extra point for goal difference ({total} total pts)",
+      "plural": "{bonus} extra points for goal difference ({total} total pts)"
     },
     "exactScore": {
       "singular": "{bonus} extra point for exact score (total: {total} point)",

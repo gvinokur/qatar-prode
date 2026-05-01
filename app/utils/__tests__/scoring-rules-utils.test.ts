@@ -13,6 +13,7 @@ const mockTranslator = (key: string, params?: Record<string, unknown>): string =
 const baseConfig: ScoringConfig = {
   game_exact_score_points: 2,
   game_correct_outcome_points: 1,
+  game_correct_goal_difference_points: 2,
   champion_points: 5,
   runner_up_points: 3,
   third_place_points: 1,
@@ -31,16 +32,29 @@ describe('getRulesBySection', () => {
       expect(result.matches[0]).toContain('"points":1')
     })
 
-    it('contains exactScore rule with bonus and total', () => {
+    it('contains goalDifference rule with bonus and total', () => {
       const result = getRulesBySection(baseConfig, mockTranslator)
-      expect(result.matches[1]).toContain('exactScore')
+      expect(result.matches[1]).toContain('goalDifference')
       expect(result.matches[1]).toContain('"bonus":1')
       expect(result.matches[1]).toContain('"total":2')
     })
 
+    it('contains exactScore rule with bonus and total', () => {
+      const result = getRulesBySection(baseConfig, mockTranslator)
+      expect(result.matches[2]).toContain('exactScore')
+      expect(result.matches[2]).toContain('"bonus":1')
+      expect(result.matches[2]).toContain('"total":2')
+    })
+
+    it('excludes goalDifference when game_correct_goal_difference_points is 0', () => {
+      const config = { ...baseConfig, game_correct_goal_difference_points: 0 }
+      const result = getRulesBySection(config, mockTranslator)
+      expect(result.matches.some((r) => r.includes('goalDifference'))).toBe(false)
+    })
+
     it('excludes boost rules when max_silver_games and max_golden_games are 0', () => {
       const result = getRulesBySection(baseConfig, mockTranslator)
-      expect(result.matches).toHaveLength(2)
+      expect(result.matches).toHaveLength(3)
       expect(result.matches.some((r) => r.includes('silverBoost'))).toBe(false)
       expect(result.matches.some((r) => r.includes('goldenBoost'))).toBe(false)
       expect(result.matches.some((r) => r.includes('boostTiming'))).toBe(false)

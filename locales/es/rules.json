@@ -19,8 +19,8 @@
       "plural": "{points} Puntos por Ganador/Empate acertado"
     },
     "goalDifference": {
-      "singular": "{points} Punto por misma diferencia de gol (ganador correcto, margen exacto)",
-      "plural": "{points} Puntos por misma diferencia de gol (ganador correcto, margen exacto)"
+      "singular": "{bonus} punto extra por diferencia de goles ({total} pts en total)",
+      "plural": "{bonus} puntos extra por diferencia de goles ({total} pts en total)"
     },
     "exactScore": {
       "singular": "{bonus} punto extra por resultado exacto (total: {total} punto)",
