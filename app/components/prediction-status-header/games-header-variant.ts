@@ -200,7 +200,7 @@ export function collapsePlayoffDenominator(
  */
 export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction): StatusHeaderVariant {
   const now = input.now ?? new Date();
-  const { completion, games, urgentGames, gameGuesses, tournamentId, gamePointsEarned, locale } = input;
+  const { completion, games, urgentGames, gameGuesses, teamsMap, tournamentId, gamePointsEarned, locale } = input;
 
   const stageLabel = deriveStageLabel(games, now);
   const hasBoosts = (completion.silverBoostsMax > 0) || (completion.goldenBoostsMax > 0);
@@ -250,28 +250,33 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
     const window = urgencyWindow(tone);
     const count = unpredictedUrgentGames.length;
 
-    // Build game list text for message
-    const gameLines = unpredictedUrgentGames.slice(0, 5).map(g => {
-      const home = g.home_team ?? '?';
-      const away = g.away_team ?? '?';
-      const msLeft = new Date(g.game_date).getTime() - now.getTime();
-      const hLeft = Math.max(0, Math.floor(msLeft / (60 * 60 * 1000)));
-      const mLeft = Math.max(0, Math.floor((msLeft % (60 * 60 * 1000)) / 60000));
-      return `${home} vs ${away} — ${hLeft}h${mLeft > 0 ? ` ${mLeft}m` : ''}`;
+    // Build inline matchup list for message (team names from teamsMap; home_team is a team ID)
+    const matchups = unpredictedUrgentGames.slice(0, 3).map(g => {
+      const home = teamsMap[g.home_team ?? '']?.name ?? '?';
+      const away = teamsMap[g.away_team ?? '']?.name ?? '?';
+      return `${home} vs ${away}`;
     });
-    if (unpredictedUrgentGames.length > 5) gameLines.push('...');
-    const message = gameLines.join('\n');
+    if (unpredictedUrgentGames.length > 3) matchups.push(`+${unpredictedUrgentGames.length - 3}`);
+    const message = matchups.join(' · ');
 
     const firstGame = unpredictedUrgentGames[0];
     const ctaLabel = count === 1
       ? t('statusHeader.games.urgentUnpredicted.ctaSingle')
       : t('statusHeader.games.urgentUnpredicted.ctaMultiple');
 
+    const chipColor = tone === 'deadlineNow' ? 'error' : tone === 'deadlineUrgent' ? 'warning' : 'info';
     return {
       tone,
       stageLabel,
-      leadIcon: tone === 'deadlineNow' ? 'error' : tone === 'deadlineUrgent' ? 'warning' : 'info',
+      leadIcon: 'info',
       statusText: t('statusHeader.games.urgentUnpredicted.status', { count, window }),
+      chip: {
+        label: t('statusHeader.chipLabel.partidos', {
+          predicted: completion.completedGames,
+          total: completion.totalGames,
+        }),
+        color: chipColor,
+      },
       boosts,
       message,
       action: {
@@ -342,13 +347,21 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
 
   // ── VARIANT 5: stage-active-caught-up ──────────────────────────────────────
   const nextBatchText = getNextBatchSummary(games, now, t);
+  const allPredicted = completion.completedGames >= completion.totalGames && completion.totalGames > 0;
 
   return {
     tone: 'calm',
     stageLabel,
-    leadIcon: 'info',
+    leadIcon: 'check',
+    statusColor: 'success.main',
     statusText: nextBatchText,
-    chip: roundChipLabel ? { label: roundChipLabel, color: 'default' } : undefined,
+    chip: {
+      label: t('statusHeader.chipLabel.partidos', {
+        predicted: completion.completedGames,
+        total: completion.totalGames,
+      }),
+      color: allPredicted ? 'success' : 'default',
+    },
     boosts,
   };
 }

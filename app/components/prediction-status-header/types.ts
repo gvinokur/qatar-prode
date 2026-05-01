@@ -14,7 +14,9 @@ export type HeaderAction =
 export interface StatusHeaderVariant {
   tone: StatusHeaderTone
   stageLabel?: string
-  leadIcon: 'rocket' | 'check' | 'info' | 'warning' | 'error' | 'lock'
+  leadIcon: 'rocket' | 'check' | 'info' | 'warning' | 'error' | 'lock' | 'flag' | 'trophy'
+  /** Overrides icon + status text color (e.g. success.main on a calm-tone caught-up variant) */
+  statusColor?: string
   statusText: string
   chip?: { label: string; color: 'default' | 'success' | 'error' | 'warning' | 'info' }
   boosts?: { silverUsed: number; silverMax: number; goldenUsed: number; goldenMax: number }

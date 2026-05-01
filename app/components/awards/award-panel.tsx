@@ -164,15 +164,22 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
-  // Calculate individual awards completion from local state
+  // Calculate podium + individual awards completion from local state
   const awardsCompleted = useMemo(() => {
     return [
+      tournamentGuesses.champion_team_id,
+      tournamentGuesses.runner_up_team_id,
+      hasThirdPlaceGame ? tournamentGuesses.third_place_team_id : null,
       tournamentGuesses.best_player_id,
       tournamentGuesses.top_goalscorer_player_id,
       tournamentGuesses.best_goalkeeper_player_id,
       tournamentGuesses.best_young_player_id,
     ].filter(Boolean).length;
   }, [
+    hasThirdPlaceGame,
+    tournamentGuesses.champion_team_id,
+    tournamentGuesses.runner_up_team_id,
+    tournamentGuesses.third_place_team_id,
     tournamentGuesses.best_player_id,
     tournamentGuesses.top_goalscorer_player_id,
     tournamentGuesses.best_goalkeeper_player_id,
@@ -186,28 +193,37 @@ export default function AwardsPanel({
 
   const decidedSoFar = useMemo(() => {
     return [
+      tournament.champion_team_id,
+      tournament.runner_up_team_id,
+      hasThirdPlaceGame ? tournament.third_place_team_id : null,
       tournament.best_player_id,
       tournament.top_goalscorer_player_id,
       tournament.best_goalkeeper_player_id,
       tournament.best_young_player_id,
     ].filter(Boolean).length;
-  }, [tournament]);
+  }, [hasThirdPlaceGame, tournament]);
 
   const correctSoFar = useMemo(() => {
     return [
+      { result: tournament.champion_team_id, pick: tournamentGuesses.champion_team_id },
+      { result: tournament.runner_up_team_id, pick: tournamentGuesses.runner_up_team_id },
+      ...(hasThirdPlaceGame ? [{ result: tournament.third_place_team_id, pick: tournamentGuesses.third_place_team_id }] : []),
       { result: tournament.best_player_id, pick: tournamentGuesses.best_player_id },
       { result: tournament.top_goalscorer_player_id, pick: tournamentGuesses.top_goalscorer_player_id },
       { result: tournament.best_goalkeeper_player_id, pick: tournamentGuesses.best_goalkeeper_player_id },
       { result: tournament.best_young_player_id, pick: tournamentGuesses.best_young_player_id },
     ].filter(({ result, pick }) => result && result === pick).length;
-  }, [tournament, tournamentGuesses]);
+  }, [hasThirdPlaceGame, tournament, tournamentGuesses]);
+
+  // awardsTotal: 3 podium + 4 individual = 7 (or 6 when no third-place game)
+  const awardsTotal = tournamentPredictionCompletion?.awards.total ?? (hasThirdPlaceGame ? 7 : 6);
 
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
     {
       isLocked: isPredictionLocked,
       awardsLockAt,
       awardsCompleted,
-      awardsTotal: tournamentPredictionCompletion?.awards.total ?? 4,
+      awardsTotal,
       decidedSoFar,
       correctSoFar,
       awardsPointsEarned: tournamentGuesses.individual_awards_score ?? undefined,
@@ -215,7 +231,7 @@ export default function AwardsPanel({
       locale,
     },
     tPredictions as (key: string, values?: Record<string, unknown>) => string
-  ), [isPredictionLocked, awardsLockAt, awardsCompleted, tournamentPredictionCompletion, decidedSoFar, correctSoFar, tournamentGuesses, tournament.id, locale, tPredictions]);
+  ), [isPredictionLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, tournamentGuesses.individual_awards_score, tournament.id, locale, tPredictions]);
 
   return (
     <GuessesContextProvider
