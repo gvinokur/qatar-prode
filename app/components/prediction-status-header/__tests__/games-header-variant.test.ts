@@ -399,23 +399,26 @@ describe('computeGamesHeaderVariant', () => {
 
   it('should show games count chip for stage-active-caught-up', () => {
     const now = new Date('2026-06-20T12:00:00Z');
-    const game = createMockGame({ game_date: new Date('2026-06-10T18:00:00Z') });
+    const game = createMockGame({ id: 'game-past', game_date: new Date('2026-06-10T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGames: 4,
       totalGames: 10,
     });
 
     const input = createMockInput({
       games: [game],
       completion,
+      // One game with a complete guess → liveCompletedGames = 1
+      gameGuesses: {
+        'game-past': { game_id: 'game-past', home_score: 2, away_score: 1 } as any,
+      },
       now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    // chip should show predicted/total games (partidos key)
+    // chip should show live predicted/total games (partidos key)
     expect(result.chip?.label).toContain('statusHeader.chipLabel.partidos');
-    expect(result.chip?.label).toContain('"predicted":4');
+    expect(result.chip?.label).toContain('"predicted":1');
     expect(result.chip?.label).toContain('"total":10');
   });
 
@@ -425,13 +428,17 @@ describe('computeGamesHeaderVariant', () => {
     const pastGame = createMockGame({ id: 'past', game_date: new Date('2026-07-01T18:00:00Z') });
     const futureGame = createMockGame({ id: 'future', game_date: new Date('2026-07-15T18:00:00Z') });
     const completion = createMockCompletion({
-      completedGames: 10,
-      totalGames: 10,
+      totalGames: 2, // matches the 2 games provided
     });
 
     const input = createMockInput({
       games: [pastGame, futureGame],
       completion,
+      // Both games have complete guesses → liveCompletedGames = 2 = totalGames → allPredicted = true
+      gameGuesses: {
+        'past': { game_id: 'past', home_score: 1, away_score: 0 } as any,
+        'future': { game_id: 'future', home_score: 2, away_score: 1 } as any,
+      },
       now,
     });
 
@@ -442,16 +449,22 @@ describe('computeGamesHeaderVariant', () => {
 
   // ── Additional Edge Cases ───────────────────────────────────────────────
 
-  it('should include boosts info when available', () => {
+  it('should include boosts info when available, counted from live guesses', () => {
     const completion = createMockCompletion({
       silverBoostsMax: 5,
-      silverBoostsUsed: 2,
+      silverBoostsUsed: 2, // server value — not used; live count comes from gameGuesses
       goldenBoostsMax: 1,
       goldenBoostsUsed: 0,
     });
 
     const input = createMockInput({
       completion,
+      // 2 silver boosts in live guesses
+      gameGuesses: {
+        'g1': { game_id: 'g1', home_score: 1, away_score: 0, boost_type: 'silver' } as any,
+        'g2': { game_id: 'g2', home_score: 2, away_score: 1, boost_type: 'silver' } as any,
+        'g3': { game_id: 'g3', home_score: 0, away_score: 0, boost_type: null } as any,
+      },
     });
 
     const result = computeGamesHeaderVariant(input, mockT);

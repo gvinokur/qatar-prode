@@ -165,6 +165,8 @@ describe('computeQTHeaderVariant', () => {
       const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h away
       const input = baseInput({
         isLocked: false,
+        predictedGroupGames: 8, // groups must also be complete to show Recalcular
+        totalGroupGames: 8,
         qualifiersCompleted: 8,
         qualifiersTotal: 8,
         qtLockAt: lockTime,

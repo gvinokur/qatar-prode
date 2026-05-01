@@ -2,6 +2,7 @@ type TFunction = (key: string, values?: Record<string, unknown>) => string
 import type { ExtendedGameData } from '../../definitions';
 import type { Team, GameGuess, TournamentPredictionCompletion, PlayoffRoundCompletionData } from '../../db/tables-definition';
 import type { StatusHeaderVariant } from './types';
+import { isGuessComplete } from '../../utils/guess-utils';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -204,12 +205,26 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
 
   const stageLabel = deriveStageLabel(games, now);
   const hasBoosts = (completion.silverBoostsMax > 0) || (completion.goldenBoostsMax > 0);
+
+  // Compute live boost counts from current guesses (reactive to in-session boost changes)
+  const liveBoostCounts = Object.values(gameGuesses).reduce(
+    (acc, g) => {
+      if (g.boost_type === 'silver') acc.silverUsed++;
+      if (g.boost_type === 'golden') acc.goldenUsed++;
+      return acc;
+    },
+    { silverUsed: 0, goldenUsed: 0 }
+  );
+
   const boosts = hasBoosts ? {
-    silverUsed: completion.silverBoostsUsed,
+    silverUsed: liveBoostCounts.silverUsed,
     silverMax: completion.silverBoostsMax,
-    goldenUsed: completion.goldenBoostsUsed,
+    goldenUsed: liveBoostCounts.goldenUsed,
     goldenMax: completion.goldenBoostsMax,
   } : undefined;
+
+  // Live completed count using isGuessComplete (handles playoff ties needing penalty decisions)
+  const liveCompletedGames = games.filter(g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)).length;
 
   const collapsedRounds = collapsePlayoffDenominator(completion.playoffRoundsCompletion);
   const roundChipParts = Object.values(collapsedRounds).map(r => `${r.completed}/${r.total}`);
@@ -235,10 +250,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
   }
 
   // ── VARIANT 2: urgent-unpredicted ───────────────────────────────────────────
-  const unpredictedUrgentGames = urgentGames.filter(g => {
-    const guess = gameGuesses[g.id];
-    return !guess || guess.home_score == null || guess.away_score == null;
-  });
+  const unpredictedUrgentGames = urgentGames.filter(g => !isGuessComplete(gameGuesses[g.id], !!g.playoffStage));
 
   if (unpredictedUrgentGames.length > 0) {
     // Determine highest urgency level
@@ -272,7 +284,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
       statusText: t('statusHeader.games.urgentUnpredicted.status', { count, window }),
       chip: {
         label: t('statusHeader.chipLabel.partidos', {
-          predicted: completion.completedGames,
+          predicted: liveCompletedGames,
           total: completion.totalGames,
         }),
         color: chipColor,
@@ -281,7 +293,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
       message,
       action: {
         label: ctaLabel,
-        href: `/${locale}/tournaments/${tournamentId}/games?game=${firstGame.id}`,
+        href: `/${locale}/tournaments/${tournamentId}/games?edit=${firstGame.id}`,
       },
     };
   }
@@ -347,7 +359,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
 
   // ── VARIANT 5: stage-active-caught-up ──────────────────────────────────────
   const nextBatchText = getNextBatchSummary(games, now, t);
-  const allPredicted = completion.completedGames >= completion.totalGames && completion.totalGames > 0;
+  const allPredicted = liveCompletedGames >= completion.totalGames && completion.totalGames > 0;
 
   return {
     tone: 'calm',
@@ -357,7 +369,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
     statusText: nextBatchText,
     chip: {
       label: t('statusHeader.chipLabel.partidos', {
-        predicted: completion.completedGames,
+        predicted: liveCompletedGames,
         total: completion.totalGames,
       }),
       color: allPredicted ? 'success' : 'default',

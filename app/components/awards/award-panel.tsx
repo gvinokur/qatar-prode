@@ -216,7 +216,8 @@ export default function AwardsPanel({
   }, [hasThirdPlaceGame, tournament, tournamentGuesses]);
 
   // awardsTotal: 3 podium + 4 individual = 7 (or 6 when no third-place game)
-  const awardsTotal = tournamentPredictionCompletion?.awards.total ?? (hasThirdPlaceGame ? 7 : 6);
+  // Always computed locally — server awards.total counts only individual awards (4), not podium picks
+  const awardsTotal = hasThirdPlaceGame ? 7 : 6;
 
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
     {

@@ -133,7 +133,9 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
   }
 
   // ── VARIANT 4: completed-pre-lock ───────────────────────────────────────────
-  const qtComplete = qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
+  // Require group games to be complete — if user hasn't finished groups, don't show Recalcular
+  const groupsComplete = totalGroupGames > 0 && predictedGroupGames >= totalGroupGames;
+  const qtComplete = groupsComplete && qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
   if (qtComplete) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
     return {
@@ -192,7 +194,7 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
     message: t('statusHeader.qt.preTournament.message'),
     action: {
       label: t('statusHeader.qt.preTournament.cta'),
-      href: `/${locale}/tournaments/${tournamentId}/games`,
+      href: `/${locale}/tournaments/${tournamentId}/games?edit=next`,
     },
   };
 }
