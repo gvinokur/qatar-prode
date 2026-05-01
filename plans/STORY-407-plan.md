@@ -156,8 +156,8 @@ The stage label reflects the **current tournament phase** — derived from game 
 - ...each subsequent stage inherits the previous stage's `maxDate` as its start
 
 Algorithm:
-1. Bucket games by stage: group games (no `playoffStage`) into one bucket; each playoff round (by `tournament_playoff_round_id`) into its own bucket.
-2. Sort buckets by `maxDate` ascending (groups first, then playoff rounds by their last-game date).
+1. Bucket games by stage: group games (no `playoffStage`) into one bucket; each playoff round into its own bucket — **except: Final (`is_final`) and Third-place (`is_third_place`) games are merged into a single "Finals" bucket** (label = Final round's `round_name`). If no Third-place game exists, Final stands alone as its own bucket.
+2. Sort buckets by `maxDate` ascending (groups first, then playoff rounds by their last-game date, Finals bucket last).
 3. Groups bucket `startDate = min(groupGames.date)`, all other buckets `startDate = prevBucket.maxDate`.
 4. Current stage = **bucket where `startDate ≤ now ≤ maxDate`**.
 5. If `now < groups.startDate` → `"Grupos"` (pre-tournament).
@@ -167,8 +167,8 @@ Algorithm:
 Examples:
 - `min(groupGames.date) ≤ now ≤ max(groupGames.date)` → `"Grupos"`
 - `max(groupGames.date) ≤ now ≤ max(R16Games.date)` → R16 round name
-- `max(R16Games.date) ≤ now ≤ max(QFGames.date)` → QF round name
-- `now > max(allGames.date)` → `"Finalizado"`.
+- `max(SFGames.date) ≤ now ≤ max(Final+ThirdGames.date)` → Final round name (Finals bucket)
+- `now > max(allGames.date)` → `"Finalizado"`
 
 ### Playoff Final+Third Grouping
 
@@ -330,12 +330,13 @@ interface PredictionStatusHeaderProps {
   - stage label `"Finalizado"` when all games are in the past (date-based)
 
 - **`deriveStageLabel(games: ExtendedGameData[], now: Date): string | undefined`**
-  Derives the current tournament stage from game dates using stage interval logic. Groups stage owns `[min(groupGames.date), max(groupGames.date)]`; each playoff round owns `[prevStage.maxDate, thisStage.maxDate]`. Returns the label for the stage whose interval contains `now`, `"Finalizado"` if past all stages, `"Grupos"` if pre-tournament, `undefined` for empty input.
+  Derives the current tournament stage from game dates using stage interval logic. Final and Third-place games (identified by `is_final`/`is_third_place` on `playoffStage`) are merged into one "Finals" bucket labeled with the Final round's `round_name`. Returns the label for the stage whose interval contains `now`, `"Finalizado"` if past all stages, `"Grupos"` if pre-tournament, `undefined` for empty input.
   Tests:
   - returns `"Grupos"` when `now` is within the group games date range
   - returns `"Grupos"` when `now` is before the first group game (pre-tournament)
-  - returns playoff round name when `now` falls in that round's interval (after groups ended)
-  - returns next playoff round name when `now` is between previous round's end and this round's games
+  - returns playoff round name when `now` falls in that round's interval
+  - returns Final round name when `now` falls in the Finals bucket (Final + Third-place merged)
+  - returns Final round name when `now` falls in Finals bucket and tournament has no Third-place game
   - returns `"Finalizado"` when `now` is past the last game of the last stage
   - returns `undefined` for empty games array
 
