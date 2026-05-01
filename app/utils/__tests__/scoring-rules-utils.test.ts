@@ -11,7 +11,7 @@ const mockTranslator = (key: string, params?: Record<string, unknown>): string =
 }
 
 const baseConfig: ScoringConfig = {
-  game_exact_score_points: 2,
+  game_exact_score_points: 3,
   game_correct_outcome_points: 1,
   game_correct_goal_difference_points: 2,
   champion_points: 5,
@@ -43,7 +43,7 @@ describe('getRulesBySection', () => {
       const result = getRulesBySection(baseConfig, mockTranslator)
       expect(result.matches[2]).toContain('exactScore')
       expect(result.matches[2]).toContain('"bonus":1')
-      expect(result.matches[2]).toContain('"total":2')
+      expect(result.matches[2]).toContain('"total":3')
     })
 
     it('excludes goalDifference when game_correct_goal_difference_points is 0', () => {

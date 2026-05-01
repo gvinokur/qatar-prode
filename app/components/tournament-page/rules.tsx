@@ -335,7 +335,7 @@ export default function Rules({
 
   const date = lockDate || tConstraints('lockDateFallback')
 
-  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+  const exactScoreBonus = config.game_exact_score_points - (config.game_correct_goal_difference_points || config.game_correct_outcome_points)
   const goalDiffBonus = config.game_correct_goal_difference_points - config.game_correct_outcome_points
 
   const matchesScoring: RuleItemData[] = [

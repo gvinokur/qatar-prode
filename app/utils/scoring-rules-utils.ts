@@ -25,7 +25,7 @@ export function getRulesBySection(
   tRules: (_key: string, _params?: Record<string, unknown>) => string
 ): ScoringRulesBySection {
   const pluralKey = (count: number) => (count === 1 ? 'singular' : 'plural')
-  const exactScoreBonus = config.game_exact_score_points - config.game_correct_outcome_points
+  const exactScoreBonus = config.game_exact_score_points - (config.game_correct_goal_difference_points || config.game_correct_outcome_points)
   const goalDiffBonus = config.game_correct_goal_difference_points - config.game_correct_outcome_points
 
   // --- matches ---
