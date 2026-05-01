@@ -110,7 +110,7 @@ export interface StatusHeaderVariant {
   message?: string              // rich body text (optional)
   action?: HeaderAction
   secondaryAction?: HeaderAction
-  // No expandedGames here — see ExpansionGame prop on PredictionStatusHeader
+  // No expandedGames — game list computed into message by computeGamesHeaderVariant
 }
 ```
 
@@ -232,9 +232,6 @@ Types only — `StatusHeaderTone`, `HeaderAction`, `StatusHeaderVariant` (see ab
 ```typescript
 interface PredictionStatusHeaderProps {
   variant: StatusHeaderVariant
-  // Game list for urgent-unpredicted expansion — passed from page data, NOT in variant descriptor.
-  // UnifiedGamesPageClient computes this from closingGames + gameGuesses + teamsMap.
-  expansionGames?: Array<{ id: string; homeTeam: string; awayTeam: string; closesAt: Date; tournamentId: string }>
   // QT auto-fill support
   onAutoFillSuccess?: (predictions: QualifiedTeamPrediction[]) => void
   isLocked?: boolean
@@ -243,14 +240,14 @@ interface PredictionStatusHeaderProps {
 ```
 
 - **`PredictionStatusHeader(props: PredictionStatusHeaderProps)`**: `JSX.Element`
-  Renders any `StatusHeaderVariant` as a MUI Card with:
+  Renders any `StatusHeaderVariant` as a MUI Card. The component knows nothing about games — all display decisions (including the urgent-unpredicted game list) are resolved by the variant selector and stored in `variant.message`.
   - Left-border accent from tone
   - Background tint from tone (MUI `.50` palette tokens)
   - Header row: optional stageLabel chip + leadIcon + statusText (left), chip (right)
   - Optional: boosts row (Games variants)
   - Optional: points badge (top-right, terminal states)
-  - Optional: message + action/secondaryAction buttons
-  - Optional: expansion game list — rendered when `expansionGames` is non-empty. Each item shows team names + countdown. Page computes this list; variant descriptor carries no game data.
+  - Optional: `message` text rendered below header row (multiline, `white-space: pre-line`)
+  - Optional: action/secondaryAction buttons
   - Internal `AutoFillDialog` for QT auto-fill actions
   Calls: `bulkAutoFillFromPredictions` (via internal dialog, QT only)
   Tests:
@@ -260,7 +257,7 @@ interface PredictionStatusHeaderProps {
   - secondary action button has `color="primary"` `variant="outlined"`
   - applies `success.50` background for `success` tone
   - applies `error.50` background for `deadlineNow` tone
-  - renders expansion game list when `expansionGames` is non-empty; omits when empty/undefined
+  - renders `message` text when defined; omits when undefined
   - renders `pointsBadge` chip when defined; omits when undefined
   - renders boosts row when `boosts` defined; omits when undefined
 
@@ -309,9 +306,9 @@ interface PredictionStatusHeaderProps {
   - merges correctly when `round_order` values are non-sequential (e.g., 1, 3, 5)
   - returns empty object when input is empty
 
-- **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, any>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
+- **`GamesHeaderInput`** interface: `{ completion: TournamentPredictionCompletion; urgentGames: ExtendedGameData[]; gameGuesses: Record<string, GameGuess>; teamsMap: Record<string, Team>; tournamentId: string; gamePointsEarned?: number; locale: string; now?: Date }`
 
-**Note on expansion games:** `computeGamesHeaderVariant` does NOT produce an `expandedGames` list — that list is derived from the same `GamesHeaderInput.urgentGames` data directly at the `UnifiedGamesPageClient` call site. `UnifiedGamesPageClient` filters `closingGames` by `gameGuesses` to get unpredicted urgent games, maps to `{ id, homeTeam, awayTeam, closesAt }` using `teamsMap`, and passes the result as `expansionGames` to `PredictionStatusHeader`.
+**Note on message computation:** For the `urgent-unpredicted` variant, `computeGamesHeaderVariant` uses `urgentGames`, `gameGuesses`, and `teamsMap` to build the game list text (team names + countdown) and sets it as `variant.message`. No game data is passed through `PredictionStatusHeader` props — the component simply renders `variant.message` as `white-space: pre-line` text.
 
 ---
 
@@ -421,7 +418,7 @@ interface PredictionStatusHeaderProps {
 - `getNextBatchSummary` with today/tomorrow/N-days cases
 
 **Component render tests:**
-- `PredictionStatusHeader` — tone → background, chip rendering, action button `color="primary"`, points badge, boosts, expandedGames
+- `PredictionStatusHeader` — tone → background, chip rendering, action button `color="primary"`, points badge, boosts, message text rendering
 
 **Coverage target:** ≥80% on all new files.
 
