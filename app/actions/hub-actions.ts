@@ -87,6 +87,43 @@ export interface ActionCenterData {
   nowAvailablePlayoffRound: { roundId: string; roundName: string; firstGameId: string } | null
 }
 
+/** Resolves the first playoff round that is "Now Available" for prediction. */
+async function resolveNowAvailablePlayoffRound(
+  availableRoundIds: string[],
+  guessesMapAll: Record<string, GameGuessNew>,
+  locale: Locale
+): Promise<ActionCenterData['nowAvailablePlayoffRound']> {
+  if (availableRoundIds.length === 0) return null
+  const firstAvailableRoundId = availableRoundIds[0]
+  const [roundData, roundGames] = await Promise.all([
+    findPlayoffRoundBy(firstAvailableRoundId),
+    db
+      .selectFrom('tournament_playoff_round_games')
+      .innerJoin('games', 'games.id', 'tournament_playoff_round_games.game_id')
+      .where('tournament_playoff_round_games.tournament_playoff_round_id', '=', firstAvailableRoundId)
+      .orderBy('games.game_date', 'asc')
+      .select(['games.id', 'games.game_date'])
+      .execute(),
+  ])
+  const firstUnpredictedGame = roundGames.find((g) => {
+    const guess = guessesMapAll[g.id]
+    if (!guess || guess.home_score === null || guess.away_score === null) return true
+    if (guess.home_score === guess.away_score) {
+      return !(guess.home_penalty_winner || guess.away_penalty_winner)
+    }
+    return false
+  })
+  if (!firstUnpredictedGame || !roundData) return null
+  const localizedRound = applyLocalization(roundData, locale, [
+    { field: 'round_name', i18nField: 'round_name_i18n' },
+  ])
+  return {
+    roundId: firstAvailableRoundId,
+    roundName: localizedRound.round_name,
+    firstGameId: firstUnpredictedGame.id,
+  }
+}
+
 /** Builds a ScoringConfig from a tournament row, falling back to defaults for absent fields. */
 function buildScoringConfig(
   tournament: Awaited<ReturnType<typeof findTournamentById>> | undefined | null
@@ -313,38 +350,7 @@ export async function getActionCenterGames(
 
   // Determine if any playoff round is "Now Available" for prediction
   const availableRoundIds = computeNowAvailableRoundIds(playoffRoundsInfo, now)
-  let nowAvailablePlayoffRound: ActionCenterData['nowAvailablePlayoffRound'] = null
-  if (availableRoundIds.length > 0) {
-    const firstAvailableRoundId = availableRoundIds[0]
-    const [roundData, roundGames] = await Promise.all([
-      findPlayoffRoundBy(firstAvailableRoundId),
-      db
-        .selectFrom('tournament_playoff_round_games')
-        .innerJoin('games', 'games.id', 'tournament_playoff_round_games.game_id')
-        .where('tournament_playoff_round_games.tournament_playoff_round_id', '=', firstAvailableRoundId)
-        .orderBy('games.game_date', 'asc')
-        .select(['games.id', 'games.game_date'])
-        .execute(),
-    ])
-    const firstUnpredictedGame = roundGames.find((g) => {
-      const guess = guessesMapAll[g.id]
-      if (!guess || guess.home_score === null || guess.away_score === null) return true
-      if (guess.home_score === guess.away_score) {
-        return !(guess.home_penalty_winner || guess.away_penalty_winner)
-      }
-      return false
-    })
-    if (firstUnpredictedGame && roundData) {
-      const localizedRound = applyLocalization(roundData, locale, [
-        { field: 'round_name', i18nField: 'round_name_i18n' },
-      ])
-      nowAvailablePlayoffRound = {
-        roundId: firstAvailableRoundId,
-        roundName: localizedRound.round_name,
-        firstGameId: firstUnpredictedGame.id,
-      }
-    }
-  }
+  const nowAvailablePlayoffRound = await resolveNowAvailablePlayoffRound(availableRoundIds, guessesMapAll, locale)
 
   if (games.length === 0) {
     const localizedTeams = applyLocalizationBatch(teams, locale, [
