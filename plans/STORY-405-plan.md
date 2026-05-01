@@ -48,7 +48,7 @@ The current Rules component (`app/components/tournament-page/rules.tsx`) has fou
 │  │ 🕐 Boosts must be applied before kickoff│  │
 │  └─────────────────────────────────────────┘  │
 │                                                │
-│  ⊞  Qualified Teams  (Schema icon)            │
+│  ⊞  Qualified Teams  (AccountTree icon)       │
 │  ┌─────────────────────────────────────────┐  │
 │  │ SCORING                                 │  │
 │  │ ✓ Correct qualified team           +1   │  │
