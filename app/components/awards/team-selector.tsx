@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useImperativeHandle, forwardRef } from 'react';
+import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box, SelectChangeEvent } from '@mui/material';
 import { Team } from '../../db/tables-definition';
 import Image from 'next/image';
@@ -15,32 +15,22 @@ interface TeamSelectorProps {
   disabled?: boolean;
   helperText?: string;
   onChange?: (_value: string) => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export interface TeamSelectorHandle {
-  focus: () => void;
-}
-
-const TeamSelector = forwardRef<TeamSelectorHandle, TeamSelectorProps>(function TeamSelector({
+const TeamSelector: React.FC<TeamSelectorProps> = ({
   label,
   teams,
   selectedTeamId,
   name,
   disabled = false,
   helperText,
-  onChange
-}, ref) {
+  onChange,
+  open,
+  onClose,
+}) => {
   const t = useTranslations('awards');
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useImperativeHandle(ref, () => ({
-    focus: () => {
-      // MUI Select renders its interactive element as div[tabindex="0"] inside the container
-      const el = containerRef.current?.querySelector<HTMLElement>('[tabindex="0"]');
-      el?.focus();
-    },
-  }));
-
   // Sort teams alphabetically by name
   const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -56,7 +46,7 @@ const TeamSelector = forwardRef<TeamSelectorHandle, TeamSelectorProps>(function 
   let logoUrl : string | undefined | null = null;
 
   return (
-    <FormControl ref={containerRef} fullWidth disabled={disabled}>
+    <FormControl fullWidth disabled={disabled}>
       <InputLabel id={`${name}-label`}>{label}</InputLabel>
       <Select
         labelId={`${name}-label`}
@@ -65,6 +55,8 @@ const TeamSelector = forwardRef<TeamSelectorHandle, TeamSelectorProps>(function 
         value={selectedTeamId}
         label={label}
         onChange={handleChange}
+        open={open}
+        onClose={onClose}
         renderValue={(selected) => {
           const team = teams.find(t => t.id === selected);
           if (!team) return label;
@@ -114,6 +106,6 @@ const TeamSelector = forwardRef<TeamSelectorHandle, TeamSelectorProps>(function 
       {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>
   );
-});
+};
 
 export default TeamSelector;

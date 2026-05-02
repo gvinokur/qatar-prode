@@ -20,7 +20,7 @@ import {Close as MissIcon, Done as HitIcon, Lock as LockIcon} from "@mui/icons-m
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/award-utils";
-import TeamSelector, { type TeamSelectorHandle } from "./team-selector";
+import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslations, useLocale } from 'next-intl';
@@ -228,14 +228,7 @@ export default function AwardsPanel({
   // Always computed locally — server awards.total counts only individual awards (4), not podium picks
   const awardsTotal = hasThirdPlaceGame ? 7 : 6;
 
-  const championRef = useRef<TeamSelectorHandle>(null);
-  const runnerUpRef = useRef<TeamSelectorHandle>(null);
-  const thirdPlaceRef = useRef<TeamSelectorHandle>(null);
-  const podiumRefs: Partial<Record<AwardTypes, React.RefObject<TeamSelectorHandle | null>>> = {
-    champion_team_id: championRef,
-    runner_up_team_id: runnerUpRef,
-    third_place_team_id: thirdPlaceRef,
-  };
+  const [openPodiumField, setOpenPodiumField] = useState<AwardTypes | null>(null);
 
   const fieldContainerRefs = useRef<Map<AwardTypes, HTMLElement>>(new Map());
   const fieldInputRefs = useRef<Map<AwardTypes, HTMLInputElement>>(new Map());
@@ -260,19 +253,15 @@ export default function AwardsPanel({
     const firstUnpredicted = [...podiumFields, ...individualFields].find(f => !tournamentGuesses[f]);
     if (!firstUnpredicted) return;
 
-    const podiumRef = podiumRefs[firstUnpredicted]?.current;
-    if (podiumRef) {
-      const container = fieldContainerRefs.current.get(firstUnpredicted);
-      container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => podiumRef.focus(), 400);
-      return;
-    }
-
     const container = fieldContainerRefs.current.get(firstUnpredicted);
-    if (!container) return;
-    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = fieldInputRefs.current.get(firstUnpredicted);
-    if (input) setTimeout(() => input.focus(), 400);
+    container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (podiumFields.includes(firstUnpredicted)) {
+      setTimeout(() => setOpenPodiumField(firstUnpredicted), 400);
+    } else {
+      const input = fieldInputRefs.current.get(firstUnpredicted);
+      if (input) setTimeout(() => input.focus(), 400);
+    }
   }, [tournamentGuesses, hasThirdPlaceGame, t]);
 
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
@@ -319,7 +308,6 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
-                ref={championRef}
                 label={t('podium.champion.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.champion_team_id || ''}
@@ -327,6 +315,8 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.champion.helper')}
                 onChange={handlePodiumGuessChange('champion_team_id')}
+                open={openPodiumField === 'champion_team_id'}
+                onClose={() => setOpenPodiumField(null)}
               />
               {tournament.champion_team_id && tournament.champion_team_id === tournamentGuesses.champion_team_id && (
                 <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
@@ -350,7 +340,6 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
-                ref={runnerUpRef}
                 label={t('podium.runnerUp.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.runner_up_team_id || ''}
@@ -358,6 +347,8 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.runnerUp.helper')}
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
+                open={openPodiumField === 'runner_up_team_id'}
+                onClose={() => setOpenPodiumField(null)}
               />
               {tournament.runner_up_team_id && tournament.runner_up_team_id === tournamentGuesses.runner_up_team_id && (
                 <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
@@ -381,7 +372,6 @@ export default function AwardsPanel({
                   md: 4
                 }}>
                 <TeamSelector
-                  ref={thirdPlaceRef}
                   label={t('podium.thirdPlace.label')}
                   teams={teams}
                   selectedTeamId={tournamentGuesses.third_place_team_id || ''}
@@ -389,6 +379,8 @@ export default function AwardsPanel({
                   disabled={isDisabled}
                   helperText={t('podium.thirdPlace.helper')}
                   onChange={handlePodiumGuessChange('third_place_team_id')}
+                  open={openPodiumField === 'third_place_team_id'}
+                  onClose={() => setOpenPodiumField(null)}
                 />
                 {tournament.third_place_team_id && tournament.third_place_team_id === tournamentGuesses.third_place_team_id && (
                   <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
