@@ -158,7 +158,8 @@
       "urgentUnpredicted": {
         "status": "{count, plural, one {1 match} other {{count} matches}} without a prediction close{count, plural, one {s} other {}} in {window}",
         "ctaSingle": "Predict it",
-        "ctaMultiple": "Predict"
+        "ctaMultiple": "Predict",
+        "matchFallback": "Match #{number} ({round})"
       },
       "nudgeQT": {
         "status": "Groups complete · Qualifiers close in {countdown}",

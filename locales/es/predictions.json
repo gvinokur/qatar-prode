@@ -158,7 +158,8 @@
       "urgentUnpredicted": {
         "status": "{count, plural, one {1 partido} other {{count} partidos}} sin predecir cierra{count, plural, one {} other {n}} en {window}",
         "ctaSingle": "Predecilo",
-        "ctaMultiple": "Predecir"
+        "ctaMultiple": "Predecir",
+        "matchFallback": "Partido #{number} ({round})"
       },
       "nudgeQT": {
         "status": "Grupos completos · Clasificados cierran en {countdown}",

@@ -417,6 +417,7 @@ describe('computeGamesHeaderVariant', () => {
     const game = createMockGame({ id: 'game-past', game_date: new Date('2026-06-10T18:00:00Z') });
     const completion = createMockCompletion({
       totalGames: 10,
+      totalGroupGames: 10,
     });
 
     const input = createMockInput({

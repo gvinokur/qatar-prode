@@ -40,9 +40,10 @@ function urgencyWindow(level: UrgencyLevel): string {
   return '< 48h';
 }
 
-// ─── Stage label ─────────────────────────────────────────────────────────────
+// ─── Stage windows ───────────────────────────────────────────────────────────
 
 interface StageWindow {
+  key: string;
   label: string;
   minDate: number;
   maxDate: number;
@@ -50,6 +51,7 @@ interface StageWindow {
 
 /** Groups games into stage windows sorted by first kickoff. */
 function buildStageWindows(games: ExtendedGameData[]): StageWindow[] {
+  type Bucket = { label: string; minDate: number; maxDate: number };
   const stageMap = games.reduce((map, game) => {
     const ts = new Date(game.game_date).getTime();
     let key: string;
@@ -74,9 +76,11 @@ function buildStageWindows(games: ExtendedGameData[]): StageWindow[] {
       if (game.playoffStage?.is_final) existing.label = label;
     }
     return map;
-  }, new Map<string, StageWindow>());
+  }, new Map<string, Bucket>());
 
-  return Array.from(stageMap.values()).sort((a, b) => a.minDate - b.minDate);
+  return Array.from(stageMap.entries())
+    .map(([key, w]) => ({ key, ...w }))
+    .sort((a, b) => a.minDate - b.minDate);
 }
 
 /**
@@ -130,31 +134,16 @@ export function getNextBatchSummary(games: ExtendedGameData[], now: Date, t: TFu
 export function collapsePlayoffDenominator(
   playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>
 ): Record<string, PlayoffRoundCompletionData> {
-  const result: Record<string, PlayoffRoundCompletionData> = {};
-  let finalKey: string | undefined;
-  let thirdKey: string | undefined;
+  const entries = Object.entries(playoffRoundsCompletion);
+  const third = entries.find(([, d]) => d.is_third_place)?.[1];
 
-  for (const [id, data] of Object.entries(playoffRoundsCompletion)) {
-    if (data.is_final) finalKey = id;
-    else if (data.is_third_place) thirdKey = id;
-    else result[id] = data;
-  }
-
-  if (!finalKey) return result;
-
-  const finalData = playoffRoundsCompletion[finalKey];
-  if (thirdKey) {
-    const thirdData = playoffRoundsCompletion[thirdKey];
-    result[finalKey] = {
-      ...finalData,
-      total: finalData.total + thirdData.total,
-      completed: finalData.completed + thirdData.completed,
-    };
-  } else {
-    result[finalKey] = finalData;
-  }
-
-  return result;
+  return entries.reduce((acc, [id, data]) => {
+    if (data.is_third_place) return acc; // absorbed into the final entry
+    acc[id] = data.is_final && third
+      ? { ...data, total: data.total + third.total, completed: data.completed + third.completed }
+      : data;
+    return acc;
+  }, {} as Record<string, PlayoffRoundCompletionData>);
 }
 
 // ─── Data preparation ────────────────────────────────────────────────────────
@@ -170,9 +159,7 @@ interface GamesHeaderData {
   stageLabel: string | undefined;
   boosts: StatusHeaderVariant['boosts'];
   liveCompletedGames: number;
-  groupGames: ExtendedGameData[];
   liveCompletedGroupGames: number;
-  isGroupStagePrimary: boolean;
   stageChipPredicted: number;
   stageChipTotal: number;
   groupsComplete: boolean;
@@ -183,18 +170,53 @@ interface GamesHeaderData {
   tournamentNotStarted: boolean;
 }
 
+function computeStageChip(
+  stages: StageWindow[],
+  games: ExtendedGameData[],
+  gameGuesses: Record<string, GameGuess>,
+  completion: TournamentPredictionCompletion,
+  liveCompletedGroupGames: number,
+  nowMs: number,
+): { stageChipPredicted: number; stageChipTotal: number } {
+  const currentStage = stages.find(s => nowMs <= s.maxDate);
+
+  if (!currentStage || currentStage.key === '__groups__') {
+    return { stageChipPredicted: liveCompletedGroupGames, stageChipTotal: completion.totalGroupGames };
+  }
+
+  const stageGames = games.filter(g => {
+    const ts = new Date(g.game_date).getTime();
+    return ts >= currentStage.minDate && ts <= currentStage.maxDate;
+  });
+  const stageChipPredicted = stageGames.filter(
+    g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
+  ).length;
+
+  const collapsed = collapsePlayoffDenominator(completion.playoffRoundsCompletion);
+  const roundId = currentStage.key === '__finals__'
+    ? Object.keys(completion.playoffRoundsCompletion).find(id => completion.playoffRoundsCompletion[id].is_final)
+    : currentStage.key;
+  const stageChipTotal = roundId ? (collapsed[roundId]?.total ?? stageGames.length) : stageGames.length;
+
+  return { stageChipPredicted, stageChipTotal };
+}
+
 function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
   const { completion, games, urgentGames, gameGuesses } = input;
+  const nowMs = now.getTime();
 
-  const stageLabel = deriveStageLabel(games, now);
+  const stages = buildStageWindows(games);
+  const stageLabel = stages.length === 0 ? undefined
+    : nowMs > stages[stages.length - 1].maxDate ? 'Finalizado'
+    : stages.find(s => nowMs <= s.maxDate)!.label;
 
   const groupGames = games.filter(g => !g.playoffStage);
   const liveCompletedGroupGames = groupGames.filter(g => isGuessComplete(gameGuesses[g.id], false)).length;
   const liveCompletedGames = games.filter(g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)).length;
 
-  const isGroupStagePrimary = stageLabel === 'Grupos';
-  const stageChipPredicted = isGroupStagePrimary ? liveCompletedGroupGames : liveCompletedGames;
-  const stageChipTotal = isGroupStagePrimary ? completion.totalGroupGames : completion.totalGames;
+  const { stageChipPredicted, stageChipTotal } = computeStageChip(
+    stages, games, gameGuesses, completion, liveCompletedGroupGames, nowMs
+  );
 
   const hasBoosts = completion.silverBoostsMax > 0 || completion.goldenBoostsMax > 0;
   const liveBoostCounts = Object.values(gameGuesses).reduce(
@@ -214,7 +236,7 @@ function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
 
   const allGamesHaveResults = completion.completedGames > 0
     && completion.completedGames >= completion.totalGames
-    && games.every(g => new Date(g.game_date).getTime() < now.getTime());
+    && games.every(g => new Date(g.game_date).getTime() < nowMs);
 
   const unpredictedUrgentGames = urgentGames.filter(
     g => !isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
@@ -225,15 +247,13 @@ function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
   const qtIncomplete = completion.qualifiers.completed < completion.qualifiers.total;
 
   const tournamentNotStarted = games.length > 0
-    && games.every(g => new Date(g.game_date).getTime() > now.getTime());
+    && games.every(g => new Date(g.game_date).getTime() > nowMs);
 
   return {
     stageLabel,
     boosts,
     liveCompletedGames,
-    groupGames,
     liveCompletedGroupGames,
-    isGroupStagePrimary,
     stageChipPredicted,
     stageChipTotal,
     groupsComplete,
@@ -274,11 +294,11 @@ function buildFinished(input: GamesHeaderInput, data: GamesHeaderData, t: TFunct
   };
 }
 
-function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, t: TFunction): StatusHeaderVariant {
+function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, t: TFunction, now: Date): StatusHeaderVariant {
   const { unpredictedUrgentGames, stageLabel, stageChipPredicted, stageChipTotal, boosts } = data;
   const { teamsMap, locale, tournamentId } = input;
 
-  const levels = unpredictedUrgentGames.map(g => getGameUrgencyLevel(g, input.now ?? new Date()));
+  const levels = unpredictedUrgentGames.map(g => getGameUrgencyLevel(g, now));
   const tone: StatusHeaderTone = levels.includes('deadlineNow') ? 'deadlineNow'
     : levels.includes('deadlineUrgent') ? 'deadlineUrgent'
     : 'deadlineSoon';
@@ -287,9 +307,11 @@ function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, 
   const window = urgencyWindow(tone as UrgencyLevel);
 
   const matchups = unpredictedUrgentGames.slice(0, 3).map(g => {
-    const home = teamsMap[g.home_team ?? '']?.name ?? '?';
-    const away = teamsMap[g.away_team ?? '']?.name ?? '?';
-    return `${home} vs ${away}`;
+    const home = teamsMap[g.home_team ?? '']?.name;
+    const away = teamsMap[g.away_team ?? '']?.name;
+    if (home && away) return `${home} vs ${away}`;
+    const roundName = g.playoffStage?.round_name_i18n?.[input.locale] ?? g.playoffStage?.round_name ?? '';
+    return t('statusHeader.games.urgentUnpredicted.matchFallback', { number: g.game_number, round: roundName });
   });
   if (count > 3) matchups.push(`+${count - 3}`);
 
@@ -400,7 +422,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
 
   switch (variant) {
     case 'tournament-finished':    return buildFinished(input, data, t);
-    case 'urgent-unpredicted':     return buildUrgentUnpredicted(input, data, t);
+    case 'urgent-unpredicted':     return buildUrgentUnpredicted(input, data, t, now);
     case 'nudge-qt':               return buildNudgeQT(input, data, t);
     case 'pre-tournament':         return buildPreTournament(input, data, t, now);
     case 'stage-active-caught-up': return buildStageActive(input, data, t, now);
