@@ -315,7 +315,7 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.champion.helper')}
                 onChange={handlePodiumGuessChange('champion_team_id')}
-                open={openPodiumField === 'champion_team_id'}
+                open={openPodiumField === 'champion_team_id' || undefined}
                 onClose={() => setOpenPodiumField(null)}
               />
               {tournament.champion_team_id && tournament.champion_team_id === tournamentGuesses.champion_team_id && (
@@ -347,7 +347,7 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.runnerUp.helper')}
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
-                open={openPodiumField === 'runner_up_team_id'}
+                open={openPodiumField === 'runner_up_team_id' || undefined}
                 onClose={() => setOpenPodiumField(null)}
               />
               {tournament.runner_up_team_id && tournament.runner_up_team_id === tournamentGuesses.runner_up_team_id && (
@@ -379,7 +379,7 @@ export default function AwardsPanel({
                   disabled={isDisabled}
                   helperText={t('podium.thirdPlace.helper')}
                   onChange={handlePodiumGuessChange('third_place_team_id')}
-                  open={openPodiumField === 'third_place_team_id'}
+                  open={openPodiumField === 'third_place_team_id' || undefined}
                   onClose={() => setOpenPodiumField(null)}
                 />
                 {tournament.third_place_team_id && tournament.third_place_team_id === tournamentGuesses.third_place_team_id && (
