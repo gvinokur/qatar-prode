@@ -20,7 +20,7 @@ import {Close as MissIcon, Done as HitIcon, Lock as LockIcon} from "@mui/icons-m
 import {updateOrCreateTournamentGuess} from "../../actions/guesses-actions";
 import {ExtendedPlayerData} from "../../definitions";
 import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/award-utils";
-import TeamSelector from "./team-selector";
+import TeamSelector, { type TeamSelectorHandle } from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslations, useLocale } from 'next-intl';
@@ -228,6 +228,15 @@ export default function AwardsPanel({
   // Always computed locally — server awards.total counts only individual awards (4), not podium picks
   const awardsTotal = hasThirdPlaceGame ? 7 : 6;
 
+  const championRef = useRef<TeamSelectorHandle>(null);
+  const runnerUpRef = useRef<TeamSelectorHandle>(null);
+  const thirdPlaceRef = useRef<TeamSelectorHandle>(null);
+  const podiumRefs: Partial<Record<AwardTypes, React.RefObject<TeamSelectorHandle | null>>> = {
+    champion_team_id: championRef,
+    runner_up_team_id: runnerUpRef,
+    third_place_team_id: thirdPlaceRef,
+  };
+
   const fieldContainerRefs = useRef<Map<AwardTypes, HTMLElement>>(new Map());
   const fieldInputRefs = useRef<Map<AwardTypes, HTMLInputElement>>(new Map());
 
@@ -242,26 +251,27 @@ export default function AwardsPanel({
   }, []);
 
   const handleFocusNextAward = useCallback(() => {
-    console.warn('[awards] handleFocusNextAward called');
-    console.warn('[awards] containerRefs size:', fieldContainerRefs.current.size, [...fieldContainerRefs.current.keys()]);
-    console.warn('[awards] inputRefs size:', fieldInputRefs.current.size, [...fieldInputRefs.current.keys()]);
     const podiumFields: AwardTypes[] = [
       'champion_team_id',
       'runner_up_team_id',
       ...(hasThirdPlaceGame ? ['third_place_team_id' as AwardTypes] : []),
     ];
     const individualFields = getAwardsDefinition(t).map(d => d.property);
-    const allFields = [...podiumFields, ...individualFields];
-    console.warn('[awards] tournamentGuesses snapshot:', allFields.map(f => `${f}=${tournamentGuesses[f] ?? 'EMPTY'}`));
-    const firstUnpredicted = allFields.find(f => !tournamentGuesses[f]);
-    console.warn('[awards] firstUnpredicted:', firstUnpredicted);
+    const firstUnpredicted = [...podiumFields, ...individualFields].find(f => !tournamentGuesses[f]);
     if (!firstUnpredicted) return;
+
+    const podiumRef = podiumRefs[firstUnpredicted]?.current;
+    if (podiumRef) {
+      const container = fieldContainerRefs.current.get(firstUnpredicted);
+      container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => podiumRef.focus(), 400);
+      return;
+    }
+
     const container = fieldContainerRefs.current.get(firstUnpredicted);
-    console.warn('[awards] container element:', container);
     if (!container) return;
     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const input = fieldInputRefs.current.get(firstUnpredicted);
-    console.warn('[awards] input element:', input);
     if (input) setTimeout(() => input.focus(), 400);
   }, [tournamentGuesses, hasThirdPlaceGame, t]);
 
@@ -309,6 +319,7 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
+                ref={championRef}
                 label={t('podium.champion.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.champion_team_id || ''}
@@ -339,6 +350,7 @@ export default function AwardsPanel({
                 md: hasThirdPlaceGame ? 4 : 6
               }}>
               <TeamSelector
+                ref={runnerUpRef}
                 label={t('podium.runnerUp.label')}
                 teams={teams}
                 selectedTeamId={tournamentGuesses.runner_up_team_id || ''}
@@ -369,6 +381,7 @@ export default function AwardsPanel({
                   md: 4
                 }}>
                 <TeamSelector
+                  ref={thirdPlaceRef}
                   label={t('podium.thirdPlace.label')}
                   teams={teams}
                   selectedTeamId={tournamentGuesses.third_place_team_id || ''}

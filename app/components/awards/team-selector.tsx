@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box, SelectChangeEvent } from '@mui/material';
 import { Team } from '../../db/tables-definition';
 import Image from 'next/image';
@@ -17,7 +17,11 @@ interface TeamSelectorProps {
   onChange?: (_value: string) => void;
 }
 
-const TeamSelector: React.FC<TeamSelectorProps> = ({
+export interface TeamSelectorHandle {
+  focus: () => void;
+}
+
+const TeamSelector = forwardRef<TeamSelectorHandle, TeamSelectorProps>(function TeamSelector({
   label,
   teams,
   selectedTeamId,
@@ -25,8 +29,18 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   disabled = false,
   helperText,
   onChange
-}) => {
+}, ref) {
   const t = useTranslations('awards');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      // MUI Select renders its interactive element as div[tabindex="0"] inside the container
+      const el = containerRef.current?.querySelector<HTMLElement>('[tabindex="0"]');
+      el?.focus();
+    },
+  }));
+
   // Sort teams alphabetically by name
   const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -42,7 +56,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   let logoUrl : string | undefined | null = null;
 
   return (
-    <FormControl fullWidth disabled={disabled}>
+    <FormControl ref={containerRef} fullWidth disabled={disabled}>
       <InputLabel id={`${name}-label`}>{label}</InputLabel>
       <Select
         labelId={`${name}-label`}
@@ -100,6 +114,6 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
       {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>
   );
-};
+});
 
 export default TeamSelector;
