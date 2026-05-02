@@ -231,8 +231,12 @@ export default function AwardsPanel({
     const el = document.querySelector(`[data-award-field="${firstUnpredicted}"]`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = el.querySelector('input');
-    if (input) setTimeout(() => input.focus(), 400);
+    // Autocomplete renders a real <input>; Select renders a hidden input + focusable div[tabindex="0"]
+    const focusable = (
+      el.querySelector('input:not([type="hidden"]):not([aria-hidden="true"])') ||
+      el.querySelector('[tabindex="0"]')
+    ) as HTMLElement | null;
+    if (focusable) setTimeout(() => focusable.focus(), 400);
   }, [tournamentGuesses, hasThirdPlaceGame, t]);
 
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
@@ -381,7 +385,7 @@ export default function AwardsPanel({
             <Grid container spacing={2}>
               {getAwardsDefinition(t).map(awardDefinition => (
                 <Fragment key={awardDefinition.property}>
-                  <Grid data-award-field={awardDefinition.property} flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
+                  <Grid flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
                     {tournament[awardDefinition.property] && tournament[awardDefinition.property] === tournamentGuesses[awardDefinition.property] && (
                       <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mr: 1}}>
                         <HitIcon sx={{ fontSize: 14 }} />
@@ -401,7 +405,7 @@ export default function AwardsPanel({
                       }}>
                       {awardDefinition.label}</Typography>
                   </Grid>
-                  <Grid size={7}>
+                  <Grid data-award-field={awardDefinition.property} size={7}>
                     {isMobile ? (
                       <MobileFriendlyAutocomplete
                         label={awardDefinition.label}
