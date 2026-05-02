@@ -242,9 +242,9 @@ export default function AwardsPanel({
   }, []);
 
   const handleFocusNextAward = useCallback(() => {
-    console.log('[awards] handleFocusNextAward called');
-    console.log('[awards] containerRefs size:', fieldContainerRefs.current.size, [...fieldContainerRefs.current.keys()]);
-    console.log('[awards] inputRefs size:', fieldInputRefs.current.size, [...fieldInputRefs.current.keys()]);
+    console.warn('[awards] handleFocusNextAward called');
+    console.warn('[awards] containerRefs size:', fieldContainerRefs.current.size, [...fieldContainerRefs.current.keys()]);
+    console.warn('[awards] inputRefs size:', fieldInputRefs.current.size, [...fieldInputRefs.current.keys()]);
     const podiumFields: AwardTypes[] = [
       'champion_team_id',
       'runner_up_team_id',
@@ -252,16 +252,16 @@ export default function AwardsPanel({
     ];
     const individualFields = getAwardsDefinition(t).map(d => d.property);
     const allFields = [...podiumFields, ...individualFields];
-    console.log('[awards] tournamentGuesses snapshot:', allFields.map(f => `${f}=${tournamentGuesses[f] ?? 'EMPTY'}`));
+    console.warn('[awards] tournamentGuesses snapshot:', allFields.map(f => `${f}=${tournamentGuesses[f] ?? 'EMPTY'}`));
     const firstUnpredicted = allFields.find(f => !tournamentGuesses[f]);
-    console.log('[awards] firstUnpredicted:', firstUnpredicted);
+    console.warn('[awards] firstUnpredicted:', firstUnpredicted);
     if (!firstUnpredicted) return;
     const container = fieldContainerRefs.current.get(firstUnpredicted);
-    console.log('[awards] container element:', container);
+    console.warn('[awards] container element:', container);
     if (!container) return;
     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const input = fieldInputRefs.current.get(firstUnpredicted);
-    console.log('[awards] input element:', input);
+    console.warn('[awards] input element:', input);
     if (input) setTimeout(() => input.focus(), 400);
   }, [tournamentGuesses, hasThirdPlaceGame, t]);
 
