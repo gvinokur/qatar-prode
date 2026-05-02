@@ -166,6 +166,10 @@
         "message": "Grupos al 100%. Ya podés auto-completar tus clasificados.",
         "cta": "Ir a Clasificados"
       },
+      "groupsComplete": {
+        "status": "Predicciones de grupos completas",
+        "message": "Tus picks de grupos están guardados. Seguí los resultados del torneo."
+      },
       "stageActive": {
         "statusToday": "{count, plural, one {1 partido hoy} other {{count} partidos hoy}}",
         "statusTomorrow": "{count, plural, one {1 partido mañana} other {{count} partidos mañana}}",

@@ -265,12 +265,12 @@ describe('computeGamesHeaderVariant', () => {
     expect(result.action?.href).toContain('/qualified-teams');
   });
 
-  it('should not return nudge-qt when QT is locked', () => {
+  it('should return groups-complete when QT is locked and groups done', () => {
     const now = new Date('2026-06-10T12:00:00Z');
     const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
       totalGroupGames: 1,
-      isPredictionLocked: true, // locked
+      isPredictionLocked: true,
       qualifiers: { completed: 2, total: 8 },
     });
 
@@ -283,16 +283,18 @@ describe('computeGamesHeaderVariant', () => {
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    expect(result.tone).not.toBe('success');
+    expect(result.tone).toBe('success');
+    expect(result.statusText).toBe('statusHeader.games.groupsComplete.status');
+    expect(result.action).toBeUndefined();
   });
 
-  it('should not return nudge-qt when QT is complete', () => {
+  it('should return groups-complete when QT is complete and groups done', () => {
     const now = new Date('2026-06-10T12:00:00Z');
     const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
       totalGroupGames: 1,
       isPredictionLocked: false,
-      qualifiers: { completed: 8, total: 8 }, // complete
+      qualifiers: { completed: 8, total: 8 },
     });
 
     const input = createMockInput({
@@ -304,7 +306,10 @@ describe('computeGamesHeaderVariant', () => {
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    expect(result.tone).not.toBe('success');
+    expect(result.tone).toBe('success');
+    expect(result.statusText).toBe('statusHeader.games.groupsComplete.status');
+    expect(result.chip?.color).toBe('success');
+    expect(result.action).toBeUndefined();
   });
 
   // ── VARIANT 4: pre-tournament ──────────────────────────────────────────────
@@ -346,7 +351,7 @@ describe('computeGamesHeaderVariant', () => {
     expect(result.action?.label).toBe('statusHeader.games.preTournament.ctaStart');
   });
 
-  it('should show ctaFinish when all groups predicted in pre-tournament', () => {
+  it('should show groups-complete (not ctaFinish) when all groups predicted pre-tournament', () => {
     const now = new Date('2026-05-20T12:00:00Z');
     const game = createMockGame({ id: 'game-1', game_date: new Date('2026-06-01T18:00:00Z') });
     const completion = createMockCompletion({
@@ -358,14 +363,15 @@ describe('computeGamesHeaderVariant', () => {
     const input = createMockInput({
       completion,
       games: [game],
-      // Complete guess for the only game → liveCompletedGroupGames = 1 = totalGroupGames
       gameGuesses: { 'game-1': { game_id: 'game-1', home_score: 2, away_score: 0 } as any },
       now,
     });
 
     const result = computeGamesHeaderVariant(input, mockT);
 
-    expect(result.action?.label).toBe('statusHeader.games.preTournament.ctaFinish');
+    // groups are complete → show groups-complete state, not a "keep predicting groups" CTA
+    expect(result.statusText).toBe('statusHeader.games.groupsComplete.status');
+    expect(result.action).toBeUndefined();
   });
 
   it('should show ctaContinue when some groups predicted', () => {

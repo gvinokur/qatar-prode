@@ -152,6 +152,7 @@ type GamesVariantType =
   | 'tournament-finished'
   | 'urgent-unpredicted'
   | 'nudge-qt'
+  | 'groups-complete'
   | 'pre-tournament'
   | 'stage-active-caught-up';
 
@@ -271,6 +272,8 @@ function selectVariant(data: GamesHeaderData): GamesVariantType {
   if (data.allGamesHaveResults) return 'tournament-finished';
   if (data.unpredictedUrgentGames.length > 0) return 'urgent-unpredicted';
   if (data.groupsComplete && data.qtOpen && data.qtIncomplete) return 'nudge-qt';
+  // Groups done but no QT action available (locked or complete): avoid showing group-games CTA
+  if (data.groupsComplete) return 'groups-complete';
   if (data.tournamentNotStarted) return 'pre-tournament';
   return 'stage-active-caught-up';
 }
@@ -353,6 +356,22 @@ function buildNudgeQT(input: GamesHeaderInput, data: GamesHeaderData, t: TFuncti
   };
 }
 
+function buildGroupsComplete(input: GamesHeaderInput, data: GamesHeaderData, t: TFunction): StatusHeaderVariant {
+  const { stageLabel, stageChipPredicted, stageChipTotal, boosts } = data;
+  return {
+    tone: 'success',
+    stageLabel,
+    leadIcon: 'check',
+    statusText: t('statusHeader.games.groupsComplete.status'),
+    chip: {
+      label: t('statusHeader.chipLabel.partidos', { predicted: stageChipPredicted, total: stageChipTotal }),
+      color: 'success',
+    },
+    boosts,
+    message: t('statusHeader.games.groupsComplete.message'),
+  };
+}
+
 function buildPreTournament(input: GamesHeaderInput, data: GamesHeaderData, t: TFunction, now: Date): StatusHeaderVariant {
   const { completion, games, locale, tournamentId } = input;
   const { liveCompletedGroupGames, boosts } = data;
@@ -413,7 +432,7 @@ function buildStageActive(input: GamesHeaderInput, data: GamesHeaderData, t: TFu
 
 /**
  * Computes the PredictionStatusHeader variant for the Games page.
- * Priority: tournament-finished → urgent-unpredicted → nudge-qt → pre-tournament → stage-active-caught-up
+ * Priority: tournament-finished → urgent-unpredicted → nudge-qt → groups-complete → pre-tournament → stage-active-caught-up
  */
 export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction): StatusHeaderVariant {
   const now = input.now ?? new Date();
@@ -424,6 +443,7 @@ export function computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)
     case 'tournament-finished':    return buildFinished(input, data, t);
     case 'urgent-unpredicted':     return buildUrgentUnpredicted(input, data, t, now);
     case 'nudge-qt':               return buildNudgeQT(input, data, t);
+    case 'groups-complete':        return buildGroupsComplete(input, data, t);
     case 'pre-tournament':         return buildPreTournament(input, data, t, now);
     case 'stage-active-caught-up': return buildStageActive(input, data, t, now);
   }

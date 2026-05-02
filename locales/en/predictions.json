@@ -166,6 +166,10 @@
         "message": "Groups at 100%. You can now auto-fill your qualifiers.",
         "cta": "Go to Qualifiers"
       },
+      "groupsComplete": {
+        "status": "Group predictions complete",
+        "message": "Your group stage picks are locked in. Stay tuned for results."
+      },
       "stageActive": {
         "statusToday": "{count, plural, one {1 match today} other {{count} matches today}}",
         "statusTomorrow": "{count, plural, one {1 match tomorrow} other {{count} matches tomorrow}}",
