@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useTransition } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Typography, Alert, Snackbar, Box, Popover, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
+import { Typography, Alert, Snackbar, Box, Popover, Backdrop, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import LockIcon from '@mui/icons-material/Lock';
+import { bulkAutoFillFromPredictions } from '../../actions/qualification-actions';
+import { toLocale } from '../../utils/locale-utils';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -148,6 +150,34 @@ function createDragEndHandler(
   };
 }
 
+function AutoFillDialog({
+  open, isCalculating, onClose, onConfirm,
+}: { open: boolean; isCalculating: boolean; onClose: () => void; onConfirm: () => void }) {
+  const t = useTranslations('qualified-teams.nudge');
+  return (
+    <Dialog open={open} onClose={isCalculating ? undefined : onClose} disableEscapeKeyDown={isCalculating}>
+      <DialogTitle>{t('autoFillDialog.title')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{t('autoFillDialog.body')}</DialogContentText>
+        <DialogContentText sx={{ mt: 1 }}>{t('autoFillDialog.note')}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={isCalculating}>{t('autoFillDialog.cancel')}</Button>
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="primary"
+          disabled={isCalculating}
+          autoFocus
+          startIcon={isCalculating ? <CircularProgress size={16} color="inherit" /> : undefined}
+        >
+          {isCalculating ? t('autoFillDialog.calculating') : t('autoFillDialog.confirm')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 /** Main qualified teams UI with DnD */
 function QualifiedTeamsUI({
   tournament,
@@ -173,6 +203,27 @@ function QualifiedTeamsUI({
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions, resetPredictions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
+  const [autoFillDialogOpen, setAutoFillDialogOpen] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [autoFillErrorOpen, setAutoFillErrorOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const tNudge = useTranslations('qualified-teams.nudge');
+
+  const handleAutoFillClick = useCallback(() => setAutoFillDialogOpen(true), []);
+
+  const handleAutoFillConfirm = useCallback(() => {
+    setIsCalculating(true);
+    startTransition(async () => {
+      const result = await bulkAutoFillFromPredictions(tournament.id, toLocale(locale));
+      setIsCalculating(false);
+      setAutoFillDialogOpen(false);
+      if (result.success && result.predictions) {
+        resetPredictions(result.predictions);
+      } else {
+        setAutoFillErrorOpen(true);
+      }
+    });
+  }, [tournament.id, locale, resetPredictions, startTransition]);
 
   // Calculate current third place count for limit checking
   const currentThirdPlaceCount = useMemo(() => {
@@ -327,7 +378,7 @@ function QualifiedTeamsUI({
         definedSoFar: actualResults?.length ?? 0,
         correctSoFar,
         qtPointsEarned: scoringBreakdown?.totalScore,
-        onAutoFillClick: () => {},
+        onAutoFillClick: handleAutoFillClick,
         tournamentId: tournament.id,
         locale,
       },
@@ -351,12 +402,7 @@ function QualifiedTeamsUI({
       }}>
         {/* Prediction Status Header */}
         <Box sx={{ flexShrink: 0, pt: 2 }}>
-          <PredictionStatusHeader
-            variant={qtHeaderVariant}
-            onAutoFillSuccess={resetPredictions}
-            isLocked={isLocked}
-            tournamentId={tournament.id}
-          />
+          <PredictionStatusHeader variant={qtHeaderVariant} />
         </Box>
 
         <Popover
@@ -481,6 +527,20 @@ function QualifiedTeamsUI({
         <CircularProgress color="inherit" size={60} />
       </Backdrop>
       </Box>
+
+      <AutoFillDialog
+        open={autoFillDialogOpen}
+        isCalculating={isCalculating}
+        onClose={() => setAutoFillDialogOpen(false)}
+        onConfirm={handleAutoFillConfirm}
+      />
+
+      <Snackbar
+        open={autoFillErrorOpen}
+        autoHideDuration={4000}
+        onClose={() => setAutoFillErrorOpen(false)}
+        message={tNudge('autoFillError')}
+      />
     </GuessesContextProvider>
   );
 }
