@@ -463,6 +463,21 @@ interface PredictionStatusHeaderProps {
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Auto-fill dialog moved from PredictionStatusHeader to QT page
+**Date:** 2026-05-02
+**Reason:** Moving the auto-fill dialog and state into `PredictionStatusHeader` tightly coupled a generic presentational component to QT-specific logic. Cleaner separation: the dialog lives in `QualifiedTeamsClientPage` and a plain `onClick` is passed through the header action.
+**Change:** `AutoFillDialog` state (`dialogOpen`, `isCalculating`, `errorOpen`) and the `bulkAutoFillFromPredictions` call were kept in `qualified-teams-client-page.tsx`. `PredictionStatusHeader` does NOT import or render any dialog — it simply invokes `variant.action.onClick` when the button is clicked. `onAutoFillSuccess`, `isLocked`, and `tournamentId` props were removed from `PredictionStatusHeader`.
+
+### Amendment 2: Awards CTA focus-next behavior (refs + controlled Select open)
+**Date:** 2026-05-02
+**Reason:** The awards CTA ("Definir / Continuar / Finalizar") needs to scroll to and activate the first unpredicted award field. MUI Select does not expose a DOM ref for programmatic focus; instead, its controlled `open` prop is used to open the dropdown after scroll.
+**Change:**
+- `AwardsHeaderInput` interface gained `onFocusNextAward: () => void` (passed as `action.onClick` in the variant — not in the original plan).
+- `award-panel.tsx` now maintains `fieldContainerRefs: Map<AwardTypes, HTMLElement>` (for scrollIntoView) and `fieldInputRefs: Map<AwardTypes, HTMLInputElement>` (for Autocomplete input focus). A `openPodiumField: AwardTypes | null` state drives the controlled `open` prop on podium `TeamSelector`s.
+- `team-selector.tsx` received two new optional props: `open?: boolean` and `onClose?: () => void`, passed directly to MUI `Select`. No other changes to TeamSelector's logic.
+
 ## Testing Strategy
 
 **Unit tests (Vitest) on pure variant selectors:**
