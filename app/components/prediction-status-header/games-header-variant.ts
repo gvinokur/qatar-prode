@@ -50,36 +50,33 @@ interface StageWindow {
 
 /** Groups games into stage windows sorted by first kickoff. */
 function buildStageWindows(games: ExtendedGameData[]): StageWindow[] {
-  type Bucket = { label: string; dates: number[] };
-  const map = new Map<string, Bucket>();
-
-  const bucket = (key: string, label: string): Bucket => {
-    if (!map.has(key)) map.set(key, { label, dates: [] });
-    return map.get(key)!;
-  };
-
-  for (const game of games) {
+  const stageMap = games.reduce((map, game) => {
     const ts = new Date(game.game_date).getTime();
+    let key: string;
+    let label: string;
 
     if (!game.playoffStage) {
-      bucket('__groups__', 'Grupos').dates.push(ts);
+      key = '__groups__';
+      label = 'Grupos';
     } else {
       const { is_final, is_third_place, tournament_playoff_round_id, round_name } = game.playoffStage;
-      const key = (is_final || is_third_place) ? '__finals__' : tournament_playoff_round_id;
-      const b = bucket(key, round_name);
-      b.dates.push(ts);
-      // Final round name takes priority — third-place game may be encountered first
-      if (is_final) b.label = round_name;
+      key = (is_final || is_third_place) ? '__finals__' : tournament_playoff_round_id;
+      label = round_name;
     }
-  }
 
-  return Array.from(map.values())
-    .map(({ label, dates }) => ({
-      label,
-      minDate: Math.min(...dates),
-      maxDate: Math.max(...dates),
-    }))
-    .sort((a, b) => a.minDate - b.minDate);
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { label, minDate: ts, maxDate: ts });
+    } else {
+      existing.minDate = Math.min(existing.minDate, ts);
+      existing.maxDate = Math.max(existing.maxDate, ts);
+      // Final round name takes priority over third-place for the __finals__ bucket
+      if (game.playoffStage?.is_final) existing.label = label;
+    }
+    return map;
+  }, new Map<string, StageWindow>());
+
+  return Array.from(stageMap.values()).sort((a, b) => a.minDate - b.minDate);
 }
 
 /**
