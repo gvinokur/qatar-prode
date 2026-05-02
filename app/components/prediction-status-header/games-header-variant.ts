@@ -50,23 +50,26 @@ interface StageWindow {
 
 /** Groups games into stage windows sorted by first kickoff. */
 function buildStageWindows(games: ExtendedGameData[]): StageWindow[] {
-  const map = new Map<string, { label: string; dates: number[] }>();
+  type Bucket = { label: string; dates: number[] };
+  const map = new Map<string, Bucket>();
+
+  const bucket = (key: string, label: string): Bucket => {
+    if (!map.has(key)) map.set(key, { label, dates: [] });
+    return map.get(key)!;
+  };
 
   for (const game of games) {
     const ts = new Date(game.game_date).getTime();
 
     if (!game.playoffStage) {
-      const entry = map.get('__groups__') ?? { label: 'Grupos', dates: [] };
-      entry.dates.push(ts);
-      map.set('__groups__', entry);
+      bucket('__groups__', 'Grupos').dates.push(ts);
     } else {
       const { is_final, is_third_place, tournament_playoff_round_id, round_name } = game.playoffStage;
       const key = (is_final || is_third_place) ? '__finals__' : tournament_playoff_round_id;
-      const entry = map.get(key) ?? { label: round_name, dates: [] };
-      entry.dates.push(ts);
-      // Finals bucket always uses the Final round's name (not Third-place)
-      if (is_final) entry.label = round_name;
-      map.set(key, entry);
+      const b = bucket(key, round_name);
+      b.dates.push(ts);
+      // Final round name takes priority — third-place game may be encountered first
+      if (is_final) b.label = round_name;
     }
   }
 
