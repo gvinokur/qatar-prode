@@ -90,13 +90,12 @@ export function deriveStageLabel(games: ExtendedGameData[], now: Date): string |
   if (stages.length === 0) return undefined;
 
   const nowMs = now.getTime();
-  const first = stages[0];
-  const last = stages[stages.length - 1];
 
-  if (nowMs < first.minDate) return first.label;   // pre-tournament
-  if (nowMs > last.maxDate) return 'Finalizado';   // post-tournament
+  // TODO: 'Finalizado' should be localized
+  if (nowMs > stages[stages.length - 1].maxDate) return 'Finalizado';
 
-  return stages.find(s => nowMs <= s.maxDate)?.label ?? last.label;
+  // Safe non-null: we know nowMs <= last.maxDate, so find always matches
+  return stages.find(s => nowMs <= s.maxDate)!.label;
 }
 
 // ─── Next-batch summary ──────────────────────────────────────────────────────
