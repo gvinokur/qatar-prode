@@ -1,7 +1,7 @@
 'use client'
 
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
-import React, {Fragment, useState, useEffect, useMemo, useCallback} from "react";
+import React, {Fragment, useState, useEffect, useMemo, useCallback, useRef} from "react";
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
 import {
   Alert,
@@ -146,16 +146,25 @@ export default function AwardsPanel({
       {option.name} - {option.team.short_name}
     </Box>
   );
-  const renderPlayerInput = (params: any) => (
-    <TextField
-      {...params}
-      label={t('individual.selectPlayer')}
-      slotProps={{
-        htmlInput: {
-          ...params.inputProps,
-        }
-      }}
-    />
+  const makeRenderPlayerInput = useCallback(
+    (inputRef?: React.RefCallback<HTMLInputElement>) => {
+      function PlayerInput(params: any) {
+        return (
+          <TextField
+            {...params}
+            label={t('individual.selectPlayer')}
+            inputRef={inputRef}
+            slotProps={{
+              htmlInput: {
+                ...params.inputProps,
+              }
+            }}
+          />
+        );
+      }
+      return PlayerInput;
+    },
+    [t]
   );
 
   // Convert game guesses array to map for GuessesContext
@@ -219,6 +228,19 @@ export default function AwardsPanel({
   // Always computed locally — server awards.total counts only individual awards (4), not podium picks
   const awardsTotal = hasThirdPlaceGame ? 7 : 6;
 
+  const fieldContainerRefs = useRef<Map<AwardTypes, HTMLElement>>(new Map());
+  const fieldInputRefs = useRef<Map<AwardTypes, HTMLInputElement>>(new Map());
+
+  const registerContainerRef = useCallback((field: AwardTypes) => (el: HTMLElement | null) => {
+    if (el) fieldContainerRefs.current.set(field, el);
+    else fieldContainerRefs.current.delete(field);
+  }, []);
+
+  const registerInputRef = useCallback((field: AwardTypes) => (el: HTMLInputElement | null) => {
+    if (el) fieldInputRefs.current.set(field, el);
+    else fieldInputRefs.current.delete(field);
+  }, []);
+
   const handleFocusNextAward = useCallback(() => {
     const podiumFields: AwardTypes[] = [
       'champion_team_id',
@@ -228,15 +250,11 @@ export default function AwardsPanel({
     const individualFields = getAwardsDefinition(t).map(d => d.property);
     const firstUnpredicted = [...podiumFields, ...individualFields].find(f => !tournamentGuesses[f]);
     if (!firstUnpredicted) return;
-    const el = document.querySelector(`[data-award-field="${firstUnpredicted}"]`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Autocomplete renders a real <input>; Select renders a hidden input + focusable div[tabindex="0"]
-    const focusable = (
-      el.querySelector('input:not([type="hidden"]):not([aria-hidden="true"])') ||
-      el.querySelector('[tabindex="0"]')
-    ) as HTMLElement | null;
-    if (focusable) setTimeout(() => focusable.focus(), 400);
+    const container = fieldContainerRefs.current.get(firstUnpredicted);
+    if (!container) return;
+    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = fieldInputRefs.current.get(firstUnpredicted);
+    if (input) setTimeout(() => input.focus(), 400);
   }, [tournamentGuesses, hasThirdPlaceGame, t]);
 
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
@@ -275,7 +293,7 @@ export default function AwardsPanel({
         <CardContent>
           <Grid container spacing={3}>
             <Grid
-              data-award-field="champion_team_id"
+              ref={registerContainerRef('champion_team_id')}
               flexDirection="row"
               display="flex"
               size={{
@@ -305,7 +323,7 @@ export default function AwardsPanel({
             </Grid>
 
             <Grid
-              data-award-field="runner_up_team_id"
+              ref={registerContainerRef('runner_up_team_id')}
               display={'flex'}
               flexDirection={'row'}
               size={{
@@ -335,7 +353,7 @@ export default function AwardsPanel({
 
             {hasThirdPlaceGame && (
               <Grid
-                data-award-field="third_place_team_id"
+                ref={registerContainerRef('third_place_team_id')}
                 display={'flex'}
                 flexDirection={'row'}
                 size={{
@@ -405,7 +423,7 @@ export default function AwardsPanel({
                       }}>
                       {awardDefinition.label}</Typography>
                   </Grid>
-                  <Grid data-award-field={awardDefinition.property} size={7}>
+                  <Grid ref={registerContainerRef(awardDefinition.property)} size={7}>
                     {isMobile ? (
                       <MobileFriendlyAutocomplete
                         label={awardDefinition.label}
@@ -416,7 +434,7 @@ export default function AwardsPanel({
                         onChange={onPlayerChange(awardDefinition.property)}
                         disabled={isDisabled}
                         renderOption={renderPlayerOption}
-                        renderInput={renderPlayerInput}
+                        renderInput={makeRenderPlayerInput()}
                       />
                     ) : (
                       <Autocomplete
@@ -429,7 +447,7 @@ export default function AwardsPanel({
                         onChange={onPlayerChange(awardDefinition.property)}
                         disabled={isDisabled}
                         renderOption={renderPlayerOption}
-                        renderInput={renderPlayerInput}
+                        renderInput={makeRenderPlayerInput(registerInputRef(awardDefinition.property))}
                       />
                     )}
                   </Grid>
