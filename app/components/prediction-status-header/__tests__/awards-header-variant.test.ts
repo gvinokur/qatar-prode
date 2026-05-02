@@ -15,6 +15,7 @@ const baseInput = (overrides?: Partial<AwardsHeaderInput>): AwardsHeaderInput =>
   awardsTotal: 5,
   decidedSoFar: 0,
   correctSoFar: 0,
+  onFocusNextAward: () => {},
   tournamentId: 'test-tournament',
   locale: 'en',
   ...overrides,
@@ -367,7 +368,8 @@ describe('computeAwardsHeaderVariant', () => {
   });
 
   describe('Locale and tournament ID handling', () => {
-    it('should use correct locale in href paths', () => {
+    it('should use onClick action for pre-tournament CTA (scroll within page)', () => {
+      const onFocusNextAward = () => {};
       const input = baseInput({
         isLocked: false,
         awardsCompleted: 1,
@@ -375,14 +377,14 @@ describe('computeAwardsHeaderVariant', () => {
         awardsLockAt: null,
         locale: 'es',
         tournamentId: 'copa-america',
+        onFocusNextAward,
         now,
       });
 
       const result = computeAwardsHeaderVariant(input, mockT);
 
-      expect(result.action?.href).toContain('/es/');
-      expect(result.action?.href).toContain('copa-america');
-      expect(result.action?.href).toContain('awards');
+      expect(result.action?.onClick).toBe(onFocusNextAward);
+      expect(result.action?.href).toBeUndefined();
     });
 
     it('should use correct locale in locked complete secondary action', () => {

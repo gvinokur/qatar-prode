@@ -16,6 +16,8 @@ export interface AwardsHeaderInput {
   /** How many of the user's picks match actual results */
   correctSoFar: number;
   awardsPointsEarned?: number;
+  /** Scrolls to and focuses the first unpredicted award field (podium before individual) */
+  onFocusNextAward: () => void;
   tournamentId: string;
   locale: string;
   /** Injectable for testing; defaults to new Date() */
@@ -65,7 +67,7 @@ export function computeAwardsHeaderVariant(input: AwardsHeaderInput, t: TFunctio
   const now = input.now ?? new Date();
   const {
     isLocked, awardsLockAt, awardsCompleted, awardsTotal,
-    decidedSoFar, correctSoFar, awardsPointsEarned, tournamentId, locale,
+    decidedSoFar, correctSoFar, awardsPointsEarned, onFocusNextAward, tournamentId, locale,
   } = input;
 
   const chip = {
@@ -152,7 +154,7 @@ export function computeAwardsHeaderVariant(input: AwardsHeaderInput, t: TFunctio
     message: t('statusHeader.awards.preTournament.message'),
     action: {
       label: ctaLabel,
-      href: `/${locale}/tournaments/${tournamentId}/awards`,
+      onClick: onFocusNextAward,
     },
   };
 }

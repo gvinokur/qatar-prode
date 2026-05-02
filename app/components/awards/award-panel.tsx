@@ -1,7 +1,7 @@
 'use client'
 
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
-import React, {Fragment, useState, useEffect, useMemo} from "react";
+import React, {Fragment, useState, useEffect, useMemo, useCallback} from "react";
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
 import {
   Alert,
@@ -219,6 +219,22 @@ export default function AwardsPanel({
   // Always computed locally — server awards.total counts only individual awards (4), not podium picks
   const awardsTotal = hasThirdPlaceGame ? 7 : 6;
 
+  const handleFocusNextAward = useCallback(() => {
+    const podiumFields: AwardTypes[] = [
+      'champion_team_id',
+      'runner_up_team_id',
+      ...(hasThirdPlaceGame ? ['third_place_team_id' as AwardTypes] : []),
+    ];
+    const individualFields = getAwardsDefinition(t).map(d => d.property);
+    const firstUnpredicted = [...podiumFields, ...individualFields].find(f => !tournamentGuesses[f]);
+    if (!firstUnpredicted) return;
+    const el = document.querySelector(`[data-award-field="${firstUnpredicted}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = el.querySelector('input');
+    if (input) setTimeout(() => input.focus(), 400);
+  }, [tournamentGuesses, hasThirdPlaceGame, t]);
+
   const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
     {
       isLocked: isPredictionLocked,
@@ -228,11 +244,12 @@ export default function AwardsPanel({
       decidedSoFar,
       correctSoFar,
       awardsPointsEarned: tournamentGuesses.individual_awards_score ?? undefined,
+      onFocusNextAward: handleFocusNextAward,
       tournamentId: tournament.id,
       locale,
     },
     tPredictions as (key: string, values?: Record<string, unknown>) => string
-  ), [isPredictionLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, tournamentGuesses.individual_awards_score, tournament.id, locale, tPredictions]);
+  ), [isPredictionLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, tournamentGuesses.individual_awards_score, handleFocusNextAward, tournament.id, locale, tPredictions]);
 
   return (
     <GuessesContextProvider
@@ -254,6 +271,7 @@ export default function AwardsPanel({
         <CardContent>
           <Grid container spacing={3}>
             <Grid
+              data-award-field="champion_team_id"
               flexDirection="row"
               display="flex"
               size={{
@@ -283,6 +301,7 @@ export default function AwardsPanel({
             </Grid>
 
             <Grid
+              data-award-field="runner_up_team_id"
               display={'flex'}
               flexDirection={'row'}
               size={{
@@ -312,6 +331,7 @@ export default function AwardsPanel({
 
             {hasThirdPlaceGame && (
               <Grid
+                data-award-field="third_place_team_id"
                 display={'flex'}
                 flexDirection={'row'}
                 size={{
@@ -361,7 +381,7 @@ export default function AwardsPanel({
             <Grid container spacing={2}>
               {getAwardsDefinition(t).map(awardDefinition => (
                 <Fragment key={awardDefinition.property}>
-                  <Grid flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
+                  <Grid data-award-field={awardDefinition.property} flexDirection={'row'} alignItems={'center'} display={'flex'} size={5}>
                     {tournament[awardDefinition.property] && tournament[awardDefinition.property] === tournamentGuesses[awardDefinition.property] && (
                       <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mr: 1}}>
                         <HitIcon sx={{ fontSize: 14 }} />
