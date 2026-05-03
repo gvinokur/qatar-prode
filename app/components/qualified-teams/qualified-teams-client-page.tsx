@@ -152,7 +152,7 @@ function createDragEndHandler(
 
 function AutoFillDialog({
   open, isCalculating, onClose, onConfirm,
-}: { open: boolean; isCalculating: boolean; onClose: () => void; onConfirm: () => void }) {
+}: { readonly open: boolean; readonly isCalculating: boolean; readonly onClose: () => void; readonly onConfirm: () => void }) {
   const t = useTranslations('qualified-teams.nudge');
   return (
     <Dialog open={open} onClose={isCalculating ? undefined : onClose} disableEscapeKeyDown={isCalculating}>

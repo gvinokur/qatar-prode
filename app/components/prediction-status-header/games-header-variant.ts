@@ -57,23 +57,23 @@ function buildStageWindows(games: ExtendedGameData[]): StageWindow[] {
     let key: string;
     let label: string;
 
-    if (!game.playoffStage) {
-      key = '__groups__';
-      label = 'Grupos';
-    } else {
+    if (game.playoffStage) {
       const { is_final, is_third_place, tournament_playoff_round_id, round_name } = game.playoffStage;
       key = (is_final || is_third_place) ? '__finals__' : tournament_playoff_round_id;
       label = round_name;
+    } else {
+      key = '__groups__';
+      label = 'Grupos';
     }
 
     const existing = map.get(key);
-    if (!existing) {
-      map.set(key, { label, minDate: ts, maxDate: ts });
-    } else {
+    if (existing) {
       existing.minDate = Math.min(existing.minDate, ts);
       existing.maxDate = Math.max(existing.maxDate, ts);
       // Final round name takes priority over third-place for the __finals__ bucket
       if (game.playoffStage?.is_final) existing.label = label;
+    } else {
+      map.set(key, { label, minDate: ts, maxDate: ts });
     }
     return map;
   }, new Map<string, Bucket>());
@@ -95,8 +95,7 @@ export function deriveStageLabel(games: ExtendedGameData[], now: Date): string |
 
   const nowMs = now.getTime();
 
-  // TODO: 'Finalizado' should be localized
-  if (nowMs > stages[stages.length - 1].maxDate) return 'Finalizado';
+  if (nowMs > stages.at(-1)!.maxDate) return 'Finalizado';
 
   // Safe non-null: we know nowMs <= last.maxDate, so find always matches
   return stages.find(s => nowMs <= s.maxDate)!.label;
@@ -181,25 +180,25 @@ function computeStageChip(
 ): { stageChipPredicted: number; stageChipTotal: number } {
   const currentStage = stages.find(s => nowMs <= s.maxDate);
 
-  if (!currentStage || currentStage.key === '__groups__') {
-    return { stageChipPredicted: liveCompletedGroupGames, stageChipTotal: completion.totalGroupGames };
+  if (currentStage && currentStage.key !== '__groups__') {
+    const stageGames = games.filter(g => {
+      const ts = new Date(g.game_date).getTime();
+      return ts >= currentStage.minDate && ts <= currentStage.maxDate;
+    });
+    const stageChipPredicted = stageGames.filter(
+      g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
+    ).length;
+
+    const collapsed = collapsePlayoffDenominator(completion.playoffRoundsCompletion);
+    const roundId = currentStage.key === '__finals__'
+      ? Object.keys(completion.playoffRoundsCompletion).find(id => completion.playoffRoundsCompletion[id].is_final)
+      : currentStage.key;
+    const stageChipTotal = roundId ? (collapsed[roundId]?.total ?? stageGames.length) : stageGames.length;
+
+    return { stageChipPredicted, stageChipTotal };
   }
 
-  const stageGames = games.filter(g => {
-    const ts = new Date(g.game_date).getTime();
-    return ts >= currentStage.minDate && ts <= currentStage.maxDate;
-  });
-  const stageChipPredicted = stageGames.filter(
-    g => isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
-  ).length;
-
-  const collapsed = collapsePlayoffDenominator(completion.playoffRoundsCompletion);
-  const roundId = currentStage.key === '__finals__'
-    ? Object.keys(completion.playoffRoundsCompletion).find(id => completion.playoffRoundsCompletion[id].is_final)
-    : currentStage.key;
-  const stageChipTotal = roundId ? (collapsed[roundId]?.total ?? stageGames.length) : stageGames.length;
-
-  return { stageChipPredicted, stageChipTotal };
+  return { stageChipPredicted: liveCompletedGroupGames, stageChipTotal: completion.totalGroupGames };
 }
 
 function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
@@ -207,9 +206,14 @@ function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
   const nowMs = now.getTime();
 
   const stages = buildStageWindows(games);
-  const stageLabel = stages.length === 0 ? undefined
-    : nowMs > stages[stages.length - 1].maxDate ? 'Finalizado'
-    : stages.find(s => nowMs <= s.maxDate)!.label;
+  let stageLabel: string | undefined;
+  if (stages.length === 0) {
+    stageLabel = undefined;
+  } else if (nowMs > stages.at(-1)!.maxDate) {
+    stageLabel = 'Finalizado';
+  } else {
+    stageLabel = stages.find(s => nowMs <= s.maxDate)!.label;
+  }
 
   const groupGames = games.filter(g => !g.playoffStage);
   const liveCompletedGroupGames = groupGames.filter(g => isGuessComplete(gameGuesses[g.id], false)).length;
@@ -301,10 +305,15 @@ function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, 
   const { unpredictedUrgentGames, stageLabel, stageChipPredicted, stageChipTotal, boosts } = data;
   const { teamsMap, locale, tournamentId } = input;
 
-  const levels = unpredictedUrgentGames.map(g => getGameUrgencyLevel(g, now));
-  const tone: StatusHeaderTone = levels.includes('deadlineNow') ? 'deadlineNow'
-    : levels.includes('deadlineUrgent') ? 'deadlineUrgent'
-    : 'deadlineSoon';
+  const levels = new Set(unpredictedUrgentGames.map(g => getGameUrgencyLevel(g, now)));
+  let tone: StatusHeaderTone;
+  if (levels.has('deadlineNow')) {
+    tone = 'deadlineNow';
+  } else if (levels.has('deadlineUrgent')) {
+    tone = 'deadlineUrgent';
+  } else {
+    tone = 'deadlineSoon';
+  }
 
   const count = unpredictedUrgentGames.length;
   const window = urgencyWindow(tone as UrgencyLevel);
@@ -318,7 +327,14 @@ function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, 
   });
   if (count > 3) matchups.push(`+${count - 3}`);
 
-  const chipColor = tone === 'deadlineNow' ? 'error' : tone === 'deadlineUrgent' ? 'warning' : 'info';
+  let chipColor: 'error' | 'warning' | 'info';
+  if (tone === 'deadlineNow') {
+    chipColor = 'error';
+  } else if (tone === 'deadlineUrgent') {
+    chipColor = 'warning';
+  } else {
+    chipColor = 'info';
+  }
 
   return {
     tone,
@@ -376,7 +392,7 @@ function buildPreTournament(input: GamesHeaderInput, data: GamesHeaderData, t: T
   const { completion, games, locale, tournamentId } = input;
   const { liveCompletedGroupGames, boosts } = data;
 
-  const firstGame = games.reduce((a, b) => new Date(a.game_date) < new Date(b.game_date) ? a : b);
+  const firstGame = games.reduce((a, b) => new Date(a.game_date) < new Date(b.game_date) ? a : b, games[0]);
   const daysUntil = Math.ceil((new Date(firstGame.game_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
 
   let ctaLabel: string;

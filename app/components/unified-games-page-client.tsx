@@ -3,7 +3,7 @@
 import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
@@ -11,7 +11,6 @@ import { FilterContextProvider, useFilterContext } from './context-providers/fil
 import { useEditTrigger } from './context-providers/edit-trigger-context-provider';
 import { GameFilters } from './game-filters';
 import { PredictionStatusHeader, computeGamesHeaderVariant } from './prediction-status-header';
-import { useTranslations } from 'next-intl';
 import { SecondaryFilters } from './secondary-filters';
 import { GamesListWithScroll } from './games-list-with-scroll';
 import { ExtendedGameData } from '../definitions';

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Box,
   Button,
@@ -22,7 +23,7 @@ import { BoostCountBadge } from '../boost-badge';
 import type { StatusHeaderVariant, StatusHeaderTone, HeaderAction } from './types';
 
 interface PredictionStatusHeaderProps {
-  variant: StatusHeaderVariant;
+  readonly variant: StatusHeaderVariant;
 }
 
 function getBgColor(theme: Theme, tone: StatusHeaderTone): string {
@@ -63,7 +64,7 @@ function getToneColor(tone: StatusHeaderTone): string {
 
 const ICON_SX = { fontSize: 16, flexShrink: 0 };
 
-function LeadIcon({ icon, color }: { icon: StatusHeaderVariant['leadIcon']; color: string }) {
+function LeadIcon({ icon, color }: { readonly icon: StatusHeaderVariant['leadIcon']; readonly color: string }) {
   const sx = { ...ICON_SX, color };
   switch (icon) {
     case 'rocket': return <RocketLaunchIcon sx={sx} />;
@@ -99,6 +100,18 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
   }
 
   const bothActions = variant.action && variant.secondaryAction;
+
+  let expandedActions: React.ReactNode = null;
+  if (bothActions) {
+    expandedActions = (
+      <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap' }}>
+        {renderAction(variant.action!, 'outlined')}
+        {renderAction(variant.secondaryAction!, 'outlined')}
+      </Box>
+    );
+  } else if (variant.action) {
+    expandedActions = renderAction(variant.action, 'contained');
+  }
 
   return (
     <Card
@@ -189,14 +202,7 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
                 {variant.message}
               </Typography>
 
-              {bothActions ? (
-                <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap' }}>
-                  {renderAction(variant.action!, 'outlined')}
-                  {renderAction(variant.secondaryAction!, 'outlined')}
-                </Box>
-              ) : variant.action ? (
-                renderAction(variant.action, 'contained')
-              ) : null}
+              {expandedActions}
             </Box>
           </>
         )}

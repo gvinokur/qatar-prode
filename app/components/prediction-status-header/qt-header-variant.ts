@@ -53,8 +53,62 @@ function countdownLabel(qtLockAt: Date, now: Date): string {
     const d = Math.floor(h / 24);
     return `${d}d`;
   }
-  if (h > 0) return `${h}h${m > 0 ? ` ${m}m` : ''}`;
+  if (h > 0) {
+    const minutePart = m > 0 ? ` ${m}m` : '';
+    return `${h}h${minutePart}`;
+  }
   return `${m}m`;
+}
+
+type LockedQTInput = Pick<QTHeaderInput,
+  'qualifiersCompleted' | 'qualifiersTotal' | 'definedSoFar' |
+  'correctSoFar' | 'qtPointsEarned' | 'tournamentId' | 'locale'>;
+
+function computeLockedQTVariant(
+  input: LockedQTInput,
+  chip: StatusHeaderVariant['chip'],
+  t: TFunction,
+): StatusHeaderVariant {
+  const { qualifiersCompleted, qualifiersTotal, definedSoFar, correctSoFar, qtPointsEarned, tournamentId, locale } = input;
+
+  if (qualifiersCompleted === 0) {
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.qt.neverFilled.status'),
+      message: t('statusHeader.qt.neverFilled.detail'),
+    };
+  }
+
+  const allResultsDefined = definedSoFar >= qualifiersTotal && qualifiersTotal > 0;
+  if (allResultsDefined) {
+    const pointsBadge = qtPointsEarned === undefined ? undefined : `${qtPointsEarned} pts`;
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.qt.lockedComplete.status', { correct: correctSoFar, total: qualifiersTotal }),
+      pointsBadge,
+      message: t('statusHeader.qt.lockedComplete.message'),
+      action: { label: t('statusHeader.qt.lockedComplete.ctaStats'), href: `/${locale}/tournaments/${tournamentId}/stats` },
+      secondaryAction: { label: t('statusHeader.qt.lockedComplete.ctaGroups'), href: `/${locale}/friend-groups` },
+    };
+  }
+
+  if (definedSoFar === 0) {
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.qt.lockedPending.status'),
+      chip,
+    };
+  }
+
+  return {
+    tone: 'locked',
+    leadIcon: 'lock',
+    statusText: t('statusHeader.qt.lockedPartial.status', { correct: correctSoFar, total: qualifiersTotal }),
+    chip,
+  };
 }
 
 /**
@@ -72,64 +126,16 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
   } = input;
 
   const chip = {
-    label: t('statusHeader.chipLabel.clasificados', {
-      predicted: qualifiersCompleted,
-      total: qualifiersTotal,
-    }),
+    label: t('statusHeader.chipLabel.clasificados', { predicted: qualifiersCompleted, total: qualifiersTotal }),
     color: 'default' as const,
   };
 
-  // ── VARIANT 1: never-filled-locked ──────────────────────────────────────────
-  if (isLocked && qualifiersCompleted === 0) {
-    return {
-      tone: 'locked',
-      leadIcon: 'lock',
-      statusText: t('statusHeader.qt.neverFilled.status'),
-      message: t('statusHeader.qt.neverFilled.detail'),
-    };
-  }
-
-  // ── VARIANT 2 + 3: locked states ────────────────────────────────────────────
   if (isLocked) {
-    const allResultsDefined = definedSoFar >= qualifiersTotal && qualifiersTotal > 0;
-
-    if (allResultsDefined) {
-      // locked-with-results complete
-      const pointsBadge = qtPointsEarned !== undefined ? `${qtPointsEarned} pts` : undefined;
-      return {
-        tone: 'locked',
-        leadIcon: 'lock',
-        statusText: t('statusHeader.qt.lockedComplete.status', {
-          correct: correctSoFar,
-          total: qualifiersTotal,
-        }),
-        pointsBadge,
-        message: t('statusHeader.qt.lockedComplete.message'),
-        action: { label: t('statusHeader.qt.lockedComplete.ctaStats'), href: `/${locale}/tournaments/${tournamentId}/stats` },
-        secondaryAction: { label: t('statusHeader.qt.lockedComplete.ctaGroups'), href: `/${locale}/friend-groups` },
-      };
-    }
-
-    if (definedSoFar === 0) {
-      // locked-pending
-      return {
-        tone: 'locked',
-        leadIcon: 'lock',
-        statusText: t('statusHeader.qt.lockedPending.status'),
-        chip,
-      };
-    }
-
-    // locked-with-results partial
-    return {
-      tone: 'locked',
-      leadIcon: 'lock',
-      statusText: t('statusHeader.qt.lockedPartial.status', {
-        correct: correctSoFar,
-        total: qualifiersTotal,
-      }),
+    return computeLockedQTVariant(
+      { qualifiersCompleted, qualifiersTotal, definedSoFar, correctSoFar, qtPointsEarned, tournamentId, locale },
       chip,
-    };
+      t,
+    );
   }
 
   // ── VARIANT 4: completed-pre-lock ───────────────────────────────────────────
@@ -143,17 +149,13 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
       leadIcon: 'check',
       statusText: t('statusHeader.qt.completedPreLock.status', { countdown }),
       chip,
-      action: {
-        label: t('statusHeader.qt.completedPreLock.cta'),
-        onClick: onAutoFillClick,
-      },
+      action: { label: t('statusHeader.qt.completedPreLock.cta'), onClick: onAutoFillClick },
     };
   }
 
   // ── VARIANT 5: lock-window-urgent ───────────────────────────────────────────
   const urgencyTone = qtLockAt ? computeQTLockUrgency(qtLockAt, now) : 'brand';
   const isUrgent = urgencyTone !== 'brand';
-
   if (isUrgent) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
     return {
@@ -162,10 +164,7 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
       statusText: t('statusHeader.qt.lockWindowUrgent.status', { countdown }),
       chip,
       message: t('statusHeader.qt.lockWindowUrgent.message', { countdown }),
-      action: {
-        label: t('statusHeader.qt.lockWindowUrgent.cta'),
-        onClick: onAutoFillClick,
-      },
+      action: { label: t('statusHeader.qt.lockWindowUrgent.cta'), onClick: onAutoFillClick },
     };
   }
 
@@ -178,10 +177,7 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
       statusText: t('statusHeader.qt.autoFillReady.status'),
       chip,
       message: t('statusHeader.qt.autoFillReady.message', { total: qualifiersTotal }),
-      action: {
-        label: t('statusHeader.qt.autoFillReady.cta'),
-        onClick: onAutoFillClick,
-      },
+      action: { label: t('statusHeader.qt.autoFillReady.cta'), onClick: onAutoFillClick },
     };
   }
 
@@ -192,9 +188,6 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
     statusText: t('statusHeader.qt.preTournament.status'),
     chip,
     message: t('statusHeader.qt.preTournament.message'),
-    action: {
-      label: t('statusHeader.qt.preTournament.cta'),
-      href: `/${locale}/tournaments/${tournamentId}/games?edit=next`,
-    },
+    action: { label: t('statusHeader.qt.preTournament.cta'), href: `/${locale}/tournaments/${tournamentId}/games?edit=next` },
   };
 }

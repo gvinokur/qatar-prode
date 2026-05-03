@@ -29,6 +29,27 @@ import { GuessesContextProvider } from '../context-providers/guesses-context-pro
 import { customToMap } from '../../utils/ObjectUtils';
 import { PREDICTION_LOCK_OFFSET_MS } from '../../utils/prediction-constants';
 
+interface PlayerAwardInputProps {
+  readonly label: string;
+  readonly inputRef?: React.RefCallback<HTMLInputElement>;
+  readonly params: React.ComponentProps<typeof TextField>;
+}
+
+function PlayerAwardInput({ label, inputRef, params }: PlayerAwardInputProps) {
+  return (
+    <TextField
+      {...params}
+      label={label}
+      inputRef={inputRef}
+      slotProps={{
+        htmlInput: {
+          ...params.inputProps,
+        }
+      }}
+    />
+  );
+}
+
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
   readonly tournamentGuesses: TournamentGuessNew,
@@ -148,21 +169,10 @@ export default function AwardsPanel({
   );
   const makeRenderPlayerInput = useCallback(
     (inputRef?: React.RefCallback<HTMLInputElement>) => {
-      function PlayerInput(params: any) {
-        return (
-          <TextField
-            {...params}
-            label={t('individual.selectPlayer')}
-            inputRef={inputRef}
-            slotProps={{
-              htmlInput: {
-                ...params.inputProps,
-              }
-            }}
-          />
-        );
-      }
-      return PlayerInput;
+      const label = t('individual.selectPlayer');
+      return (params: React.ComponentProps<typeof TextField>) => (
+        <PlayerAwardInput label={label} inputRef={inputRef} params={params} />
+      );
     },
     [t]
   );

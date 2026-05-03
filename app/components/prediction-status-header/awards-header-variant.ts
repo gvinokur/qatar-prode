@@ -45,7 +45,10 @@ function countdownLabel(lockAt: Date, now: Date): string {
   const h = Math.floor(ms / (60 * 60 * 1000));
   const m = Math.floor((ms % (60 * 60 * 1000)) / 60000);
   if (h >= 24) return `${Math.floor(h / 24)}d`;
-  if (h > 0) return `${h}h${m > 0 ? ` ${m}m` : ''}`;
+  if (h > 0) {
+    const minutePart = m > 0 ? ` ${m}m` : '';
+    return `${h}h${minutePart}`;
+  }
   return `${m}m`;
 }
 
@@ -56,6 +59,57 @@ export function computeAwardsActionLabel(awardsCompleted: number, awardsTotal: n
   if (awardsCompleted === 0) return t('statusHeader.awards.preTournament.ctaStart');
   if (awardsCompleted >= awardsTotal - 1) return t('statusHeader.awards.preTournament.ctaFinish');
   return t('statusHeader.awards.preTournament.ctaContinue');
+}
+
+type LockedAwardsInput = Pick<AwardsHeaderInput,
+  'awardsCompleted' | 'awardsTotal' | 'decidedSoFar' |
+  'correctSoFar' | 'awardsPointsEarned' | 'tournamentId' | 'locale'>;
+
+function computeLockedAwardsVariant(
+  input: LockedAwardsInput,
+  chip: StatusHeaderVariant['chip'],
+  t: TFunction,
+): StatusHeaderVariant {
+  const { awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, awardsPointsEarned, tournamentId, locale } = input;
+
+  if (awardsCompleted === 0) {
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.awards.neverFilled.status'),
+      message: t('statusHeader.awards.neverFilled.detail'),
+    };
+  }
+
+  const allDecided = decidedSoFar >= awardsTotal && awardsTotal > 0;
+  if (allDecided) {
+    const pointsBadge = awardsPointsEarned === undefined ? undefined : `${awardsPointsEarned} pts`;
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.awards.lockedComplete.status', { correct: correctSoFar, total: awardsTotal }),
+      pointsBadge,
+      message: t('statusHeader.awards.lockedComplete.message'),
+      action: { label: t('statusHeader.awards.lockedComplete.ctaStats'), href: `/${locale}/tournaments/${tournamentId}/stats` },
+      secondaryAction: { label: t('statusHeader.awards.lockedComplete.ctaGroups'), href: `/${locale}/friend-groups` },
+    };
+  }
+
+  if (decidedSoFar === 0) {
+    return {
+      tone: 'locked',
+      leadIcon: 'lock',
+      statusText: t('statusHeader.awards.lockedPending.status'),
+      chip,
+    };
+  }
+
+  return {
+    tone: 'locked',
+    leadIcon: 'lock',
+    statusText: t('statusHeader.awards.lockedPartial.status', { correct: correctSoFar, total: awardsTotal }),
+    chip,
+  };
 }
 
 /**
@@ -71,61 +125,16 @@ export function computeAwardsHeaderVariant(input: AwardsHeaderInput, t: TFunctio
   } = input;
 
   const chip = {
-    label: t('statusHeader.chipLabel.premios', {
-      predicted: awardsCompleted,
-      total: awardsTotal,
-    }),
+    label: t('statusHeader.chipLabel.premios', { predicted: awardsCompleted, total: awardsTotal }),
     color: 'default' as const,
   };
 
-  // ── VARIANT 1: never-filled-locked ──────────────────────────────────────────
-  if (isLocked && awardsCompleted === 0) {
-    return {
-      tone: 'locked',
-      leadIcon: 'lock',
-      statusText: t('statusHeader.awards.neverFilled.status'),
-      message: t('statusHeader.awards.neverFilled.detail'),
-    };
-  }
-
-  // ── VARIANT 2 + 3: locked states ────────────────────────────────────────────
   if (isLocked) {
-    const allDecided = decidedSoFar >= awardsTotal && awardsTotal > 0;
-
-    if (allDecided) {
-      const pointsBadge = awardsPointsEarned !== undefined ? `${awardsPointsEarned} pts` : undefined;
-      return {
-        tone: 'locked',
-        leadIcon: 'lock',
-        statusText: t('statusHeader.awards.lockedComplete.status', {
-          correct: correctSoFar,
-          total: awardsTotal,
-        }),
-        pointsBadge,
-        message: t('statusHeader.awards.lockedComplete.message'),
-        action: { label: t('statusHeader.awards.lockedComplete.ctaStats'), href: `/${locale}/tournaments/${tournamentId}/stats` },
-        secondaryAction: { label: t('statusHeader.awards.lockedComplete.ctaGroups'), href: `/${locale}/friend-groups` },
-      };
-    }
-
-    if (decidedSoFar === 0) {
-      return {
-        tone: 'locked',
-        leadIcon: 'lock',
-        statusText: t('statusHeader.awards.lockedPending.status'),
-        chip,
-      };
-    }
-
-    return {
-      tone: 'locked',
-      leadIcon: 'lock',
-      statusText: t('statusHeader.awards.lockedPartial.status', {
-        correct: correctSoFar,
-        total: awardsTotal,
-      }),
+    return computeLockedAwardsVariant(
+      { awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, awardsPointsEarned, tournamentId, locale },
       chip,
-    };
+      t,
+    );
   }
 
   // ── VARIANT 4: completed-pre-lock ───────────────────────────────────────────
