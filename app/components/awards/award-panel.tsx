@@ -170,9 +170,9 @@ export default function AwardsPanel({
   const makeRenderPlayerInput = useCallback(
     (inputRef?: React.RefCallback<HTMLInputElement>) => {
       const label = t('individual.selectPlayer');
-      return (params: React.ComponentProps<typeof TextField>) => (
-        <PlayerAwardInput label={label} inputRef={inputRef} params={params} />
-      );
+      return function renderPlayerInput(params: React.ComponentProps<typeof TextField>) {
+        return <PlayerAwardInput label={label} inputRef={inputRef} params={params} />;
+      };
     },
     [t]
   );
