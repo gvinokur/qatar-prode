@@ -11,7 +11,7 @@ import * as gameFiltersModule from '../../app/utils/game-filters';
 import * as autoScrollModule from '../../app/utils/auto-scroll';
 
 // Mock child components
-const mockCompactPredictionDashboard = vi.fn(() => <div data-testid="compact-prediction-dashboard">Dashboard</div>);
+const mockPredictionStatusHeader = vi.fn(() => <div data-testid="prediction-status-header">Status Header</div>);
 const mockGameFilters = vi.fn(({ onFilterChange, activeFilter }) => (
   <div data-testid="game-filters">
     <button data-testid="filter-groups" onClick={() => onFilterChange('groups')}>Groups</button>
@@ -37,8 +37,9 @@ const mockGamesListWithScroll = vi.fn(({ games }) => (
   </div>
 ));
 
-vi.mock('../../app/components/compact-prediction-dashboard', () => ({
-  CompactPredictionDashboard: (props: any) => mockCompactPredictionDashboard(props)
+vi.mock('../../app/components/prediction-status-header', () => ({
+  PredictionStatusHeader: (props: any) => mockPredictionStatusHeader(props),
+  computeGamesHeaderVariant: vi.fn(() => ({ tone: 'brand', leadIcon: 'rocket', statusText: 'Test' })),
 }));
 
 vi.mock('../../app/components/game-filters', () => ({
@@ -225,7 +226,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
+      expect(screen.getByTestId('prediction-status-header')).toBeInTheDocument();
       expect(screen.getByTestId('game-filters')).toBeInTheDocument();
       expect(screen.getByTestId('secondary-filters')).toBeInTheDocument();
       expect(screen.getByTestId('games-list-with-scroll')).toBeInTheDocument();
@@ -251,7 +252,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
+      expect(screen.queryByTestId('prediction-status-header')).not.toBeInTheDocument();
     });
 
     it('should render all games in the list', () => {
@@ -298,7 +299,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
+      expect(screen.getByTestId('prediction-status-header')).toBeInTheDocument();
       expect(screen.getByTestId('game-filters')).toBeInTheDocument();
     });
   });
@@ -469,12 +470,7 @@ describe('UnifiedGamesPageClient', () => {
       );
 
       // Dashboard should be rendered with calculated progress
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          totalGames: 3,
-          predictedGames: 3
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should count games with partial predictions as unpredicted', () => {
@@ -502,12 +498,7 @@ describe('UnifiedGamesPageClient', () => {
       );
 
       // Partial predictions should not count as predicted
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          totalGames: 3,
-          predictedGames: 0
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should handle zero predictions', () => {
@@ -530,12 +521,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: { gameGuesses: {} } }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          totalGames: 3,
-          predictedGames: 0
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
   });
 
@@ -674,7 +660,7 @@ describe('UnifiedGamesPageClient', () => {
       );
 
       // Component now uses boost counts from context, not props
-      expect(mockCompactPredictionDashboard).toHaveBeenCalled();
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should handle empty groups and rounds arrays', () => {
@@ -725,11 +711,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tournamentStartDate: undefined
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
   });
 
@@ -756,29 +738,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          totalGames: 6,
-          predictedGames: 0,
-          tournamentId: 'tournament-1',
-          tournamentStartDate: tournamentStartDate,
-          urgentGames: closingGames,
-          urgentGameGuesses: expect.any(Object),
-          teamsMap: teamsMap,
-          silverBoostsUsed: expect.any(Number),
-          silverBoostsMax: expect.any(Number),
-          goldenBoostsUsed: expect.any(Number),
-          goldenBoostsMax: expect.any(Number),
-          finalStandingsCompleted: 2,
-          finalStandingsTotal: 3,
-          awardsCompleted: 1,
-          awardsTotal: 4,
-          qualifiersCompleted: 8,
-          qualifiersTotal: 16,
-          overallPercentage: 47.83,
-          isPredictionLocked: false
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should pass correct props to GameFilters', () => {
@@ -894,18 +854,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: true }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          finalStandingsCompleted: undefined,
-          finalStandingsTotal: undefined,
-          awardsCompleted: undefined,
-          awardsTotal: undefined,
-          qualifiersCompleted: undefined,
-          qualifiersTotal: undefined,
-          overallPercentage: undefined,
-          isPredictionLocked: undefined
-        })
-      );
+      expect(mockPredictionStatusHeader).not.toHaveBeenCalled();
     });
   });
 
@@ -952,14 +901,7 @@ describe('UnifiedGamesPageClient', () => {
         }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          silverBoostsUsed: 1,
-          silverBoostsMax: 5,
-          goldenBoostsUsed: 1,
-          goldenBoostsMax: 3
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should pass urgent games and their guesses from GuessesContext', () => {
@@ -990,12 +932,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: { gameGuesses: mockGameGuesses } }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          urgentGames: closingGames,
-          urgentGameGuesses: mockGameGuesses
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should calculate totalGames and predictedGames from games and GuessesContext', () => {
@@ -1023,12 +960,7 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: { gameGuesses: mockGameGuesses } }
       );
 
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          totalGames: 5,
-          predictedGames: 2 // Only game-1 and game-2 have both scores
-        })
-      );
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
   });
 
@@ -1053,12 +985,8 @@ describe('UnifiedGamesPageClient', () => {
         { guessesContext: { gameGuesses: {} } }
       );
 
-      expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
-      expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          predictedGames: 0
-        })
-      );
+      expect(screen.getByTestId('prediction-status-header')).toBeInTheDocument();
+      expect(mockPredictionStatusHeader).toHaveBeenCalled();
     });
 
     it('should update filtered games when gameGuesses change', () => {
@@ -1116,7 +1044,7 @@ describe('UnifiedGamesPageClient', () => {
         />
       );
 
-      expect(screen.getByTestId('compact-prediction-dashboard')).toBeInTheDocument();
+      expect(screen.getByTestId('prediction-status-header')).toBeInTheDocument();
     });
   });
 

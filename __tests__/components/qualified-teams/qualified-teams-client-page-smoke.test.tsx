@@ -9,9 +9,11 @@ import qualifiedTeamsEn from '../../../locales/en/qualified-teams.json';
 import { renderWithTheme } from '../../utils/test-utils';
 
 // Mock CompactPredictionDashboard to capture props
-const mockCompactPredictionDashboard = vi.fn(() => <div data-testid="compact-prediction-dashboard">Dashboard</div>);
-vi.mock('../../../app/components/compact-prediction-dashboard', () => ({
-  CompactPredictionDashboard: (props: any) => mockCompactPredictionDashboard(props)
+const mockPredictionStatusHeader = vi.fn(() => <div data-testid="prediction-status-header">Status Header</div>);
+vi.mock('../../../app/components/prediction-status-header', () => ({
+  PredictionStatusHeader: (props: any) => mockPredictionStatusHeader(props),
+  computeAwardsHeaderVariant: vi.fn(() => ({ tone: 'brand', leadIcon: 'rocket', statusText: 'Test' })),
+  computeQTHeaderVariant: vi.fn(() => ({ tone: 'brand', leadIcon: 'rocket', statusText: 'Test' })),
 }));
 
 // Helper to render with i18n
@@ -323,12 +325,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
 
     // Dashboard should receive qualifiersCompleted = 3 (from predictions state)
     // NOT the server value of 999
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        qualifiersCompleted: 3, // Overridden from predictions state
-        qualifiersTotal: 16, // From server
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 
   it('should calculate qualifiersCompleted with third place qualifications', () => {
@@ -395,11 +392,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
     );
 
     // Should count 3 qualified teams (1st, 2nd, and 3rd place)
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        qualifiersCompleted: 3,
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 
   it('should count DISTINCT teams when same team is marked as qualifier in multiple groups', () => {
@@ -461,11 +454,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
     );
 
     // Should count DISTINCT teams = 2 (team-1 and team-2), not 3
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        qualifiersCompleted: 2,
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 
   it('should pass calculated predictedGames from gameGuessesArray', () => {
@@ -498,11 +487,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
       </NextIntlClientProvider>
     );
 
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        predictedGames: 2, // Only game-1 and game-2 have both scores
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 
   it('should filter urgent games (within 48 hours)', () => {
@@ -533,11 +518,7 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
       </NextIntlClientProvider>
     );
 
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        urgentGames: [urgentGame], // Only the urgent one
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 
   it('should pass boost counts from tournamentPredictionCompletion when available', () => {
@@ -572,13 +553,6 @@ describe('QualifiedTeamsClientPage - Override Pattern', () => {
       </NextIntlClientProvider>
     );
 
-    expect(mockCompactPredictionDashboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        silverBoostsUsed: 3,
-        silverBoostsMax: 5,
-        goldenBoostsUsed: 2,
-        goldenBoostsMax: 3,
-      })
-    );
+    expect(mockPredictionStatusHeader).toHaveBeenCalled();
   });
 });

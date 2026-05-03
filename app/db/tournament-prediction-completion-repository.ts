@@ -161,7 +161,7 @@ export async function getTournamentPredictionCompletion(
   const playoffRoundsResult = await db
     .selectFrom('tournament_playoff_rounds')
     .where('tournament_id', '=', tournamentId)
-    .select(['id', 'round_name', 'round_order'])
+    .select(['id', 'round_name', 'round_order', 'is_final', 'is_third_place'])
     .orderBy('round_order', 'asc')
     .execute()
 
@@ -208,6 +208,8 @@ export async function getTournamentPredictionCompletion(
         total: totalByRound.get(round.id) ?? 0,
         completed: completedByRound.get(round.id) ?? 0,
         round_name: round.round_name,
+        is_final: round.is_final ?? undefined,
+        is_third_place: round.is_third_place ?? undefined,
       }
     }
   }

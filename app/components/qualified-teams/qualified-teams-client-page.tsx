@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import React, { useMemo, useState, useEffect, useCallback, useTransition } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Typography, Alert, Snackbar, Box, Popover, Backdrop, CircularProgress, useMediaQuery } from '@mui/material';
+import { Typography, Alert, Snackbar, Box, Popover, Backdrop, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import LockIcon from '@mui/icons-material/Lock';
+import { bulkAutoFillFromPredictions } from '../../actions/qualification-actions';
+import { toLocale } from '../../utils/locale-utils';
 import {
   QualifiedTeamsContextProvider,
   useQualifiedTeamsContext,
@@ -15,12 +17,11 @@ import { Team, TournamentGroup, QualifiedTeamPrediction } from '../../db/tables-
 import QualifiedTeamsGrid from './qualified-teams-grid';
 import { QualifiedTeamsScoringResult } from '../../utils/qualified-teams-scoring';
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
-import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
+import { PredictionStatusHeader, computeQTHeaderVariant } from '../prediction-status-header';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
 import { ScrollShadowContainer } from '../common/scroll-shadow-container';
-import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
-import { QTActionBanner, type QTBannerState } from './qt-action-banner';
+import { PREDICTION_LOCK_OFFSET_MS } from '../../utils/prediction-constants';
 
 interface QualifiedTeamsClientPageProps {
   /** Tournament data */
@@ -62,7 +63,6 @@ interface QualifiedTeamsClientPageProps {
   readonly tournamentPredictionCompletion: any;
   readonly tournamentStartDate?: Date;
   readonly teamsMap: Record<string, Team>;
-  readonly qtBannerState?: QTBannerState;
 }
 
 /** Handle drag end event - batch updates for entire group */
@@ -150,6 +150,34 @@ function createDragEndHandler(
   };
 }
 
+function AutoFillDialog({
+  open, isCalculating, onClose, onConfirm,
+}: { readonly open: boolean; readonly isCalculating: boolean; readonly onClose: () => void; readonly onConfirm: () => void }) {
+  const t = useTranslations('qualified-teams.nudge');
+  return (
+    <Dialog open={open} onClose={isCalculating ? undefined : onClose} disableEscapeKeyDown={isCalculating}>
+      <DialogTitle>{t('autoFillDialog.title')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{t('autoFillDialog.body')}</DialogContentText>
+        <DialogContentText sx={{ mt: 1 }}>{t('autoFillDialog.note')}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={isCalculating}>{t('autoFillDialog.cancel')}</Button>
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="primary"
+          disabled={isCalculating}
+          autoFocus
+          startIcon={isCalculating ? <CircularProgress size={16} color="inherit" /> : undefined}
+        >
+          {isCalculating ? t('autoFillDialog.calculating') : t('autoFillDialog.confirm')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 /** Main qualified teams UI with DnD */
 function QualifiedTeamsUI({
   tournament,
@@ -165,13 +193,37 @@ function QualifiedTeamsUI({
   tournamentPredictionCompletion,
   tournamentStartDate,
   teamsMap,
+  actualResults,
 }: Omit<QualifiedTeamsClientPageProps, 'initialPredictions' | 'userId'>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const locale = useLocale();
   const t = useTranslations('qualified-teams');
+  const tPredictions = useTranslations('predictions');
   const { predictions, isSaving, saveState, error, clearError, updateGroupPositions, resetPredictions } = useQualifiedTeamsContext();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const [showLockedSnackbar, setShowLockedSnackbar] = useState(false);
+  const [autoFillDialogOpen, setAutoFillDialogOpen] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [autoFillErrorOpen, setAutoFillErrorOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const tNudge = useTranslations('qualified-teams.nudge');
+
+  const handleAutoFillClick = useCallback(() => setAutoFillDialogOpen(true), []);
+
+  const handleAutoFillConfirm = useCallback(() => {
+    setIsCalculating(true);
+    startTransition(async () => {
+      const result = await bulkAutoFillFromPredictions(tournament.id, toLocale(locale));
+      setIsCalculating(false);
+      setAutoFillDialogOpen(false);
+      if (result.success && result.predictions) {
+        resetPredictions(result.predictions);
+      } else {
+        setAutoFillErrorOpen(true);
+      }
+    });
+  }, [tournament.id, locale, resetPredictions, startTransition]);
 
   // Calculate current third place count for limit checking
   const currentThirdPlaceCount = useMemo(() => {
@@ -291,26 +343,6 @@ function QualifiedTeamsUI({
     [gameGuessesArray]
   );
 
-  // Create a map of game_id -> game_type for prediction validation
-  const gameTypeMap = useMemo(
-    () => Object.fromEntries(games.map((g: any) => [g.id, g.game_type])),
-    [games]
-  );
-
-  // Calculate predictedGames correctly (check scores AND penalty winner for tied playoff games)
-  const predictedGames = useMemo(
-    () => gameGuessesArray.filter((g: any) =>
-      isGamePredictionComplete(
-        gameTypeMap[g.game_id],
-        g.home_score,
-        g.away_score,
-        g.home_penalty_winner,
-        g.away_penalty_winner
-      )
-    ).length,
-    [gameGuessesArray, gameTypeMap]
-  );
-
   // Calculate qualified teams completion (DISTINCT teams marked as predicted_to_qualify)
   const qualifiedTeamsCompleted = useMemo(() => {
     const uniqueTeams = new Set<string>();
@@ -322,30 +354,38 @@ function QualifiedTeamsUI({
     return uniqueTeams.size;
   }, [predictions]);
 
-  // Compute banner state reactively so it updates when qualifiers are toggled or auto-filled
-  const localBannerState: QTBannerState = useMemo(() => {
-    const hasUnpredictedGroupGames =
-      (tournamentPredictionCompletion?.completedGroupGames ?? 0) <
-      (tournamentPredictionCompletion?.totalGroupGames ?? 0);
-    const isQTComplete =
-      (tournamentPredictionCompletion?.qualifiers.total ?? 0) > 0 &&
-      qualifiedTeamsCompleted >= (tournamentPredictionCompletion?.qualifiers.total ?? 0);
-    if (hasUnpredictedGroupGames) return 'incomplete-games';
-    if (isQTComplete) return 'all-valid';
-    return 'games-finished';
-  }, [tournamentPredictionCompletion, qualifiedTeamsCompleted]);
+  const qtLockAt = useMemo(
+    () => tournamentStartDate ? new Date(tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS) : null,
+    [tournamentStartDate]
+  );
 
-  // Filter urgent games (within 48 hours)
-  const urgentGames = useMemo(
-    () => {
-      const now = Date.now();
-      const fortyEightHours = 48 * 60 * 60 * 1000;
-      return games.filter((game: any) => {
-        const gameTime = new Date(game.game_date).getTime();
-        return gameTime > now && gameTime <= now + fortyEightHours;
-      });
-    },
-    [games]
+  const correctSoFar = useMemo(() => {
+    if (!scoringBreakdown) return 0;
+    return scoringBreakdown.breakdown.reduce((acc, group) => {
+      return acc + group.teams.filter(t => t.predictedToQualify && t.actuallyQualified).length;
+    }, 0);
+  }, [scoringBreakdown]);
+
+  const qtHeaderVariant = useMemo(
+    () => computeQTHeaderVariant(
+      {
+        isLocked,
+        qtLockAt,
+        predictedGroupGames: tournamentPredictionCompletion?.completedGroupGames ?? 0,
+        totalGroupGames: tournamentPredictionCompletion?.totalGroupGames ?? 0,
+        qualifiersCompleted: qualifiedTeamsCompleted,
+        qualifiersTotal: tournamentPredictionCompletion?.qualifiers.total ?? 0,
+        definedSoFar: actualResults?.length ?? 0,
+        correctSoFar,
+        qtPointsEarned: scoringBreakdown?.totalScore,
+        onAutoFillClick: handleAutoFillClick,
+        tournamentId: tournament.id,
+        locale,
+      },
+      tPredictions as (key: string, values?: Record<string, unknown>) => string
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isLocked, qtLockAt, tournamentPredictionCompletion, qualifiedTeamsCompleted, actualResults, correctSoFar, scoringBreakdown, locale]
   );
 
   return (
@@ -360,39 +400,9 @@ function QualifiedTeamsUI({
         flexDirection: 'column',
         height: isMobile ? 'auto' : '100%',
       }}>
-        {/* Fixed header (desktop) */}
+        {/* Prediction Status Header */}
         <Box sx={{ flexShrink: 0, pt: 2 }}>
-          <CompactPredictionDashboard
-            totalGames={tournamentPredictionCompletion?.totalGames ?? games.length}
-            predictedGames={predictedGames}
-            tournamentId={tournament.id}
-            tournamentStartDate={tournamentStartDate}
-            urgentGames={urgentGames}
-            urgentGameGuesses={gameGuessesMap}
-            teamsMap={teamsMap}
-            silverBoostsUsed={tournamentPredictionCompletion?.silverBoostsUsed ?? 0}
-            silverBoostsMax={tournamentPredictionCompletion?.silverBoostsMax ?? (tournament.max_silver_games || 0)}
-            goldenBoostsUsed={tournamentPredictionCompletion?.goldenBoostsUsed ?? 0}
-            goldenBoostsMax={tournamentPredictionCompletion?.goldenBoostsMax ?? (tournament.max_golden_games || 0)}
-            finalStandingsCompleted={tournamentPredictionCompletion?.finalStandings.completed}
-            finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total}
-            awardsCompleted={tournamentPredictionCompletion?.awards.completed}
-            awardsTotal={tournamentPredictionCompletion?.awards.total}
-            qualifiersCompleted={qualifiedTeamsCompleted}
-            qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
-            overallPercentage={tournamentPredictionCompletion?.overallPercentage}
-            isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
-          />
-        </Box>
-
-        {/* State-based action banner — driven by live predictions */}
-        <Box sx={{ flexShrink: 0, px: 0, pt: 1 }}>
-          <QTActionBanner
-            bannerState={localBannerState}
-            tournamentId={tournament.id}
-            isLocked={isLocked}
-            onAutoFillSuccess={resetPredictions}
-          />
+          <PredictionStatusHeader variant={qtHeaderVariant} />
         </Box>
 
         <Popover
@@ -517,6 +527,20 @@ function QualifiedTeamsUI({
         <CircularProgress color="inherit" size={60} />
       </Backdrop>
       </Box>
+
+      <AutoFillDialog
+        open={autoFillDialogOpen}
+        isCalculating={isCalculating}
+        onClose={() => setAutoFillDialogOpen(false)}
+        onConfirm={handleAutoFillConfirm}
+      />
+
+      <Snackbar
+        open={autoFillErrorOpen}
+        autoHideDuration={4000}
+        onClose={() => setAutoFillErrorOpen(false)}
+        message={tNudge('autoFillError')}
+      />
     </GuessesContextProvider>
   );
 }

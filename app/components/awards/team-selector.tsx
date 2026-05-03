@@ -15,6 +15,8 @@ interface TeamSelectorProps {
   disabled?: boolean;
   helperText?: string;
   onChange?: (_value: string) => void;
+  open?: boolean;
+  onClose?: () => void;
 }
 
 const TeamSelector: React.FC<TeamSelectorProps> = ({
@@ -24,7 +26,9 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   name,
   disabled = false,
   helperText,
-  onChange
+  onChange,
+  open,
+  onClose,
 }) => {
   const t = useTranslations('awards');
   // Sort teams alphabetically by name
@@ -51,6 +55,8 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
         value={selectedTeamId}
         label={label}
         onChange={handleChange}
+        open={open}
+        onClose={onClose}
         renderValue={(selected) => {
           const team = teams.find(t => t.id === selected);
           if (!team) return label;

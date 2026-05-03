@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-03
 
 ---
 
@@ -35,7 +35,7 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 - **UserFavoriteGroup**: `Selectable<UserFavoriteGroupTable>` — full row shape.
 - **UserFavoriteGroupNew**: `Omit<Insertable<UserFavoriteGroupTable>, 'created_at'>` — insert shape.
 
-- **PlayoffRoundCompletionData**: Interface — `{ total: number; completed: number; round_name: string }` — per-round prediction completion summary, used as value type in `TournamentPredictionCompletion.playoffRoundsCompletion`.
+- **PlayoffRoundCompletionData**: Interface — `{ total: number; completed: number; round_name: string; is_final?: boolean; is_third_place?: boolean }` — per-round prediction completion summary, used as value type in `TournamentPredictionCompletion.playoffRoundsCompletion`.
 - **PlayoffRoundAvailabilityInfo**: Interface — `{ roundId: string; roundOrder: number; hasTeamsDefined: boolean; previousStageLastGameDate: Date | null; hasUnpredictedGames: boolean }` — per-round availability snapshot for "Now Available" detection; returned by `findPlayoffRoundsWithAvailabilityInfo`.
 
 `TournamentPredictionCompletion` now includes `playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>` — per-round breakdown keyed by round ID, ordered by round_order ascending.

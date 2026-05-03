@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-05-03
 
 ---
 
@@ -84,16 +84,17 @@ Mobile-optimized fullscreen autocomplete dropdown. Generic reusable component fo
 
 ### app/components/awards/team-selector.tsx
 Dropdown selector for teams with logo display. Component for award team predictions.
-- **TeamSelector({ label, teams, selectedTeamId, name, disabled, helperText, onChange }: TeamSelectorProps)**: `React.FC<TeamSelectorProps>` — Select team with visual logo representation.
+- **TeamSelector({ label, teams, selectedTeamId, name, disabled, helperText, onChange, open?, onClose? }: TeamSelectorProps)**: `React.FC<TeamSelectorProps>` — Select team with visual logo representation. `open`/`onClose` allow controlled-open mode for programmatic dismiss.
   Uses: useTranslations
   Renders: Select, MenuItem, Image, FormControl
 
 ### app/components/awards/award-panel.tsx
 Complete awards prediction interface with podium and individual awards. [Client] interactive panel for tournament awards.
+- **PlayerAwardInput({ label, inputRef?, params })**: `JSX.Element` — Module-level presentational component for Autocomplete renderInput; avoids inline component definition
 - **AwardsPanel({ allPlayers, tournamentGuesses, teams, hasThirdPlaceGame, isPredictionLocked, tournament, games, gameGuessesArray, tournamentPredictionCompletion, tournamentStartDate, teamsMap }: Props)**: `JSX.Element` — [Client] Manages podium (champion, runner-up, third place) and individual awards (best player, top goalscorer, best goalkeeper, best young player).
-  Calls: updateOrCreateTournamentGuess
-  Uses: useTranslations, useTheme, useMediaQuery, useMemo, useState, useEffect
-  Renders: TeamSelector, Autocomplete, MobileFriendlyAutocomplete, CompactPredictionDashboard, Card, Grid
+  Calls: updateOrCreateTournamentGuess, computeAwardsHeaderVariant
+  Uses: useTranslations, useTheme, useMediaQuery, useMemo, useState, useEffect, useCallback
+  Renders: TeamSelector, Autocomplete, MobileFriendlyAutocomplete, PredictionStatusHeader, Card, Grid
 
 ### app/components/onboarding/onboarding-dialog.tsx
 Main onboarding dialog with 7 progressive steps. [Client] state machine for onboarding workflow.

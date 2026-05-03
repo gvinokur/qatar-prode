@@ -5,7 +5,7 @@ import { getLoggedInUser } from '../actions/user-actions';
 import { getTeamsMap, getGamesClosingWithin48Hours } from '../actions/tournament-actions';
 import { getAllTournamentGames, getTournamentGameCounts } from '../db/game-repository';
 import { applyLocalization } from '../utils/localization-helper';
-import { findGameGuessesByUserId, getPredictionDashboardStats } from '../db/game-guess-repository';
+import { findGameGuessesByUserId, getPredictionDashboardStats, getGameGuessStatisticsForUsers } from '../db/game-guess-repository';
 import { findTournamentById } from '../db/tournament-repository';
 import { findGroupsInTournament } from '../db/tournament-group-repository';
 import { findPlayoffStagesWithGamesInTournament } from '../db/tournament-playoff-repository';
@@ -44,6 +44,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
     closingGames,
     tournamentPredictionCompletion,
     nowAvailableRoundIds,
+    gameStatsList,
   ] = await Promise.all([
     getAllTournamentGames(tournamentId),
     getTournamentGameCounts(user.id, tournamentId),
@@ -59,7 +60,14 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
       return t ? getTournamentPredictionCompletion(user.id, tournamentId, t) : null;
     })(),
     getPlayoffRoundsAvailability(tournamentId),
+    getGameGuessStatisticsForUsers([user.id], tournamentId),
   ]);
+
+  const gameStats = gameStatsList[0];
+  const gamePointsEarned = gameStats
+    ? (gameStats.group_score ?? 0) + (gameStats.group_boost_bonus ?? 0) +
+      (gameStats.playoff_score ?? 0) + (gameStats.playoff_boost_bonus ?? 0)
+    : undefined;
 
   if (!tournament) {
     return <div>Tournament not found.</div>;
@@ -103,6 +111,7 @@ export async function UnifiedGamesPage({ tournamentId }: UnifiedGamesPageProps) 
           tournamentStartDate={tournamentStartDate}
           qualifiedTeamsHref={qualifiedTeamsHref}
           nowAvailableRoundIds={nowAvailableRoundIds}
+          gamePointsEarned={gamePointsEarned}
         />
       </EditTriggerContextProvider>
     </GuessesContextProvider>

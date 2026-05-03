@@ -1,7 +1,7 @@
 'use client'
 
 import {Team, Tournament, TournamentGuessNew} from "../../db/tables-definition";
-import React, {Fragment, useState, useEffect, useMemo} from "react";
+import React, {Fragment, useState, useEffect, useMemo, useCallback, useRef} from "react";
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage';
 import {
   Alert,
@@ -23,11 +23,27 @@ import {getAwardsDefinition, AwardDefinition, AwardTypes} from "../../utils/awar
 import TeamSelector from "./team-selector";
 import MobileFriendlyAutocomplete from './mobile-friendly-autocomplete';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTranslations } from 'next-intl';
-import { CompactPredictionDashboard } from '../compact-prediction-dashboard';
+import { useTranslations, useLocale } from 'next-intl';
+import { PredictionStatusHeader, computeAwardsHeaderVariant } from '../prediction-status-header';
 import { GuessesContextProvider } from '../context-providers/guesses-context-provider';
 import { customToMap } from '../../utils/ObjectUtils';
-import { isGamePredictionComplete } from '../../utils/game-prediction-helpers';
+import { PREDICTION_LOCK_OFFSET_MS } from '../../utils/prediction-constants';
+
+interface PlayerAwardInputProps {
+  readonly label: string;
+  readonly inputRef?: React.RefCallback<HTMLInputElement>;
+  readonly params: React.ComponentProps<typeof TextField>;
+}
+
+function PlayerAwardInput({ label, inputRef, params }: PlayerAwardInputProps) {
+  return (
+    <TextField
+      {...params}
+      label={label}
+      inputRef={inputRef}
+    />
+  );
+}
 
 type Props = {
   readonly allPlayers: ExtendedPlayerData[],
@@ -54,11 +70,12 @@ export default function AwardsPanel({
     gameGuessesArray,
     tournamentPredictionCompletion,
     tournamentStartDate,
-    teamsMap
   }: Props) {
   const theme = useTheme()
   const isMobile = useMediaQuery('(max-width:600px)');
   const t = useTranslations('awards');
+  const tPredictions = useTranslations('predictions');
+  const locale = useLocale();
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
   const [tournamentGuesses, setTournamentGuesses] = useState(savedTournamentGuesses)
@@ -145,16 +162,14 @@ export default function AwardsPanel({
       {option.name} - {option.team.short_name}
     </Box>
   );
-  const renderPlayerInput = (params: any) => (
-    <TextField
-      {...params}
-      label={t('individual.selectPlayer')}
-      slotProps={{
-        htmlInput: {
-          ...params.inputProps,
-        }
-      }}
-    />
+  const makeRenderPlayerInput = useCallback(
+    (inputRef?: React.RefCallback<HTMLInputElement>) => {
+      const label = t('individual.selectPlayer');
+      return function renderPlayerInput(params: React.ComponentProps<typeof TextField>) {
+        return <PlayerAwardInput label={label} inputRef={inputRef} params={params} />;
+      };
+    },
+    [t]
   );
 
   // Convert game guesses array to map for GuessesContext
@@ -163,66 +178,112 @@ export default function AwardsPanel({
     [gameGuessesArray]
   );
 
-  // Create a map of game_id -> game_type for prediction validation
-  const gameTypeMap = useMemo(
-    () => Object.fromEntries(games.map((g: any) => [g.id, g.game_type])),
-    [games]
-  );
-
-  // Calculate predictedGames correctly (check scores AND penalty winner for tied playoff games)
-  const predictedGames = useMemo(
-    () => gameGuessesArray.filter((g: any) =>
-      isGamePredictionComplete(
-        gameTypeMap[g.game_id],
-        g.home_score,
-        g.away_score,
-        g.home_penalty_winner,
-        g.away_penalty_winner
-      )
-    ).length,
-    [gameGuessesArray, gameTypeMap]
-  );
-
-  // Calculate individual awards completion from local state
+  // Calculate podium + individual awards completion from local state
   const awardsCompleted = useMemo(() => {
     return [
+      tournamentGuesses.champion_team_id,
+      tournamentGuesses.runner_up_team_id,
+      hasThirdPlaceGame ? tournamentGuesses.third_place_team_id : null,
       tournamentGuesses.best_player_id,
       tournamentGuesses.top_goalscorer_player_id,
       tournamentGuesses.best_goalkeeper_player_id,
       tournamentGuesses.best_young_player_id,
     ].filter(Boolean).length;
   }, [
+    hasThirdPlaceGame,
+    tournamentGuesses.champion_team_id,
+    tournamentGuesses.runner_up_team_id,
+    tournamentGuesses.third_place_team_id,
     tournamentGuesses.best_player_id,
     tournamentGuesses.top_goalscorer_player_id,
     tournamentGuesses.best_goalkeeper_player_id,
     tournamentGuesses.best_young_player_id,
   ]);
 
-  // Calculate final standings (honor roll) completion from local state
-  const finalStandingsCompleted = useMemo(() => {
-    return [
-      tournamentGuesses.champion_team_id,
-      tournamentGuesses.runner_up_team_id,
-      tournamentGuesses.third_place_team_id,
-    ].filter(Boolean).length;
-  }, [
-    tournamentGuesses.champion_team_id,
-    tournamentGuesses.runner_up_team_id,
-    tournamentGuesses.third_place_team_id,
-  ]);
+  const awardsLockAt = useMemo(() => {
+    if (!tournamentStartDate) return null;
+    return new Date(tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS);
+  }, [tournamentStartDate]);
 
-  // Filter urgent games (within 48 hours)
-  const urgentGames = useMemo(
-    () => {
-      const now = Date.now();
-      const fortyEightHours = 48 * 60 * 60 * 1000;
-      return games.filter((game: any) => {
-        const gameTime = new Date(game.game_date).getTime();
-        return gameTime > now && gameTime <= now + fortyEightHours;
-      });
+  const decidedSoFar = useMemo(() => {
+    return [
+      tournament.champion_team_id,
+      tournament.runner_up_team_id,
+      hasThirdPlaceGame ? tournament.third_place_team_id : null,
+      tournament.best_player_id,
+      tournament.top_goalscorer_player_id,
+      tournament.best_goalkeeper_player_id,
+      tournament.best_young_player_id,
+    ].filter(Boolean).length;
+  }, [hasThirdPlaceGame, tournament]);
+
+  const correctSoFar = useMemo(() => {
+    return [
+      { result: tournament.champion_team_id, pick: tournamentGuesses.champion_team_id },
+      { result: tournament.runner_up_team_id, pick: tournamentGuesses.runner_up_team_id },
+      ...(hasThirdPlaceGame ? [{ result: tournament.third_place_team_id, pick: tournamentGuesses.third_place_team_id }] : []),
+      { result: tournament.best_player_id, pick: tournamentGuesses.best_player_id },
+      { result: tournament.top_goalscorer_player_id, pick: tournamentGuesses.top_goalscorer_player_id },
+      { result: tournament.best_goalkeeper_player_id, pick: tournamentGuesses.best_goalkeeper_player_id },
+      { result: tournament.best_young_player_id, pick: tournamentGuesses.best_young_player_id },
+    ].filter(({ result, pick }) => result && result === pick).length;
+  }, [hasThirdPlaceGame, tournament, tournamentGuesses]);
+
+  // awardsTotal: 3 podium + 4 individual = 7 (or 6 when no third-place game)
+  // Always computed locally — server awards.total counts only individual awards (4), not podium picks
+  const awardsTotal = hasThirdPlaceGame ? 7 : 6;
+
+  const [openPodiumField, setOpenPodiumField] = useState<AwardTypes | null>(null);
+
+  const fieldContainerRefs = useRef<Map<AwardTypes, HTMLElement>>(new Map());
+  const fieldInputRefs = useRef<Map<AwardTypes, HTMLInputElement>>(new Map());
+
+  const registerContainerRef = useCallback((field: AwardTypes) => (el: HTMLElement | null) => {
+    if (el) fieldContainerRefs.current.set(field, el);
+    else fieldContainerRefs.current.delete(field);
+  }, []);
+
+  const registerInputRef = useCallback((field: AwardTypes) => (el: HTMLInputElement | null) => {
+    if (el) fieldInputRefs.current.set(field, el);
+    else fieldInputRefs.current.delete(field);
+  }, []);
+
+  const handleFocusNextAward = useCallback(() => {
+    const podiumFields: AwardTypes[] = [
+      'champion_team_id',
+      'runner_up_team_id',
+      ...(hasThirdPlaceGame ? ['third_place_team_id' as AwardTypes] : []),
+    ];
+    const individualFields = getAwardsDefinition(t).map(d => d.property);
+    const firstUnpredicted = [...podiumFields, ...individualFields].find(f => !tournamentGuesses[f]);
+    if (!firstUnpredicted) return;
+
+    const container = fieldContainerRefs.current.get(firstUnpredicted);
+    container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (podiumFields.includes(firstUnpredicted)) {
+      setTimeout(() => setOpenPodiumField(firstUnpredicted), 400);
+    } else {
+      const input = fieldInputRefs.current.get(firstUnpredicted);
+      if (input) setTimeout(() => input.focus(), 400);
+    }
+  }, [tournamentGuesses, hasThirdPlaceGame, t]);
+
+  const awardsHeaderVariant = useMemo(() => computeAwardsHeaderVariant(
+    {
+      isLocked: isPredictionLocked,
+      awardsLockAt,
+      awardsCompleted,
+      awardsTotal,
+      decidedSoFar,
+      correctSoFar,
+      awardsPointsEarned: tournamentGuesses.individual_awards_score ?? undefined,
+      onFocusNextAward: handleFocusNextAward,
+      tournamentId: tournament.id,
+      locale,
     },
-    [games]
-  );
+    tPredictions as (key: string, values?: Record<string, unknown>) => string
+  ), [isPredictionLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, tournamentGuesses.individual_awards_score, handleFocusNextAward, tournament.id, locale, tPredictions]);
 
   return (
     <GuessesContextProvider
@@ -231,27 +292,7 @@ export default function AwardsPanel({
       tournamentMaxSilver={tournament.max_silver_games || 0}
       tournamentMaxGolden={tournament.max_golden_games || 0}
     >
-      <CompactPredictionDashboard
-        totalGames={tournamentPredictionCompletion?.totalGames ?? games.length}
-        predictedGames={predictedGames}
-        tournamentId={tournament.id}
-        tournamentStartDate={tournamentStartDate}
-        urgentGames={urgentGames}
-        urgentGameGuesses={gameGuessesMap}
-        teamsMap={teamsMap}
-        silverBoostsUsed={tournamentPredictionCompletion?.silverBoostsUsed ?? 0}
-        silverBoostsMax={tournamentPredictionCompletion?.silverBoostsMax ?? (tournament.max_silver_games || 0)}
-        goldenBoostsUsed={tournamentPredictionCompletion?.goldenBoostsUsed ?? 0}
-        goldenBoostsMax={tournamentPredictionCompletion?.goldenBoostsMax ?? (tournament.max_golden_games || 0)}
-        finalStandingsCompleted={finalStandingsCompleted}
-        finalStandingsTotal={tournamentPredictionCompletion?.finalStandings.total ?? 3}
-        awardsCompleted={awardsCompleted}
-        awardsTotal={tournamentPredictionCompletion?.awards.total ?? 4}
-        qualifiersCompleted={tournamentPredictionCompletion?.qualifiers.completed}
-        qualifiersTotal={tournamentPredictionCompletion?.qualifiers.total}
-        overallPercentage={tournamentPredictionCompletion?.overallPercentage}
-        isPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked}
-      />
+      <PredictionStatusHeader variant={awardsHeaderVariant} />
 
       <Card>
         <CardHeader
@@ -264,6 +305,7 @@ export default function AwardsPanel({
         <CardContent>
           <Grid container spacing={3}>
             <Grid
+              ref={registerContainerRef('champion_team_id')}
               flexDirection="row"
               display="flex"
               size={{
@@ -278,6 +320,8 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.champion.helper')}
                 onChange={handlePodiumGuessChange('champion_team_id')}
+                open={openPodiumField === 'champion_team_id' || undefined}
+                onClose={() => setOpenPodiumField(null)}
               />
               {tournament.champion_team_id && tournament.champion_team_id === tournamentGuesses.champion_team_id && (
                 <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
@@ -293,6 +337,7 @@ export default function AwardsPanel({
             </Grid>
 
             <Grid
+              ref={registerContainerRef('runner_up_team_id')}
               display={'flex'}
               flexDirection={'row'}
               size={{
@@ -307,6 +352,8 @@ export default function AwardsPanel({
                 disabled={isDisabled}
                 helperText={t('podium.runnerUp.helper')}
                 onChange={handlePodiumGuessChange('runner_up_team_id')}
+                open={openPodiumField === 'runner_up_team_id' || undefined}
+                onClose={() => setOpenPodiumField(null)}
               />
               {tournament.runner_up_team_id && tournament.runner_up_team_id === tournamentGuesses.runner_up_team_id && (
                 <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
@@ -322,6 +369,7 @@ export default function AwardsPanel({
 
             {hasThirdPlaceGame && (
               <Grid
+                ref={registerContainerRef('third_place_team_id')}
                 display={'flex'}
                 flexDirection={'row'}
                 size={{
@@ -336,6 +384,8 @@ export default function AwardsPanel({
                   disabled={isDisabled}
                   helperText={t('podium.thirdPlace.helper')}
                   onChange={handlePodiumGuessChange('third_place_team_id')}
+                  open={openPodiumField === 'third_place_team_id' || undefined}
+                  onClose={() => setOpenPodiumField(null)}
                 />
                 {tournament.third_place_team_id && tournament.third_place_team_id === tournamentGuesses.third_place_team_id && (
                   <Avatar title='Pronostico Correcto' sx={{ width: '24px', height: '24px', bgcolor: theme.palette.success.light, mt:2, ml:1 }}>
@@ -391,7 +441,7 @@ export default function AwardsPanel({
                       }}>
                       {awardDefinition.label}</Typography>
                   </Grid>
-                  <Grid size={7}>
+                  <Grid ref={registerContainerRef(awardDefinition.property)} size={7}>
                     {isMobile ? (
                       <MobileFriendlyAutocomplete
                         label={awardDefinition.label}
@@ -402,7 +452,7 @@ export default function AwardsPanel({
                         onChange={onPlayerChange(awardDefinition.property)}
                         disabled={isDisabled}
                         renderOption={renderPlayerOption}
-                        renderInput={renderPlayerInput}
+                        renderInput={makeRenderPlayerInput()}
                       />
                     ) : (
                       <Autocomplete
@@ -415,7 +465,7 @@ export default function AwardsPanel({
                         onChange={onPlayerChange(awardDefinition.property)}
                         disabled={isDisabled}
                         renderOption={renderPlayerOption}
-                        renderInput={renderPlayerInput}
+                        renderInput={makeRenderPlayerInput(registerInputRef(awardDefinition.property))}
                       />
                     )}
                   </Grid>

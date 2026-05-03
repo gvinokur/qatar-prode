@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-05-03
 
 ---
 
@@ -224,7 +224,7 @@ Qualified teams (group finalists) prediction page with drag-and-drop interface.
   Calls: getLocale, applyLocalizationBatch
 - **initializePredictions(userId: string, tournamentId: string, groupsWithTeams: Array<{ group: TournamentGroup; teams: Team[] }>)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Creates initial JSONB predictions for user in each group.
 - **fetchAndFlattenPredictions(userId: string, tournamentId: string)**: `Promise<QualifiedTeamPrediction[]>` — [Server] Fetches JSONB predictions and flattens into array format.
-- **QualifiedTeamsPage({ params, searchParams }: PageProps)**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; derives `qtBannerState: QTBannerState` from extended `tournamentPredictionCompletion` (completedGroupGames/totalGroupGames); renders client page with scoring breakdown and BreadcrumbList JSON-LD.
+- **QualifiedTeamsPage({ params, searchParams }: PageProps)**: `JSX.Element` — [Server] Fetches tournament, qualification config, groups, predictions, and actual results; renders client page with scoring breakdown and BreadcrumbList JSON-LD.
   Calls: getLoggedInUser, getTranslations, findTournamentByIdCached, getTournamentQualificationConfig, findQualifiedTeams, calculateQualifiedTeamsScore, getAllTournamentGames, findGameGuessesByUserId, getTournamentPredictionCompletion, getTeamsMap, buildBreadcrumbListJsonLd
   Renders: JsonLd, QualifiedTeamsClientPage
 

@@ -146,6 +146,114 @@
     "completed": "{count, plural, one {completed} other {completed}}",
     "close": "Close"
   },
+  "statusHeader": {
+    "games": {
+      "preTournament": {
+        "status": "Kickoff in {days, plural, one {1 day} other {{days} days}}",
+        "message": "Fill in your group stage predictions before kickoff. After that you can auto-fill your qualifiers.",
+        "ctaStart": "Get Started",
+        "ctaContinue": "Continue",
+        "ctaFinish": "Finish"
+      },
+      "urgentUnpredicted": {
+        "status": "{count, plural, one {1 match} other {{count} matches}} without a prediction close{count, plural, one {s} other {}} in {window}",
+        "ctaSingle": "Predict it",
+        "ctaMultiple": "Predict",
+        "matchFallback": "Match #{number} ({round})"
+      },
+      "nudgeQT": {
+        "status": "Groups complete · Qualifiers close in {countdown}",
+        "message": "Groups at 100%. You can now auto-fill your qualifiers.",
+        "cta": "Go to Qualifiers"
+      },
+      "groupsComplete": {
+        "status": "Group predictions complete",
+        "message": "Your group stage picks are locked in. Stay tuned for results."
+      },
+      "stageActive": {
+        "statusToday": "{count, plural, one {1 match today} other {{count} matches today}}",
+        "statusTomorrow": "{count, plural, one {1 match tomorrow} other {{count} matches tomorrow}}",
+        "statusDays": "{count, plural, one {1 match in {days} days} other {{count} matches in {days} days}}",
+        "cta": "Review"
+      },
+      "finished": {
+        "status": "Tournament finished · {correct} / {total} correct",
+        "message": "Check your results and compare with your groups.",
+        "ctaStats": "My Statistics",
+        "ctaGroups": "My Groups"
+      }
+    },
+    "qt": {
+      "preTournament": {
+        "status": "Predict who qualifies",
+        "message": "Choose manually or predict the matches first.",
+        "cta": "Predict Matches"
+      },
+      "autoFillReady": {
+        "status": "Groups ready · auto-fill your qualifiers",
+        "message": "Your groups are ready — auto-fill your {total} qualifiers in one tap or choose manually below.",
+        "cta": "Auto-fill"
+      },
+      "lockWindowUrgent": {
+        "status": "Qualifiers lock in {countdown}",
+        "message": "Your qualifiers lock in {countdown}. Auto-fill from your groups or choose manually.",
+        "cta": "Auto-fill"
+      },
+      "completedPreLock": {
+        "status": "Qualifiers ready · lock in {countdown}",
+        "cta": "Recalculate"
+      },
+      "lockedPending": {
+        "status": "Locked · Group stage in play"
+      },
+      "lockedPartial": {
+        "status": "Locked · {correct} / {total} correct so far"
+      },
+      "lockedComplete": {
+        "status": "Locked · {correct} / {total} correct",
+        "message": "Check your results and compare with your groups.",
+        "ctaStats": "My Statistics",
+        "ctaGroups": "My Groups"
+      },
+      "neverFilled": {
+        "status": "Locked · not filled in time",
+        "detail": "No points for qualifiers"
+      }
+    },
+    "awards": {
+      "preTournament": {
+        "status": "Awards lock in {countdown}",
+        "message": "Pick the podium and individual awards. Think about which teams you predicted to reach the final.",
+        "ctaStart": "Define",
+        "ctaContinue": "Continue",
+        "ctaFinish": "Finish"
+      },
+      "completedPreLock": {
+        "status": "Awards ready · lock in {countdown}"
+      },
+      "lockedPending": {
+        "status": "Locked · waiting for results"
+      },
+      "lockedPartial": {
+        "status": "Locked · {correct} / {total} correct so far"
+      },
+      "lockedComplete": {
+        "status": "Locked · {correct} / {total} correct",
+        "message": "Check your results and compare with your groups.",
+        "ctaStats": "My Statistics",
+        "ctaGroups": "My Groups"
+      },
+      "neverFilled": {
+        "status": "Locked · not filled in time",
+        "detail": "No points for awards"
+      }
+    },
+    "chipLabel": {
+      "partidos": "{predicted} / {total} matches",
+      "clasificados": "{predicted} / {total} qualifiers",
+      "premios": "{predicted} / {total} awards"
+    }
+  },
   "playoffs": {
     "firstPlace": "First Group {group}",
     "firstPlaceShort": "1 {group}",

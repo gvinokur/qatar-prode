@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-03
 
 ---
 
@@ -55,7 +55,7 @@ Compact card displaying a single game with prediction and result. Handles game g
 - **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/goal_difference/correct/incorrect). Checks exact → goal_difference (same margin) → correct winner → incorrect. `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or margin match but penalty winner wrong (Story #364).
 
 **File:** `app/components/compact-prediction-dashboard.tsx`
-Compact dashboard showing game and tournament prediction progress with urgency indicators and boost counts.
+Compact dashboard showing game and tournament prediction progress with urgency indicators and boost counts. Kept for onboarding demo; prediction pages use PredictionStatusHeader instead.
 - **CompactPredictionDashboard** (FC) - `[Client]` - Calls: none - Uses: `useTranslations, useSearchParams, useMemo, useState, useContext` - Renders: `Box, PredictionProgressRow, GameDetailsPopover, TournamentDetailsPopover, BoostInfoPopover`
 
 **File:** `app/components/flippable-game-card.tsx`
@@ -142,7 +142,7 @@ Helper functions and constants for urgency level calculations, color mapping, an
 
 **File:** `app/components/unified-games-page-client.tsx`
 Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler. Imports `EDIT_NEXT_TOKEN` from `prediction-constants` and `findScrollTarget` from `auto-scroll`.
-- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: none - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, CompactPredictionDashboard, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
+- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: `computeGamesHeaderVariant` - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTranslations, useLocale, useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, PredictionStatusHeader, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
 - Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` derived from `tournamentPredictionCompletion?.isPredictionLocked ?? false`; `nowAvailableRoundIds?: string[]` — converted to `Set<string>` via `useMemo`, forwarded to both `GamesListWithScroll` and `SecondaryFilters`
 - Effect 1 handles `?edit` param: if value equals `EDIT_NEXT_TOKEN` ("next"), finds the first upcoming game (`game_date >= now`) where `isGuessComplete` returns false (skipping already-predicted games); falls back to `findScrollTarget(games)` (first chronological upcoming) only when all upcoming games are predicted or no upcoming game exists. For a specific game ID, uses the param value directly. Clears all filters and sets `pendingEditGameId` so Effect 2 can scroll+trigger edit.
 - `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
@@ -150,7 +150,7 @@ Main games page with filter integration, edit parameter handling, auto-scroll to
 
 **File:** `app/components/unified-games-page.tsx`
 Server component that fetches all tournament data and renders client page with GuessesContext and EditTriggerContext. Builds `qualifiedTeamsHref = /${locale}/tournaments/${tournamentId}/qualified-teams` and passes it to `UnifiedGamesPageClient`.
-- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, getPlayoffRoundsAvailability, applyLocalization, getLocale` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
+- **UnifiedGamesPage** (FC) - `[Server]` - Calls: `getLoggedInUser, getTeamsMap, getGamesClosingWithin48Hours, getAllTournamentGames, getTournamentGameCounts, findGameGuessesByUserId, getPredictionDashboardStats, getGameGuessStatisticsForUsers, findTournamentById, findGroupsInTournament, findPlayoffStagesWithGamesInTournament, getTournamentPredictionCompletion, getPlayoffRoundsAvailability, applyLocalization, getLocale` - Uses: none - Renders: `GuessesContextProvider, EditTriggerContextProvider, UnifiedGamesPageClient, PublicGamesPage`
 
 **File:** `app/components/prediction-dashboard.tsx`
 Dashboard with status bar and games grid. Recalculates prediction stats client-side when guesses change.
@@ -241,3 +241,40 @@ Type definitions for team standings components (TeamStanding, TeamStandingsCards
 - **TeamStanding** (interface) - Complete team standing with position, stats, and qualification
 - **TeamStandingsCardsProps** (interface) - Props for standings container
 - **TeamStandingCardProps** (interface) - Props for individual standing card
+
+**Folder:** `app/components/prediction-status-header/`
+Phase-aware prediction status header with tone-driven design. Replaces CompactPredictionDashboard on all prediction pages.
+
+**File:** `app/components/prediction-status-header/types.ts`
+Type definitions for the status header variant descriptor pattern.
+- **StatusHeaderTone** (type) - Union: 'brand' | 'calm' | 'success' | 'deadlineSoon' | 'deadlineUrgent' | 'deadlineNow' | 'locked'
+- **HeaderAction** (type) - `{ label: string; href: string } | { label: string; onClick: () => void }`
+- **StatusHeaderVariant** (interface) - Full descriptor: tone, stageLabel?, leadIcon, statusText, chip?, boosts?, pointsBadge?, message?, action?, secondaryAction?
+
+**File:** `app/components/prediction-status-header/prediction-status-header.tsx`
+Presentational component rendering any StatusHeaderVariant descriptor as a toned MUI card with optional action buttons.
+- **PredictionStatusHeader({ variant })**: `JSX.Element` — [Client] Renders header card from descriptor. Background tint + left border from tone using MUI palette tokens. All action buttons use `color="primary"`. message rendered with `white-space: pre-line`. href actions use Next.js Link; onClick actions call the handler directly.
+  Uses: useTheme
+
+**File:** `app/components/prediction-status-header/games-header-variant.ts`
+Pure selector functions for the Games prediction page header variant.
+- **computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: tournament-finished → urgent-unpredicted → pre-groups-complete-nudge-qt → pre-tournament → stage-active-caught-up
+- **deriveStageLabel(games: ExtendedGameData[], now: Date)**: `string | undefined` — Interval model; Final+Third merged into Finals bucket
+- **getNextBatchSummary(games: ExtendedGameData[], now: Date, t: TFunction)**: `string` — Returns human-readable label for next unpredicted game batch ("today" / "tomorrow" / "in N days")
+- **collapsePlayoffDenominator(playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>)**: `Record<string, PlayoffRoundCompletionData>` — Merges Third-place game into Final round entry so playoff denominator counts Final+Third as one slot
+- **GamesHeaderInput** (interface) — completion, games, urgentGames, gameGuesses, teamsMap, tournamentId, gamePointsEarned?, locale, now?
+
+**File:** `app/components/prediction-status-header/qt-header-variant.ts`
+Pure selector function for the Qualified Teams prediction page header variant.
+- **computeQTHeaderVariant(input: QTHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: never-filled-locked → locked-with-results → locked-pending → completed-pre-lock → lock-window-urgent → pre-tournament-auto-fill-ready → pre-tournament
+- **computeQTLockUrgency(qtLockAt: Date, now: Date)**: `StatusHeaderTone` — < 2h → deadlineNow, < 24h → deadlineUrgent, < 48h → deadlineSoon, else → brand
+- **QTHeaderInput** (interface) — isLocked, qtLockAt, predictedGroupGames, totalGroupGames, qualifiersCompleted, qualifiersTotal, definedSoFar, correctSoFar, qtPointsEarned?, onAutoFillClick, tournamentId, locale, now?
+
+**File:** `app/components/prediction-status-header/awards-header-variant.ts`
+Pure selector function for the Awards prediction page header variant.
+- **computeAwardsHeaderVariant(input: AwardsHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: never-filled-locked → locked-with-results → locked-pending → completed-pre-lock → pre-tournament (with urgency)
+- **computeAwardsActionLabel(awardsCompleted: number, awardsTotal: number, t: TFunction)**: `string` — Returns 'Define'/'Continue'/'Finish' key based on progress
+- **AwardsHeaderInput** (interface) — isLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, awardsPointsEarned?, tournamentId, locale, now?
+
+**File:** `app/components/prediction-status-header/index.ts`
+Barrel export for the prediction-status-header folder.

@@ -30,6 +30,7 @@ vi.mock('../../app/db/game-repository', () => ({
 vi.mock('../../app/db/game-guess-repository', () => ({
   findGameGuessesByUserId: vi.fn(),
   getPredictionDashboardStats: vi.fn(),
+  getGameGuessStatisticsForUsers: vi.fn(),
 }));
 
 vi.mock('../../app/db/tournament-repository', () => ({
@@ -104,6 +105,7 @@ const mockGetAllTournamentGames = vi.mocked(gameRepository.getAllTournamentGames
 const mockGetTournamentGameCounts = vi.mocked(gameRepository.getTournamentGameCounts);
 const mockFindGameGuessesByUserId = vi.mocked(gameGuessRepository.findGameGuessesByUserId);
 const mockGetPredictionDashboardStats = vi.mocked(gameGuessRepository.getPredictionDashboardStats);
+const mockGetGameGuessStatisticsForUsers = vi.mocked(gameGuessRepository.getGameGuessStatisticsForUsers);
 const mockFindTournamentById = vi.mocked(tournamentRepository.findTournamentById);
 const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroupsInTournament);
 const mockFindPlayoffStagesWithGamesInTournament = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament);
@@ -198,6 +200,7 @@ describe('UnifiedGamesPage', () => {
     mockGetTeamsMap.mockResolvedValue(mockTeamsMap);
     mockFindGameGuessesByUserId.mockResolvedValue(mockGameGuesses);
     mockGetPredictionDashboardStats.mockResolvedValue(mockDashboardStats);
+    mockGetGameGuessStatisticsForUsers.mockResolvedValue([]);
     mockFindTournamentById.mockResolvedValue(mockTournament);
     mockFindGroupsInTournament.mockResolvedValue(mockGroups);
     mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue(mockRounds);
