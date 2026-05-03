@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-03
 
 ---
 
@@ -252,15 +252,16 @@ Type definitions for the status header variant descriptor pattern.
 - **StatusHeaderVariant** (interface) - Full descriptor: tone, stageLabel?, leadIcon, statusText, chip?, boosts?, pointsBadge?, message?, action?, secondaryAction?
 
 **File:** `app/components/prediction-status-header/prediction-status-header.tsx`
-Presentational component rendering any StatusHeaderVariant descriptor as a toned MUI card with optional action buttons and auto-fill dialog.
-- **PredictionStatusHeader({ variant, onAutoFillSuccess?, tournamentId? })**: `JSX.Element` — [Client] Renders header card from descriptor. Background tint + left border from tone using MUI palette tokens. Internal AutoFillDialog for `action.onClick` variants (QT auto-fill). All action buttons use `color="primary"`. message rendered with `white-space: pre-line`.
-  Calls: bulkAutoFillFromPredictions (via internal AutoFillDialog)
-  Uses: useState, useTransition, useTranslations, useLocale, useTheme
+Presentational component rendering any StatusHeaderVariant descriptor as a toned MUI card with optional action buttons.
+- **PredictionStatusHeader({ variant })**: `JSX.Element` — [Client] Renders header card from descriptor. Background tint + left border from tone using MUI palette tokens. All action buttons use `color="primary"`. message rendered with `white-space: pre-line`. href actions use Next.js Link; onClick actions call the handler directly.
+  Uses: useTheme
 
 **File:** `app/components/prediction-status-header/games-header-variant.ts`
-Pure selector function for the Games prediction page header variant.
+Pure selector functions for the Games prediction page header variant.
 - **computeGamesHeaderVariant(input: GamesHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: tournament-finished → urgent-unpredicted → pre-groups-complete-nudge-qt → pre-tournament → stage-active-caught-up
 - **deriveStageLabel(games: ExtendedGameData[], now: Date)**: `string | undefined` — Interval model; Final+Third merged into Finals bucket
+- **getNextBatchSummary(games: ExtendedGameData[], now: Date, t: TFunction)**: `string` — Returns human-readable label for next unpredicted game batch ("today" / "tomorrow" / "in N days")
+- **collapsePlayoffDenominator(playoffRoundsCompletion: Record<string, PlayoffRoundCompletionData>)**: `Record<string, PlayoffRoundCompletionData>` — Merges Third-place game into Final round entry so playoff denominator counts Final+Third as one slot
 - **GamesHeaderInput** (interface) — completion, games, urgentGames, gameGuesses, teamsMap, tournamentId, gamePointsEarned?, locale, now?
 
 **File:** `app/components/prediction-status-header/qt-header-variant.ts`
