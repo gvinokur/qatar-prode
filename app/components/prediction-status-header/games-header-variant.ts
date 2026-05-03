@@ -294,7 +294,7 @@ function buildFinished(input: GamesHeaderInput, data: GamesHeaderData, t: TFunct
       correct: completion.completedGames,
       total: completion.totalGames,
     }),
-    pointsBadge: gamePointsEarned !== undefined ? `${gamePointsEarned} pts` : undefined,
+    pointsBadge: gamePointsEarned === undefined ? undefined : `${gamePointsEarned} pts`,
     message: t('statusHeader.games.finished.message'),
     action: { label: t('statusHeader.games.finished.ctaStats'), href: `/${locale}/tournaments/${tournamentId}/stats` },
     secondaryAction: { label: t('statusHeader.games.finished.ctaGroups'), href: `/${locale}/friend-groups` },

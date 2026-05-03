@@ -41,11 +41,6 @@ function PlayerAwardInput({ label, inputRef, params }: PlayerAwardInputProps) {
       {...params}
       label={label}
       inputRef={inputRef}
-      slotProps={{
-        htmlInput: {
-          ...params.inputProps,
-        }
-      }}
     />
   );
 }
