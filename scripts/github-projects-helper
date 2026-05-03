@@ -821,6 +821,44 @@ class GitHubProjectsHelper:
 
     # ==================== PR OPERATIONS ====================
 
+    def check_status_snapshot(self, pr_number: int) -> Dict:
+        """
+        Non-blocking: snapshot current check states and return immediately.
+        Pending checks are reported as-is without waiting.
+        """
+        self._header(f"PR #{pr_number} check status (snapshot)")
+
+        result = self._run_command([
+            "gh", "pr", "checks", str(pr_number),
+            "--json", "name,state,bucket"
+        ])
+        checks = json.loads(result.stdout)
+
+        results = {}
+        for check in checks:
+            name = check["name"]
+            bucket = check.get("bucket", "unknown")
+            state = check.get("state", "unknown")
+            display = bucket if bucket != "unknown" else state
+            if bucket == "pass" or state == "SUCCESS":
+                self._success(f"{name}: {display}")
+            elif bucket == "fail" or state in ["FAILURE", "ERROR"]:
+                self._error(f"{name}: {display}")
+            else:
+                self._warning(f"{name}: {display} (in progress)")
+            results[name] = display
+
+        all_done = all(
+            c.get("bucket") in ("pass", "fail") or c.get("state") in ("SUCCESS", "FAILURE", "CANCELLED")
+            for c in checks
+        )
+        results["_all_done"] = all_done
+        if all_done:
+            self._success("All checks have completed.")
+        else:
+            self._warning("Some checks are still pending.")
+        return results
+
     def wait_for_checks(self, pr_number: int, timeout: int = 1800, poll_interval: int = 30) -> Dict:
         """
         Wait for PR checks to complete (Vercel, SonarCloud).
@@ -1317,6 +1355,7 @@ Examples:
     wait_parser.add_argument("pr_number", type=int, help="PR number")
     wait_parser.add_argument("--timeout", type=int, default=1800, help="Timeout in seconds (default: 1800)")
     wait_parser.add_argument("--poll-interval", type=int, default=30, help="Poll interval in seconds (default: 30)")
+    wait_parser.add_argument("--no-wait", action="store_true", help="Snapshot current check state and exit immediately (non-blocking)")
 
     sonar_parser = pr_subparsers.add_parser("sonar-issues", help="Get SonarCloud issues for a PR")
     sonar_parser.add_argument("pr_number", type=int, help="PR number")
@@ -1384,7 +1423,10 @@ Examples:
 
         elif args.command == "pr":
             if args.subcommand == "wait-checks":
-                result = helper.wait_for_checks(args.pr_number, args.timeout, args.poll_interval)
+                if getattr(args, "no_wait", False):
+                    result = helper.check_status_snapshot(args.pr_number)
+                else:
+                    result = helper.wait_for_checks(args.pr_number, args.timeout, args.poll_interval)
                 # Output JSON for programmatic use
                 print(f"\n{json.dumps(result, indent=2)}")
             elif args.subcommand == "sonar-issues":

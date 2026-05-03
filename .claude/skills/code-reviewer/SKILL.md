@@ -220,9 +220,16 @@ Confirm user has tested in Vercel Preview and is satisfied with:
 
 **Prerequisite:** PR must already be marked as ready (Section 7 must have run). SonarCloud does not run on draft PRs.
 
+Use `--no-wait` to snapshot current state (non-blocking), then use Monitor to wait for completion:
+
 ```bash
-# Wait for Vercel and SonarCloud
-./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
+# Snapshot current state (exits immediately)
+./scripts/github-projects-helper pr wait-checks ${PR_NUMBER} --no-wait
+```
+
+Use Monitor to wait for all checks to complete:
+```
+Monitor command: until ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER} --no-wait 2>/dev/null | grep -q "_all_done.*true"; do sleep 30; done; echo "DONE"
 ```
 
 **Once checks complete, immediately fetch SonarCloud issues:**
@@ -262,20 +269,20 @@ See `sonarcloud-guide.md` for common issues table and severity interpretation.
 
 **If SonarCloud reports new issues:**
 
-1. Fetch and present issues to user (using helper script output)
-2. **Wait for user permission:**
-   - User says "yes, fix them" → Proceed to fix
-   - User says "no, I'll fix manually" → Stop, wait for user
-   - User wants specific fixes only → Fix only those
-3. **Fix issues (if authorized):**
-   - Read the code with issues
-   - Apply fixes for each issue
-   - Run tests to verify fixes
+1. Show user the full issue list (file, line, rule, severity)
+2. **Fix all issues immediately — no permission needed.** The user has pre-authorized auto-fixing all SonarCloud issues.
+3. **Fix issues:**
+   - Read the code at each reported file:line
+   - Apply fixes (see `sonarcloud-guide.md` for common patterns)
+   - Run tests to verify nothing broke
    - Commit and push
-   - Wait for re-analysis
-4. **Verify fixes:**
+4. **Verify fixes using Monitor + snapshot (non-blocking):**
    ```bash
-   ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER}
+   # Snapshot current state
+   ./scripts/github-projects-helper pr wait-checks ${PR_NUMBER} --no-wait
+   ```
+   Use Monitor with `until ... --no-wait ... grep '"_all_done": true'` to wait non-blocking, then:
+   ```bash
    ./scripts/github-projects-helper pr sonar-issues ${PR_NUMBER}
    ```
 
