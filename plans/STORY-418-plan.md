@@ -110,6 +110,25 @@ Desktop (sm+) — all tabs show label:
 └──────────┴──────────┴────────────┴──────────┘
 ```
 
+## Implementation Amendments
+
+### Amendment 1: Replaced Box wrapper with useMediaQuery + variant/centered props
+**Date:** 2026-05-04
+**Reason:** The original `Box` + `display: none` approach hid labels visually but `variant="fullWidth"` still allocated equal space to every tab — unselected tabs remained wide. After further investigation, the correct MUI-native solution was found in the `backoffice-tabs.tsx` codebase pattern: use `useMediaQuery` to switch `variant` and `centered` at the component level.
+**Change:** Removed `Box` import and `makeLabel` helper. Instead:
+- Added `useMediaQuery(theme.breakpoints.down('sm'))` → `isMobile` boolean
+- On mobile: `variant="standard"` + `centered={true}` so tabs take natural widths and are centered
+- On mobile: unselected tabs get `label={undefined}` (MUI's native icon-only rendering) + `sx={{ minWidth: 48, padding: '6px 0' }}` via `iconOnlySx` constant
+- On mobile: selected tab gets its label via `label={!isMobile || selected === tabValue ? t('key') : undefined}`
+- On desktop: `variant="fullWidth"` unchanged, all tabs show icon + label
+- Helper `getTabSx` and `getSelectedTab` extracted for readability
+- The plan's Mid-Level Design `makeLabel` function was NOT implemented; the approach is purely via props
+
+### Amendment 2: Test changes scope was the same; rationale changed
+**Date:** 2026-05-04
+**Reason:** With the `useMediaQuery` approach, `jsdom` always returns `false` for `isMobile`, so tests always see desktop behavior (all labels rendered). The `getByText` → `getByRole` migration was still needed because an earlier iteration briefly used the Box wrapper.
+**Change:** `getByText` → `getByRole('tab', { name: /.../ })` in 3 tests in `group-selector.test.tsx`. `group-selector-i18n.test.tsx` unchanged.
+
 ## Verification
 
 1. Run existing tests: `npm run test -- group-selector` — all should pass after test updates
