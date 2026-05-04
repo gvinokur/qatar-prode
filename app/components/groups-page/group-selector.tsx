@@ -1,6 +1,6 @@
 'use client'
 
-import { Tabs, Tab, useTheme } from "@mui/material";
+import { Tabs, Tab, Box, useTheme } from "@mui/material";
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -29,6 +29,16 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
     borderStyle: 'solid',
   },
 });
+
+/** Wrap label text in a Box that hides on mobile when the tab is not selected */
+const makeLabel = (text: string, tabValue: string, selected: string) => (
+  <Box
+    component="span"
+    sx={{ display: { xs: selected === tabValue ? 'inline' : 'none', sm: 'inline' } }}
+  >
+    {text}
+  </Box>
+);
 
 /** Get selected tab value from pathname */
 const getSelectedTab = (pathname: string, tournamentId: string): string => {
@@ -78,7 +88,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
       }}
     >
       <Tab
-        label={t('hub')}
+        label={makeLabel(t('hub'), 'hub', selected)}
         icon={<DashboardIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="hub"
@@ -87,7 +97,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         sx={tabSx}
       />
       <Tab
-        label={t('matches')}
+        label={makeLabel(t('matches'), 'matches', selected)}
         icon={<SportsSoccerIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="matches"
@@ -96,7 +106,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         sx={tabSx}
       />
       <Tab
-        label={t('qualified')}
+        label={makeLabel(t('qualified'), 'qualified-teams', selected)}
         icon={<AccountTreeIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="qualified-teams"
@@ -106,7 +116,7 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
         disabled={!user}
       />
       <Tab
-        label={t('awards')}
+        label={makeLabel(t('awards'), 'individual_awards', selected)}
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="individual_awards"

@@ -55,10 +55,10 @@ describe('GroupSelector', () => {
         />
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('renders with custom background and text colors', () => {
@@ -464,10 +464,10 @@ describe('GroupSelector', () => {
         />
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('handles different tournament IDs in URLs', () => {
@@ -493,10 +493,10 @@ describe('GroupSelector', () => {
         { theme: 'dark' }
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('handles user with minimal properties', () => {
