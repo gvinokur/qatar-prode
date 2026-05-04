@@ -5,8 +5,8 @@
 - **Story Title:** [Bug] Mobile nav tabs cut off text on small screens
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/friendly-herschel-226d2f
 - **Branch:** claude/friendly-herschel-226d2f
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 419
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/419
 
 ## State
 - **Current Phase:** planning
