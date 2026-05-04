@@ -1,6 +1,6 @@
 'use client'
 
-import { Tabs, Tab, Box, useTheme } from "@mui/material";
+import { Tabs, Tab, useTheme, useMediaQuery } from "@mui/material";
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -30,16 +30,6 @@ const getTabSx = (backgroundColor: string | undefined, textColor: string | undef
   },
 });
 
-/** Wrap label text in a Box that hides on mobile when the tab is not selected */
-const makeLabel = (text: string, tabValue: string, selected: string) => (
-  <Box
-    component="span"
-    sx={{ display: { xs: selected === tabValue ? 'inline' : 'none', sm: 'inline' } }}
-  >
-    {text}
-  </Box>
-);
-
 /** Get selected tab value from pathname */
 const getSelectedTab = (pathname: string, tournamentId: string): string => {
   if (pathname.includes('/games')) {
@@ -58,18 +48,23 @@ const getSelectedTab = (pathname: string, tournamentId: string): string => {
   return 'hub';
 };
 
-const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user }: Props) => {
+/** sx applied to icon-only (unselected mobile) tabs to collapse them to icon width */
+const iconOnlySx = { minWidth: 48, padding: '6px 0' } as const;
+
+const GroupSelector = ({ groups: _groups, tournamentId, backgroundColor, textColor, user }: Props) => {
   const locale = useLocale();
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const selected = getSelectedTab(pathname, tournamentId);
   const tabSx = getTabSx(backgroundColor, textColor, theme);
 
   return (
     <Tabs
       value={selected}
-      variant="fullWidth"
+      variant={isMobile ? 'standard' : 'fullWidth'}
+      centered={isMobile}
       aria-label={t('ariaLabel')}
       slotProps={{
         indicator: {
@@ -85,56 +80,44 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
           fontWeight: 600,
           minHeight: 48, // Override MUI's 72px default for tabs with icons
         },
-        // Mobile: collapse unselected tabs to icon width, let selected tab fill remaining space
-        [theme.breakpoints.down('sm')]: {
-          '.MuiTab-root:not(.Mui-selected)': {
-            flex: '0 0 48px',
-            minWidth: 0,
-            padding: '6px 0',
-          },
-          '.MuiTab-root.Mui-selected': {
-            flex: '1 1 auto',
-            minWidth: 0,
-          },
-        },
       }}
     >
       <Tab
-        label={makeLabel(t('hub'), 'hub', selected)}
+        label={!isMobile || selected === 'hub' ? t('hub') : undefined}
         icon={<DashboardIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="hub"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'hub' && iconOnlySx) }}
       />
       <Tab
-        label={makeLabel(t('matches'), 'matches', selected)}
+        label={!isMobile || selected === 'matches' ? t('matches') : undefined}
         icon={<SportsSoccerIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="matches"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/games`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'matches' && iconOnlySx) }}
       />
       <Tab
-        label={makeLabel(t('qualified'), 'qualified-teams', selected)}
+        label={!isMobile || selected === 'qualified-teams' ? t('qualified') : undefined}
         icon={<AccountTreeIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="qualified-teams"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'qualified-teams' && iconOnlySx) }}
         disabled={!user}
       />
       <Tab
-        label={makeLabel(t('awards'), 'individual_awards', selected)}
+        label={!isMobile || selected === 'individual_awards' ? t('awards') : undefined}
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="individual_awards"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/awards`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'individual_awards' && iconOnlySx) }}
         disabled={!user}
       />
     </Tabs>
