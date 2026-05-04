@@ -4,9 +4,9 @@
 - **Story Number:** 417
 - **Story Title:** [Bug] Locked games appear as predictable in header and backend allows saving post-deadline predictions
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/cranky-lumiere-96eca3
-- **Branch:** (fill after worktree creation)
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **Branch:** claude/cranky-lumiere-96eca3
+- **PR Number:** 421
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/421
 
 ## State
 - **Current Phase:** planning
