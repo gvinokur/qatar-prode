@@ -85,6 +85,18 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
           fontWeight: 600,
           minHeight: 48, // Override MUI's 72px default for tabs with icons
         },
+        // Mobile: collapse unselected tabs to icon width, let selected tab fill remaining space
+        [theme.breakpoints.down('sm')]: {
+          '.MuiTab-root:not(.Mui-selected)': {
+            flex: '0 0 48px',
+            minWidth: 0,
+            padding: '6px 0',
+          },
+          '.MuiTab-root.Mui-selected': {
+            flex: '1 1 auto',
+            minWidth: 0,
+          },
+        },
       }}
     >
       <Tab
