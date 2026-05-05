@@ -259,6 +259,15 @@ vi.mock('@/app/actions/tournament-actions', () => ({ getTournamentStartDate: vi.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: `qualified-teams/page.tsx` — `firstGameDate` optimization deferred
+**Date:** 2026-05-05
+**Reason:** The plan called for passing `tournamentStartDate` (derived from `games`) as the 4th arg to `getTournamentPredictionCompletion` in this page. However, `getAllTournamentGames` and `getTournamentPredictionCompletion` run in the same `Promise.all` (lines 217–222), so `games` is not available before the call without restructuring the data fetching into two sequential awaits. The optimization was deferred to avoid that scope expansion. The page continues to work correctly — it falls back to the internal `getTournamentStartDate` call as before.
+**Change:** File was NOT modified. Optimization remains applicable as a follow-on story.
+
+---
+
 ## Verification
 
 1. Run `npm run test` — all existing tests must pass
