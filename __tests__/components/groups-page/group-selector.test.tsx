@@ -1,14 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithTheme } from '../../utils/test-utils';
 import GroupSelector from '../../../app/components/groups-page/group-selector';
 import { usePathname } from 'next/navigation';
+import { useMediaQuery } from '@mui/material';
 import type { User } from 'next-auth';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(),
 }));
+
+// Mock @mui/material to allow overriding useMediaQuery per test
+vi.mock('@mui/material', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return { ...actual, useMediaQuery: vi.fn().mockReturnValue(false) };
+});
 
 // Mock next-intl
 vi.mock('next-intl', () => ({
@@ -42,8 +49,8 @@ describe('GroupSelector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default pathname
     vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123');
+    vi.mocked(useMediaQuery).mockReturnValue(false); // default: desktop
   });
 
   describe('Rendering', () => {
@@ -55,10 +62,10 @@ describe('GroupSelector', () => {
         />
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('renders with custom background and text colors', () => {
@@ -464,10 +471,10 @@ describe('GroupSelector', () => {
         />
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('handles different tournament IDs in URLs', () => {
@@ -493,10 +500,10 @@ describe('GroupSelector', () => {
         { theme: 'dark' }
       );
 
-      expect(screen.getByText('HUB')).toBeInTheDocument();
-      expect(screen.getByText('PARTIDOS')).toBeInTheDocument();
-      expect(screen.getByText('CLASIFICADOS')).toBeInTheDocument();
-      expect(screen.getByText('PREMIOS')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /CLASIFICADOS/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /PREMIOS/i })).toBeInTheDocument();
     });
 
     it('handles user with minimal properties', () => {
@@ -515,6 +522,36 @@ describe('GroupSelector', () => {
 
       const qualifiedTab = screen.getByRole('tab', { name: /CLASIFICADOS/i });
       expect(qualifiedTab).not.toHaveAttribute('aria-disabled', 'true');
+    });
+  });
+
+  describe('Mobile behavior (isMobile = true)', () => {
+    it('shows only the selected tab label on mobile, hiding unselected tab labels', () => {
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+      vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123');
+
+      renderWithTheme(<GroupSelector groups={mockGroups} tournamentId={tournamentId} />);
+
+      // Hub (selected) shows its label
+      expect(screen.getByRole('tab', { name: /HUB/i })).toBeInTheDocument();
+      // Unselected tabs are icon-only — no label text in the DOM
+      expect(screen.queryByRole('tab', { name: /PARTIDOS/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /CLASIFICADOS/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /PREMIOS/i })).not.toBeInTheDocument();
+    });
+
+    it('shows matches label and hides others on mobile when on games path', () => {
+      vi.mocked(useMediaQuery).mockReturnValue(true);
+      vi.mocked(usePathname).mockReturnValue('/es/tournaments/tournament-123/games');
+
+      renderWithTheme(<GroupSelector groups={mockGroups} tournamentId={tournamentId} />);
+
+      // Matches (selected) shows its label
+      expect(screen.getByRole('tab', { name: /PARTIDOS/i })).toBeInTheDocument();
+      // Other tabs are icon-only
+      expect(screen.queryByRole('tab', { name: /HUB/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /CLASIFICADOS/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: /PREMIOS/i })).not.toBeInTheDocument();
     });
   });
 

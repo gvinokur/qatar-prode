@@ -1,6 +1,6 @@
 'use client'
 
-import { Tabs, Tab, useTheme } from "@mui/material";
+import { Tabs, Tab, useTheme, useMediaQuery } from "@mui/material";
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -48,18 +48,23 @@ const getSelectedTab = (pathname: string, tournamentId: string): string => {
   return 'hub';
 };
 
-const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user }: Props) => {
+/** sx applied to icon-only (unselected mobile) tabs to collapse them to icon width */
+const iconOnlySx = { minWidth: 48, padding: '6px 0' } as const;
+
+const GroupSelector = ({ groups: _groups, tournamentId, backgroundColor, textColor, user }: Props) => {
   const locale = useLocale();
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const selected = getSelectedTab(pathname, tournamentId);
   const tabSx = getTabSx(backgroundColor, textColor, theme);
 
   return (
     <Tabs
       value={selected}
-      variant="fullWidth"
+      variant={isMobile ? 'standard' : 'fullWidth'}
+      centered={isMobile}
       aria-label={t('ariaLabel')}
       slotProps={{
         indicator: {
@@ -78,41 +83,41 @@ const GroupSelector = ({ groups, tournamentId, backgroundColor, textColor, user 
       }}
     >
       <Tab
-        label={t('hub')}
+        label={!isMobile || selected === 'hub' ? t('hub') : undefined}
         icon={<DashboardIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="hub"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'hub' && iconOnlySx) }}
       />
       <Tab
-        label={t('matches')}
+        label={!isMobile || selected === 'matches' ? t('matches') : undefined}
         icon={<SportsSoccerIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="matches"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/games`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'matches' && iconOnlySx) }}
       />
       <Tab
-        label={t('qualified')}
+        label={!isMobile || selected === 'qualified-teams' ? t('qualified') : undefined}
         icon={<AccountTreeIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="qualified-teams"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/qualified-teams`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'qualified-teams' && iconOnlySx) }}
         disabled={!user}
       />
       <Tab
-        label={t('awards')}
+        label={!isMobile || selected === 'individual_awards' ? t('awards') : undefined}
         icon={<EmojiEventsIcon sx={{ fontSize: 20 }} />}
         iconPosition="start"
         value="individual_awards"
         component={Link}
         href={`/${locale}/tournaments/${tournamentId}/awards`}
-        sx={tabSx}
+        sx={{ ...tabSx, ...(isMobile && selected !== 'individual_awards' && iconOnlySx) }}
         disabled={!user}
       />
     </Tabs>
