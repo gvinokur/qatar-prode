@@ -6,7 +6,6 @@ import {
   getTeamsMap,
   getCompleteGroupData,
   getCompletePlayoffData,
-  getTournamentAndGroupsData,
   getTournamentStartDate,
   deactivateTournament,
   createOrUpdateTournament,
@@ -513,30 +512,6 @@ describe('Tournament Actions', () => {
       mockFindPlayoffStagesWithGamesInTournament.mockRejectedValue(new Error('Database error'));
 
       await expect(getCompletePlayoffData('tournament1')).rejects.toThrow('Database error');
-    });
-  });
-
-  describe('getTournamentAndGroupsData', () => {
-    it('returns tournament and groups data', async () => {
-      const groups = [mockTournamentGroup];
-
-      mockFindTournamentById.mockResolvedValue(mockTournament);
-      mockFindGroupsInTournament.mockResolvedValue(groups);
-
-      const result = await getTournamentAndGroupsData('tournament1');
-
-      expect(mockFindTournamentById).toHaveBeenCalledWith('tournament1');
-      expect(mockFindGroupsInTournament).toHaveBeenCalledWith('tournament1');
-      expect(result).toEqual({
-        tournament: mockTournament,
-        allGroups: groups,
-      });
-    });
-
-    it('handles database errors', async () => {
-      mockFindTournamentById.mockRejectedValue(new Error('Database error'));
-
-      await expect(getTournamentAndGroupsData('tournament1')).rejects.toThrow('Database error');
     });
   });
 
