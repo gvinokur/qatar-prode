@@ -2,11 +2,15 @@
 
 ## Context
 
-**Why:** `TournamentLayout` currently blocks the entire page render until all sidebar data resolves — `findTournamentById`, `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, and per-group `getGroupRankingForUser` calls all run before the header HTML is sent to the browser. Users see nothing until all of it completes, even though the header needs none of it.
+**Why:** `TournamentLayout` currently blocks the entire page render until all sidebar data resolves — `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, `findTournamentGuessByUserIdTournament`, and per-group `getGroupRankingForUser` calls all run before the header HTML is sent to the browser. Users see nothing until all of it completes, even though the header needs none of it.
 
 **What changes:** Moving those fetches into a dedicated `TournamentSidebarServer` async Server Component and wrapping it in `<Suspense>` lets React stream the header immediately while the sidebar resolves in the background. A skeleton component fills the sidebar slot during load.
 
-**Scope:** Tournament layout only. No sidebar card designs, no main content area data fetching, no other layouts.
+Two additional cleanups incorporated from PR feedback:
+1. `tournament` is passed as a prop from the layout (already fetched via `getTournamentAndGroupsData`) — avoids a duplicate `findTournamentById` call in the sidebar server component.
+2. `getGameGuessStatisticsForUsers` is extended to include tournament-level score fields (`qualified_teams_score`, `group_position_score`, `honor_roll_score`, `individual_awards_score`) — consolidates two `tournament_guesses` reads into one and removes the `tournamentGuess` prop from the sidebar chain.
+
+**Scope:** Tournament layout and sidebar chain only. `awards/page.tsx` and `stats/page.tsx` still call `findTournamentGuessByUserIdTournament` independently — they are unaffected.
 
 ---
 
@@ -17,6 +21,7 @@
 - [ ] Unauthenticated visitors see the correct public sidebar view (standings, rules) after load
 - [ ] No regression across all tournament sub-pages (hub, games, stats, results, awards, qualified-teams, rules)
 - [ ] Client-side navigation between sub-pages does not re-fetch sidebar data (Router Cache preserved)
+- [ ] `UserTournamentStatistics` shows correct Qualified and Awards totals (sourced from extended `GameStatisticForUser`)
 
 ---
 
@@ -26,54 +31,83 @@
 
 **Header data (must stay in layout):**
 - `getLoggedInUser()` — user display, verification check, bottom nav, dev permission gate
-- `getTournamentAndGroupsData(params.id)` — tournament theme colors, name, group tabs
+- `getTournamentAndGroupsData(params.id)` — tournament theme colors, name, group tabs for `GroupSelector`; also provides `tournament` object (passed as prop to sidebar server component)
 - `getTournaments()` — tournament switcher
 - `getTournamentStartDate(params.id)` — JSON-LD structured data
 - `checkDevTournamentPermission()` — auth gate (redirect/notFound)
 
 **Sidebar data (move to TournamentSidebarServer):**
-- `findTournamentById(params.id)` — scoring config for Rules card
-- `findTournamentGuessByUserIdTournament(user.id, params.id)` — tournament guess for stats
 - `getGroupsForUser()` — friend groups list
 - `getGroupStandingsForTournament(params.id)` — group standings carousel
-- `getGameGuessStatisticsForUsers([user.id], params.id)` — user game stats
+- `getGameGuessStatisticsForUsers([user.id], params.id)` — user game stats (extended to also include qualified/awards scores)
 - `getGroupRankingForUser(userId, groupId, tournamentId)` x N (parallel) — rank per group
 
-**Key insight on `findTournamentById` in JSON-LD:**
-`getTournamentAndGroupsData` internally calls `findTournamentById` and includes all fields (only localizes `long_name`/`short_name`), so `layoutData.tournament?.locations` equals `tournament?.locations`. The separate `findTournamentById` call in the layout can be removed — switch JSON-LD to use `layoutData.tournament?.locations`.
+**Removed from layout (and sidebar chain):**
+- `findTournamentById(params.id)` — layout already has `layoutData.tournament` from `getTournamentAndGroupsData`; switch JSON-LD to `layoutData.tournament?.locations`; pass `layoutData.tournament` as prop to sidebar
+- `findTournamentGuessByUserIdTournament(user.id, params.id)` — merged into `getGameGuessStatisticsForUsers`
 
 ---
 
 ## Technical Approach
 
-### 1. New: `TournamentSidebarServer` (async Server Component)
+### 1. Extend `getGameGuessStatisticsForUsers` + `GameStatisticForUser` type
+
+**Files:** `app/db/game-guess-repository.ts`, `types/definitions.ts`
+
+Add 4 columns to the existing `tournament_guesses` select query (all already on the table):
+- `qualified_teams_score`
+- `group_position_score`
+- `honor_roll_score`
+- `individual_awards_score`
+
+Add the same 4 fields (all `number | null`) to `GameStatisticForUser` in `types/definitions.ts`.
+
+### 2. Update `UserTournamentStatistics` (drop `tournamentGuess` prop)
+
+**File:** `app/components/tournament-page/user-tournament-statistics.tsx`
+
+Replace `tournamentGuess?.qualified_teams_score` → `userGameStatistics?.qualified_teams_score`, etc. Remove `tournamentGuess` from props and destructuring. Update existing test file accordingly.
+
+### 3. Update `TournamentSidebar` (remove `tournamentGuess` prop)
+
+**File:** `app/components/tournament-page/tournament-sidebar.tsx`
+
+Remove `tournamentGuess` from interface and stop passing it to `UserTournamentStatistics`. Update existing test file accordingly.
+
+### 4. New: `TournamentSidebarServer` (async Server Component)
 
 **File:** `app/components/tournament-page/tournament-sidebar-server.tsx`
 
-Accepts `tournamentId` and `user` (already fetched by the layout). Fetches all sidebar data in parallel, renders `TournamentSidebar`.
+Accepts `tournamentId`, `user`, and `tournament` (already fetched by layout). Fetches remaining sidebar data, renders `TournamentSidebar`. Uses `extractScoringConfig` (moved from layout to `app/utils/tournament-utils.ts`).
 
 ```
 Suspense boundary in layout
-  └── TournamentSidebarServer (async, fetches data)
-        └── TournamentSidebar (existing client component, unchanged)
+  └── TournamentSidebarServer (async, receives tournament as prop)
+        └── TournamentSidebar (existing client component, minus tournamentGuess prop)
+              └── UserTournamentStatistics (drops tournamentGuess, uses userGameStatistics for all stats)
 ```
 
-### 2. New: `TournamentSidebarSkeleton` (skeleton component)
+### 5. New: `TournamentSidebarSkeleton`
 
 **File:** `app/components/skeletons/tournament-sidebar-skeleton.tsx`
 
-Matches the sidebar's Grid slot (size `{ xs: 12, md: 3 }`, hidden on mobile). Renders 4 stacked skeleton cards approximating: friend groups, standings, stats, rules sections.
+Matches the sidebar's Grid slot (size `{ xs: 12, md: 3 }`, hidden on mobile). Renders 4 stacked skeleton cards approximating: friend groups, standings, stats, rules.
 
 Uses `getSkeletonA11yProps` from `app/components/skeletons/skeleton-utils.ts`.
 
-### 3. Modified: `layout.tsx`
+### 6. Modified: `layout.tsx`
 
-- Remove all 6 sidebar data fetching calls
-- Remove `findTournamentById` import and call; switch JSON-LD to `layoutData.tournament?.locations`
+- Remove all sidebar data fetching and related imports
+- Remove `findTournamentById` import/call; switch JSON-LD to `layoutData.tournament?.locations`
+- Pass `layoutData.tournament` to `TournamentSidebarServer`
 - Replace `<TournamentSidebar ... />` with:
   ```tsx
   <Suspense fallback={<TournamentSidebarSkeleton />}>
-    <TournamentSidebarServer tournamentId={params.id} user={user ?? undefined} />
+    <TournamentSidebarServer
+      tournamentId={params.id}
+      user={user ?? undefined}
+      tournament={layoutData.tournament}
+    />
   </Suspense>
   ```
 
@@ -113,12 +147,20 @@ Background uses `alpha(theme.palette.primary.main, 0.04)` to match real sidebar.
 
 | Action | File |
 |--------|------|
+| Modify | `types/definitions.ts` |
+| Modify | `app/db/game-guess-repository.ts` |
+| Modify | `app/components/tournament-page/user-tournament-statistics.tsx` |
+| Modify | `app/components/tournament-page/user-tournament-statistics.test.tsx` |
+| Modify | `app/components/tournament-page/tournament-sidebar.tsx` |
+| Modify | `app/components/tournament-page/tournament-sidebar.test.tsx` |
+| Modify | `app/[locale]/tournaments/[id]/layout.tsx` |
+| Create | `app/utils/tournament-utils.ts` |
 | Create | `app/components/tournament-page/tournament-sidebar-server.tsx` |
 | Create | `app/components/skeletons/tournament-sidebar-skeleton.tsx` |
 | Create | `app/components/tournament-page/tournament-sidebar-server.test.tsx` |
-| Modify | `app/[locale]/tournaments/[id]/layout.tsx` |
 | Modify | `docs/code-structure/pages.md` |
 | Modify | `docs/code-structure/components/components-tournament-hub.md` |
+| Modify | `docs/code-structure/utils.md` |
 
 ---
 
@@ -127,10 +169,75 @@ Background uses `alpha(theme.palette.primary.main, 0.04)` to match real sidebar.
 ### Call Graph Changes
 
 **Modified flows:**
-- **Flow: TournamentLayout** — sidebar data fetching extracted; layout now renders header immediately. `TournamentSidebarServer` replaces the inline data fetch + `TournamentSidebar` call. A `Suspense` boundary wraps it so the header streams without waiting.
+- **Flow: TournamentLayout** — sidebar data fetching extracted; layout now renders header immediately. `TournamentSidebarServer` wrapped in `Suspense` replaces the inline data fetch + `TournamentSidebar`. `tournament` object passed as prop (from `getTournamentAndGroupsData` result already in layout).
+- **Flow: UserTournamentStatistics** — no longer receives `tournamentGuess`; reads qualified/awards scores from the extended `userGameStatistics` (type `GameStatisticForUser`).
 
 **New flows:**
-- **TournamentSidebarServer** → `findTournamentById`, `findTournamentGuessByUserIdTournament`, `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, `getGroupRankingForUser` (parallel per group) → `extractScoringConfig` → `TournamentSidebar`
+- **TournamentSidebarServer** → `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, `getGroupRankingForUser` (parallel per group), `extractScoringConfig` → `TournamentSidebar`
+
+---
+
+### `types/definitions.ts` *(modified)*
+
+**Changed types:**
+
+- **GameStatisticForUser**: add 4 optional fields:
+  - `qualified_teams_score: number | null`
+  - `group_position_score: number | null`
+  - `honor_roll_score: number | null`
+  - `individual_awards_score: number | null`
+
+---
+
+### `app/db/game-guess-repository.ts` *(modified)*
+
+**Changed functions:**
+
+- **getGameGuessStatisticsForUsers(userIds, tournamentId)**: `Promise<GameStatisticForUser[]>` *(same signature)*
+  Add `'qualified_teams_score'`, `'group_position_score'`, `'honor_roll_score'`, `'individual_awards_score'` to the existing `.select([...])` call. All 4 columns exist on `tournament_guesses`.
+  Tests:
+  - existing tests unchanged
+  - new: returned records include qualified_teams_score and honor_roll_score fields
+
+---
+
+### `app/utils/tournament-utils.ts` *(new)*
+
+**New functions:**
+
+- **extractScoringConfig(tournament)**: `ScoringConfig | undefined`
+  Pure helper. Extracted from `layout.tsx` (was a local function there). Returns scoring config object from tournament fields, with fallback defaults. No side effects.
+  Calls: (none — pure function)
+  Tests:
+  - returns undefined when tournament is null/undefined
+  - returns config with fallback defaults when tournament fields are null
+  - returns correct values when tournament has all scoring fields
+
+---
+
+### `app/components/tournament-page/user-tournament-statistics.tsx` *(modified)*
+
+**Changed functions:**
+
+- **UserTournamentStatistics({ userGameStatistics, tournamentId, isActive })**: `JSX.Element` *(removes `tournamentGuess` prop)*
+  Replace `tournamentGuess?.qualified_teams_score` → `userGameStatistics?.qualified_teams_score`, `tournamentGuess?.group_position_score` → `userGameStatistics?.group_position_score`, `tournamentGuess?.honor_roll_score` → `userGameStatistics?.honor_roll_score`, `tournamentGuess?.individual_awards_score` → `userGameStatistics?.individual_awards_score`. Remove `TournamentGuess` import.
+  Tests (update existing `user-tournament-statistics.test.tsx`):
+  - existing: update mock data — remove tournamentGuess, add qualified/awards fields to userGameStatistics
+  - qualifiedTotal computed correctly from userGameStatistics.qualified_teams_score + group_position_score
+  - awardsTotal computed correctly from userGameStatistics.honor_roll_score + individual_awards_score
+  - grandTotal is 0 when userGameStatistics is undefined
+
+---
+
+### `app/components/tournament-page/tournament-sidebar.tsx` *(modified)*
+
+**Changed functions:**
+
+- **TournamentSidebar({ tournamentId, scoringConfig, userGameStatistics, groupStandings, prodeGroups, user, groupRanks })**: `JSX.Element` *(removes `tournamentGuess` prop)*
+  Remove `tournamentGuess` from interface and destructuring. Stop passing it to `UserTournamentStatistics`.
+  Tests (update existing `tournament-sidebar.test.tsx`):
+  - existing tests pass without tournamentGuess in mock props
+  - UserTournamentStatistics not rendered when user is undefined (unchanged behavior)
 
 ---
 
@@ -138,19 +245,17 @@ Background uses `alpha(theme.palette.primary.main, 0.04)` to match real sidebar.
 
 **New functions:**
 
-- **TournamentSidebarServer({ tournamentId, user })**: `Promise<JSX.Element>`
-  Async Server Component. Fetches all sidebar data in parallel where possible. For authenticated users: runs `findTournamentById`, `findTournamentGuessByUserIdTournament`, `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, then fetches per-group ranks in parallel via `Promise.all`. For unauthenticated visitors: only fetches `getGroupStandingsForTournament` and `findTournamentById` (for scoring config in Rules card). Renders `TournamentSidebar` with the resolved data.
-  Calls: findTournamentById, findTournamentGuessByUserIdTournament, getGroupsForUser, getGroupStandingsForTournament, getGameGuessStatisticsForUsers, getGroupRankingForUser, extractScoringConfig
+- **TournamentSidebarServer({ tournamentId, user, tournament })**: `Promise<JSX.Element>`
+  Async Server Component. `tournament` prop is the already-fetched tournament object from the layout (from `getTournamentAndGroupsData`). For authenticated users: runs `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers` (with extended fields), then fetches per-group ranks in parallel via `Promise.all`. For unauthenticated visitors: only fetches `getGroupStandingsForTournament`. Calls `extractScoringConfig(tournament)` for rules card. Renders `TournamentSidebar`.
+  Calls: getGroupsForUser, getGroupStandingsForTournament, getGameGuessStatisticsForUsers, getGroupRankingForUser, extractScoringConfig
   Tests (use `testFactories.user()`, `testFactories.tournament()`, `testFactories.group()` for mock data):
   - renders TournamentSidebar for an authenticated user with all props populated
   - renders TournamentSidebar for an unauthenticated visitor with no user-specific props
   - fetches group ranks in parallel for all groups (userGroups + participantGroups)
   - handles getGroupsForUser returning undefined gracefully (no prodeGroups prop)
   - skips user-specific fetches entirely when user is undefined
-  - renders gracefully if findTournamentById returns null (scoringConfig is undefined)
+  - renders gracefully if tournament is null (scoringConfig is undefined)
   - renders gracefully if getGroupStandingsForTournament returns empty groups array
-
-Note: `extractScoringConfig` is a pure helper currently defined in `layout.tsx`. It should be moved to a shared location (e.g., `app/utils/tournament-utils.ts`) or co-located with the sidebar server component. During implementation, check if it's already exported from layout — if not, move/re-export it.
 
 ---
 
@@ -162,7 +267,7 @@ Note: `extractScoringConfig` is a pure helper currently defined in `layout.tsx`.
   Skeleton placeholder for the tournament sidebar. Renders in the same Grid slot as the real sidebar (`size={{ xs: 12, md: 3 }}`, `display: { xs: 'none', md: 'flex' }`). Contains 4 stacked skeleton cards with heights approximating friend groups, standings, stats, and rules. Uses `getSkeletonA11yProps('Loading sidebar')` for accessibility.
   Tests:
   - renders with aria role="status" and aria-busy="true"
-  - hidden on mobile (xs: 'none') via Grid size prop
+  - hidden on mobile: Grid size xs is not rendered on narrow viewports
   - renders 4 skeleton card sections
 
 ---
@@ -172,43 +277,48 @@ Note: `extractScoringConfig` is a pure helper currently defined in `layout.tsx`.
 **Changed functions:**
 
 - **TournamentLayout(props)**: same signature
-  Sidebar data fetching removed entirely. JSON-LD locations switched from `tournament?.locations` to `layoutData.tournament?.locations`. Renders `<Suspense fallback={<TournamentSidebarSkeleton />}><TournamentSidebarServer tournamentId={params.id} user={user ?? undefined} /></Suspense>` in place of the old inline `<TournamentSidebar>`. Imports of `findTournamentById`, `findTournamentGuessByUserIdTournament`, `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, `getGroupRankingForUser` removed.
+  Sidebar data fetching removed (imports and calls for `findTournamentById`, `findTournamentGuessByUserIdTournament`, `getGroupsForUser`, `getGroupStandingsForTournament`, `getGameGuessStatisticsForUsers`, `getGroupRankingForUser` all removed). `extractScoringConfig` helper removed (moved to `tournament-utils.ts`). JSON-LD switched to `layoutData.tournament?.locations`. Renders `<Suspense fallback={<TournamentSidebarSkeleton />}><TournamentSidebarServer tournamentId={params.id} user={user ?? undefined} tournament={layoutData.tournament} /></Suspense>`.
 
 ---
 
 ## Implementation Steps
 
-### Wave 1 — New components (independent)
-1. Create `app/components/skeletons/tournament-sidebar-skeleton.tsx`
-2. Create `app/components/tournament-page/tournament-sidebar-server.tsx`
-   - Move `extractScoringConfig` helper here or to a shared util (check if used elsewhere in layout first)
-3. Write tests for both new components
+### Wave 1 — Type + DB changes (foundation for all downstream)
+1. Extend `GameStatisticForUser` type in `types/definitions.ts` (add 4 fields)
+2. Extend `getGameGuessStatisticsForUsers` select in `app/db/game-guess-repository.ts`
 
-### Wave 2 — Layout integration
-4. Modify `layout.tsx`:
-   - Add `import React, { Suspense } from 'react'`
-   - Add imports for `TournamentSidebarServer`, `TournamentSidebarSkeleton`
-   - Remove sidebar data fetching and old imports
-   - Switch JSON-LD to `layoutData.tournament?.locations`
-   - Replace `<TournamentSidebar>` with `<Suspense>` + `<TournamentSidebarServer>`
+### Wave 2 — Component updates (can run in parallel)
+3. Create `app/utils/tournament-utils.ts` with `extractScoringConfig`
+4. Update `UserTournamentStatistics` — drop `tournamentGuess` prop, use extended `userGameStatistics` fields; update test file
+5. Update `TournamentSidebar` — remove `tournamentGuess` prop; update test file
 
-### Wave 3 — Documentation
-5. Update `docs/code-structure/pages.md` — update `TournamentLayout` entry
-6. Update `docs/code-structure/components/components-tournament-hub.md` — add `TournamentSidebarServer`
+### Wave 3 — New components
+6. Create `app/components/skeletons/tournament-sidebar-skeleton.tsx` + tests
+7. Create `app/components/tournament-page/tournament-sidebar-server.tsx` + tests
+
+### Wave 4 — Layout integration
+8. Modify `app/[locale]/tournaments/[id]/layout.tsx`
+
+### Wave 5 — Documentation
+9. Update `docs/code-structure/pages.md`, `components-tournament-hub.md`, `utils.md`
 
 ---
 
 ## Testing Strategy
 
 ### Unit Tests
-- **`tournament-sidebar-server.test.tsx`**: Mock all data fetching functions; verify `TournamentSidebar` receives correct props in authenticated and unauthenticated scenarios
-- **`tournament-sidebar-skeleton.tsx`**: Verify accessibility attributes, Grid visibility props, presence of 4 skeleton sections
+- **`game-guess-repository` tests**: verify extended fields appear in returned records
+- **`tournament-utils.test.ts`**: verify `extractScoringConfig` behavior (null input, defaults, full data)
+- **`user-tournament-statistics.test.tsx`**: update mocks — remove `tournamentGuess`, add extended fields to `userGameStatistics`
+- **`tournament-sidebar.test.tsx`**: remove `tournamentGuess` from mock props
+- **`tournament-sidebar-server.test.tsx`**: authenticated + unauthenticated scenarios, graceful null handling
+- **`tournament-sidebar-skeleton` tests**: accessibility attributes, 4 sections present
 
 ### Manual Verification
-- Navigate to any tournament sub-page, observe header renders immediately
-- Watch sidebar skeleton appear, then replace with real content
+- Navigate to any tournament sub-page: header renders immediately, skeleton appears, then real sidebar
 - Test as unauthenticated user: standings and rules visible, no user stats
-- Navigate between sub-pages (hub → games → stats) to confirm no sidebar re-fetch
+- Navigate between sub-pages (hub → games → stats): no sidebar re-fetch (Router Cache)
+- Visit stats page: confirm Qualified and Awards totals still show correct values (from extended `getGameGuessStatisticsForUsers`)
 - Test all 7 sub-pages: hub, games, stats, results, awards, qualified-teams, rules
 
 ---
@@ -217,16 +327,14 @@ Note: `extractScoringConfig` is a pure helper currently defined in `layout.tsx`.
 
 - SonarCloud: No new issues; coverage ≥80% on new files
 - No new translation keys needed
-- No DB migration needed
-- `extractScoringConfig` is a pure helper — no side effects, easy to move
-- Router Cache (30s default in Next.js App Router) will cache the sidebar segment; sub-page navigation won't re-fetch it
+- No DB migration needed — only changes query column selection from existing table
+- `extractScoringConfig` move: pure function, easy to extract and test in isolation
+- Router Cache (30s default): sidebar Suspense segment cached on client navigation
 
 ---
 
-## Open Questions
+## Notes
 
-1. **`extractScoringConfig` helper**: Currently defined as a local function in `layout.tsx`. Should it move to `app/utils/tournament-utils.ts` or stay co-located with `TournamentSidebarServer`? → Recommend co-locating with the server component since it's only used there after this change.
-
-2. **`'use server'` on layout.tsx**: The current layout has `'use server'` at the top. After adding `<Suspense>`, this directive remains correct — Suspense is valid in Server Components.
-
-3. **Router Cache**: Need to verify that the Suspense boundary doesn't bypass Router Cache for the streamed segment on client navigation. Based on Next.js docs, cached RSC payloads for a layout segment are reused on navigation — the Suspense behavior (streaming on initial load) doesn't affect client-side navigation cache behavior.
+- `'use server'` directive on `layout.tsx` remains correct — Suspense is valid in Server Components
+- `findTournamentGuessByUserIdTournament` is still used by `awards/page.tsx` and `stats/page.tsx` for different purposes — those files are untouched
+- `testFactories.*` must be used in new server component test (per project patterns)
