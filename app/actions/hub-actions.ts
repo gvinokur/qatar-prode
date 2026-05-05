@@ -317,8 +317,9 @@ export async function getActionCenterGames(
   ])
 
   // Use the same completion logic as the Predictions Dashboard for consistent progress data
+  // Pass firstGame?.game_date so getTournamentPredictionCompletion skips a redundant DB call
   const predictionCompletion = tournament
-    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament)
+    ? await getTournamentPredictionCompletion(user.id, tournamentId, tournament, firstGame?.game_date ?? null)
     : null
 
   const now = Date.now()
