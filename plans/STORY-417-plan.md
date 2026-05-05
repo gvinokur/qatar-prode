@@ -246,6 +246,23 @@ No new cross-layer flows. This story narrows an existing DB query and adds deadl
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: i18n namespace registration
+**Date:** 2026-05-05
+**Reason:** The `games` namespace was used in `guesses-actions.ts` via `getTranslations({ namespace: 'games' })`, but `types/i18n.ts` had never imported it. This caused a runtime error: "missing internationalized text games.guess.predictionClosed".
+**Change:** Added `import games from '@/locales/en/games.json'` and `games: typeof games` to `types/i18n.ts`.
+
+### Amendment 2: Header urgency-count bug fix
+**Date:** 2026-05-05
+**Reason:** User testing revealed that when games spanned multiple urgency tiers, `buildUrgentUnpredicted` used `unpredictedUrgentGames.length` (all urgent games) for `count` but `urgencyWindow(tone)` for `window`. The tone was set to the most-urgent tier, but the count included games from less-urgent tiers.
+**Change:** Modified `buildUrgentUnpredicted` in `games-header-variant.ts` to filter `unpredictedUrgentGames` to `mostUrgentGames` (only those matching `urgencyLevel`) and derive `count`, `window`, and `matchups` from that filtered set.
+
+### Amendment 3: Header 48h upper-bound bug fix
+**Date:** 2026-05-05
+**Reason:** User testing revealed that `deadlineSoon` (48h tier) showed all remaining open games, including those beyond 48h. `FORTY_EIGHT_HOURS_MS` was defined in `games-header-variant.ts` but unused.
+**Change:** Modified `prepareData` in `games-header-variant.ts` to add `msUntilStart < FORTY_EIGHT_HOURS_MS` guard when filtering `unpredictedUrgentGames`. Updated the existing `deadlineSoon` test (which used a game exactly 48h away — now excluded by the strict `<`) to use 46h, and added a new test verifying games at exactly 48h are excluded.
+
 ## Open Questions
 
 None. Root causes are confirmed, approach is consistent with existing patterns.
