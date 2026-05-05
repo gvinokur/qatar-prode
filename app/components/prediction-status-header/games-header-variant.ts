@@ -243,9 +243,11 @@ function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
     && completion.completedGames >= completion.totalGames
     && games.every(g => new Date(g.game_date).getTime() < nowMs);
 
-  const unpredictedUrgentGames = urgentGames.filter(
-    g => !isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
-  );
+  const unpredictedUrgentGames = urgentGames.filter(g => {
+    const msUntilStart = new Date(g.game_date).getTime() - nowMs;
+    return msUntilStart < FORTY_EIGHT_HOURS_MS
+      && !isGuessComplete(gameGuesses[g.id], !!g.playoffStage);
+  });
 
   const groupsComplete = liveCompletedGroupGames >= completion.totalGroupGames && completion.totalGroupGames > 0;
   const qtOpen = !completion.isPredictionLocked;
@@ -315,10 +317,13 @@ function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, 
     tone = 'deadlineSoon';
   }
 
-  const count = unpredictedUrgentGames.length;
-  const window = urgencyWindow(tone as UrgencyLevel);
+  // Only count/show games in the most urgent tier so the window label is accurate
+  const urgencyLevel = tone as UrgencyLevel;
+  const mostUrgentGames = unpredictedUrgentGames.filter(g => getGameUrgencyLevel(g, now) === urgencyLevel);
+  const count = mostUrgentGames.length;
+  const window = urgencyWindow(urgencyLevel);
 
-  const matchups = unpredictedUrgentGames.slice(0, 3).map(g => {
+  const matchups = mostUrgentGames.slice(0, 3).map(g => {
     const home = teamsMap[g.home_team ?? '']?.name;
     const away = teamsMap[g.away_team ?? '']?.name;
     if (home && away) return `${home} vs ${away}`;

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-03
+**Last updated:** 2026-05-05
 
 ---
 
@@ -106,7 +106,7 @@ Repository for games table. Manages game records with group/playoff metadata. Re
 - **findAllGamesWithPublishedResultsAndGameGuesses(forceDrafts: boolean, forceAllGameGuesses: boolean)**: `Promise<GameWithResultAndGuess[]>` — Finds games with published results and unscored guesses (cached).
 - **findGamesAroundCurrentTime(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Finds last 24h results + next 48h upcoming games (cached).
 - **findGamesInNext24Hours(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Finds upcoming games in next 24 hours (secondary sort by game_number, cached).
-- **findGamesForDashboard(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Unified dashboard query: last 24h + next 48h games (secondary sort by game_number, cached).
+- **findGamesForDashboard(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Unified dashboard query: only games whose prediction deadline hasn't closed (`game_date >= now + 1h`), up to 7 days ahead (secondary sort by game_number, cached).
 - **getAllTournamentGames(tournamentId: string)**: `Promise<ExtendedGameData[]>` — Fetches ALL games for unified games page (cached). Sorted by `matchday ASC NULLS LAST, game_date ASC, game_number ASC`.
 - **getTournamentGameCounts(userId: string | null, tournamentId: string)**: `Promise<TournamentGameCounts>` — Counts for filter badges (total, groups, playoffs, unpredicted, closing soon) (cached).
 - **findRecentGamesWithUserGuesses(userId: string, tournamentId: string, limit: number)**: `Promise<RecentGameWithGuess[]>` — Returns games with published (non-draft) results where the user has a guess, ordered by game_date desc and game_number desc, up to `limit` rows. Returns empty array when limit is 0.

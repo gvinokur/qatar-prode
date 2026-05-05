@@ -101,8 +101,8 @@ Manages tournament betting configuration and payment tracking for friend groups.
 ### app/actions/guesses-actions.ts
 Manages game and tournament predictions (guesses).
 
-- **updateOrCreateGameGuesses(gameGuesses, locale)**: `Promise<{ success: boolean; error?: string; analyticsEvent?: AnalyticsEventPayload }>` — Saves game predictions (upsert). Returns analytics event payload on success.
-  Calls: getLoggedInUser, updateOrCreateGuess, trackEvent
+- **updateOrCreateGameGuesses(gameGuesses, locale)**: `Promise<{ success: boolean; error?: string; analyticsEvent?: AnalyticsEventPayload }>` — Saves game predictions (upsert). Validates each game's deadline before saving; returns `predictionClosed` error if any game deadline has passed. Returns analytics event payload on success.
+  Calls: getLoggedInUser, findGameById, calculateDeadline, updateOrCreateGuess
 - **updateOrCreateTournamentGuess(guess, locale)**: `Promise<TournamentGuess>` — Saves tournament-level prediction.
   Calls: dbUpdateOrCreateTournamentGuess
 - **updatePlayoffGameGuesses(tournamentId, user)**: `Promise<void>` — Recalculates and updates playoff guesses from position predictions.

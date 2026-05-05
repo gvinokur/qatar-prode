@@ -9,7 +9,8 @@
   "guess": {
     "unauthorized": "Unauthorized action",
     "saveFailed": "Failed to save prediction",
-    "updateFailed": "Failed to update tournament guess"
+    "updateFailed": "Failed to update tournament guess",
+    "predictionClosed": "Prediction deadline has passed"
   },
   "scoreGenerator": {
     "groupNotFound": "Group not found",

@@ -9,7 +9,8 @@
   "guess": {
     "unauthorized": "Acción no autorizada",
     "saveFailed": "Error al guardar la predicción",
-    "updateFailed": "Error al actualizar la predicción del torneo"
+    "updateFailed": "Error al actualizar la predicción del torneo",
+    "predictionClosed": "El tiempo para realizar esta predicción ha finalizado"
   },
   "scoreGenerator": {
     "groupNotFound": "Grupo no encontrado",

@@ -177,7 +177,7 @@ describe('computeGamesHeaderVariant', () => {
     const now = new Date('2026-05-30T18:00:00Z');
     const urgentGame = createMockGame({
       id: 'urgent-3',
-      game_date: new Date('2026-06-01T18:00:00Z'), // 48h away
+      game_date: new Date('2026-06-01T16:00:00Z'), // 46h away — strictly within 48h window
     });
 
     const input = createMockInput({
@@ -191,6 +191,30 @@ describe('computeGamesHeaderVariant', () => {
 
     expect(result.tone).toBe('deadlineSoon');
     expect(result.leadIcon).toBe('info');
+  });
+
+  it('should not trigger urgent-unpredicted for games beyond the 48h threshold', () => {
+    const now = new Date('2026-05-30T18:00:00Z');
+    // Game is exactly 48h away — at the boundary, NOT strictly less than 48h
+    const beyondThresholdGame = createMockGame({
+      id: 'beyond-48h',
+      game_date: new Date('2026-06-01T18:00:00Z'), // exactly 48h away
+    });
+
+    const input = createMockInput({
+      games: [beyondThresholdGame],
+      urgentGames: [beyondThresholdGame],
+      gameGuesses: {},
+      now,
+    });
+
+    const result = computeGamesHeaderVariant(input, mockT);
+
+    // Game at exactly 48h is excluded from unpredictedUrgentGames (strict < threshold)
+    expect(result.tone).not.toBe('deadlineNow');
+    expect(result.tone).not.toBe('deadlineUrgent');
+    expect(result.tone).not.toBe('deadlineSoon');
+    expect(result.leadIcon).not.toBe('info'); // urgent-unpredicted uses 'info'
   });
 
   it('should ignore urgent games with complete guesses', () => {
@@ -237,6 +261,33 @@ describe('computeGamesHeaderVariant', () => {
 
     // Should use the most urgent (deadlineNow from game1)
     expect(result.tone).toBe('deadlineNow');
+  });
+
+  it('should count only games in the most urgent tier, not all unpredicted urgent games', () => {
+    const now = new Date('2026-06-01T17:00:00Z');
+    // 1 game closing in < 2h (deadlineNow)
+    const nowGame = createMockGame({ id: 'now-game', game_number: 10, game_date: new Date('2026-06-01T18:30:00Z') });
+    // 3 games closing in < 24h (deadlineUrgent)
+    const urgentGame1 = createMockGame({ id: 'urgent-1', game_number: 11, game_date: new Date('2026-06-02T10:00:00Z') });
+    const urgentGame2 = createMockGame({ id: 'urgent-2', game_number: 12, game_date: new Date('2026-06-02T12:00:00Z') });
+    const urgentGame3 = createMockGame({ id: 'urgent-3', game_number: 13, game_date: new Date('2026-06-02T14:00:00Z') });
+
+    const input = createMockInput({
+      games: [nowGame, urgentGame1, urgentGame2, urgentGame3],
+      urgentGames: [nowGame, urgentGame1, urgentGame2, urgentGame3],
+      gameGuesses: {},
+      now,
+    });
+
+    const result = computeGamesHeaderVariant(input, mockT);
+
+    expect(result.tone).toBe('deadlineNow');
+    // statusText count must be 1 (only the deadlineNow game), not 4 (all unpredicted urgent)
+    expect(result.statusText).toContain('"count":1');
+    expect(result.statusText).toContain('< 2h');
+    // message only lists game #10 (deadlineNow tier), not the deadlineUrgent games
+    expect(result.message).toContain('"number":10');
+    expect(result.message).not.toContain('"number":11');
   });
 
   // ── VARIANT 3: pre-groups-complete-nudge-qt ─────────────────────────────────

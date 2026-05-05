@@ -8,8 +8,9 @@ import {findGroupsInTournament} from "../db/tournament-group-repository";
 import {calculatePlayoffTeamsFromPositions} from "../utils/playoff-teams-calculator";
 import {ExtendedPlayoffRoundData} from "../definitions";
 import {findPlayoffStagesWithGamesInTournament} from "../db/tournament-playoff-repository";
-import {findGamesInTournament} from "../db/game-repository";
+import {findGameById, findGamesInTournament} from "../db/game-repository";
 import {toMap} from "../utils/ObjectUtils";
+import { calculateDeadline } from "../utils/countdown-utils";
 import {db} from "../db/database";
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
@@ -25,6 +26,16 @@ export async function updateOrCreateGameGuesses(
     if(!user) {
       throw new Error(t('guess.unauthorized'))
     }
+
+    const uniqueGameIds = [...new Set(gameGuesses.map(g => g.game_id))]
+    const now = Date.now()
+    const games = await Promise.all(uniqueGameIds.map(id => findGameById(id)))
+    for (const game of games) {
+      if (!game || calculateDeadline(game.game_date) <= now) {
+        return { success: false, error: t('guess.predictionClosed') }
+      }
+    }
+
     const _createdGameGuesses = await Promise.all(
       gameGuesses.map(gameGuess => {
         return updateOrCreateGuess({
