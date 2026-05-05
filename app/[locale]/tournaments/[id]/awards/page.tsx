@@ -83,8 +83,9 @@ export default async function Awards(props: Props) {
   const hasThirdPlaceGame = playoffStages.some(stage => stage.is_third_place)
 
   // Fetch tournament prediction completion (needs tournament object)
+  // Pass tournamentStartDate (already fetched above) to skip a redundant DB call
   const tournamentPredictionCompletion = tournament
-    ? await getTournamentPredictionCompletion(user.id, params.id, tournament)
+    ? await getTournamentPredictionCompletion(user.id, params.id, tournament, tournamentStartDate)
     : null
 
   // Get tournament start time to check if predictions are still allowed

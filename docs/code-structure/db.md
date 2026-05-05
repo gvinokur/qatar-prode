@@ -279,9 +279,9 @@ Repository for tournament_playoff_rounds and playoff games. Manages playoff brac
   Calls: db
 
 ### app/db/tournament-prediction-completion-repository.ts
-Repository for tournament prediction completion tracking.
+Repository for tournament prediction completion tracking. Runs 4 parallel DB queries via `Promise.all` instead of 13 sequential ones.
 
-- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, qualifier selections, and per-playoff-round completion (`playoffRoundsCompletion: Record<roundId, PlayoffRoundCompletionData>`). Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation.
+- **getTournamentPredictionCompletion(userId: string, tournamentId: string, tournament: Tournament, firstGameDate?: Date | null)**: `Promise<TournamentPredictionCompletion>` — Calculates overall prediction progress including game completion, boost usage, award selection, qualifier selections, and per-playoff-round completion (`playoffRoundsCompletion: Record<roundId, PlayoffRoundCompletionData>`). Also returns `completedGroupGames` and `totalGroupGames` for QT banner state derivation. When `firstGameDate` is provided, skips the `getTournamentStartDate` DB call.
   Calls: findTournamentGuessByUserIdTournament, getTournamentStartDate, getAllUserGroupPositionsPredictions
 
 ### app/db/tournament-repository.ts
