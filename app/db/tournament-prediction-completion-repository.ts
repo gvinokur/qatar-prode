@@ -169,9 +169,9 @@ export async function getTournamentPredictionCompletion(
   }
 
   // isPredictionLocked: use firstGameDate if provided by caller, otherwise fetch from DB
-  const tournamentStartDate = firstGameDate !== undefined
-    ? firstGameDate
-    : await getTournamentStartDate(tournamentId)
+  const tournamentStartDate = firstGameDate === undefined
+    ? await getTournamentStartDate(tournamentId)
+    : firstGameDate
 
   const isPredictionLocked = tournamentStartDate
     ? Date.now() > tournamentStartDate.getTime() + PREDICTION_LOCK_OFFSET_MS
