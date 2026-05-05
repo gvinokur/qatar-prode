@@ -26,7 +26,7 @@ vi.mock('@/app/db/tournament-repository', () => ({
 }))
 
 // Mock all other imports used by TournamentLayout render (not needed for generateMetadata but avoids module errors)
-vi.mock('@/app/actions/tournament-actions', () => ({ getTournamentAndGroupsData: vi.fn(), getTournaments: vi.fn(), getTournamentStartDate: vi.fn(), getGroupStandingsForTournament: vi.fn() }))
+vi.mock('@/app/actions/tournament-actions', () => ({ getTournamentById: vi.fn(), getTournaments: vi.fn(), getTournamentStartDate: vi.fn(), getGroupStandingsForTournament: vi.fn() }))
 vi.mock('@/app/actions/prode-group-actions', () => ({ getGroupsForUser: vi.fn() }))
 vi.mock('@/app/db/tournament-guess-repository', () => ({ findTournamentGuessByUserIdTournament: vi.fn() }))
 vi.mock('@/app/actions/user-actions', () => ({ getLoggedInUser: vi.fn() }))

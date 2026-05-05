@@ -16,10 +16,6 @@ vi.mock('next/navigation', () => ({
 
 describe('GroupSelector i18n', () => {
   const defaultProps = {
-    groups: [
-      { group_letter: 'A', id: 'group-a' },
-      { group_letter: 'B', id: 'group-b' },
-    ],
     tournamentId: 'test-tournament',
   }
 

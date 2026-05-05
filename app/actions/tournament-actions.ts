@@ -159,19 +159,6 @@ export async function getCompletePlayoffData(tournamentId: string, includeDraftR
   } as CompletePlayoffData
 }
 
-export async function getTournamentAndGroupsData(tournamentId:string) {
-  const locale = await getLocale()
-  const tournament = await findTournamentById(tournamentId)
-  const allGroups = await findGroupsInTournament(tournamentId)
-
-  return {
-    tournament: tournament ? applyLocalization(tournament, locale, [
-      { field: 'long_name', i18nField: 'long_name_i18n' },
-      { field: 'short_name', i18nField: 'short_name_i18n' }
-    ]) : null,
-    allGroups
-  }
-}
 
 export async function getTournamentStartDate(tournamentId: string) {
   const firstGame = await findFirstGameInTournament(tournamentId)

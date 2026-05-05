@@ -3,7 +3,7 @@
 import type { Metadata } from 'next'
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
-import {getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
+import {getTournamentById, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
 import TournamentSwitcher from "../../../components/tournament/tournament-switcher";
 import NewTournamentSnackbar from "../../../components/tournament/new-tournament-snackbar";
 import {getGroupsForUser} from "../../../actions/prode-group-actions";
@@ -27,7 +27,6 @@ import ThemeSwitcher from '../../../components/header/theme-switcher';
 import LanguageSwitcher from '../../../components/header/language-switcher';
 import UserActions from '../../../components/header/user-actions';
 import TournamentSidebar from '../../../components/tournament-page/tournament-sidebar';
-import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale, getTranslations } from 'next-intl/server'
@@ -111,18 +110,17 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true'
   const isUnverified = requireEmailVerification && !!user && !isVerified
 
-  const layoutData = await getTournamentAndGroupsData(params.id)
+  const tournament = await getTournamentById(params.id)
 
   // Get all active tournaments for switcher
   const activeTournaments = await getTournaments()
 
   // Check dev tournament permissions
-  await checkDevTournamentPermission(params.id, layoutData.tournament, user, locale)
+  await checkDevTournamentPermission(params.id, tournament, user, locale)
 
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
   // Fetch sidebar data
-  const tournament = await findTournamentById(params.id)
   const prodeGroups = user ? await getGroupsForUser() : undefined
   const groupStandings = await getGroupStandingsForTournament(params.id)
   const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
@@ -145,7 +143,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   // Extract scoring config
   const scoringConfig = extractScoringConfig(tournament)
 
-  const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
+  const logoUrl = getThemeLogoUrl(tournament?.theme)
+
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
   const tournamentUrl = `${appUrl}/${locale}/tournaments/${params.id}`
@@ -164,13 +163,13 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
         height: 'calc(100dvh - 56px)'
       }
     }}>
-      {layoutData.tournament && (
-        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, tournament?.locations)} />
+      {tournament && (
+        <JsonLd data={buildSportsEventJsonLd(tournament.long_name, tournamentUrl, tournamentStartDate, tournament?.locations)} />
       )}
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         {/* Background color spans full width */}
         <Box sx={{
-          backgroundColor: layoutData.tournament?.theme?.primary_color,
+          backgroundColor: tournament?.theme?.primary_color,
           display: 'flex',
           justifyContent: 'center',
           width: '100%'
@@ -215,7 +214,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 gap: 1
               }}>
               <Link
-                href={`/${locale}/tournaments/${layoutData.tournament?.id}`}
+                href={`/${locale}/tournaments/${tournament?.id}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -227,39 +226,39 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 <Box
                   component="img"
                   src={logoUrl || ''}
-                  alt={layoutData.tournament?.long_name}
+                  alt={tournament?.long_name}
                   sx={{
                     maxHeight: { xs: '32px', md: '48px' },
                     maxWidth: { xs: '32px', md: '48px' },
                     objectFit: 'contain'
                   }}
                 />
-                {(layoutData.tournament?.short_name || layoutData.tournament?.long_name) && (
+                {(tournament?.short_name || tournament?.long_name) && (
                   <Box display="flex" alignItems="center" gap={1}>
-                    {layoutData.tournament?.dev_only && (
+                    {tournament?.dev_only && (
                       <DevTournamentBadge
-                        color={layoutData.tournament.theme?.secondary_color || 'warning.main'}
+                        color={tournament.theme?.secondary_color || 'warning.main'}
                       />
                     )}
                     <Typography
                       noWrap
                       variant={'h6'}
-                      ml={layoutData.tournament?.dev_only ? 0 : 2}
-                      color={layoutData.tournament?.theme?.secondary_color}
+                      ml={tournament?.dev_only ? 0 : 2}
+                      color={tournament?.theme?.secondary_color}
                       sx={{
                         display: { xs: 'none', md: 'block' }
                       }}>
-                      {layoutData.tournament?.long_name || layoutData.tournament?.short_name}
+                      {tournament?.long_name || tournament?.short_name}
                     </Typography>
                     <Typography
                       noWrap
                       variant={'h6'}
-                      ml={layoutData.tournament?.dev_only ? 0 : 2}
-                      color={layoutData.tournament?.theme?.secondary_color}
+                      ml={tournament?.dev_only ? 0 : 2}
+                      color={tournament?.theme?.secondary_color}
                       sx={{
                         display: { xs: 'block', md: 'none' }
                       }}>
-                      {layoutData.tournament?.short_name || layoutData.tournament?.long_name}
+                      {tournament?.short_name || tournament?.long_name}
                     </Typography>
                   </Box>
                 )}
@@ -287,11 +286,8 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
               <Grid size={12} pb={{ xs: 1, md: 0.5 }}>
                 <GroupSelector
                   tournamentId={params.id}
-                  backgroundColor={layoutData.tournament?.theme?.primary_color}
-                  textColor={layoutData.tournament?.theme?.secondary_color}
-                  groups={layoutData.allGroups
-                    .toSorted((a, b) => a.group_letter.localeCompare(b.group_letter))
-                  }
+                  backgroundColor={tournament?.theme?.primary_color}
+                  textColor={tournament?.theme?.secondary_color}
                   user={user}
                 />
               </Grid>
@@ -339,7 +335,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
           </Box>
         </Box>
       </Box>
-      <EnvironmentIndicator isDev={layoutData.tournament?.dev_only || false}/>
+      <EnvironmentIndicator isDev={tournament?.dev_only || false}/>
 
       {/* Mobile bottom navigation - only shown on mobile within tournament context */}
       <TournamentBottomNavWrapper tournamentId={params.id} user={user ?? undefined} />
@@ -347,7 +343,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       {/* New tournament notification snackbar */}
       <NewTournamentSnackbar
         tournamentId={params.id}
-        tournamentName={layoutData.tournament?.long_name || ''}
+        tournamentName={tournament?.long_name || ''}
         otherTournaments={activeTournaments.filter(t => t.id !== params.id)}
       />
     </Box>
