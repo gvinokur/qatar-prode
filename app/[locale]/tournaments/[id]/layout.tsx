@@ -27,7 +27,6 @@ import ThemeSwitcher from '../../../components/header/theme-switcher';
 import LanguageSwitcher from '../../../components/header/language-switcher';
 import UserActions from '../../../components/header/user-actions';
 import TournamentSidebar from '../../../components/tournament-page/tournament-sidebar';
-import { findTournamentById } from '../../../db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
 import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale, getTranslations } from 'next-intl/server'
@@ -122,7 +121,6 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
   // Fetch sidebar data
-  const tournament = await findTournamentById(params.id)
   const prodeGroups = user ? await getGroupsForUser() : undefined
   const groupStandings = await getGroupStandingsForTournament(params.id)
   const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
@@ -143,7 +141,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   }
 
   // Extract scoring config
-  const scoringConfig = extractScoringConfig(tournament)
+  const scoringConfig = extractScoringConfig(layoutData.tournament)
 
   const logoUrl = getThemeLogoUrl(layoutData.tournament?.theme)
 
@@ -165,7 +163,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
       }
     }}>
       {layoutData.tournament && (
-        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, tournament?.locations)} />
+        <JsonLd data={buildSportsEventJsonLd(layoutData.tournament.long_name, tournamentUrl, tournamentStartDate, layoutData.tournament?.locations)} />
       )}
       <AppBar position={'sticky'} sx={{ top: 0, zIndex: 1100 }}>
         {/* Background color spans full width */}

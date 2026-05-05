@@ -7,7 +7,6 @@ import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
 import { getPlayersInTournament } from '@/app/db/player-repository';
 import { hasUserPermission } from '@/app/db/tournament-view-permission-repository';
-import { findTournamentById } from '@/app/db/tournament-repository';
 import { getGameGuessStatisticsForUsers } from '@/app/db/game-guess-repository';
 import { redirect, notFound } from 'next/navigation';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
@@ -43,10 +42,6 @@ vi.mock('@/app/db/player-repository', () => ({
 
 vi.mock('@/app/db/tournament-view-permission-repository', () => ({
   hasUserPermission: vi.fn()
-}));
-
-vi.mock('@/app/db/tournament-repository', () => ({
-  findTournamentById: vi.fn()
 }));
 
 vi.mock('@/app/db/game-guess-repository', () => ({
@@ -136,7 +131,6 @@ describe('TournamentLayout - Mobile Header Integration', () => {
       defaultGroupId: 'group-a',
       qualifiedTeams: []
     });
-    (findTournamentById as any).mockResolvedValue(mockTournamentData.tournament);
     (getGameGuessStatisticsForUsers as any).mockResolvedValue([]);
     (findUserById as any).mockResolvedValue({ email_verified: true });
     // Default: verification not required
@@ -380,5 +374,37 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     // Dev badge shows BugReportIcon with "Development Tournament" title
     const devBadge = screen.getByTitle('Development Tournament');
     expect(devBadge).toBeInTheDocument();
+  });
+
+  it('does not call findTournamentById directly (data comes from layoutData)', async () => {
+    const params = Promise.resolve({ id: 'tournament-1' });
+    const children = <div>Content</div>;
+
+    await TournamentLayout({ params, children });
+
+    // getTournamentAndGroupsData internally calls findTournamentById — the layout
+    // must NOT call it again directly (redundant call removed)
+    expect(getTournamentAndGroupsData).toHaveBeenCalledWith('tournament-1');
+    // findTournamentById is no longer imported or called from the layout
+  });
+
+  it('renders correctly when tournament locations is null', async () => {
+    const tournamentWithoutLocations = {
+      ...mockTournamentData,
+      tournament: {
+        ...mockTournamentData.tournament,
+        locations: null
+      }
+    };
+    (getTournamentAndGroupsData as any).mockResolvedValue(tournamentWithoutLocations);
+
+    const params = Promise.resolve({ id: 'tournament-1' });
+    const children = <div data-testid="child-content">Content</div>;
+
+    // Should not throw when locations is null (JSON-LD builder handles null gracefully)
+    const result = await TournamentLayout({ params, children });
+    renderWithTheme(result as React.ReactElement);
+
+    expect(screen.getByTestId('child-content')).toBeInTheDocument();
   });
 });
