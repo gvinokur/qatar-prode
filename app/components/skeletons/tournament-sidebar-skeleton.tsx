@@ -1,3 +1,5 @@
+'use client'
+
 import { Grid, Box, Skeleton, Card, CardHeader } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { getSkeletonA11yProps } from './skeleton-utils'
