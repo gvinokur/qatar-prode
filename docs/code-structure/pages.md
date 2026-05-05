@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-03
+**Last updated:** 2026-05-05
 
 ---
 
@@ -162,7 +162,6 @@ Tournament context layout with header, sidebar, and bottom navigation.
 - **checkDevTournamentPermission(tournamentId, tournament, user, locale)**: `Promise<void>` — [Server] Validates user access to dev-only tournaments in production.
   Calls: hasUserPermission
 - **extractScoringConfig(tournament)**: `ScoringConfig | undefined` — [Server] Extracts scoring configuration from tournament object.
-- **isWithinFiveDaysOfStart(startDate)**: `boolean` — [Server] Checks if current time is within 5 days of tournament start.
 - **TournamentLayout(props: TournamentLayoutProps)**: `JSX.Element` — [Server] Renders two-column layout with main content (9/12) and sidebar (3/12 desktop, hidden mobile); handles tournament switcher, navigation, badges, SportsEvent JSON-LD structured data, and parallel group rank fetching. Also renders `VerificationBanner` between AppBar and main content (below header, always interactive), and wraps main content with `VerificationOverlay` + `pointerEvents:none` when user is unverified and `REQUIRE_EMAIL_VERIFICATION=true`.
   Calls: getLocale, getLoggedInUser, findUserById, getTournamentById, getTournaments, getTournamentStartDate, getGroupStandingsForTournament, getGroupsForUser, findTournamentGuessByUserIdTournament, getGameGuessStatisticsForUsers, getThemeLogoUrl, isDevelopmentMode, buildSportsEventJsonLd, getGroupRankingForUser
   Renders: JsonLd, TournamentSwitcher, GroupSelector, TournamentSidebar, ThemeSwitcher, LanguageSwitcher, UserActions, DevTournamentBadge, ScrollableContentArea, EmptyAwardsSnackbar, EnvironmentIndicator, TournamentBottomNavWrapper, NewTournamentSnackbar, VerificationBanner, VerificationOverlay
