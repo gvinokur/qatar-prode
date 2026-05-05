@@ -315,10 +315,13 @@ function buildUrgentUnpredicted(input: GamesHeaderInput, data: GamesHeaderData, 
     tone = 'deadlineSoon';
   }
 
-  const count = unpredictedUrgentGames.length;
-  const window = urgencyWindow(tone as UrgencyLevel);
+  // Only count/show games in the most urgent tier so the window label is accurate
+  const urgencyLevel = tone as UrgencyLevel;
+  const mostUrgentGames = unpredictedUrgentGames.filter(g => getGameUrgencyLevel(g, now) === urgencyLevel);
+  const count = mostUrgentGames.length;
+  const window = urgencyWindow(urgencyLevel);
 
-  const matchups = unpredictedUrgentGames.slice(0, 3).map(g => {
+  const matchups = mostUrgentGames.slice(0, 3).map(g => {
     const home = teamsMap[g.home_team ?? '']?.name;
     const away = teamsMap[g.away_team ?? '']?.name;
     if (home && away) return `${home} vs ${away}`;
