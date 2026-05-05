@@ -243,9 +243,11 @@ function prepareData(input: GamesHeaderInput, now: Date): GamesHeaderData {
     && completion.completedGames >= completion.totalGames
     && games.every(g => new Date(g.game_date).getTime() < nowMs);
 
-  const unpredictedUrgentGames = urgentGames.filter(
-    g => !isGuessComplete(gameGuesses[g.id], !!g.playoffStage)
-  );
+  const unpredictedUrgentGames = urgentGames.filter(g => {
+    const msUntilStart = new Date(g.game_date).getTime() - nowMs;
+    return msUntilStart < FORTY_EIGHT_HOURS_MS
+      && !isGuessComplete(gameGuesses[g.id], !!g.playoffStage);
+  });
 
   const groupsComplete = liveCompletedGroupGames >= completion.totalGroupGames && completion.totalGroupGames > 0;
   const qtOpen = !completion.isPredictionLocked;

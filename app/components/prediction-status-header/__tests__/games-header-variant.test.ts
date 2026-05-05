@@ -177,7 +177,7 @@ describe('computeGamesHeaderVariant', () => {
     const now = new Date('2026-05-30T18:00:00Z');
     const urgentGame = createMockGame({
       id: 'urgent-3',
-      game_date: new Date('2026-06-01T18:00:00Z'), // 48h away
+      game_date: new Date('2026-06-01T16:00:00Z'), // 46h away — strictly within 48h window
     });
 
     const input = createMockInput({
@@ -191,6 +191,30 @@ describe('computeGamesHeaderVariant', () => {
 
     expect(result.tone).toBe('deadlineSoon');
     expect(result.leadIcon).toBe('info');
+  });
+
+  it('should not trigger urgent-unpredicted for games beyond the 48h threshold', () => {
+    const now = new Date('2026-05-30T18:00:00Z');
+    // Game is exactly 48h away — at the boundary, NOT strictly less than 48h
+    const beyondThresholdGame = createMockGame({
+      id: 'beyond-48h',
+      game_date: new Date('2026-06-01T18:00:00Z'), // exactly 48h away
+    });
+
+    const input = createMockInput({
+      games: [beyondThresholdGame],
+      urgentGames: [beyondThresholdGame],
+      gameGuesses: {},
+      now,
+    });
+
+    const result = computeGamesHeaderVariant(input, mockT);
+
+    // Game at exactly 48h is excluded from unpredictedUrgentGames (strict < threshold)
+    expect(result.tone).not.toBe('deadlineNow');
+    expect(result.tone).not.toBe('deadlineUrgent');
+    expect(result.tone).not.toBe('deadlineSoon');
+    expect(result.leadIcon).not.toBe('info'); // urgent-unpredicted uses 'info'
   });
 
   it('should ignore urgent games with complete guesses', () => {
