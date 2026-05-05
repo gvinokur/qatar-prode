@@ -12,6 +12,7 @@ import {
   findAllGamesWithPublishedResultsAndGameGuesses,
   findGamesAroundCurrentTime,
   findGamesInNext24Hours,
+  findGamesForDashboard,
 } from '../../app/db/game-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -593,6 +594,73 @@ describe('Game Repository', () => {
 
         await expect(deleteAllGamesFromTournament('tournament-1')).rejects.toThrow('Delete failed');
       });
+    });
+  });
+
+  describe('findGamesForDashboard', () => {
+    const ONE_HOUR = 60 * 60 * 1000;
+
+    it('uses game_date >= deadlineFloor (now + 1h) as lower bound', async () => {
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const before = Date.now();
+      await findGamesForDashboard('tournament-1');
+      const after = Date.now();
+
+      const deadlineFloorCalls = mockQuery.where.mock.calls.filter(
+        ([col, op]: string[]) => col === 'game_date' && op === '>='
+      );
+      expect(deadlineFloorCalls).toHaveLength(1);
+      const passedDate: Date = deadlineFloorCalls[0][2];
+      expect(passedDate.getTime()).toBeGreaterThanOrEqual(before + ONE_HOUR);
+      expect(passedDate.getTime()).toBeLessThanOrEqual(after + ONE_HOUR);
+    });
+
+    it('excludes games with game_date = now + 59min (deadline already passed)', async () => {
+      const lockedGame = testFactories.game({ game_date: new Date(Date.now() + 59 * 60 * 1000) });
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await findGamesForDashboard('tournament-1');
+
+      const deadlineFloorCalls = mockQuery.where.mock.calls.filter(
+        ([col, op]: string[]) => col === 'game_date' && op === '>='
+      );
+      const floor: Date = deadlineFloorCalls[0][2];
+      expect(lockedGame.game_date.getTime()).toBeLessThan(floor.getTime());
+    });
+
+    it('includes games with game_date = now + 61min (deadline 1min away)', async () => {
+      const openGame = testFactories.game({ game_date: new Date(Date.now() + 61 * 60 * 1000) });
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([openGame]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await findGamesForDashboard('tournament-1');
+
+      const deadlineFloorCalls = mockQuery.where.mock.calls.filter(
+        ([col, op]: string[]) => col === 'game_date' && op === '>='
+      );
+      const floor: Date = deadlineFloorCalls[0][2];
+      expect(openGame.game_date.getTime()).toBeGreaterThan(floor.getTime());
     });
   });
 

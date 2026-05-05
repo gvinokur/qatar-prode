@@ -66,6 +66,7 @@ const mockFindGroupsInTournament = vi.mocked(tournamentGroupRepository.findGroup
 const mockCalculatePlayoffTeamsFromPositions = vi.mocked(playoffTeamsCalculator.calculatePlayoffTeamsFromPositions);
 const mockFindPlayoffStagesWithGamesInTournament = vi.mocked(tournamentPlayoffRepository.findPlayoffStagesWithGamesInTournament);
 const mockFindGamesInTournament = vi.mocked(gameRepository.findGamesInTournament);
+const mockFindGameById = vi.mocked(gameRepository.findGameById);
 const mockGetAllUserGroupPositionsPredictions = vi.mocked(qualifiedTeamsRepository.getAllUserGroupPositionsPredictions);
 
 describe('Guesses Actions', () => {
@@ -139,6 +140,21 @@ describe('Guesses Actions', () => {
     mockCalculatePlayoffTeamsFromPositions.mockReturnValue(Promise.resolve({}));
     mockUpdateGameGuessByGameId.mockResolvedValue(mockGameGuessResult);
     mockGetAllUserGroupPositionsPredictions.mockResolvedValue([]);
+    // Default: game with open deadline so deadline validation doesn't block existing tests
+    mockFindGameById.mockResolvedValue({
+      id: 'game1',
+      game_date: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      tournament_id: 'tournament1',
+      game_number: 1,
+      home_team: 'team1',
+      away_team: 'team2',
+      location: 'Stadium 1',
+      home_team_rule: undefined,
+      away_team_rule: undefined,
+      game_type: 'group',
+      game_local_timezone: undefined,
+      matchday: null,
+    } as any);
   });
 
   describe('updateOrCreateGameGuesses', () => {

@@ -409,6 +409,38 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
     expect(mockSetActiveFilter).toHaveBeenCalledWith('all');
   });
 
+  it('should skip locked game (deadline passed) when ?edit=next and open the next valid unpredicted game', async () => {
+    mockSearchParams.set('edit', 'next');
+    const now = Date.now();
+    // deadline = game_date - 1h; locked game has game_date = now + 30min → deadline = now - 30min (passed)
+    const lockedGame = testFactories.game({ id: 'locked-game', game_date: new Date(now + 30 * 60 * 1000) });
+    // open game has game_date = now + 2h → deadline = now + 1h (open)
+    const openGame = testFactories.game({ id: 'open-game', game_date: new Date(now + 2 * 60 * 60 * 1000) });
+    const tournament = testFactories.tournament();
+    const team = testFactories.team();
+
+    render(
+      <UnifiedGamesPageClient
+        games={[lockedGame, openGame] as any}
+        gameCounts={{ total: 2, predicted: 0, remaining: 2 }}
+        teamsMap={{ [team.id]: team }}
+        tournamentId={tournament.id}
+        groups={[]}
+        rounds={[]}
+        tournament={tournament}
+        closingGames={[]}
+        tournamentPredictionCompletion={null}
+        tournamentStartDate={undefined}
+        qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+      />
+    );
+
+    await act(async () => { vi.runAllTimers(); });
+
+    expect(mockTriggerEdit).toHaveBeenCalledWith('open-game');
+    expect(mockTriggerEdit).not.toHaveBeenCalledWith('locked-game');
+  });
+
   it('should do nothing when no edit parameter', () => {
     // No edit parameter in URL
     mockSearchParams.clear();

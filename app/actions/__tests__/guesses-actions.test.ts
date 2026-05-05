@@ -17,6 +17,7 @@ vi.mock('next-intl/server', () => ({
 
 vi.mock('../../db/game-repository', () => ({
   findGamesInTournament: vi.fn(),
+  findGameById: vi.fn(),
 }));
 
 vi.mock('../../db/tournament-group-repository', () => ({
@@ -46,10 +47,15 @@ vi.mock('../../db/database', () => ({
 import { getLoggedInUser } from '../user-actions';
 import { updateOrCreateGuess } from '../../db/game-guess-repository';
 import { getTranslations } from 'next-intl/server';
+import { findGameById } from '../../db/game-repository';
+import { testFactories } from '@/__tests__/db/test-factories';
 
 describe('updateOrCreateGameGuesses', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: open-deadline game so existing success-path tests aren't affected
+    const openGame = testFactories.game({ game_date: new Date(Date.now() + 2 * 60 * 60 * 1000) });
+    vi.mocked(findGameById).mockResolvedValue(openGame as never);
   });
 
   it('success response includes analyticsEvent with name "prediction_submitted" and params { number_of_guesses, game_ids }', async () => {
@@ -102,6 +108,52 @@ describe('updateOrCreateGameGuesses', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
     expect(result.analyticsEvent).toBeUndefined();
+  });
+
+  it('returns predictionClosed error when game deadline has passed', async () => {
+    const mockUser = { id: 'user-1' };
+    const pastDeadlineGame = testFactories.game({ game_date: new Date(Date.now() - 30 * 60 * 1000) });
+    const mockGameGuesses: GameGuessNew[] = [{ game_id: 'game-1', home_score: 2, away_score: 1, user_id: 'user-1' }];
+
+    vi.mocked(getLoggedInUser).mockResolvedValue(mockUser as never);
+    vi.mocked(findGameById).mockResolvedValue(pastDeadlineGame as never);
+    vi.mocked(getTranslations).mockResolvedValue(((key: string) => key) as never);
+
+    const result = await updateOrCreateGameGuesses(mockGameGuesses);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('guess.predictionClosed');
+    expect(result.analyticsEvent).toBeUndefined();
+  });
+
+  it('returns predictionClosed error when game is not found', async () => {
+    const mockUser = { id: 'user-1' };
+    const mockGameGuesses: GameGuessNew[] = [{ game_id: 'nonexistent', home_score: 1, away_score: 0, user_id: 'user-1' }];
+
+    vi.mocked(getLoggedInUser).mockResolvedValue(mockUser as never);
+    vi.mocked(findGameById).mockResolvedValue(null as never);
+    vi.mocked(getTranslations).mockResolvedValue(((key: string) => key) as never);
+
+    const result = await updateOrCreateGameGuesses(mockGameGuesses);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('guess.predictionClosed');
+  });
+
+  it('succeeds when game deadline is still open', async () => {
+    const mockUser = { id: 'user-1' };
+    const openGame = testFactories.game({ game_date: new Date(Date.now() + 2 * 60 * 60 * 1000) });
+    const mockGameGuesses: GameGuessNew[] = [{ game_id: 'game-1', home_score: 2, away_score: 1, user_id: 'user-1' }];
+
+    vi.mocked(getLoggedInUser).mockResolvedValue(mockUser as never);
+    vi.mocked(findGameById).mockResolvedValue(openGame as never);
+    vi.mocked(updateOrCreateGuess).mockResolvedValue({} as never);
+    vi.mocked(getTranslations).mockResolvedValue(((key: string) => key) as never);
+
+    const result = await updateOrCreateGameGuesses(mockGameGuesses);
+
+    expect(result.success).toBe(true);
+    expect(result.analyticsEvent).toBeDefined();
   });
 
   it('analyticsEvent.params.number_of_guesses matches the number of guesses passed in', async () => {

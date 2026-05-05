@@ -5,6 +5,7 @@ import {jsonArrayFrom, jsonObjectFrom} from "kysely/helpers/postgres";
 import {sql} from "kysely";
 import {ExtendedGameData} from "../definitions";
 import {cache} from "react";
+import { ONE_HOUR } from "../utils/countdown-utils";
 
 const tableName = 'games'
 
@@ -407,8 +408,8 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
 
 /**
  * Find games for dashboard display
- * Returns games from last 24 hours (recent results) + next 48 hours (upcoming fixtures & accordion)
- * This unified function replaces both findGamesAroundCurrentTime and findGamesClosingWithin48Hours
+ * Returns only games whose prediction deadline hasn't passed (game_date >= now + 1h),
+ * up to 7 days in the future.
  *
  * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
  * ⚠️ DO NOT add locale parameter to this function
@@ -418,7 +419,7 @@ export const findGamesInNext24Hours = cache(async (tournamentId: string) => {
  */
 export const findGamesForDashboard = cache(async (tournamentId: string) => {
   const now = new Date();
-  const past24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const deadlineFloor = new Date(now.getTime() + ONE_HOUR);
   const future7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   return await db.selectFrom(tableName)
@@ -454,8 +455,8 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
       ).as('gameResult')
     ])
     .where('tournament_id', '=', tournamentId)
-    // Include games from last 24h (for recent results display)
-    .where('game_date', '>=', past24Hours)
+    // Only games whose prediction deadline hasn't closed (game starts > 1h from now)
+    .where('game_date', '>=', deadlineFloor)
     // Include games up to 7 days in future (covers inter-round gaps in knockout stage)
     .where('game_date', '<=', future7Days)
     .orderBy('game_date', 'asc')

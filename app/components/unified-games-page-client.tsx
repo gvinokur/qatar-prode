@@ -21,6 +21,7 @@ import { GuessesContext } from './context-providers/guesses-context-provider';
 import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 import { isGuessComplete } from '../utils/guess-utils';
 import { EDIT_NEXT_TOKEN } from '../utils/prediction-constants';
+import { calculateDeadline } from '../utils/countdown-utils';
 
 // Timing constants for edit parameter handling
 const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
@@ -99,7 +100,8 @@ function UnifiedGamesPageContent({
         const guesses = guessesContext.gameGuesses;
         const now = new Date();
         const unpredictedUpcoming = games.find(
-          g => g.game_date >= now && !isGuessComplete(guesses[g.id], !!g.playoffStage)
+          g => calculateDeadline(g.game_date) > now.getTime()
+            && !isGuessComplete(guesses[g.id], !!g.playoffStage)
         );
         if (unpredictedUpcoming) {
           targetGameId = unpredictedUpcoming.id;
