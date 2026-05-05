@@ -55,12 +55,7 @@ describe('UserTournamentStatistics', () => {
     playoff_boost_bonus: 3,
     total_correct_guesses: 15,
     total_exact_guesses: 5,
-  }
-
-  const mockTournamentGuess = {
-    id: 'guess-1',
-    user_id: 'user-1',
-    tournament_id: 'test-tournament',
+    // Extended tournament-level score fields
     qualified_teams_score: 5,
     group_position_score: 0,
     honor_roll_score: 3,
@@ -71,7 +66,6 @@ describe('UserTournamentStatistics', () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
       />
     )
@@ -83,7 +77,6 @@ describe('UserTournamentStatistics', () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
         isActive={true}
       />
@@ -96,7 +89,6 @@ describe('UserTournamentStatistics', () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
         isActive={false}
       />
@@ -109,7 +101,6 @@ describe('UserTournamentStatistics', () => {
     const { container } = renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
         isActive={true}
       />
@@ -126,17 +117,14 @@ describe('UserTournamentStatistics', () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
       />
     )
 
-    // Button has aria-label "Ver página de estadísticas detalladas"
     const button = screen.getByRole('link', { name: /Ver página de estadísticas detalladas/i })
     expect(button).toBeInTheDocument()
     expect(button).toHaveAttribute('href', '/es/tournaments/test-tournament/stats')
 
-    // Check icon is present (MUI renders icon as svg)
     const icon = button.querySelector('svg')
     expect(icon).toBeInTheDocument()
   })
@@ -145,33 +133,82 @@ describe('UserTournamentStatistics', () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
       />
     )
 
     expect(screen.queryByRole('link', { name: /Ver Detalle/i })).not.toBeInTheDocument()
   })
 
-  it('calculates correct total points', async () => {
+  it('calculates correct total points from extended userGameStatistics fields', async () => {
     renderWithIntl(
       <UserTournamentStatistics
         userGameStatistics={mockUserGameStatistics}
-        tournamentGuess={mockTournamentGuess}
         tournamentId="test-tournament"
       />
     )
 
-    // Groups: 10 (game) + 2 (boost) + 5 (qualified) + 0 (position) = 17
-    // Playoffs: 8 (game) + 3 (boost) + 3 (honor) + 2 (awards) = 16
+    // Groups: 10 + 2 boost = 12
+    // Playoffs: 8 + 3 boost = 11
+    // Qualified: 5 + 0 = 5
+    // Awards: 3 + 2 = 5
     // Total: 33 pts
-
-    // Expand to see stats
     const expandButton = screen.getByLabelText('mostrar más')
     fireEvent.click(expandButton)
 
-    // Wait for expansion animation and check total is displayed (it should be 33)
     await waitFor(() => {
       expect(screen.getByText(/33 pts/i)).toBeInTheDocument()
+    })
+  })
+
+  it('computes qualifiedTotal from userGameStatistics.qualified_teams_score and group_position_score', async () => {
+    const statsWithQualified = { ...mockUserGameStatistics, qualified_teams_score: 7, group_position_score: 3 }
+    renderWithIntl(
+      <UserTournamentStatistics
+        userGameStatistics={statsWithQualified}
+        tournamentId="test-tournament"
+      />
+    )
+
+    const expandButton = screen.getByLabelText('mostrar más')
+    fireEvent.click(expandButton)
+
+    await waitFor(() => {
+      // qualifiedTotal = 7 + 3 = 10
+      expect(screen.getByText(/10 pts/i)).toBeInTheDocument()
+    })
+  })
+
+  it('computes awardsTotal from userGameStatistics.honor_roll_score and individual_awards_score', async () => {
+    const statsWithAwards = { ...mockUserGameStatistics, honor_roll_score: 6, individual_awards_score: 4, qualified_teams_score: 0, group_position_score: 0 }
+    renderWithIntl(
+      <UserTournamentStatistics
+        userGameStatistics={statsWithAwards}
+        tournamentId="test-tournament"
+      />
+    )
+
+    const expandButton = screen.getByLabelText('mostrar más')
+    fireEvent.click(expandButton)
+
+    await waitFor(() => {
+      // awardsTotal = 6 + 4 = 10
+      expect(screen.getByText(/10 pts/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows grandTotal as 0 when userGameStatistics is undefined', async () => {
+    renderWithIntl(
+      <UserTournamentStatistics
+        tournamentId="test-tournament"
+      />
+    )
+
+    const expandButton = screen.getByLabelText('mostrar más')
+    fireEvent.click(expandButton)
+
+    await waitFor(() => {
+      const zeroPts = screen.getAllByText(/0 pts/i)
+      expect(zeroPts.length).toBe(5) // Groups, Playoffs, Qualified, Awards, Total
     })
   })
 

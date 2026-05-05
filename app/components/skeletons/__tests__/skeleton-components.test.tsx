@@ -11,6 +11,7 @@ import AuthPageSkeleton from '../auth-page-skeleton'
 import BackofficeTabsSkeleton from '../backoffice-tabs-skeleton'
 import TournamentFormSkeleton from '../tournament-form-skeleton'
 import TeamGridSkeleton from '../team-grid-skeleton'
+import TournamentSidebarSkeleton from '../tournament-sidebar-skeleton'
 
 // Helper to test skeleton accessibility attributes
 function expectSkeletonA11y(ariaLabel: string) {
@@ -215,6 +216,27 @@ describe('Skeleton Components', () => {
       // Header title + button + 8 team cards = 10 skeletons
       const skeletons = container.querySelectorAll('.MuiSkeleton-root')
       expect(skeletons.length).toBe(10)
+    })
+  })
+
+  describe('TournamentSidebarSkeleton', () => {
+    it('renders with aria role="status" and aria-busy="true"', () => {
+      renderWithTheme(<TournamentSidebarSkeleton />)
+      expectSkeletonA11y('Loading sidebar')
+    })
+
+    it('renders 4 skeleton card sections', () => {
+      const { container } = renderWithTheme(<TournamentSidebarSkeleton />)
+
+      const cards = container.querySelectorAll('.MuiCard-root')
+      expect(cards.length).toBe(4)
+    })
+
+    it('renders skeleton title bars inside each card', () => {
+      const { container } = renderWithTheme(<TournamentSidebarSkeleton />)
+
+      const skeletons = container.querySelectorAll('.MuiSkeleton-root')
+      expect(skeletons.length).toBeGreaterThan(0)
     })
   })
 })

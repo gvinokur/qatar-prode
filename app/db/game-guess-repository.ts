@@ -283,6 +283,10 @@ export async function getGameGuessStatisticsForUsers(
       'playoff_correct_guesses',
       'playoff_exact_guesses',
       'playoff_goal_difference_guesses',
+      'qualified_teams_score',
+      'group_position_score',
+      'honor_roll_score',
+      'individual_awards_score',
     ])
     .execute();
 

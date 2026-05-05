@@ -4,14 +4,12 @@ import {Card, CardContent, CardHeader, CardActions, Stack, Box, Typography, useT
 import {ExpandMore as ExpandMoreIcon, BarChart as BarChartIcon} from "@mui/icons-material";
 import {useState} from "react";
 import {GameStatisticForUser} from "../../../types/definitions";
-import {TournamentGuess} from "../../db/tables-definition";
 import Link from "next/link";
 import {ExpandMore} from './expand-more';
 import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   readonly userGameStatistics?: GameStatisticForUser
-  readonly tournamentGuess?: TournamentGuess
   readonly tournamentId?: string
   readonly isActive?: boolean
 }
@@ -41,7 +39,7 @@ function StatRow({ label, value, valueColor = 'text.primary', bold = true }: Rea
   )
 }
 
-export function UserTournamentStatistics({userGameStatistics, tournamentGuess, tournamentId, isActive = false} : Props) {
+export function UserTournamentStatistics({userGameStatistics, tournamentId, isActive = false} : Props) {
   const locale = useLocale();
   const t = useTranslations('stats');
   const theme = useTheme()
@@ -61,12 +59,12 @@ export function UserTournamentStatistics({userGameStatistics, tournamentGuess, t
     + (userGameStatistics?.playoff_boost_bonus || 0)
 
   // Qualified: qualified teams + group positions predictions
-  const qualifiedTotal = (tournamentGuess?.qualified_teams_score || 0)
-    + (tournamentGuess?.group_position_score || 0)
+  const qualifiedTotal = (userGameStatistics?.qualified_teams_score || 0)
+    + (userGameStatistics?.group_position_score || 0)
 
   // Awards: honor roll + individual awards predictions
-  const awardsTotal = (tournamentGuess?.honor_roll_score || 0)
-    + (tournamentGuess?.individual_awards_score || 0)
+  const awardsTotal = (userGameStatistics?.honor_roll_score || 0)
+    + (userGameStatistics?.individual_awards_score || 0)
 
   const grandTotal = groupsTotal + playoffsTotal + qualifiedTotal + awardsTotal
 

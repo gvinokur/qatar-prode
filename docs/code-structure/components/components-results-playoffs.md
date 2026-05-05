@@ -186,9 +186,16 @@ Server component fetching and passing game data to PublicGamesPageClient.
 ### app/components/tournament-page/tournament-sidebar.tsx
 Multi-section sidebar (Friend Groups, Group Standings, Stats, Rules) with navigation awareness.
 
-- **TournamentSidebar(props: TournamentSidebarProps)**: `JSX.Element` — [Client] Renders conditional sections based on props and highlights active section. Props: `tournamentId`, `scoringConfig?`, `userGameStatistics?`, `tournamentGuess?`, `groupStandings?`, `prodeGroups?`, `user?`, `groupRanks?: Record<string, number>`. Sections rendered in order: Friend Groups (first), Group Standings, Stats, Rules.
+- **TournamentSidebar(props: TournamentSidebarProps)**: `JSX.Element` — [Client] Renders conditional sections based on props and highlights active section. Props: `tournamentId`, `scoringConfig?`, `userGameStatistics?`, `groupStandings?`, `prodeGroups?`, `user?`, `groupRanks?: Record<string, number>`. Sections rendered in order: Friend Groups (first), Group Standings, Stats, Rules.
   Uses: usePathname
   Renders: FriendGroupsList, GroupStandingsSidebar, UserTournamentStatistics, Rules
+
+### app/components/tournament-page/tournament-sidebar-server.tsx
+Async Server Component that fetches all sidebar data and passes it to TournamentSidebar.
+
+- **TournamentSidebarServer({ tournamentId, user, tournament })**: `Promise<JSX.Element>` — [Server] Fetches sidebar data with conditional user-specific fetches. Always fetches `getGroupStandingsForTournament`. When `user` is defined: fetches `getGroupsForUser` and `getGameGuessStatisticsForUsers` in parallel, then fetches `getGroupRankingForUser` in parallel for each group (userGroups + participantGroups). Passes all data to `TournamentSidebar`.
+  Calls: extractScoringConfig, getGroupStandingsForTournament, getGroupsForUser, getGameGuessStatisticsForUsers, getGroupRankingForUser
+  Renders: TournamentSidebar
 
 ### app/components/tournament-page/empty-groups-state.tsx
 Deprecated empty state component for groups (replaced by FriendGroupsLandingEmptyState).

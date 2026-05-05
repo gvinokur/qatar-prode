@@ -53,6 +53,12 @@ Pure utility functions for evaluating game guess completeness — shared between
 - **countCompleteGuesses(guessMap: Record<string, GameGuessNew>, games: ExtendedGameData[])**: `number` — Counts games whose guess in `guessMap` satisfies `isGuessComplete`. Derives `isPlayoff` from `game.playoffStage`.
   Calls: isGuessComplete
 
+### app/utils/tournament-utils.ts
+Pure helpers for tournament data transformation that can be shared across Server Components and Server Actions.
+
+- **extractScoringConfig(tournament: any)**: `ScoringConfig | undefined` — Returns a `ScoringConfig` from a tournament record, applying defaults (`??`) for any null fields. Returns `undefined` when `tournament` is null or undefined. Default values match `DEFAULT_SCORING`: exact=3, goal_diff=2, outcome=1, champion=5, runner_up=3, third=1, awards=3, qt=1, exact_qt=2, silver=0, golden=0.
+  Calls: *(none — pure function)*
+
 ### app/utils/scoring-config.ts
 Shared scoring configuration types and defaults — kept in a neutral (non-client, non-server) file so it can be imported from Server Components/Actions and Client Components alike.
 

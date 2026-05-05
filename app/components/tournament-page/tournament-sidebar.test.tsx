@@ -64,13 +64,10 @@ describe('TournamentSidebar', () => {
       playoff_score: 5,
       total_correct_guesses: 8,
       total_exact_guesses: 3,
-    },
-    tournamentGuess: {
-      id: 'guess-1',
-      user_id: 'user-1',
-      tournament_id: 'test-tournament-id',
       qualified_teams_score: 5,
+      group_position_score: 0,
       honor_roll_score: 3,
+      individual_awards_score: 2,
     },
     groupStandings: {
       groups: [
