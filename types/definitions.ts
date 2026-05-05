@@ -15,4 +15,8 @@ export type GameStatisticForUser = {
   playoff_goal_difference_guesses: number,
   playoff_score: number | null,
   playoff_boost_bonus: number | null,
+  qualified_teams_score?: number | null,
+  group_position_score?: number | null,
+  honor_roll_score?: number | null,
+  individual_awards_score?: number | null,
 }

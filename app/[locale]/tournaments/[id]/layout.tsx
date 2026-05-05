@@ -3,11 +3,9 @@
 import type { Metadata } from 'next'
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
-import {getTournamentById, getTournamentStartDate, getGroupStandingsForTournament, getTournaments} from "../../../actions/tournament-actions";
+import {getTournamentById, getTournamentStartDate, getTournaments} from "../../../actions/tournament-actions";
 import TournamentSwitcher from "../../../components/tournament/tournament-switcher";
 import NewTournamentSnackbar from "../../../components/tournament/new-tournament-snackbar";
-import {getGroupsForUser} from "../../../actions/prode-group-actions";
-import {findTournamentGuessByUserIdTournament} from "../../../db/tournament-guess-repository";
 import {getLoggedInUser} from "../../../actions/user-actions";
 import {findUserById} from "../../../db/users-repository";
 import VerificationBanner from "../../../components/verification/verification-banner";
@@ -18,7 +16,6 @@ import {Typography, Avatar} from "@mui/material";
 import ScrollableContentArea from '../../../components/tournament-page/scrollable-content-area';
 import {getThemeLogoUrl} from "../../../utils/theme-utils";
 import { isDevelopmentMode } from '../../../utils/environment-utils';
-import { getGroupRankingForUser } from '../../../actions/group-ranking-actions';
 import { hasUserPermission } from '../../../db/tournament-view-permission-repository';
 import { redirect, notFound } from 'next/navigation';
 import { DevTournamentBadge } from '../../../components/common/dev-tournament-badge';
@@ -26,10 +23,10 @@ import TournamentBottomNavWrapper from '../../../components/tournament-bottom-na
 import ThemeSwitcher from '../../../components/header/theme-switcher';
 import LanguageSwitcher from '../../../components/header/language-switcher';
 import UserActions from '../../../components/header/user-actions';
-import TournamentSidebar from '../../../components/tournament-page/tournament-sidebar';
-import { getGameGuessStatisticsForUsers } from '../../../db/game-guess-repository';
-import type { ScoringConfig } from '../../../components/tournament-page/rules';
 import { getLocale, getTranslations } from 'next-intl/server'
+import { Suspense } from 'react'
+import TournamentSidebarServer from '../../../components/tournament-page/tournament-sidebar-server'
+import TournamentSidebarSkeleton from '../../../components/skeletons/tournament-sidebar-skeleton'
 import { buildTournamentMetadata } from '../../../utils/metadata-utils'
 import JsonLd from '../../../components/shared/json-ld'
 import { buildSportsEventJsonLd } from '../../../utils/json-ld-utils';
@@ -60,25 +57,6 @@ async function checkDevTournamentPermission(
   const hasPermission = await hasUserPermission(tournamentId, user.id)
   if (!hasPermission) {
     notFound()
-  }
-}
-
-// Helper: Extract scoring config from tournament
-function extractScoringConfig(tournament: any): ScoringConfig | undefined {
-  if (!tournament) return undefined
-
-  return {
-    game_exact_score_points: tournament.game_exact_score_points ?? 3,
-    game_correct_goal_difference_points: tournament.game_correct_goal_difference_points ?? 2,
-    game_correct_outcome_points: tournament.game_correct_outcome_points ?? 1,
-    champion_points: tournament.champion_points ?? 5,
-    runner_up_points: tournament.runner_up_points ?? 3,
-    third_place_points: tournament.third_place_points ?? 1,
-    individual_award_points: tournament.individual_award_points ?? 3,
-    qualified_team_points: tournament.qualified_team_points ?? 1,
-    exact_position_qualified_points: tournament.exact_position_qualified_points ?? 2,
-    max_silver_games: tournament.max_silver_games ?? 0,
-    max_golden_games: tournament.max_golden_games ?? 0,
   }
 }
 
@@ -118,30 +96,7 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
   // Check dev tournament permissions
   await checkDevTournamentPermission(params.id, tournament, user, locale)
 
-  const tournamentGuesses = user && (await findTournamentGuessByUserIdTournament(user.id, params.id))
   const tournamentStartDate = await getTournamentStartDate(params.id)
-  // Fetch sidebar data
-  const prodeGroups = user ? await getGroupsForUser() : undefined
-  const groupStandings = await getGroupStandingsForTournament(params.id)
-  const userGameStatistics = user ? await getGameGuessStatisticsForUsers([user.id], params.id) : []
-
-  // Fetch rank for each group the user belongs to (parallel)
-  let groupRanks: Record<string, number> = {}
-  if (user && prodeGroups) {
-    const allGroups = [...prodeGroups.userGroups, ...prodeGroups.participantGroups]
-    const rankResults = await Promise.all(
-      allGroups.map((g) => getGroupRankingForUser(user.id, g.id, params.id))
-    )
-    allGroups.forEach((g, i) => {
-      const result = rankResults[i]
-      if (result !== null) {
-        groupRanks[g.id] = result.currentRank
-      }
-    })
-  }
-
-  // Extract scoring config
-  const scoringConfig = extractScoringConfig(tournament)
 
   const logoUrl = getThemeLogoUrl(tournament?.theme)
 
@@ -320,17 +275,14 @@ export default async function TournamentLayout(props: TournamentLayoutProps) {
                 </ScrollableContentArea>
               </Grid>
 
-              {/* Sidebar - 4/12 on desktop, hidden on mobile */}
-              <TournamentSidebar
-                tournamentId={params.id}
-                scoringConfig={scoringConfig}
-                userGameStatistics={userGameStatistics?.[0]}
-                tournamentGuess={tournamentGuesses || undefined}
-                groupStandings={groupStandings}
-                prodeGroups={prodeGroups}
-                user={user ?? undefined}
-                groupRanks={groupRanks}
-              />
+              {/* Sidebar - streams in while header renders immediately */}
+              <Suspense fallback={<TournamentSidebarSkeleton />}>
+                <TournamentSidebarServer
+                  tournamentId={params.id}
+                  user={user ?? undefined}
+                  tournament={tournament}
+                />
+              </Suspense>
             </Grid>
           </Box>
         </Box>

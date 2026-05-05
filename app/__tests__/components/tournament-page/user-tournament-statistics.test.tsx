@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { renderWithTheme } from '@/__tests__/utils/test-utils'
 import { UserTournamentStatistics } from '@/app/components/tournament-page/user-tournament-statistics'
 import { GameStatisticForUser } from '@/types/definitions'
-import { testFactories } from '@/__tests__/db/test-factories'
 
 // Helper to create mock GameStatisticForUser
 function createMockGameStatistic(overrides?: Partial<GameStatisticForUser>): GameStatisticForUser {
@@ -22,6 +21,10 @@ function createMockGameStatistic(overrides?: Partial<GameStatisticForUser>): Gam
     playoff_exact_guesses: 0,
     playoff_score: null,
     playoff_boost_bonus: null,
+    qualified_teams_score: null,
+    group_position_score: null,
+    honor_roll_score: null,
+    individual_awards_score: null,
     ...overrides
   }
 }
@@ -71,17 +74,14 @@ describe('UserTournamentStatistics', () => {
     it('shows all stat labels when expanded', async () => {
       const userGameStatistics = createMockGameStatistic({
         group_score: 30,
-        playoff_score: 20
-      })
-      const tournamentGuess = testFactories.tournamentGuess({
+        playoff_score: 20,
         qualified_teams_score: 10,
-        individual_awards_score: 5
+        individual_awards_score: 5,
       })
 
       renderWithTheme(
         <UserTournamentStatistics
           userGameStatistics={userGameStatistics}
-          tournamentGuess={tournamentGuess}
           tournamentId="test-tournament"
         />
       )
@@ -114,15 +114,9 @@ describe('UserTournamentStatistics', () => {
         group_score: 30,
         group_boost_bonus: 10
       })
-      const tournamentGuess = testFactories.tournamentGuess({
-        qualified_teams_score: 5,
-        group_position_score: 3
-      })
-
       const { container } = renderWithTheme(
         <UserTournamentStatistics
           userGameStatistics={userGameStatistics}
-          tournamentGuess={tournamentGuess}
         />
       )
 
@@ -155,13 +149,13 @@ describe('UserTournamentStatistics', () => {
     })
 
     it('calculates qualified total correctly', async () => {
-      const tournamentGuess = testFactories.tournamentGuess({
+      const userGameStatistics = createMockGameStatistic({
         qualified_teams_score: 12,
-        group_position_score: 8
+        group_position_score: 8,
       })
 
       const { container } = renderWithTheme(
-        <UserTournamentStatistics tournamentGuess={tournamentGuess} />
+        <UserTournamentStatistics userGameStatistics={userGameStatistics} />
       )
 
       await expandCard()
@@ -174,13 +168,13 @@ describe('UserTournamentStatistics', () => {
     })
 
     it('calculates awards total correctly', async () => {
-      const tournamentGuess = testFactories.tournamentGuess({
+      const userGameStatistics = createMockGameStatistic({
         honor_roll_score: 15,
-        individual_awards_score: 10
+        individual_awards_score: 10,
       })
 
       const { container } = renderWithTheme(
-        <UserTournamentStatistics tournamentGuess={tournamentGuess} />
+        <UserTournamentStatistics userGameStatistics={userGameStatistics} />
       )
 
       await expandCard()
@@ -197,20 +191,15 @@ describe('UserTournamentStatistics', () => {
         group_score: 30,
         group_boost_bonus: 10,
         playoff_score: 25,
-        playoff_boost_bonus: 5
-      })
-      const tournamentGuess = testFactories.tournamentGuess({
+        playoff_boost_bonus: 5,
         qualified_teams_score: 12,
         group_position_score: 8,
         honor_roll_score: 15,
-        individual_awards_score: 10
+        individual_awards_score: 10,
       })
 
       renderWithTheme(
-        <UserTournamentStatistics
-          userGameStatistics={userGameStatistics}
-          tournamentGuess={tournamentGuess}
-        />
+        <UserTournamentStatistics userGameStatistics={userGameStatistics} />
       )
 
       await expandCard()
@@ -225,20 +214,11 @@ describe('UserTournamentStatistics', () => {
         group_score: null,
         group_boost_bonus: null,
         playoff_score: null,
-        playoff_boost_bonus: null
-      })
-      const tournamentGuess = testFactories.tournamentGuess({
-        qualified_teams_score: undefined,
-        group_position_score: undefined,
-        honor_roll_score: undefined,
-        individual_awards_score: undefined
+        playoff_boost_bonus: null,
       })
 
       renderWithTheme(
-        <UserTournamentStatistics
-          userGameStatistics={userGameStatistics}
-          tournamentGuess={tournamentGuess}
-        />
+        <UserTournamentStatistics userGameStatistics={userGameStatistics} />
       )
 
       await expandCard()
@@ -315,19 +295,16 @@ describe('UserTournamentStatistics', () => {
         group_score: 45,
         group_boost_bonus: 15,
         playoff_score: 32,
-        playoff_boost_bonus: 8
-      })
-      const tournamentGuess = testFactories.tournamentGuess({
+        playoff_boost_bonus: 8,
         qualified_teams_score: 20,
         group_position_score: 12,
         honor_roll_score: 25,
-        individual_awards_score: 18
+        individual_awards_score: 18,
       })
 
       renderWithTheme(
         <UserTournamentStatistics
           userGameStatistics={userGameStatistics}
-          tournamentGuess={tournamentGuess}
           tournamentId="world-cup-2026"
         />
       )

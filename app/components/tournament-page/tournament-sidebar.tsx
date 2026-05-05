@@ -9,14 +9,12 @@ import { UserTournamentStatistics } from './user-tournament-statistics'
 import GroupStandingsSidebar from './group-standings-sidebar'
 import FriendGroupsList from './friend-groups-list'
 import type { GameStatisticForUser } from '@/types/definitions'
-import type { TournamentGuess } from '@/app/db/tables-definition'
 import type { User } from 'next-auth'
 
 interface TournamentSidebarProps {
   readonly tournamentId: string
   readonly scoringConfig?: ScoringConfig
   readonly userGameStatistics?: GameStatisticForUser
-  readonly tournamentGuess?: TournamentGuess
   readonly groupStandings?: {
     groups: any[]
     defaultGroupId: string
@@ -49,7 +47,6 @@ export default function TournamentSidebar({
   tournamentId,
   scoringConfig,
   userGameStatistics,
-  tournamentGuess,
   groupStandings,
   prodeGroups,
   user,
@@ -113,7 +110,6 @@ export default function TournamentSidebar({
           {user && (
             <UserTournamentStatistics
               userGameStatistics={userGameStatistics}
-              tournamentGuess={tournamentGuess}
               tournamentId={tournamentId}
               isActive={currentSection === 'stats'}
             />

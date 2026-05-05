@@ -4,7 +4,6 @@ import TournamentLayout from '../layout';
 import { getTournamentById, getTournamentStartDate, getGroupStandingsForTournament, getTournaments } from '@/app/actions/tournament-actions';
 import { getGroupsForUser } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
-import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
 import { getPlayersInTournament } from '@/app/db/player-repository';
 import { hasUserPermission } from '@/app/db/tournament-view-permission-repository';
 import { getGameGuessStatisticsForUsers } from '@/app/db/game-guess-repository';
@@ -30,10 +29,6 @@ vi.mock('@/app/actions/group-ranking-actions', () => ({
 
 vi.mock('@/app/actions/user-actions', () => ({
   getLoggedInUser: vi.fn()
-}));
-
-vi.mock('@/app/db/tournament-guess-repository', () => ({
-  findTournamentGuessByUserIdTournament: vi.fn()
 }));
 
 vi.mock('@/app/db/player-repository', () => ({
@@ -99,24 +94,12 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     }
   };
 
-  const mockTournamentGuesses = {
-    user_id: 'user-1',
-    tournament_id: 'tournament-1',
-    champion_team_id: 'team-1',
-    runner_up_team_id: 'team-2',
-    best_player_id: 'player-1',
-    best_young_player_id: 'player-2',
-    best_goalkeeper_player_id: 'player-3',
-    top_goalscorer_player_id: 'player-4'
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     (getLoggedInUser as any).mockResolvedValue(mockUser);
     (getTournamentById as any).mockResolvedValue(mockTournament);
     (getTournamentStartDate as any).mockResolvedValue(new Date('2024-12-01'));
     (getTournaments as any).mockResolvedValue([mockTournament]);
-    (findTournamentGuessByUserIdTournament as any).mockResolvedValue(mockTournamentGuesses);
     (getPlayersInTournament as any).mockResolvedValue(5);
     (hasUserPermission as any).mockResolvedValue(true);
     (getGroupsForUser as any).mockResolvedValue({ userGroups: [], participantGroups: [] });
@@ -233,26 +216,6 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     await TournamentLayout({ params, children });
 
     expect(notFound).toHaveBeenCalled();
-  });
-
-  it('fetches user tournament guesses when user is logged in', async () => {
-    const params = Promise.resolve({ id: 'tournament-1' });
-    const children = <div>Content</div>;
-
-    await TournamentLayout({ params, children });
-
-    expect(findTournamentGuessByUserIdTournament).toHaveBeenCalledWith('user-1', 'tournament-1');
-  });
-
-  it('does not fetch tournament guesses when user is not logged in', async () => {
-    (getLoggedInUser as any).mockResolvedValue(null);
-
-    const params = Promise.resolve({ id: 'tournament-1' });
-    const children = <div>Content</div>;
-
-    await TournamentLayout({ params, children });
-
-    expect(findTournamentGuessByUserIdTournament).not.toHaveBeenCalled();
   });
 
   it('renders with tournament data correctly', async () => {
