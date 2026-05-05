@@ -333,6 +333,18 @@ Background uses `alpha(theme.palette.primary.main, 0.04)` to match real sidebar.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Layout uses `getTournamentById` instead of `getTournamentAndGroupsData`
+**Date:** 2026-05-05
+**Reason:** During rebase onto main, story #410 had already replaced `getTournamentAndGroupsData` with `getTournamentById` in the layout. Conflict resolution adopted main's approach.
+**Change:** `layout.tsx` calls `getTournamentById(params.id)` directly, storing the result in `tournament` (not `layoutData.tournament`). JSON-LD uses `tournament?.locations` and `tournament.long_name`. `TournamentSidebarServer` receives `tournament` directly (not `layoutData.tournament`). The plan's references to `getTournamentAndGroupsData` and `layoutData.tournament` do not apply.
+
+### Amendment 2: `TournamentSidebarSkeleton` requires `'use client'`
+**Date:** 2026-05-05
+**Reason:** The `SidebarCardSkeleton` inner component uses an sx callback `backgroundColor: (theme) => alpha(...)` which is a function reference. React RSC cannot serialize function references when a Server Component (layout) uses the skeleton as a Suspense fallback. Logged-out users triggered the RSC error on navigation.
+**Change:** Added `'use client'` directive to `app/components/skeletons/tournament-sidebar-skeleton.tsx`.
+
 ## Notes
 
 - `'use server'` directive on `layout.tsx` remains correct — Suspense is valid in Server Components

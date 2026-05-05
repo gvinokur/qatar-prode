@@ -143,6 +143,10 @@ Skeleton loader for tournament form with title and 6 input field placeholders in
 Skeleton loader for tournament group card (group name, stat sections, button).
 - `TournamentGroupCardSkeleton` - [Client] - Renders: Skeleton components in stacked layout
 
+**app/components/skeletons/tournament-sidebar-skeleton.tsx**
+Skeleton placeholder for the tournament sidebar used as Suspense fallback while TournamentSidebarServer resolves.
+- `TournamentSidebarSkeleton` - [Client] - Renders 4 stacked skeleton cards (friend groups, standings, stats, rules). Grid slot matches real sidebar (size `{ xs: 12, md: 3 }`, hidden on mobile). Uses `getSkeletonA11yProps('Loading sidebar')`.
+
 **app/components/mui-wrappers/index.ts**
 Barrel export of MUI components (Grid, Box, AppBar, Toolbar, Paper, Typography, IconButton, Button, Chip, Alert, AlertTitle, Snackbar).
 
