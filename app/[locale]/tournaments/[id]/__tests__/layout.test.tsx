@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import TournamentLayout from '../layout';
-import { getTournamentAndGroupsData, getTournamentStartDate, getGroupStandingsForTournament, getTournaments } from '@/app/actions/tournament-actions';
+import { getTournamentById, getTournamentStartDate, getGroupStandingsForTournament, getTournaments } from '@/app/actions/tournament-actions';
 import { getGroupsForUser } from '@/app/actions/prode-group-actions';
 import { getLoggedInUser } from '@/app/actions/user-actions';
 import { findTournamentGuessByUserIdTournament } from '@/app/db/tournament-guess-repository';
@@ -14,7 +14,7 @@ import { findUserById } from '@/app/db/users-repository';
 
 // Mock server actions
 vi.mock('@/app/actions/tournament-actions', () => ({
-  getTournamentAndGroupsData: vi.fn(),
+  getTournamentById: vi.fn(),
   getTournamentStartDate: vi.fn(),
   getGroupStandingsForTournament: vi.fn(),
   getTournaments: vi.fn()
@@ -88,21 +88,15 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     name: 'Test User'
   };
 
-  const mockTournamentData = {
-    tournament: {
-      id: 'tournament-1',
-      short_name: 'Qatar 2022',
-      long_name: 'FIFA World Cup Qatar 2022',
-      dev_only: false,
-      theme: {
-        primary_color: '#8B1538',
-        secondary_color: '#FFFFFF'
-      }
-    },
-    allGroups: [
-      { id: 'group-a', group_letter: 'A', tournament_id: 'tournament-1' },
-      { id: 'group-b', group_letter: 'B', tournament_id: 'tournament-1' }
-    ]
+  const mockTournament = {
+    id: 'tournament-1',
+    short_name: 'Qatar 2022',
+    long_name: 'FIFA World Cup Qatar 2022',
+    dev_only: false,
+    theme: {
+      primary_color: '#8B1538',
+      secondary_color: '#FFFFFF'
+    }
   };
 
   const mockTournamentGuesses = {
@@ -119,9 +113,9 @@ describe('TournamentLayout - Mobile Header Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getLoggedInUser as any).mockResolvedValue(mockUser);
-    (getTournamentAndGroupsData as any).mockResolvedValue(mockTournamentData);
+    (getTournamentById as any).mockResolvedValue(mockTournament);
     (getTournamentStartDate as any).mockResolvedValue(new Date('2024-12-01'));
-    (getTournaments as any).mockResolvedValue([mockTournamentData.tournament]);
+    (getTournaments as any).mockResolvedValue([mockTournament]);
     (findTournamentGuessByUserIdTournament as any).mockResolvedValue(mockTournamentGuesses);
     (getPlayersInTournament as any).mockResolvedValue(5);
     (hasUserPermission as any).mockResolvedValue(true);
@@ -194,19 +188,16 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     // GroupSelector should be present (it would show group navigation)
     // We can't test the actual component since it's a separate component,
     // but we verified it's in the layout structure
-    expect(getTournamentAndGroupsData).toHaveBeenCalledWith('tournament-1');
+    expect(getTournamentById).toHaveBeenCalledWith('tournament-1');
   });
 
   it('redirects to login for dev tournament without user in production', async () => {
     const devTournamentData = {
-      ...mockTournamentData,
-      tournament: {
-        ...mockTournamentData.tournament,
-        dev_only: true
-      }
+      ...mockTournament,
+      dev_only: true
     };
 
-    (getTournamentAndGroupsData as any).mockResolvedValue(devTournamentData);
+    (getTournamentById as any).mockResolvedValue(devTournamentData);
     (getLoggedInUser as any).mockResolvedValue(null);
 
     // Mock redirect to throw to stop execution (simulating real redirect behavior)
@@ -229,14 +220,11 @@ describe('TournamentLayout - Mobile Header Integration', () => {
 
   it('shows notFound for dev tournament without permission', async () => {
     const devTournamentData = {
-      ...mockTournamentData,
-      tournament: {
-        ...mockTournamentData.tournament,
-        dev_only: true
-      }
+      ...mockTournament,
+      dev_only: true
     };
 
-    (getTournamentAndGroupsData as any).mockResolvedValue(devTournamentData);
+    (getTournamentById as any).mockResolvedValue(devTournamentData);
     (hasUserPermission as any).mockResolvedValue(false);
 
     const params = Promise.resolve({ id: 'tournament-1' });
@@ -275,7 +263,7 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     renderWithTheme(result as React.ReactElement);
 
     // Verify tournament data was fetched correctly
-    expect(getTournamentAndGroupsData).toHaveBeenCalledWith('tournament-1');
+    expect(getTournamentById).toHaveBeenCalledWith('tournament-1');
     expect(getTournamentStartDate).toHaveBeenCalledWith('tournament-1');
   });
 
@@ -355,14 +343,11 @@ describe('TournamentLayout - Mobile Header Integration', () => {
 
   it('shows dev tournament badge when tournament is dev_only', async () => {
     const devTournamentData = {
-      ...mockTournamentData,
-      tournament: {
-        ...mockTournamentData.tournament,
-        dev_only: true
-      }
+      ...mockTournament,
+      dev_only: true
     };
 
-    (getTournamentAndGroupsData as any).mockResolvedValue(devTournamentData);
+    (getTournamentById as any).mockResolvedValue(devTournamentData);
     (hasUserPermission as any).mockResolvedValue(true);
 
     const params = Promise.resolve({ id: 'tournament-1' });
@@ -376,27 +361,18 @@ describe('TournamentLayout - Mobile Header Integration', () => {
     expect(devBadge).toBeInTheDocument();
   });
 
-  it('does not call findTournamentById directly (data comes from layoutData)', async () => {
+  it('fetches tournament via getTournamentById (not getTournamentAndGroupsData)', async () => {
     const params = Promise.resolve({ id: 'tournament-1' });
     const children = <div>Content</div>;
 
     await TournamentLayout({ params, children });
 
-    // getTournamentAndGroupsData internally calls findTournamentById — the layout
-    // must NOT call it again directly (redundant call removed)
-    expect(getTournamentAndGroupsData).toHaveBeenCalledWith('tournament-1');
-    // findTournamentById is no longer imported or called from the layout
+    expect(getTournamentById).toHaveBeenCalledWith('tournament-1');
   });
 
   it('renders correctly when tournament locations is null', async () => {
-    const tournamentWithoutLocations = {
-      ...mockTournamentData,
-      tournament: {
-        ...mockTournamentData.tournament,
-        locations: null
-      }
-    };
-    (getTournamentAndGroupsData as any).mockResolvedValue(tournamentWithoutLocations);
+    const tournamentWithoutLocations = { ...mockTournament, locations: null };
+    (getTournamentById as any).mockResolvedValue(tournamentWithoutLocations);
 
     const params = Promise.resolve({ id: 'tournament-1' });
     const children = <div data-testid="child-content">Content</div>;

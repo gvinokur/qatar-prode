@@ -308,8 +308,6 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
   Calls: findTournamentgroupById, findGroupsInTournament, getTeamsMap, findGamesInGroup, findTeamsInGroup, applyLocalizationBatch, toMap
 - **getCompletePlayoffData(tournamentId, includeDraftResults)**: `Promise<CompletePlayoffData>` — Gets playoff stages with games and team assignments. Sorts localized games using game_date and game_number to determine start date.
   Calls: findPlayoffStagesWithGamesInTournament, getTeamsMap, findGamesInTournament, applyLocalizationBatch, toMap
-- **getTournamentAndGroupsData(tournamentId)**: `Promise<{ tournament: Tournament; groups: TournamentGroup[] }>` — Gets tournament and all groups.
-  Calls: findTournamentById, findGroupsInTournament, applyLocalization
 - **getTournamentStartDate(tournamentId)**: `Promise<Date>` — Gets tournament's first game date.
   Calls: findFirstGameInTournament
 - **deactivateTournament(tournamentId, locale)**: `Promise<Tournament>` — Deactivates tournament (admin).

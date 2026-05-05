@@ -216,7 +216,7 @@ Dropdown menu to switch between tournaments while preserving current page path.
 
 **File:** `app/components/groups-page/group-selector.tsx`
 Tab navigation for tournament pages: Hub, Matches, Qualified Teams, Individual Awards. Hub tab always rendered with Dashboard icon, linking to tournament root. Matches tab links to `/games`. Qualified Teams and Awards tabs are disabled for non-authenticated users; Hub tab is always enabled.
-- **GroupSelector** (FC) - `[Client]` - Calls: none - Uses: `useLocale, useTranslations, usePathname, useTheme, useMediaQuery` - Renders: `Tabs, Tab, Link, DashboardIcon, SportsSoccerIcon, AccountTreeIcon, EmojiEventsIcon`. On mobile (`sm` breakpoint): `variant="standard"` + `centered`, unselected tabs render icon-only (`label={undefined}`), icon-only tabs get `iconOnlySx`; on desktop: `variant="fullWidth"`. Hub tab always enabled; Qualified Teams and Awards disabled when `!user`.
+- **GroupSelector({ tournamentId, backgroundColor, textColor, user })** (FC) - `[Client]` - Calls: none - Uses: `useLocale, useTranslations, usePathname, useTheme, useMediaQuery` - Renders: `Tabs, Tab, Link, DashboardIcon, SportsSoccerIcon, AccountTreeIcon, EmojiEventsIcon`. On mobile (`sm` breakpoint): `variant="standard"` + `centered`, unselected tabs render icon-only (`label={undefined}`), icon-only tabs get `iconOnlySx`; on desktop: `variant="fullWidth"`. Hub tab always enabled; Qualified Teams and Awards disabled when `!user`.
 - **getTabSx** (fn) - Helper for tab styling
 - **getSelectedTab(pathname, tournamentId)** (fn) - Helper to determine active tab: `/games` → `'matches'`; root path → `'hub'`; `/qualified-teams` → `'qualified-teams'`; `/awards` → `'individual_awards'`
 

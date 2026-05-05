@@ -11,7 +11,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { User } from 'next-auth';
 
 type Props = {
-  readonly groups: { group_letter: string, id: string }[];
   readonly tournamentId: string;
   readonly backgroundColor?: string;
   readonly textColor?: string;
@@ -51,7 +50,7 @@ const getSelectedTab = (pathname: string, tournamentId: string): string => {
 /** sx applied to icon-only (unselected mobile) tabs to collapse them to icon width */
 const iconOnlySx = { minWidth: 48, padding: '6px 0' } as const;
 
-const GroupSelector = ({ groups: _groups, tournamentId, backgroundColor, textColor, user }: Props) => {
+const GroupSelector = ({ tournamentId, backgroundColor, textColor, user }: Props) => {
   const locale = useLocale();
   const t = useTranslations('navigation.topNav');
   const pathname = usePathname();
