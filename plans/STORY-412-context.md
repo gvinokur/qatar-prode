@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Predictions hub: consolidate prediction completion progress queries for faster action center loading
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/sharp-fermi-5e3036
 - **Branch:** claude/sharp-fermi-5e3036
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 425
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/425
 
 ## State
 - **Current Phase:** planning
