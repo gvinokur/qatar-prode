@@ -88,4 +88,12 @@ No call graph changes. One DB call is removed; no new calls or flows are introdu
 
 ## Implementation Amendments
 
-*(Added during implementation when deviations from plan are discovered)*
+### Amendment 1: Replace `getTournamentAndGroupsData` with `getTournamentById`
+**Date:** 2026-05-05
+**Reason:** Discovered during implementation that `getTournamentAndGroupsData` fetched both a tournament and `allGroups`, but `allGroups` was passed to `GroupSelector` as a dead prop — the component never read it. Since we were already simplifying the layout's data fetching, replacing the compound function with the simpler `getTournamentById` (which already existed: `findTournamentById` + `applyLocalization`) was the right call rather than keeping a function with a dead output. The original plan described using `layoutData.tournament` as an intermediate, but the cleaner solution was to remove `getTournamentAndGroupsData` entirely.
+**Change:** Replaced `getTournamentAndGroupsData` import and call with `getTournamentById` in `layout.tsx`. Deleted `getTournamentAndGroupsData` from `tournament-actions.ts` (it had no other callers). Updated all tests in `layout.test.tsx` and `layout-metadata.test.tsx` to mock `getTournamentById` instead.
+
+### Amendment 2: Remove dead `groups` prop from `GroupSelector`
+**Date:** 2026-05-05
+**Reason:** `GroupSelector` accepted a `groups` prop in its `Props` type and function signature, but the component body never referenced it. It was populated by the layout calling `layoutData.allGroups.toSorted(...)` — wasted work on every page load. With `getTournamentAndGroupsData` removed, the prop had no source anyway.
+**Change:** Removed `groups` from `GroupSelector` `Props` type, from the function signature, and from the JSX call site in `layout.tsx`. Updated `group-selector-i18n.test.tsx` to remove `groups` from `defaultProps`.
