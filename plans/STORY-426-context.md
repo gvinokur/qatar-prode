@@ -14,4 +14,4 @@
 - **Task File:** (fill when implementation starts)
 
 ## Quick Summary
-Adds a new "group stage in progress" variant to the QT prediction status header. When the tournament has started but actual group standings aren't yet finalized, the auto-fill banner is suppressed in favor of an informational message. Two optional boolean flags (`tournamentStarted`, `groupStageComplete`) are added to `QTHeaderInput` with safe defaults, so existing tests and callers are unaffected.
+Adds a new "group stage in progress" variant (6a) to the QT prediction status header. When the tournament has started but actual group standings aren't yet finalized, the auto-fill banner is suppressed in favor of an informational message. Two optional boolean flags (`tournamentStarted`, `groupStageComplete`) are added to `QTHeaderInput` with safe defaults, so existing tests and callers are unaffected.
