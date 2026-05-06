@@ -5,8 +5,8 @@
 - **Story Title:** [Bug] QT header shows auto-fill banner before group stage matches are complete
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/hungry-mayer-52fe39
 - **Branch:** claude/hungry-mayer-52fe39
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 429
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/429
 
 ## State
 - **Current Phase:** planning
