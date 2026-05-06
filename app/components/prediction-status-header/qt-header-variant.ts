@@ -114,8 +114,8 @@ function computeLockedQTVariant(
 /**
  * Computes the PredictionStatusHeader variant for the Qualified Teams page.
  * Priority: never-filled-locked → locked-with-results → locked-pending →
- *           completed-pre-lock → lock-window-urgent → pre-tournament-auto-fill-ready
- *           → pre-tournament-urgent → pre-tournament
+ *           completed-pre-lock → lock-window-urgent (groups complete OR incomplete) →
+ *           pre-tournament-auto-fill-ready → pre-tournament
  */
 export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): StatusHeaderVariant {
   const now = input.now ?? new Date();
@@ -153,23 +153,35 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
     };
   }
 
+  // Hoist before Variant 5 so the urgency branch can gate on group completion
+  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
+
   // ── VARIANT 5: lock-window-urgent ───────────────────────────────────────────
   const urgencyTone = qtLockAt ? computeQTLockUrgency(qtLockAt, now) : 'brand';
   const isUrgent = urgencyTone !== 'brand';
   if (isUrgent) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
+    if (groupsAllPredicted) {
+      return {
+        tone: urgencyTone,
+        leadIcon: urgencyIcon(urgencyTone),
+        statusText: t('statusHeader.qt.lockWindowUrgent.status', { countdown }),
+        chip,
+        message: t('statusHeader.qt.lockWindowUrgent.message', { countdown }),
+        action: { label: t('statusHeader.qt.lockWindowUrgent.cta'), onClick: onAutoFillClick },
+      };
+    }
     return {
       tone: urgencyTone,
       leadIcon: urgencyIcon(urgencyTone),
       statusText: t('statusHeader.qt.lockWindowUrgent.status', { countdown }),
       chip,
-      message: t('statusHeader.qt.lockWindowUrgent.message', { countdown }),
-      action: { label: t('statusHeader.qt.lockWindowUrgent.cta'), onClick: onAutoFillClick },
+      message: t('statusHeader.qt.lockWindowUrgentGroupsIncomplete.message', { countdown }),
+      action: { label: t('statusHeader.qt.lockWindowUrgentGroupsIncomplete.cta'), href: `/${locale}/tournaments/${tournamentId}/games?edit=next` },
     };
   }
 
   // ── VARIANT 6: pre-tournament-auto-fill-ready ────────────────────────────────
-  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
   if (groupsAllPredicted) {
     return {
       tone: 'brand',

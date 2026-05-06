@@ -199,6 +199,10 @@
         "message": "Your qualifiers lock in {countdown}. Auto-fill from your groups or choose manually.",
         "cta": "Auto-fill"
       },
+      "lockWindowUrgentGroupsIncomplete": {
+        "message": "Qualifiers lock in {countdown}. You can pick them manually now — you don't need to finish your group predictions first.",
+        "cta": "Predict Matches"
+      },
       "completedPreLock": {
         "status": "Qualifiers ready · lock in {countdown}",
         "cta": "Recalculate"

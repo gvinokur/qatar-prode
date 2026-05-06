@@ -266,7 +266,7 @@ Pure selector functions for the Games prediction page header variant.
 
 **File:** `app/components/prediction-status-header/qt-header-variant.ts`
 Pure selector function for the Qualified Teams prediction page header variant.
-- **computeQTHeaderVariant(input: QTHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: never-filled-locked → locked-with-results → locked-pending → completed-pre-lock → lock-window-urgent → pre-tournament-auto-fill-ready → pre-tournament
+- **computeQTHeaderVariant(input: QTHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: never-filled-locked → locked-with-results → locked-pending → completed-pre-lock → lock-window-urgent (groups complete: auto-fill CTA; groups incomplete: predict-matches href) → pre-tournament-auto-fill-ready → pre-tournament
 - **computeQTLockUrgency(qtLockAt: Date, now: Date)**: `StatusHeaderTone` — < 2h → deadlineNow, < 24h → deadlineUrgent, < 48h → deadlineSoon, else → brand
 - **QTHeaderInput** (interface) — isLocked, qtLockAt, predictedGroupGames, totalGroupGames, qualifiersCompleted, qualifiersTotal, definedSoFar, correctSoFar, qtPointsEarned?, onAutoFillClick, tournamentId, locale, now?
 
