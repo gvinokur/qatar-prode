@@ -2,11 +2,13 @@
 
 ## Context
 
-The tournament hub page (`/tournaments/[id]`) loads multiple data sources on each request. Two of those sources — `getTournamentHubPageData` and `getPublicTournamentTiming` — independently call `findTournamentById` and `findFirstGameInTournament`, resulting in those two DB queries executing twice on every hub page load. A third source, `getActionCenterGames`, is already correctly guarded by `!hubData.isFinished && user` so it is not called for finished tournaments.
+The tournament hub page (`/tournaments/[id]`) loads multiple data sources on each request. Two of those sources — `getTournamentHubPageData` and `getPublicTournamentTiming` — independently call `findTournamentById` and `findFirstGameInTournament`. In practice, `React.cache()` already deduplicates those DB calls at the request level (both repo functions are wrapped with it), so there is no actual duplicate DB round-trip. However, `getPublicTournamentTiming` has no standalone reason to exist — it is only ever called from the hub page, its data fully overlaps with what `getTournamentHubPageData` already computes, and having two separate async function calls adds unnecessary complexity to the page's data-fetching logic.
 
-This story merges the timing queries into the main hub data action, eliminating the 2 duplicate DB calls and removing `getPublicTournamentTiming` as a separate server action.
+This story merges the timing fields into `getTournamentHubPageData` and removes `getPublicTournamentTiming`. The benefit is code simplification: one fewer async call in `page.tsx`, a simpler data-flow (no separate `timing` variable), and a smaller public API surface for `hub-actions.ts`.
 
-**Out of scope:** Consolidating the prediction completion queries inside `getActionCenterGames` (those 7+ sequential queries are a separate story).
+The `!hubData.isFinished && user` guard that prevents `getActionCenterGames` from being called for finished tournaments is already in place and is verified by the new test added in this story.
+
+**Out of scope:** Consolidating the prediction completion queries inside `getActionCenterGames` (those 7+ sequential queries are a separate story — #412).
 
 ---
 
@@ -17,22 +19,21 @@ This story merges the timing queries into the main hub data action, eliminating 
 3. Hub page displays correctly for a pre-tournament (not yet started) state
 4. Unauthenticated user sees the public hub view with no errors
 5. No visible change in content or behavior for any user type
-6. `findTournamentById` and `findFirstGameInTournament` are each called exactly once per hub page load (instead of twice)
+6. `getPublicTournamentTiming` is deleted — it no longer exists as a separate export or call site
 
 ---
 
 ## Problem Analysis
 
-### Current query duplication (per hub page load)
+### Overlapping calls (deduplicated by React.cache at runtime)
 
 | Query | `getTournamentHubPageData` | `getPublicTournamentTiming` | `getActionCenterGames` |
 |---|---|---|---|
-| `findTournamentById` | ✓ | ✓ **DUPLICATE** | ✓ (active only) |
-| `findFirstGameInTournament` | ✓ | ✓ **DUPLICATE** | ✓ (active only) |
-| `findLastGameInTournament` | ✓ | — | ✓ (active only) |
+| `findTournamentById` | ✓ | ✓ (cache hit) | ✓ (cache hit, active only) |
+| `findFirstGameInTournament` | ✓ | ✓ (cache hit) | ✓ (cache hit, active only) |
+| `findLastGameInTournament` | ✓ | — | ✓ (cache hit, active only) |
 
-**On every hub load:** 2 guaranteed duplicate queries (timing function).
-**On active authenticated loads:** 3 additional duplicates in `getActionCenterGames` (left for a follow-up story per Out of Scope).
+`React.cache()` wraps all three repo functions, so repeated calls within a request return the memoized result — no extra DB round-trips. The problem is not DB performance but **redundant code**: `getPublicTournamentTiming` is a separate async function, a separate public export, and a separate `timing` variable in `page.tsx` — all for data that `getTournamentHubPageData` already produces.
 
 ### Existing guard (already in place — not changed by this story)
 
