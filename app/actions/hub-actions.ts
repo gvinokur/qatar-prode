@@ -152,13 +152,18 @@ export interface TournamentHubPageData {
   isFinished: boolean
   qualifiersTotal: number
   awardsTotal: number
+  firstGameDate: Date | null
+  tournamentHasStarted: boolean
+  tournamentJustStarted: boolean
+  tournamentName: string | null
 }
 
 /**
- * Returns shared tournament data needed by all dashboard widgets.
- * Does NOT require authentication — safe to call for logged-off users.
+ * Returns shared tournament data needed by all dashboard widgets, including
+ * timing fields for hero banners. Does NOT require authentication — safe to
+ * call for logged-off users.
  */
-export async function getTournamentHubPageData(tournamentId: string): Promise<TournamentHubPageData> {
+export async function getTournamentHubPageData(tournamentId: string, locale: Locale): Promise<TournamentHubPageData> {
   const [tournament, firstGame, lastGame, totalGamesResult, firstStageRound] = await Promise.all([
     findTournamentById(tournamentId),
     findFirstGameInTournament(tournamentId),
@@ -177,12 +182,20 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
   ])
 
   const PRE_TOURNAMENT_ACTIVE_WINDOW_MS = 48 * 60 * 60 * 1000
+  const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
   const now = Date.now()
   const totalGames = Number(totalGamesResult?.count ?? 0)
   const isStarted = !!firstGame && firstGame.game_date.getTime() <= now
   const isNearStart = !!firstGame && firstGame.game_date.getTime() - now <= PRE_TOURNAMENT_ACTIVE_WINDOW_MS
   const isFinished = !!lastGame && lastGame.game_date.getTime() < now
   const qualifiersTotal = (firstStageRound?.total_games ?? 0) * 2
+  const firstGameDate = firstGame?.game_date ?? null
+  const tournamentHasStarted = firstGameDate !== null && firstGameDate.getTime() <= now
+  const tournamentJustStarted = !!(
+    firstGameDate &&
+    firstGameDate.getTime() < now &&
+    now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
+  )
 
   return {
     scoringConfig: buildScoringConfig(tournament),
@@ -192,6 +205,10 @@ export async function getTournamentHubPageData(tournamentId: string): Promise<To
     isFinished,
     qualifiersTotal,
     awardsTotal: 7,
+    firstGameDate,
+    tournamentHasStarted,
+    tournamentJustStarted,
+    tournamentName: computeTournamentName(tournament, locale),
   }
 }
 
@@ -257,35 +274,6 @@ export interface TournamentTiming {
   tournamentHasStarted: boolean
   tournamentJustStarted: boolean
   tournamentName: string | null
-}
-
-/**
- * Fetches public tournament timing data without requiring authentication.
- * Used to render hero banners (countdown / celebration) for all users including guests.
- */
-export async function getPublicTournamentTiming(
-  tournamentId: string,
-  locale: Locale
-): Promise<TournamentTiming> {
-  const CELEBRATION_WINDOW_MS = 48 * 60 * 60 * 1000
-  const [tournament, firstGame] = await Promise.all([
-    findTournamentById(tournamentId),
-    findFirstGameInTournament(tournamentId),
-  ])
-  const now = Date.now()
-  const firstGameDate = firstGame?.game_date ?? null
-  const tournamentHasStarted = firstGameDate !== null && firstGameDate.getTime() <= now
-  const tournamentJustStarted = !!(
-    firstGameDate &&
-    firstGameDate.getTime() < now &&
-    now - firstGameDate.getTime() < CELEBRATION_WINDOW_MS
-  )
-  return {
-    firstGameDate,
-    tournamentHasStarted,
-    tournamentJustStarted,
-    tournamentName: computeTournamentName(tournament, locale),
-  }
 }
 
 /**

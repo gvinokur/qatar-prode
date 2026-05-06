@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getActionCenterGames, getCarouselGames, getLeaderboardPeekData, getRecentResultsData, getPublicTournamentTiming, getTournamentHubPageData, getStatsAtAGlanceData } from '../hub-actions'
+import { getActionCenterGames, getCarouselGames, getLeaderboardPeekData, getRecentResultsData, getTournamentHubPageData, getStatsAtAGlanceData } from '../hub-actions'
 import * as scoreHistoryRepository from '@/app/db/score-history-repository'
 import { createMockSelectQuery } from '@/__tests__/db/mock-helpers'
 import * as gameRepository from '@/app/db/game-repository'
@@ -872,64 +872,6 @@ describe('getRecentResultsData', () => {
   })
 })
 
-describe('getPublicTournamentTiming', () => {
-  const FORTY_NINE_HOURS_MS = 49 * 60 * 60 * 1000
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
-      testFactories.tournament({ id: TOURNAMENT_ID })
-    )
-  })
-
-  it('returns null firstGameDate and both started flags false when no first game exists', async () => {
-    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(undefined)
-
-    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
-
-    expect(result.firstGameDate).toBeNull()
-    expect(result.tournamentHasStarted).toBe(false)
-    expect(result.tournamentJustStarted).toBe(false)
-  })
-
-  it('returns tournamentHasStarted false and tournamentJustStarted false when first game is in the future', async () => {
-    const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
-    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
-      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: futureDate })
-    )
-
-    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
-
-    expect(result.firstGameDate).toEqual(futureDate)
-    expect(result.tournamentHasStarted).toBe(false)
-    expect(result.tournamentJustStarted).toBe(false)
-  })
-
-  it('returns tournamentHasStarted true and tournamentJustStarted true when first game kicked off within last 48h', async () => {
-    const recentDate = new Date(Date.now() - 24 * 60 * 60 * 1000) // 24h ago
-    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
-      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: recentDate })
-    )
-
-    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
-
-    expect(result.tournamentHasStarted).toBe(true)
-    expect(result.tournamentJustStarted).toBe(true)
-  })
-
-  it('returns tournamentHasStarted true and tournamentJustStarted false when first game kicked off more than 48h ago', async () => {
-    const oldDate = new Date(Date.now() - FORTY_NINE_HOURS_MS)
-    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
-      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: oldDate })
-    )
-
-    const result = await getPublicTournamentTiming(TOURNAMENT_ID, 'en')
-
-    expect(result.tournamentHasStarted).toBe(true)
-    expect(result.tournamentJustStarted).toBe(false)
-  })
-})
-
 describe('getTournamentHubPageData', () => {
   const mockDb = vi.mocked(database.db)
 
@@ -950,7 +892,7 @@ describe('getTournamentHubPageData', () => {
 
   it('returns DEFAULT_SCORING when tournament is not found', async () => {
     vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(undefined)
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
     expect(result.scoringConfig.game_exact_score_points).toBe(3)
   })
@@ -963,7 +905,7 @@ describe('getTournamentHubPageData', () => {
         game_exact_score_points: 5,
       })
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.scoringConfig.game_correct_outcome_points).toBe(3)
     expect(result.scoringConfig.game_exact_score_points).toBe(5)
   })
@@ -984,19 +926,19 @@ describe('getTournamentHubPageData', () => {
         max_golden_games: null,
       })
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.scoringConfig.game_correct_outcome_points).toBe(1)
     expect(result.scoringConfig.game_exact_score_points).toBe(3)
   })
 
   it('returns correct totalGames count from db query', async () => {
     mockDb.selectFrom.mockReturnValue(createMockSelectQuery({ count: 64 }) as any)
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.totalGames).toBe(64)
   })
 
   it('succeeds without authentication (no getLoggedInUser call)', async () => {
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result).toBeDefined()
     expect(vi.mocked(userActions.getLoggedInUser)).not.toHaveBeenCalled()
   })
@@ -1005,7 +947,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() - 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isStarted).toBe(true)
   })
 
@@ -1013,7 +955,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() + 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isStarted).toBe(false)
   })
 
@@ -1021,12 +963,12 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findLastGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'last', game_date: new Date(Date.now() - 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isFinished).toBe(true)
   })
 
   it('returns isFinished=false when last game date is in the future', async () => {
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isFinished).toBe(false)
   })
 
@@ -1034,7 +976,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() + 48 * 60 * 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isNearStart).toBe(true)
   })
 
@@ -1042,7 +984,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() + 24 * 60 * 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isNearStart).toBe(true)
   })
 
@@ -1050,7 +992,7 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() + 49 * 60 * 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isNearStart).toBe(false)
   })
 
@@ -1058,14 +1000,67 @@ describe('getTournamentHubPageData', () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
       testFactories.game({ id: 'first', game_date: new Date(Date.now() - 60 * 1000) }) as any
     )
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isNearStart).toBe(true)
   })
 
   it('returns isNearStart=false when no first game exists', async () => {
     vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(null as any)
-    const result = await getTournamentHubPageData(TOURNAMENT_ID)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
     expect(result.isNearStart).toBe(false)
+  })
+
+  it('returns firstGameDate=null and tournamentHasStarted=false when no first game exists', async () => {
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(undefined)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.firstGameDate).toBeNull()
+    expect(result.tournamentHasStarted).toBe(false)
+    expect(result.tournamentJustStarted).toBe(false)
+  })
+
+  it('returns tournamentHasStarted=false and tournamentJustStarted=false when first game is in the future', async () => {
+    const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: futureDate }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.firstGameDate).toEqual(futureDate)
+    expect(result.tournamentHasStarted).toBe(false)
+    expect(result.tournamentJustStarted).toBe(false)
+  })
+
+  it('returns tournamentHasStarted=true and tournamentJustStarted=true when first game kicked off within last 48h', async () => {
+    const recentDate = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: recentDate }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.tournamentHasStarted).toBe(true)
+    expect(result.tournamentJustStarted).toBe(true)
+  })
+
+  it('returns tournamentHasStarted=true and tournamentJustStarted=false when first game kicked off more than 48h ago', async () => {
+    const oldDate = new Date(Date.now() - 49 * 60 * 60 * 1000)
+    vi.mocked(gameRepository.findFirstGameInTournament).mockResolvedValue(
+      testFactories.game({ id: 'game-1', tournament_id: TOURNAMENT_ID, game_date: oldDate }) as any
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.tournamentHasStarted).toBe(true)
+    expect(result.tournamentJustStarted).toBe(false)
+  })
+
+  it('returns tournamentName resolved from tournament short_name for the given locale', async () => {
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(
+      testFactories.tournament({ id: TOURNAMENT_ID, short_name: 'FIFA 2026' })
+    )
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.tournamentName).toBe('FIFA 2026')
+  })
+
+  it('returns tournamentName=null when tournament is not found', async () => {
+    vi.mocked(tournamentRepository.findTournamentById).mockResolvedValue(undefined)
+    const result = await getTournamentHubPageData(TOURNAMENT_ID, 'en')
+    expect(result.tournamentName).toBeNull()
   })
 })
 
