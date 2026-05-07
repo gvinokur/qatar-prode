@@ -163,6 +163,13 @@ Optionally update `lockWindowUrgent.message` to be more urgent:
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Variant 4 (completed-pre-lock) widened to fire on qualifiers alone
+**Date:** 2026-05-07
+**Reason:** Discovered during manual testing that users with all qualifiers filled but some group games still unpredicted were falling through to the urgent Variant 5 banner instead of the calm success state. The original Variant 4 guard required both `qtComplete` (groups AND qualifiers done). This was an undocumented bug exposed by the same root cause.
+**Change:** Variant 4 now fires when `qualifiersComplete` alone (qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0), regardless of group game completion. The Recalculate CTA is conditionally rendered only when `groupsAllPredicted` is also true. Removed `groupsComplete` and `qtComplete` variables; hoisted `groupsAllPredicted` and introduced `qualifiersComplete` before Variant 4. New tests added: "qualifiers complete + groups NOT complete → success with no CTA" and "qualifiers complete + groups complete → success with Recalculate CTA".
+
 ## Testing Strategy
 
 ### Unit Tests (`app/components/prediction-status-header/__tests__/qt-header-variant.test.ts`)
