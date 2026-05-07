@@ -138,23 +138,23 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
     );
   }
 
+  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
+  const qualifiersComplete = qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
+
   // ── VARIANT 4: completed-pre-lock ───────────────────────────────────────────
-  // Require group games to be complete — if user hasn't finished groups, don't show Recalcular
-  const groupsComplete = totalGroupGames > 0 && predictedGroupGames >= totalGroupGames;
-  const qtComplete = groupsComplete && qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
-  if (qtComplete) {
+  // Fires whenever all qualifier slots are filled — user is in a good state regardless of
+  // whether group games are all predicted. Recalculate CTA only shown when groups are also
+  // done (auto-fill needs group standings to work).
+  if (qualifiersComplete) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
     return {
       tone: 'success',
       leadIcon: 'check',
       statusText: t('statusHeader.qt.completedPreLock.status', { countdown }),
       chip,
-      action: { label: t('statusHeader.qt.completedPreLock.cta'), onClick: onAutoFillClick },
+      ...(groupsAllPredicted && { action: { label: t('statusHeader.qt.completedPreLock.cta'), onClick: onAutoFillClick } }),
     };
   }
-
-  // Hoist before Variant 5 so the urgency branch can gate on group completion
-  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
 
   // ── VARIANT 5: lock-window-urgent ───────────────────────────────────────────
   const urgencyTone = qtLockAt ? computeQTLockUrgency(qtLockAt, now) : 'brand';

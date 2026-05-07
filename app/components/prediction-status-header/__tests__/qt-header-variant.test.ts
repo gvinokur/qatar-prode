@@ -161,11 +161,11 @@ describe('computeQTHeaderVariant', () => {
   });
 
   describe('Variant 5: completed-pre-lock', () => {
-    it('should return success tone with check icon when all predictions completed before lock', () => {
+    it('qualifiers complete + groups complete → success with Recalculate CTA', () => {
       const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h away
       const input = baseInput({
         isLocked: false,
-        predictedGroupGames: 8, // groups must also be complete to show Recalcular
+        predictedGroupGames: 8,
         totalGroupGames: 8,
         qualifiersCompleted: 8,
         qualifiersTotal: 8,
@@ -178,9 +178,29 @@ describe('computeQTHeaderVariant', () => {
       expect(result.tone).toBe('success');
       expect(result.leadIcon).toBe('check');
       expect(result.statusText).toContain('statusHeader.qt.completedPreLock.status');
-      expect(result.action).toBeDefined();
       expect(result.action?.onClick).toBeDefined();
       expect(result.action?.href).toBeUndefined();
+      expect(result.chip).toBeDefined();
+    });
+
+    it('qualifiers complete + groups NOT complete → success with no CTA', () => {
+      const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h away (urgent)
+      const input = baseInput({
+        isLocked: false,
+        predictedGroupGames: 5,
+        totalGroupGames: 8,
+        qualifiersCompleted: 8,
+        qualifiersTotal: 8,
+        qtLockAt: lockTime,
+        now,
+      });
+
+      const result = computeQTHeaderVariant(input, mockT);
+
+      expect(result.tone).toBe('success');
+      expect(result.leadIcon).toBe('check');
+      expect(result.statusText).toContain('statusHeader.qt.completedPreLock.status');
+      expect(result.action).toBeUndefined();
       expect(result.chip).toBeDefined();
     });
   });
