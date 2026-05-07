@@ -199,6 +199,10 @@
         "message": "Tus clasificados cierran en {countdown}. Auto-completá desde tus grupos o elegí manualmente.",
         "cta": "Auto-completar"
       },
+      "lockWindowUrgentGroupsIncomplete": {
+        "message": "Los clasificados cierran en {countdown}. Podés elegirlos manualmente ahora — no necesitás terminar de predecir los partidos de grupos primero.",
+        "cta": "Predecir Partidos"
+      },
       "completedPreLock": {
         "status": "Clasificados listos · cierran en {countdown}",
         "cta": "Recalcular"

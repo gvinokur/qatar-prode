@@ -161,11 +161,11 @@ describe('computeQTHeaderVariant', () => {
   });
 
   describe('Variant 5: completed-pre-lock', () => {
-    it('should return success tone with check icon when all predictions completed before lock', () => {
+    it('qualifiers complete + groups complete → success with Recalculate CTA', () => {
       const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h away
       const input = baseInput({
         isLocked: false,
-        predictedGroupGames: 8, // groups must also be complete to show Recalcular
+        predictedGroupGames: 8,
         totalGroupGames: 8,
         qualifiersCompleted: 8,
         qualifiersTotal: 8,
@@ -178,22 +178,42 @@ describe('computeQTHeaderVariant', () => {
       expect(result.tone).toBe('success');
       expect(result.leadIcon).toBe('check');
       expect(result.statusText).toContain('statusHeader.qt.completedPreLock.status');
-      expect(result.action).toBeDefined();
       expect(result.action?.onClick).toBeDefined();
       expect(result.action?.href).toBeUndefined();
       expect(result.chip).toBeDefined();
     });
+
+    it('qualifiers complete + groups NOT complete → success with no CTA', () => {
+      const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h away (urgent)
+      const input = baseInput({
+        isLocked: false,
+        predictedGroupGames: 5,
+        totalGroupGames: 8,
+        qualifiersCompleted: 8,
+        qualifiersTotal: 8,
+        qtLockAt: lockTime,
+        now,
+      });
+
+      const result = computeQTHeaderVariant(input, mockT);
+
+      expect(result.tone).toBe('success');
+      expect(result.leadIcon).toBe('check');
+      expect(result.statusText).toContain('statusHeader.qt.completedPreLock.status');
+      expect(result.action).toBeUndefined();
+      expect(result.chip).toBeDefined();
+    });
   });
 
-  describe('Variant 6: lock-window-urgent (deadlineNow < 2h)', () => {
-    it('should return deadlineNow tone when lock < 2h away', () => {
-      const lockTime = new Date(now.getTime() + 1.5 * 60 * 60 * 1000); // 1.5h
+  describe('Variant 6: lock-window-urgent', () => {
+    it('groups complete → auto-fill onClick action', () => {
+      const lockTime = new Date(now.getTime() + 1.5 * 60 * 60 * 1000); // 1.5h → deadlineNow
       const input = baseInput({
         isLocked: false,
         qualifiersCompleted: 3,
         qualifiersTotal: 8,
         qtLockAt: lockTime,
-        predictedGroupGames: 4,
+        predictedGroupGames: 8,
         totalGroupGames: 8,
         now,
       });
@@ -203,10 +223,77 @@ describe('computeQTHeaderVariant', () => {
       expect(result.tone).toBe('deadlineNow');
       expect(result.leadIcon).toBe('error');
       expect(result.statusText).toContain('statusHeader.qt.lockWindowUrgent.status');
-      expect(result.message).toBeDefined();
-      expect(result.action).toBeDefined();
+      expect(result.message).toContain('statusHeader.qt.lockWindowUrgent.message');
       expect(result.action?.onClick).toBeDefined();
+      expect(result.action?.href).toBeUndefined();
       expect(result.chip).toBeDefined();
+    });
+
+    it('groups NOT complete (partial) → predict-matches href action', () => {
+      const lockTime = new Date(now.getTime() + 1.5 * 60 * 60 * 1000); // 1.5h → deadlineNow
+      const input = baseInput({
+        isLocked: false,
+        qualifiersCompleted: 3,
+        qualifiersTotal: 8,
+        qtLockAt: lockTime,
+        predictedGroupGames: 5,
+        totalGroupGames: 8,
+        locale: 'en',
+        tournamentId: 'test-tournament',
+        now,
+      });
+
+      const result = computeQTHeaderVariant(input, mockT);
+
+      expect(result.tone).toBe('deadlineNow');
+      expect(result.leadIcon).toBe('error');
+      expect(result.statusText).toContain('statusHeader.qt.lockWindowUrgent.status');
+      expect(result.message).toContain('statusHeader.qt.lockWindowUrgentGroupsIncomplete.message');
+      expect(result.action?.href).toContain('/tournaments/test-tournament/games');
+      expect(result.action?.onClick).toBeUndefined();
+      expect(result.chip).toBeDefined();
+    });
+
+    it('groups NOT complete (zero predictions) → predict-matches href action', () => {
+      const lockTime = new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12h → deadlineUrgent
+      const input = baseInput({
+        isLocked: false,
+        qualifiersCompleted: 0,
+        qualifiersTotal: 8,
+        qtLockAt: lockTime,
+        predictedGroupGames: 0,
+        totalGroupGames: 8,
+        locale: 'en',
+        tournamentId: 'test-tournament',
+        now,
+      });
+
+      const result = computeQTHeaderVariant(input, mockT);
+
+      expect(result.tone).toBe('deadlineUrgent');
+      expect(result.message).toContain('statusHeader.qt.lockWindowUrgentGroupsIncomplete.message');
+      expect(result.action?.href).toContain('/tournaments/test-tournament/games');
+      expect(result.action?.onClick).toBeUndefined();
+    });
+
+    it('totalGroupGames=0 → falls into groups-incomplete branch', () => {
+      const lockTime = new Date(now.getTime() + 1.5 * 60 * 60 * 1000);
+      const input = baseInput({
+        isLocked: false,
+        qtLockAt: lockTime,
+        predictedGroupGames: 0,
+        totalGroupGames: 0,
+        locale: 'en',
+        tournamentId: 'test-tournament',
+        now,
+      });
+
+      const result = computeQTHeaderVariant(input, mockT);
+
+      // groupsAllPredicted = false when totalGroupGames=0 (guard fails)
+      expect(result.message).toContain('statusHeader.qt.lockWindowUrgentGroupsIncomplete.message');
+      expect(result.action?.href).toContain('/tournaments/test-tournament/games');
+      expect(result.action?.onClick).toBeUndefined();
     });
   });
 

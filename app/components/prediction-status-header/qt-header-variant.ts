@@ -114,8 +114,8 @@ function computeLockedQTVariant(
 /**
  * Computes the PredictionStatusHeader variant for the Qualified Teams page.
  * Priority: never-filled-locked → locked-with-results → locked-pending →
- *           completed-pre-lock → lock-window-urgent → pre-tournament-auto-fill-ready
- *           → pre-tournament-urgent → pre-tournament
+ *           completed-pre-lock → lock-window-urgent (groups complete OR incomplete) →
+ *           pre-tournament-auto-fill-ready → pre-tournament
  */
 export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): StatusHeaderVariant {
   const now = input.now ?? new Date();
@@ -138,18 +138,21 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
     );
   }
 
+  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
+  const qualifiersComplete = qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
+
   // ── VARIANT 4: completed-pre-lock ───────────────────────────────────────────
-  // Require group games to be complete — if user hasn't finished groups, don't show Recalcular
-  const groupsComplete = totalGroupGames > 0 && predictedGroupGames >= totalGroupGames;
-  const qtComplete = groupsComplete && qualifiersCompleted >= qualifiersTotal && qualifiersTotal > 0;
-  if (qtComplete) {
+  // Fires whenever all qualifier slots are filled — user is in a good state regardless of
+  // whether group games are all predicted. Recalculate CTA only shown when groups are also
+  // done (auto-fill needs group standings to work).
+  if (qualifiersComplete) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
     return {
       tone: 'success',
       leadIcon: 'check',
       statusText: t('statusHeader.qt.completedPreLock.status', { countdown }),
       chip,
-      action: { label: t('statusHeader.qt.completedPreLock.cta'), onClick: onAutoFillClick },
+      ...(groupsAllPredicted && { action: { label: t('statusHeader.qt.completedPreLock.cta'), onClick: onAutoFillClick } }),
     };
   }
 
@@ -158,18 +161,27 @@ export function computeQTHeaderVariant(input: QTHeaderInput, t: TFunction): Stat
   const isUrgent = urgencyTone !== 'brand';
   if (isUrgent) {
     const countdown = qtLockAt ? countdownLabel(qtLockAt, now) : '—';
+    if (groupsAllPredicted) {
+      return {
+        tone: urgencyTone,
+        leadIcon: urgencyIcon(urgencyTone),
+        statusText: t('statusHeader.qt.lockWindowUrgent.status', { countdown }),
+        chip,
+        message: t('statusHeader.qt.lockWindowUrgent.message', { countdown }),
+        action: { label: t('statusHeader.qt.lockWindowUrgent.cta'), onClick: onAutoFillClick },
+      };
+    }
     return {
       tone: urgencyTone,
       leadIcon: urgencyIcon(urgencyTone),
       statusText: t('statusHeader.qt.lockWindowUrgent.status', { countdown }),
       chip,
-      message: t('statusHeader.qt.lockWindowUrgent.message', { countdown }),
-      action: { label: t('statusHeader.qt.lockWindowUrgent.cta'), onClick: onAutoFillClick },
+      message: t('statusHeader.qt.lockWindowUrgentGroupsIncomplete.message', { countdown }),
+      action: { label: t('statusHeader.qt.lockWindowUrgentGroupsIncomplete.cta'), href: `/${locale}/tournaments/${tournamentId}/games?edit=next` },
     };
   }
 
   // ── VARIANT 6: pre-tournament-auto-fill-ready ────────────────────────────────
-  const groupsAllPredicted = predictedGroupGames >= totalGroupGames && totalGroupGames > 0;
   if (groupsAllPredicted) {
     return {
       tone: 'brand',
