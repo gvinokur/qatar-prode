@@ -5,8 +5,8 @@
 - **Story Title:** [Bug] Draft game scores are visible to users in hub and games pages
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/lucid-mendeleev-54d367
 - **Branch:** claude/lucid-mendeleev-54d367
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 437
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/437
 
 ## State
 - **Current Phase:** planning
