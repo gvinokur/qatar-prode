@@ -4,9 +4,9 @@
 - **Story Number:** 416
 - **Story Title:** [Story] Friend group page: eliminate redundant tournament date and member profile fetches inside score history loading
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/stupefied-maxwell-3838b8
-- **Branch:** (fill after worktree creation)
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **Branch:** feature/story-416
+- **PR Number:** 436
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/436
 
 ## State
 - **Current Phase:** planning
