@@ -8,7 +8,7 @@ import InsightsIcon from '@mui/icons-material/Insights'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { toLocale } from '@/app/utils/locale-utils'
 import { getLoggedInUser } from '@/app/actions/user-actions'
-import { getTournamentHubPageData, getActionCenterGames, getPublicTournamentTiming } from '@/app/actions/hub-actions'
+import { getTournamentHubPageData, getActionCenterGames } from '@/app/actions/hub-actions'
 import { PREDICTION_LOCK_OFFSET_MS } from '@/app/utils/prediction-constants'
 import { DashboardCard } from '@/app/components/tournament-hub/dashboard-card'
 import { DashboardBanner } from '@/app/components/tournament-hub/dashboard-banner'
@@ -33,7 +33,7 @@ export default async function TournamentHubPage(props: Props) {
   const gamesHref = `/${locale}/tournaments/${id}/games`
 
   const [hubData, user] = await Promise.all([
-    getTournamentHubPageData(id),
+    getTournamentHubPageData(id, locale),
     getLoggedInUser(),
   ])
 
@@ -43,26 +43,24 @@ export default async function TournamentHubPage(props: Props) {
     (key, params) => tRules(key as Parameters<typeof tRules>[0], params as Parameters<typeof tRules>[1]) // NOSONAR
   )
 
-  const [timing, data] = await Promise.all([
-    getPublicTournamentTiming(id, locale),
-    !hubData.isFinished && user ? getActionCenterGames(id, locale) : Promise.resolve(null),
-  ])
-  const actionCenterData = data
+  const actionCenterData = !hubData.isFinished && user
+    ? await getActionCenterGames(id, locale)
+    : null
 
-  const lockDateFormatted = timing?.firstGameDate
+  const lockDateFormatted = hubData.firstGameDate
     ? new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric', year: 'numeric' }).format(
-        new Date(timing.firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS)
+        new Date(hubData.firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS)
       )
     : null
-  const msUntilPredictionLock = timing?.firstGameDate
-    ? timing.firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS - Date.now()
+  const msUntilPredictionLock = hubData.firstGameDate
+    ? hubData.firstGameDate.getTime() + PREDICTION_LOCK_OFFSET_MS - Date.now()
     : Number.MAX_SAFE_INTEGER
 
   return (
     <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
       {/* Banner Area */}
-      <DashboardBanner user={user} timing={timing} />
+      <DashboardBanner user={user} timing={hubData} />
 
       {/* Priority Attention Widget — single action card above the grid */}
       {user && actionCenterData && (
@@ -107,12 +105,12 @@ export default async function TournamentHubPage(props: Props) {
             />
           </>
         )}
-        {timing?.tournamentHasStarted && (
+        {hubData.tournamentHasStarted && (
           <Suspense fallback={<DashboardCard title="Results" icon={<HistoryIcon fontSize="small" />} />}>
             <TournamentHubRecentResults tournamentId={id} locale={locale} />
           </Suspense>
         )}
-        {timing?.tournamentHasStarted && user && (
+        {hubData.tournamentHasStarted && user && (
           <Suspense fallback={<DashboardCard title="Stats" icon={<InsightsIcon fontSize="small" />} />}>
             <StatsAtAGlanceWidget tournamentId={id} locale={locale} />
           </Suspense>
