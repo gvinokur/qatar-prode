@@ -24,6 +24,20 @@ export const findGameGuessesByUserId = cache(async function (userId: string, tou
     .execute()
 })
 
+export const countGameGuessesByUserId = cache(async function (
+  userId: string,
+  tournamentId: string
+): Promise<number> {
+  const result = await db
+    .selectFrom(tableName)
+    .innerJoin('games', 'games.id', 'game_guesses.game_id')
+    .where('game_guesses.user_id', '=', userId)
+    .where('games.tournament_id', '=', tournamentId)
+    .select((eb) => eb.fn.countAll<string>().as('count'))
+    .executeTakeFirst()
+  return result ? Number(result.count) : 0
+})
+
 export async function updateGameGuessByGameId(game_id: string, user_id: string, withUpdate: {home_team?: string | null, away_team?:string | null }) {
 
   return await db

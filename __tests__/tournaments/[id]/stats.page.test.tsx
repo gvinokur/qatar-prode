@@ -7,7 +7,7 @@ import { getLoggedInUser } from '../../../app/actions/user-actions';
 import {
   getGameGuessStatisticsForUsers,
   getBoostAllocationBreakdown,
-  findGameGuessesByUserId,
+  countGameGuessesByUserId,
 } from '../../../app/db/game-guess-repository';
 import { findTournamentGuessByUserIdTournament } from '../../../app/db/tournament-guess-repository';
 import { findTournamentById } from '../../../app/db/tournament-repository';
@@ -32,7 +32,7 @@ vi.mock('../../../app/actions/user-actions', () => ({
 vi.mock('../../../app/db/game-guess-repository', () => ({
   getGameGuessStatisticsForUsers: vi.fn(),
   getBoostAllocationBreakdown: vi.fn(),
-  findGameGuessesByUserId: vi.fn(),
+  countGameGuessesByUserId: vi.fn(),
 }));
 
 vi.mock('../../../app/db/tournament-guess-repository', () => ({
@@ -124,11 +124,8 @@ describe('TournamentStatsPage', () => {
       .mockResolvedValueOnce(mockSilverBoostData)
       .mockResolvedValueOnce(mockGoldenBoostData);
 
-    // Mock game guesses (32 predictions)
-    const mockGameGuesses = Array.from({ length: 32 }, (_, i) =>
-      testFactories.gameGuess({ id: `guess-${i + 1}`, user_id: mockUser.id })
-    );
-    vi.mocked(findGameGuessesByUserId).mockResolvedValue(mockGameGuesses);
+    // Mock game guess count (32 predictions)
+    vi.mocked(countGameGuessesByUserId).mockResolvedValue(32);
 
     // Mock game counts (38 total, 32 played)
     vi.mocked(getGameCountsForTournament).mockResolvedValue({ total: 38, played: 32 });
@@ -179,7 +176,7 @@ describe('TournamentStatsPage', () => {
       expect(findTournamentGuessByUserIdTournament).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'silver');
       expect(getBoostAllocationBreakdown).toHaveBeenCalledWith(mockUser.id, mockTournamentId, 'golden');
-      expect(findGameGuessesByUserId).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
+      expect(countGameGuessesByUserId).toHaveBeenCalledWith(mockUser.id, mockTournamentId);
       expect(getGameCountsForTournament).toHaveBeenCalledWith(mockTournamentId);
       expect(getScoreHistoryForUsers).toHaveBeenCalledWith([mockUser.id], mockTournamentId);
     });

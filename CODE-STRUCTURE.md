@@ -381,7 +381,7 @@ Key flows:
       ├── findTournamentGuessByUserIdTournament
       ├── getBoostAllocationBreakdown
       ├── getGameCountsForTournament
-      ├── findGameGuessesByUserId
+      ├── countGameGuessesByUserId
       ├── calculateAccuracyStats (util)
       ├── calculateBoostStats (util)
       └── getScoreHistoryForUsers (score-history-repository)
