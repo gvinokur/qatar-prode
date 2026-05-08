@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-08
 
 ---
 
@@ -144,8 +144,8 @@ Offline fallback page shown when service worker catches offline navigation.
 ### app/[locale]/tournaments/[id]/page.tsx
 Tournament Hub landing page — banner + Games widget + QT/Awards widgets (pre-tournament) + leaderboard peek + Recent Results + Stats at a Glance (post-start).
 
-- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id)` and `getLoggedInUser()` in parallel. Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Fetches `timing` (always, via `getPublicTournamentTiming`) and `data`/`actionCenterData` (only when `user && !isFinished`, via `getActionCenterGames`) in a second parallel call. Renders `DashboardBanner` (hero + secondary banners); `PriorityAttentionWidget` (between banner and grid, only when `user && actionCenterData`); and CSS Grid Widget Area with: `GamesPredictionWidget`; `QualifiedTeamsWidget` + `AwardsWidget` when `msUntilPredictionLock > 0`; `TournamentHubRecentResults` in Suspense when `tournamentHasStarted`; `StatsAtAGlanceWidget` in Suspense when `tournamentHasStarted && user`; `TournamentHubLeaderboardPeek` in Suspense always last (passes `isAuthenticated={!!user}`).
-  Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getPublicTournamentTiming, getActionCenterGames (conditional)
+- **TournamentHubPage(props: Props)**: `Promise<JSX.Element>` — [Server] Async. Resolves `id` from params, derives locale via `toLocale`. Runs `getTournamentHubPageData(id, locale)` and `getLoggedInUser()` in parallel (timing fields included in hubData). Computes `scoringRules` via `getTranslations('rules.rules')` + `getRulesBySection`. Calls `getActionCenterGames` sequentially only when `!hubData.isFinished && user`. Renders `DashboardBanner` (hero + secondary banners, passes `hubData` as `timing`); `PriorityAttentionWidget` (between banner and grid, only when `user && actionCenterData`); and CSS Grid Widget Area with: `GamesPredictionWidget`; `QualifiedTeamsWidget` + `AwardsWidget` when `msUntilPredictionLock > 0`; `TournamentHubRecentResults` in Suspense when `tournamentHasStarted`; `StatsAtAGlanceWidget` in Suspense when `tournamentHasStarted && user`; `TournamentHubLeaderboardPeek` in Suspense always last (passes `isAuthenticated={!!user}`).
+  Calls: getLocale, toLocale, getTournamentHubPageData, getLoggedInUser, getTranslations, getRulesBySection, getActionCenterGames (conditional)
   Renders: DashboardBanner, PriorityAttentionWidget (conditional), GamesPredictionWidget, QualifiedTeamsWidget (conditional), AwardsWidget (conditional), TournamentHubRecentResults (conditional Suspense), StatsAtAGlanceWidget (conditional Suspense), TournamentHubLeaderboardPeek (Suspense)
 
 ### app/[locale]/tournaments/[id]/games/page.tsx
