@@ -6,6 +6,7 @@ import {
   findGroupsForUsers,
   getLatestRankingsForGroup,
   getLatestRankingsForGroupWithChange,
+  getGroupRankingSummaries,
 } from '../../app/db/group-ranking-repository';
 import { db } from '../../app/db/database';
 import { createMockSelectQuery, createMockInsertQuery } from './mock-helpers';
@@ -412,6 +413,128 @@ describe('Group Ranking Repository', () => {
       expect(newEntry.previousRank).toBeNull();
       const existingEntry = result.find(r => r.userId === user.id)!;
       expect(existingEntry.previousRank).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getGroupRankingSummaries
+  // ---------------------------------------------------------------------------
+  describe('getGroupRankingSummaries', () => {
+    it('returns empty array without calling DB when groupIds is empty', async () => {
+      const result = await getGroupRankingSummaries([], user.id, tournament.id);
+
+      expect(result).toEqual([]);
+      expect(mockDb.selectFrom).not.toHaveBeenCalled();
+    });
+
+    it('returns empty array when no snapshots exist for any group', async () => {
+      const dateQuery = createMockSelectQuery([]);
+      mockDb.selectFrom.mockReturnValue(dateQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id], user.id, tournament.id);
+
+      expect(result).toEqual([]);
+      // Only the first query should run (max date query returns empty, short-circuits)
+      expect(dateQuery.execute).toHaveBeenCalled();
+    });
+
+    it('returns userIsRanked: true and correct rankedCount when user appears in rankings', async () => {
+      const dateQuery = createMockSelectQuery([{ group_id: group.id, max_date: 20260601 }]);
+      const membersQuery = createMockSelectQuery([
+        { group_id: group.id, user_id: user.id, snapshot_date: 20260601 },
+        { group_id: group.id, user_id: 'other-user', snapshot_date: 20260601 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(membersQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id], user.id, tournament.id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].groupId).toBe(group.id);
+      expect(result[0].rankedCount).toBe(2);
+      expect(result[0].userIsRanked).toBe(true);
+    });
+
+    it('returns userIsRanked: false and correct rankedCount when user is not in rankings', async () => {
+      const dateQuery = createMockSelectQuery([{ group_id: group.id, max_date: 20260601 }]);
+      const membersQuery = createMockSelectQuery([
+        { group_id: group.id, user_id: 'other-user-1', snapshot_date: 20260601 },
+        { group_id: group.id, user_id: 'other-user-2', snapshot_date: 20260601 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(membersQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id], user.id, tournament.id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].rankedCount).toBe(2);
+      expect(result[0].userIsRanked).toBe(false);
+    });
+
+    it('returns correct summaries for multiple groups in a single call', async () => {
+      const group2 = testFactories.prodeGroup({ id: 'group-2' });
+      const dateQuery = createMockSelectQuery([
+        { group_id: group.id, max_date: 20260601 },
+        { group_id: group2.id, max_date: 20260601 },
+      ]);
+      const membersQuery = createMockSelectQuery([
+        { group_id: group.id, user_id: user.id, snapshot_date: 20260601 },
+        { group_id: group.id, user_id: 'other-user', snapshot_date: 20260601 },
+        { group_id: group2.id, user_id: 'other-user', snapshot_date: 20260601 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(membersQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id, group2.id], user.id, tournament.id);
+
+      expect(result).toHaveLength(2);
+      const summary1 = result.find(s => s.groupId === group.id)!;
+      const summary2 = result.find(s => s.groupId === group2.id)!;
+      expect(summary1.rankedCount).toBe(2);
+      expect(summary1.userIsRanked).toBe(true);
+      expect(summary2.rankedCount).toBe(1);
+      expect(summary2.userIsRanked).toBe(false);
+    });
+
+    it('excludes groups that have no snapshot data from the result', async () => {
+      const group2 = testFactories.prodeGroup({ id: 'group-2' });
+      // Only group1 has a snapshot date; group2 has none
+      const dateQuery = createMockSelectQuery([{ group_id: group.id, max_date: 20260601 }]);
+      const membersQuery = createMockSelectQuery([
+        { group_id: group.id, user_id: user.id, snapshot_date: 20260601 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(membersQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id, group2.id], user.id, tournament.id);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].groupId).toBe(group.id);
+    });
+
+    it('excludes stale snapshot rows and counts only the per-group latest snapshot', async () => {
+      // group has max_date = 20260602; membersQuery also returns a stale row at 20260601
+      const dateQuery = createMockSelectQuery([{ group_id: group.id, max_date: 20260602 }]);
+      const membersQuery = createMockSelectQuery([
+        // Stale row — must be filtered out
+        { group_id: group.id, user_id: 'stale-user', snapshot_date: 20260601 },
+        // Current rows at the latest date
+        { group_id: group.id, user_id: user.id, snapshot_date: 20260602 },
+        { group_id: group.id, user_id: 'other-user', snapshot_date: 20260602 },
+      ]);
+      mockDb.selectFrom
+        .mockReturnValueOnce(dateQuery as any)
+        .mockReturnValueOnce(membersQuery as any);
+
+      const result = await getGroupRankingSummaries([group.id], user.id, tournament.id);
+
+      // stale-user at 20260601 must NOT be counted
+      expect(result[0].rankedCount).toBe(2);
+      expect(result[0].userIsRanked).toBe(true);
     });
   });
 });

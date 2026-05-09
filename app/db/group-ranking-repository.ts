@@ -161,6 +161,59 @@ export async function getLatestRankingsForGroupWithChange(
 }
 
 /**
+ * Lightweight summary of group rankings for a specific user and tournament.
+ * Makes 2 DB round-trips for all groups rather than 1 per group:
+ *   Round-trip 1: MAX(snapshot_date) per group_id.
+ *   Round-trip 2: (group_id, user_id, snapshot_date) rows for all groups at their latest dates.
+ * Aggregates in JavaScript to return ranked member count and whether the user appears
+ * in each group's latest snapshot. Groups with no snapshots are absent from the result.
+ */
+export async function getGroupRankingSummaries(
+  groupIds: string[],
+  userId: string,
+  tournamentId: string
+): Promise<{ groupId: string; rankedCount: number; userIsRanked: boolean }[]> {
+  if (groupIds.length === 0) return []
+
+  // Round-trip 1: latest snapshot_date per group (one round-trip for all groups)
+  const latestDates = await db
+    .selectFrom('group_rankings')
+    .select(['group_id', db.fn.max('snapshot_date').as('max_date')])
+    .where('group_id', 'in', groupIds)
+    .where('tournament_id', '=', tournamentId)
+    .groupBy('group_id')
+    .execute()
+
+  if (latestDates.length === 0) return []
+
+  const latestDateByGroup = new Map(latestDates.map((r) => [r.group_id, r.max_date]))
+  const uniqueLatestDates = [...new Set(latestDates.map((r) => r.max_date))]
+
+  // Round-trip 2: lightweight member rows for all groups at their latest dates.
+  // Over-fetches slightly when multiple groups share the same max_date — filtered in JS.
+  const rows = await db
+    .selectFrom('group_rankings')
+    .select(['group_id', 'user_id', 'snapshot_date'])
+    .where('group_id', 'in', groupIds)
+    .where('tournament_id', '=', tournamentId)
+    .where('snapshot_date', 'in', uniqueLatestDates)
+    .execute()
+
+  // Aggregate: count ranked members and flag user presence per group
+  const summaryByGroup = new Map<string, { rankedCount: number; userIsRanked: boolean }>()
+  for (const row of rows) {
+    // Skip rows that don't belong to this group's latest date (cross-group date collision)
+    if (row.snapshot_date !== latestDateByGroup.get(row.group_id)) continue
+    const existing = summaryByGroup.get(row.group_id) ?? { rankedCount: 0, userIsRanked: false }
+    existing.rankedCount++
+    if (row.user_id === userId) existing.userIsRanked = true
+    summaryByGroup.set(row.group_id, existing)
+  }
+
+  return [...summaryByGroup.entries()].map(([groupId, summary]) => ({ groupId, ...summary }))
+}
+
+/**
  * Returns distinct group IDs where at least one member (owner or participant)
  * is in the given userIds list. Used to scope recalculation to only affected groups.
  */

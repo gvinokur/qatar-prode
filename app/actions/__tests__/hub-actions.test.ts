@@ -67,6 +67,7 @@ vi.mock('@/app/db/prode-group-repository', () => ({
 }))
 
 vi.mock('@/app/db/group-ranking-repository', () => ({
+  getGroupRankingSummaries: vi.fn(),
   getLatestRankingsForGroup: vi.fn(),
   getLatestTwoGroupRankingSnapshots: vi.fn(),
 }))
@@ -492,6 +493,11 @@ describe('getLeaderboardPeekData', () => {
     )
     vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1])
     vi.mocked(prodeGroupRepository.findProdeGroupsByParticipant).mockResolvedValue([])
+    // Phase 1: default summary — group1 has 3 ranked members, user is ranked
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 3, userIsRanked: true },
+    ])
+    // Phase 2: full rankings for top groups
     vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(
       makeRankings(group1.id, [USER_ID, 'user-2', 'user-3'], USER_ID)
     )
@@ -525,6 +531,13 @@ describe('getLeaderboardPeekData', () => {
     vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([
       group1, group2, group3,
     ])
+    // Phase 1: summaries with counts — drives sort order
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 5, userIsRanked: true },
+      { groupId: group2.id, rankedCount: 3, userIsRanked: true },
+      { groupId: group3.id, rankedCount: 1, userIsRanked: true },
+    ])
+    // Phase 2: full rankings for all 3 top groups
     vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
       .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
       .mockResolvedValueOnce(makeRankings(group2.id, [USER_ID, 'u2', 'u3'], USER_ID))
@@ -546,9 +559,16 @@ describe('getLeaderboardPeekData', () => {
     vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([
       group1, group2, group3,
     ])
+    // Phase 1: summaries — group2 is favorited so it wins despite fewer members
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 5, userIsRanked: true },
+      { groupId: group2.id, rankedCount: 3, userIsRanked: true },
+      { groupId: group3.id, rankedCount: 2, userIsRanked: true },
+    ])
+    // Phase 2: full rankings in sorted order (group2, group1, group3)
     vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
-      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
       .mockResolvedValueOnce(makeRankings(group2.id, [USER_ID, 'u2', 'u3'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
       .mockResolvedValueOnce(makeRankings(group3.id, [USER_ID, 'u2'], USER_ID))
     vi.mocked(favoriteGroupsRepository.getFavoriteGroupIds).mockResolvedValue([group2.id])
 
@@ -562,10 +582,15 @@ describe('getLeaderboardPeekData', () => {
 
   it('filters out groups where user has no ranking entry', async () => {
     vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1, group2])
-    vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
-      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2'], USER_ID))
-      // group2: user is not in the rankings
-      .mockResolvedValueOnce([{ userId: 'u2', userName: 'Other', rank: 1, score: 100 }])
+    // Phase 1: group2 has userIsRanked: false — excluded before Phase 2
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 2, userIsRanked: true },
+      { groupId: group2.id, rankedCount: 1, userIsRanked: false },
+    ])
+    // Phase 2: only group1 fetched (group2 excluded by Phase 1 filter)
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup).mockResolvedValue(
+      makeRankings(group1.id, [USER_ID, 'u2'], USER_ID)
+    )
 
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
@@ -668,6 +693,42 @@ describe('getLeaderboardPeekData', () => {
     const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
 
     expect(result.groups[0].rankChange).toBe(2)
+  })
+
+  it('calls getGroupRankingSummaries once and not getLatestRankingsForGroup for survey phase', async () => {
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1, group2, group3])
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 5, userIsRanked: true },
+      { groupId: group2.id, rankedCount: 3, userIsRanked: true },
+      { groupId: group3.id, rankedCount: 1, userIsRanked: true },
+    ])
+    vi.mocked(groupRankingRepository.getLatestRankingsForGroup)
+      .mockResolvedValueOnce(makeRankings(group1.id, [USER_ID, 'u2', 'u3', 'u4', 'u5'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group2.id, [USER_ID, 'u2', 'u3'], USER_ID))
+      .mockResolvedValueOnce(makeRankings(group3.id, [USER_ID], USER_ID))
+
+    await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    // Summary called exactly once for all groups
+    expect(groupRankingRepository.getGroupRankingSummaries).toHaveBeenCalledTimes(1)
+    // Full rankings called only 3 times (for top 3), not N times for all groups
+    expect(groupRankingRepository.getLatestRankingsForGroup).toHaveBeenCalledTimes(3)
+  })
+
+  it('returns empty groups array when no summaries have userIsRanked: true', async () => {
+    vi.mocked(prodeGroupRepository.findProdeGroupsByOwner).mockResolvedValue([group1, group2])
+    vi.mocked(groupRankingRepository.getGroupRankingSummaries).mockResolvedValue([
+      { groupId: group1.id, rankedCount: 3, userIsRanked: false },
+      { groupId: group2.id, rankedCount: 2, userIsRanked: false },
+    ])
+
+    const result = await getLeaderboardPeekData(TOURNAMENT_ID, 'en')
+
+    expect(result.groups).toEqual([])
+    // userHasGroups is true — user belongs to groups, just not ranked yet
+    expect(result.userHasGroups).toBe(true)
+    // Phase 2 should never be reached
+    expect(groupRankingRepository.getLatestRankingsForGroup).not.toHaveBeenCalled()
   })
 })
 
