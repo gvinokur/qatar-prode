@@ -124,6 +124,15 @@ No call graph changes. Existing flows remain identical — only query behavior c
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: getAllTournamentGames tests added to game-repository.test.ts
+**Date:** 2026-05-09
+**Reason:** The plan targeted `app/db/__tests__/game-repository-ordering.test.ts` for `getAllTournamentGames` tests. During implementation it was cleaner to co-locate all new draft-filtering tests in the existing `__tests__/db/game-repository.test.ts`, which already had the inline mock pattern and `findGamesForDashboard` tests. The ordering test file tests a different concern (sort order); adding draft-filtering tests there would split related coverage across files.
+**Change:** 4 new `getAllTournamentGames` tests added to `__tests__/db/game-repository.test.ts` (not `app/db/__tests__/game-repository-ordering.test.ts`). `app/db/__tests__/game-repository-ordering.test.ts` was left unmodified.
+
+---
+
 ## Testing Strategy
 
 - **Unit tests** (mock-based): Verify null-result handling and existing behaviour is preserved.
