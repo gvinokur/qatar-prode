@@ -6,7 +6,7 @@ import { findGameGuessesByUserId } from '../db/game-guess-repository'
 import { findTeamInTournament } from '../db/team-repository'
 import { findTournamentById } from '../db/tournament-repository'
 import { findProdeGroupsByOwner, findProdeGroupsByParticipant } from '../db/prode-group-repository'
-import { getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
+import { getGroupRankingSummaries, getLatestRankingsForGroup, getLatestTwoGroupRankingSnapshots } from '../db/group-ranking-repository'
 import { getFavoriteGroupIds } from '../db/favorite-groups-repository'
 import { getTournamentPredictionCompletion } from '../db/tournament-prediction-completion-repository'
 import { findPlayoffRoundsWithAvailabilityInfo, findPlayoffRoundBy } from '../db/tournament-playoff-repository'
@@ -715,45 +715,39 @@ export async function getLeaderboardPeekData(
 
   if (allGroups.length === 0) return { groups: [], userHasGroups: false, allGroupNames: [] }
 
-  // Fetch latest rankings for all groups concurrently
-  const rankingsPerGroup = await Promise.all(
-    allGroups.map((g) => getLatestRankingsForGroup(g.id, tournamentId))
+  // Phase 1: lightweight summary — 2 DB round-trips for all N groups.
+  // Returns ranked member count + user presence per group, replacing N full-ranking queries.
+  const summaries = await getGroupRankingSummaries(
+    allGroups.map((g) => g.id),
+    user.id,
+    tournamentId
   )
 
-  // Build group candidates: only groups where the current user has a ranking entry
-  const candidates: Array<{
-    group: (typeof allGroups)[number]
-    rankings: Awaited<ReturnType<typeof getLatestRankingsForGroup>>
-    userRankEntry: { userId: string; userName: string; rank: number; score: number }
-  }> = []
+  // Filter: only groups where the current user has a ranking entry
+  const rankedSummaries = summaries.filter((s) => s.userIsRanked)
 
-  for (let i = 0; i < allGroups.length; i++) {
-    const rankings = rankingsPerGroup[i]
-    const userEntry = rankings.find((r) => r.userId === user.id)
-    if (userEntry) {
-      candidates.push({ group: allGroups[i], rankings, userRankEntry: userEntry })
-    }
-  }
-
-  // Sort: favorites first (by member count desc), then non-favorites (by member count desc)
+  // Sort: favorites first (by ranked member count desc), then non-favorites (by ranked member count desc)
   const favoriteSet = new Set(favoriteGroupIds)
-  candidates.sort((a, b) => {
-    const aFav = favoriteSet.has(a.group.id) ? 1 : 0
-    const bFav = favoriteSet.has(b.group.id) ? 1 : 0
+  rankedSummaries.sort((a, b) => {
+    const aFav = favoriteSet.has(a.groupId) ? 1 : 0
+    const bFav = favoriteSet.has(b.groupId) ? 1 : 0
     if (bFav !== aFav) return bFav - aFav
-    return b.rankings.length - a.rankings.length
+    return b.rankedCount - a.rankedCount
   })
-  const topCandidates = candidates.slice(0, MAX_PEEK_GROUPS)
 
-  if (topCandidates.length === 0) return { groups: [], userHasGroups, allGroupNames }
+  const topSummaries = rankedSummaries.slice(0, MAX_PEEK_GROUPS)
 
-  // Fetch rank change snapshots for top 3 groups concurrently
-  const snapshotResults = await Promise.all(
-    topCandidates.map((c) => getLatestTwoGroupRankingSnapshots(user.id, c.group.id, tournamentId))
-  )
+  if (topSummaries.length === 0) return { groups: [], userHasGroups, allGroupNames }
 
-  const groups: GroupPeekData[] = topCandidates.map((candidate, idx) => {
-    const { group, rankings, userRankEntry } = candidate
+  // Phase 2: fetch full rankings + rank-change snapshots only for the top 3 groups, in parallel.
+  const [rankingsForTop, snapshotResults] = await Promise.all([
+    Promise.all(topSummaries.map((s) => getLatestRankingsForGroup(s.groupId, tournamentId))),
+    Promise.all(topSummaries.map((s) => getLatestTwoGroupRankingSnapshots(user.id, s.groupId, tournamentId))),
+  ])
+
+  const groups: GroupPeekData[] = topSummaries.map((summary, idx) => {
+    const group = allGroupsMap.get(summary.groupId)!
+    const rankings = rankingsForTop[idx]
     const snapshots = snapshotResults[idx]
 
     // Compute rank change: previous rank minus current rank (positive = moved up)
@@ -765,7 +759,8 @@ export async function getLeaderboardPeekData(
     // Build 3-row window around the user using array index (not rank value)
     // to guarantee exactly 3 rows even when ties exist at adjacent ranks
     const total = rankings.length
-    const userRank = userRankEntry.rank
+    const userEntry = rankings.find((r) => r.userId === user.id)!
+    const userRank = userEntry.rank
     const userIndex = rankings.findIndex((r) => r.userId === user.id)
 
     let sliceStart: number

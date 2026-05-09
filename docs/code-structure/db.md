@@ -381,6 +381,8 @@ Repository for the `group_rankings` table. Stores daily rank snapshots per user/
   Calls: db
 - **getLatestRankingsForGroupWithChange(groupId: string, tournamentId: string)**: `Promise<{ userId: string; currentRank: number; previousRank: number | null; currentScore: number }[]>` — All users' ranks at the latest snapshot date, paired with each user's rank at the penultimate snapshot date (for rank-change computation). Three-step query: get 2 most-recent distinct dates, fetch latest rows, fetch penultimate rows (if exists), join via Map. Returns empty array when no snapshots exist; `previousRank` is null for users absent from the penultimate snapshot.
   Calls: db
+- **getGroupRankingSummaries(groupIds: string[], userId: string, tournamentId: string)**: `Promise<{ groupId: string; rankedCount: number; userIsRanked: boolean }[]>` — Lightweight summary of group rankings for a user and tournament. Makes 2 DB round-trips for all N groups: (1) `MAX(snapshot_date)` per group; (2) `(group_id, user_id, snapshot_date)` rows at those dates. Aggregates in JavaScript to return ranked member count and user presence per group. Groups with no snapshots are absent from the result. Used by `getLeaderboardPeekData` as Phase 1 survey (replaces N per-group full-ranking queries).
+  Calls: db
 - **findGroupsForUsers(userIds: string[])**: `Promise<{ id: string }[]>` — Distinct group IDs where at least one member (owner or participant) is in `userIds`. Returns empty array for empty input. Uses LEFT JOIN on `prode_group_participants`.
   Calls: db
 
