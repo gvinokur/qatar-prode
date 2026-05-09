@@ -668,7 +668,7 @@ Key flows:
         → renders games list (✅/❌/🕐 per gameStatus) with 5 visual states
         → "View full statistics" button → /${locale}/tournaments/${tournamentId}/stats
 
-32. Leaderboard Peek data flow (Story #319; updated #342, #358)
+32. Leaderboard Peek data flow (Story #319; updated #342, #358, #413)
     TournamentHubPage (hub page) [renders via Suspense] TournamentHubLeaderboardPeek (Server)
       isAuthenticated={!!user} passed as prop (user already fetched by hub page)
     TournamentHubLeaderboardPeek (Server):
@@ -676,8 +676,11 @@ Key flows:
       → calls getLeaderboardPeekData(tournamentId, locale) only when isAuthenticated
           → getLoggedInUser
           → findProdeGroupsByOwner(userId) + findProdeGroupsByParticipant(userId) + getFavoriteGroupIds(userId)
-          → getLatestRankingsForGroup(groupId, tournamentId) ×N groups (concurrent)
-          → getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3 groups (concurrent)
+          → [Phase 1 — survey] getGroupRankingSummaries(groupIds, userId, tournamentId) — 2 DB round-trips for all N groups
+              → filters to groups where userIsRanked=true, sorts (favorites first, then rankedCount desc), takes top 3
+          → [Phase 2 — full data, top 3 only, concurrent]
+              getLatestRankingsForGroup(groupId, tournamentId) ×3
+              getLatestTwoGroupRankingSnapshots(userId, groupId, tournamentId) ×3
           → returns LeaderboardPeekResult { groups: GroupPeekData[], userHasGroups, allGroupNames }
       → [branch 1: !userHasGroups] DashboardCard → SocialHubCard [Client]
       → [branch 2: userHasGroups && no ranking data] DashboardCard → PreTournamentGroupsPreview [Client]
