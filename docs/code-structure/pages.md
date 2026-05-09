@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-08
+**Last updated:** 2026-05-09
 
 ---
 
@@ -200,8 +200,8 @@ User tournament statistics page showing performance, accuracy, boost analysis, a
 
 - **generateMetadata({ params }: { params: Promise<{ id: string }> })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{sidebar.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentStatsPage(props: Props)**: `JSX.Element` — [Server] Fetches game guesses, tournament guesses, boost allocations, and score history (tournament via cache); calculates performance and accuracy metrics; renders stats with BreadcrumbList JSON-LD.
-  Calls: getLoggedInUser, findTournamentByIdCached, getLocale, getTranslations, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, findGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers, buildBreadcrumbListJsonLd
+- **TournamentStatsPage(props: Props)**: `JSX.Element` — [Server] Counts game guesses via SQL COUNT, fetches tournament guesses, boost allocations, and score history (tournament via cache); calculates performance and accuracy metrics; renders stats with BreadcrumbList JSON-LD.
+  Calls: getLoggedInUser, findTournamentByIdCached, getLocale, getTranslations, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, countGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers, buildBreadcrumbListJsonLd
   Renders: JsonLd, StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
 
 ### app/[locale]/tournaments/[id]/awards/page.tsx
