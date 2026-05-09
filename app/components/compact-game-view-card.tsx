@@ -284,7 +284,8 @@ export default function CompactGameViewCard({
                   {!specificProps.isGameGuess && !disabled && (
                     <Tooltip title={publishable ? t('game.isPublished') : t('game.incompleteResult')}>
                       {/* span wrapper required so Tooltip works when Checkbox is disabled */}
-                      <span onClick={(e) => e.stopPropagation()}>
+                      {/* role="presentation" + onKeyDown: structural wrapper only, not interactive */}
+                      <span role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                         <Checkbox
                           size="medium"
                           color={isDraft ? 'warning' : 'success'}
