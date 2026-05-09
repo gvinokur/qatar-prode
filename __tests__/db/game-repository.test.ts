@@ -49,6 +49,12 @@ vi.mock('react', async () => {
   };
 });
 
+// Mock kysely helpers so jsonObjectFrom/jsonArrayFrom are safe to call in expression builder callbacks
+vi.mock('kysely/helpers/postgres', () => ({
+  jsonObjectFrom: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue(null) }),
+  jsonArrayFrom: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue(null) }),
+}));
+
 describe('Game Repository', () => {
   const mockDb = vi.mocked(db);
   const mockGame = testFactories.game();
@@ -743,6 +749,39 @@ describe('Game Repository', () => {
 
       await expect(findGamesForDashboard('tournament-1')).rejects.toThrow('DB timeout');
     });
+
+    it('applies is_draft = false filter inside the game_results correlated subquery', async () => {
+      // This test invokes the select expression-builder callback to verify that
+      // the .where('game_results.is_draft', '=', false) line is reached.
+      const mockInnerSubquery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        whereRef: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        selectAll: vi.fn().mockReturnThis(),
+      };
+      const mockEb = { selectFrom: vi.fn().mockReturnValue(mockInnerSubquery) };
+
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockImplementation((cb: (_eb: typeof mockEb) => unknown) => {
+          if (typeof cb === 'function') cb(mockEb as any);
+          return mockQuery;
+        }),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await findGamesForDashboard('tournament-1');
+
+      const isDraftFilterCall = (mockInnerSubquery.where as ReturnType<typeof vi.fn>).mock.calls.find(
+        ([col, op, val]: [string, string, boolean]) =>
+          col === 'game_results.is_draft' && op === '=' && val === false
+      );
+      expect(isDraftFilterCall).toBeDefined();
+    });
   });
 
   describe('getAllTournamentGames', () => {
@@ -794,6 +833,39 @@ describe('Game Repository', () => {
       mockDb.selectFrom.mockReturnValue(mockQuery as any);
 
       await expect(getAllTournamentGames('tournament-1')).rejects.toThrow('Connection lost');
+    });
+
+    it('applies is_draft = false filter inside the game_results correlated subquery', async () => {
+      // This test invokes the select expression-builder callback to verify that
+      // the .where('game_results.is_draft', '=', false) line is reached.
+      const mockInnerSubquery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        whereRef: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        selectAll: vi.fn().mockReturnThis(),
+      };
+      const mockEb = { selectFrom: vi.fn().mockReturnValue(mockInnerSubquery) };
+
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockImplementation((cb: (_eb: typeof mockEb) => unknown) => {
+          if (typeof cb === 'function') cb(mockEb as any);
+          return mockQuery;
+        }),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await getAllTournamentGames('tournament-1');
+
+      const isDraftFilterCall = (mockInnerSubquery.where as ReturnType<typeof vi.fn>).mock.calls.find(
+        ([col, op, val]: [string, string, boolean]) =>
+          col === 'game_results.is_draft' && op === '=' && val === false
+      );
+      expect(isDraftFilterCall).toBeDefined();
     });
   });
 
