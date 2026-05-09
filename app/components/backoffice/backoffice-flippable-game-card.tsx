@@ -7,6 +7,7 @@ import BackofficeGameResultEditControls from './backoffice-game-result-edit-cont
 import CompactGameViewCard from '../compact-game-view-card';
 import { ExtendedGameData } from '../../definitions';
 import { Team } from '../../db/tables-definition';
+import { isGameResultPublishable } from '../../utils/game-result-utils';
 
 interface BackofficeFlippableGameCardProps {
   // Game data
@@ -141,6 +142,9 @@ export default function BackofficeFlippableGameCard({
     await onPublishToggle(game.id, !isCurrentlyPublished);
   };
 
+  // Publish is only allowed when the result is complete
+  const canPublish = isGameResultPublishable(game.gameResult, isPlayoffs);
+
   // Get team names
   const homeTeam = game.home_team ? teamsMap[game.home_team] : null;
   const awayTeam = game.away_team ? teamsMap[game.away_team] : null;
@@ -199,6 +203,7 @@ export default function BackofficeFlippableGameCard({
             awayPenaltyScore={game.gameResult?.away_penalty_score}
             onEditClick={handleEditStart}
             onPublishClick={handlePublishToggle}
+            canPublish={canPublish}
           />
         </Box>
 

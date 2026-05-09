@@ -808,6 +808,58 @@ describe('Backoffice Actions', () => {
       expect(mockUpdateGameResult).toHaveBeenCalledWith(mockGame.id, { ...newResult, is_draft: true });
       expect(mockUpdateGameResult).toHaveBeenCalledTimes(2);
     });
+
+    it('throws when trying to publish a new result with missing away score', async () => {
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      const incompleteResult = { ...mockGameResult, away_score: undefined, is_draft: false };
+      const gameWithIncompleteResult = { ...mockExtendedGameData, gameResult: incompleteResult };
+
+      await expect(saveGameResults([gameWithIncompleteResult])).rejects.toThrow(
+        'Cannot publish incomplete result'
+      );
+      expect(mockCreateGameResult).not.toHaveBeenCalled();
+    });
+
+    it('throws when trying to publish an existing result with missing home score', async () => {
+      const incompleteResult = { ...mockGameResult, home_score: undefined, is_draft: false };
+      const existingDraftResult = { ...mockGameResult, is_draft: true };
+      mockFindGameResultByGameId.mockResolvedValue(existingDraftResult);
+      const gameWithIncompleteResult = { ...mockExtendedGameData, gameResult: incompleteResult };
+
+      await expect(saveGameResults([gameWithIncompleteResult])).rejects.toThrow(
+        'Cannot publish incomplete result'
+      );
+    });
+
+    it('throws when trying to publish a tied playoff game without penalty scores', async () => {
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      const tiedPlayoffResult = {
+        ...mockGameResult,
+        home_score: 1,
+        away_score: 1,
+        home_penalty_score: undefined,
+        away_penalty_score: undefined,
+        is_draft: false,
+      };
+      const playoffGame = {
+        ...mockExtendedGameData,
+        playoffStage: { tournament_playoff_round_id: 'round1', round_name: 'Final', is_final: true, is_third_place: false },
+        gameResult: tiedPlayoffResult,
+      };
+
+      await expect(saveGameResults([playoffGame])).rejects.toThrow(
+        'Cannot publish incomplete result'
+      );
+    });
+
+    it('does not throw when draft-saving an incomplete result', async () => {
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      const draftIncomplete = { ...mockGameResult, away_score: undefined, is_draft: true };
+      const gameWithDraftIncomplete = { ...mockExtendedGameData, gameResult: draftIncomplete };
+
+      await expect(saveGameResults([gameWithDraftIncomplete])).resolves.not.toThrow();
+      expect(mockCreateGameResult).toHaveBeenCalledWith(draftIncomplete);
+    });
   });
 
   describe('saveGamesData', () => {

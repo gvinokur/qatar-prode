@@ -33,6 +33,7 @@
     "locked": "Bloqueado",
     "closesIn": "Cierra en {countdown}",
     "isPublished": "¿Está publicado?",
+    "incompleteResult": "No se puede publicar: los marcadores están incompletos",
     "inPlayOrRecentlyFinished": "EN JUEGO O RECIÉN TERMINADO",
     "yourPrediction": "Tu Predicción",
     "noPrediction": "Sin Predicción",

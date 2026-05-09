@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import { testFactories } from '@/__tests__/db/test-factories';
 import BackofficeFlippableGameCard from '@/app/components/backoffice/backoffice-flippable-game-card';
+import CompactGameViewCard from '@/app/components/compact-game-view-card';
 import { ExtendedGameData } from '@/app/definitions';
 import { Team } from '@/app/db/tables-definition';
 
@@ -1089,6 +1090,86 @@ describe('BackofficeFlippableGameCard', () => {
       const calledWith = mockOnSave.mock.calls[0][0];
       expect(calledWith.gameResult?.home_penalty_score).toBeUndefined();
       expect(calledWith.gameResult?.away_penalty_score).toBeUndefined();
+    });
+  });
+
+  describe('canPublish derivation', () => {
+    it('passes canPublish=false to CompactGameViewCard when home score is missing', () => {
+      const gameWithIncompleteResult: ExtendedGameData = {
+        ...baseExtendedGame,
+        gameResult: testFactories.gameResult({
+          game_id: baseExtendedGame.id,
+          home_score: undefined,
+          away_score: 1,
+          is_draft: true,
+        }),
+      };
+
+      renderWithTheme(
+        <BackofficeFlippableGameCard
+          game={gameWithIncompleteResult}
+          teamsMap={teamsMap}
+          isPlayoffs={false}
+          onSave={mockOnSave}
+          onPublishToggle={mockOnPublishToggle}
+        />
+      );
+
+      const lastCall = vi.mocked(CompactGameViewCard).mock.calls.at(-1)![0];
+      expect(lastCall.canPublish).toBe(false);
+    });
+
+    it('passes canPublish=false to CompactGameViewCard when tied playoff has no penalty scores', () => {
+      const tiedPlayoffGame: ExtendedGameData = {
+        ...baseExtendedGame,
+        playoffStage: { tournament_playoff_round_id: 'round-1', round_name: 'Final', is_final: true, is_third_place: false },
+        gameResult: testFactories.gameResult({
+          game_id: baseExtendedGame.id,
+          home_score: 1,
+          away_score: 1,
+          home_penalty_score: undefined,
+          away_penalty_score: undefined,
+          is_draft: true,
+        }),
+      };
+
+      renderWithTheme(
+        <BackofficeFlippableGameCard
+          game={tiedPlayoffGame}
+          teamsMap={teamsMap}
+          isPlayoffs={true}
+          onSave={mockOnSave}
+          onPublishToggle={mockOnPublishToggle}
+        />
+      );
+
+      const lastCall = vi.mocked(CompactGameViewCard).mock.calls.at(-1)![0];
+      expect(lastCall.canPublish).toBe(false);
+    });
+
+    it('passes canPublish=true to CompactGameViewCard when all required scores are set', () => {
+      const completeGame: ExtendedGameData = {
+        ...baseExtendedGame,
+        gameResult: testFactories.gameResult({
+          game_id: baseExtendedGame.id,
+          home_score: 2,
+          away_score: 1,
+          is_draft: false,
+        }),
+      };
+
+      renderWithTheme(
+        <BackofficeFlippableGameCard
+          game={completeGame}
+          teamsMap={teamsMap}
+          isPlayoffs={false}
+          onSave={mockOnSave}
+          onPublishToggle={mockOnPublishToggle}
+        />
+      );
+
+      const lastCall = vi.mocked(CompactGameViewCard).mock.calls.at(-1)![0];
+      expect(lastCall.canPublish).toBe(true);
     });
   });
 });

@@ -58,6 +58,8 @@ type GameResultProps = {
   isGameFixture: false
   onPublishClick?: (_gameNumber: number) => Promise<void>
   isDraft?: boolean
+  /** When false, the publish toggle is disabled with an explanatory tooltip. Defaults to true. */
+  canPublish?: boolean
   homePenaltyScore?: number
   awayPenaltyScore?: number
 } & SharedProps
@@ -120,6 +122,10 @@ export default function CompactGameViewCard({
 
   const isDraft = (!specificProps.isGameGuess && specificProps.isDraft)
   const boostType = specificProps.isGameGuess ? specificProps.boostType : null
+  // canPublish is only relevant for GameResultProps; default to true for all other variants
+  const publishable = !specificProps.isGameGuess && !specificProps.isGameFixture
+    ? (specificProps.canPublish ?? true)
+    : true
 
   // Boost styling
   const getBoostBorderColor = () => {
@@ -276,17 +282,19 @@ export default function CompactGameViewCard({
                     </Tooltip>
                   )}
                   {!specificProps.isGameGuess && !disabled && (
-                    <Tooltip title={t('game.isPublished')}>
-                      <Checkbox
-                        size="medium"
-                        color={isDraft ? 'warning' : 'success'}
-                        checked={!isDraft}
-                        icon={publishing? <CircularProgress size={24} color={'secondary'}/> : <SaveOutlinedIcon color="error" />}
-                        checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
-                        disabled={publishing}
-                        onChange={handleDraftChange}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                    <Tooltip title={publishable ? t('game.isPublished') : t('game.incompleteResult')}>
+                      {/* span wrapper required so Tooltip works when Checkbox is disabled */}
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          size="medium"
+                          color={isDraft ? 'warning' : 'success'}
+                          checked={!isDraft}
+                          icon={publishing? <CircularProgress size={24} color={'secondary'}/> : <SaveOutlinedIcon color="error" />}
+                          checkedIcon={publishing? <CircularProgress size={24} color={'secondary'}/> :<SaveIcon />}
+                          disabled={publishing || !publishable}
+                          onChange={handleDraftChange}
+                        />
+                      </span>
                     </Tooltip>
                   )}
                   {/* Hide point overlay when result is shown in ActualResultDisplay badge to avoid duplication */}

@@ -67,6 +67,7 @@ import {
   deleteAllGameResultsByTournamentId
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
+import {isGameResultPublishable} from "../utils/game-result-utils";
 import {
   findAllGuessesForGamesWithResultsInDraft,
   updateGameGuess,
@@ -338,6 +339,7 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
 
   await Promise.all(gamesWithResults.map(async (game) => {
     if(game.gameResult) {
+      const isPlayoff = !!game.playoffStage;
       const existingResult = await findGameResultByGameId(game.id, true);
       if (existingResult) {
         // Amendment #1: If changing scores on a published result, handle specially
@@ -355,10 +357,18 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
           changedPublishedGames.push(game);
           return;
         } else {
+          // Guard: prevent publishing an incomplete result
+          if (!game.gameResult.is_draft && !isGameResultPublishable(game.gameResult, isPlayoff)) {
+            throw new Error(`Cannot publish incomplete result for game ${game.id}`)
+          }
           // Normal update (no score change or already draft)
           return await updateGameResult(game.id, game.gameResult);
         }
       } else {
+        // Guard: prevent publishing an incomplete result
+        if (!game.gameResult.is_draft && !isGameResultPublishable(game.gameResult, isPlayoff)) {
+          throw new Error(`Cannot publish incomplete result for game ${game.id}`)
+        }
         return await createGameResult(game.gameResult)
       }
     }
@@ -369,10 +379,14 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
     // Step 2: Cleanup old scores (processes draft results)
     await calculateGameScores(true, false);
 
-    // Step 3: Republish with new scores
-    await Promise.all(changedPublishedGames.map(game =>
-      updateGameResult(game.id, { ...game.gameResult, is_draft: false })
-    ));
+    // Step 3: Republish with new scores (guard: scores already validated on first save)
+    await Promise.all(changedPublishedGames.map(game => {
+      const isPlayoff = !!game.playoffStage;
+      if (!isGameResultPublishable(game.gameResult, isPlayoff)) {
+        throw new Error(`Cannot republish incomplete result for game ${game.id}`)
+      }
+      return updateGameResult(game.id, { ...game.gameResult, is_draft: false })
+    }));
 
     // Step 4: Recalculate with new scores (processes published results)
     await calculateGameScores(false, false);

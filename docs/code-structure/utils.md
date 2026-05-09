@@ -45,6 +45,12 @@ Shared urgency derivation for the active games carousel and status widgets (Qual
 - **computeStatusWidgetSeverity(msUntilLock: number)**: `StatusWidgetSeverity` — Derives deadline severity from ms remaining until prediction lock. `< 2h → 'error'`, `< 24h → 'warning'`, `< 48h → 'info'`, otherwise `'normal'`.
   Calls: *(none — pure function)*
 
+### app/utils/game-result-utils.ts
+Pure utility for validating whether a game result is complete enough to be published. Mirrors the completeness logic in `guess-utils.ts` but for admin-entered results rather than user predictions.
+
+- **isGameResultPublishable(result: GameResultNew | null | undefined, isPlayoff: boolean)**: `boolean` — Returns `false` when result is missing, home_score is null/undefined, or away_score is null/undefined. For playoff games where `home_score === away_score`, also returns `false` when either penalty score is null/undefined. Otherwise returns `true`.
+  Calls: *(none — pure function)*
+
 ### app/utils/guess-utils.ts
 Pure utility functions for evaluating game guess completeness — shared between `GamesActiveClient` (client-side delta tracking) and `getActionCenterGames` (server-side urgent-game filtering).
 

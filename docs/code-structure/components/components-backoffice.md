@@ -82,8 +82,9 @@ Table for managing all tournament games with create/edit/delete. [Client] game C
 
 ### app/components/backoffice/backoffice-flippable-game-card.tsx
 Flippable card showing game or edit form with 3D animation. [Client] interactive game card with flip animation.
-- **BackofficeFlippableGameCard({ game, teamsMap, isPlayoffs, onSave, onPublishToggle }: BackofficeFlippableGameCardProps)**: `JSX.Element` — [Client] Shows game view on front, edit controls on back with smooth 3D flip animation.
+- **BackofficeFlippableGameCard({ game, teamsMap, isPlayoffs, onSave, onPublishToggle }: BackofficeFlippableGameCardProps)**: `JSX.Element` — [Client] Shows game view on front, edit controls on back with smooth 3D flip animation. Derives `canPublish` from `isGameResultPublishable(game.gameResult, isPlayoffs)` and passes it to `CompactGameViewCard` to disable the publish toggle when scores are incomplete.
   Uses: useTheme, useMediaQuery, useReducedMotion, useRef, useEffect, useState
+  Calls: isGameResultPublishable
   Renders: CompactGameViewCard, BackofficeGameResultEditControls, Card, Box
 
 ### app/components/backoffice/users-tab.tsx
