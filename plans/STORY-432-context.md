@@ -9,9 +9,9 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/437
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** review-ready
 - **Plan File:** plans/STORY-432-plan.md
 - **Task File:** (fill when implementation starts)
 
 ## Quick Summary
-(fill after drafting plan — 1 paragraph describing what this story does)
+Two repository functions — `findGamesForDashboard` and `getAllTournamentGames` — fetch game results via a correlated subquery without filtering `is_draft = false`, causing draft scores to leak to users on the hub games widget and the games page. The fix adds a single `.where('game_results.is_draft', '=', false)` clause to the `game_results` subquery in each function so that games with only a draft result show as score-less to users, while backoffice views remain unaffected.

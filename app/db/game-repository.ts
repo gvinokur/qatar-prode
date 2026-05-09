@@ -451,6 +451,7 @@ export const findGamesForDashboard = cache(async (tournamentId: string) => {
       jsonObjectFrom(
         eb.selectFrom('game_results')
           .whereRef('game_results.game_id', '=', 'games.id')
+          .where('game_results.is_draft', '=', false)
           .selectAll()
       ).as('gameResult')
     ])
@@ -505,6 +506,7 @@ export const getAllTournamentGames = cache(async (tournamentId: string) => {
       jsonObjectFrom(
         eb.selectFrom('game_results')
           .whereRef('game_results.game_id', '=', 'games.id')
+          .where('game_results.is_draft', '=', false)
           .selectAll()
       ).as('gameResult')
     ])
