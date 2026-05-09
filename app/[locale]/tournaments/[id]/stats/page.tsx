@@ -4,7 +4,7 @@ import { Metadata } from 'next'
 import { Box } from "../../../../components/mui-wrappers";
 import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
-import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, findGameGuessesByUserId } from "../../../../db/game-guess-repository";
+import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, countGameGuessesByUserId } from "../../../../db/game-guess-repository";
 import { findTournamentGuessByUserIdTournament } from "../../../../db/tournament-guess-repository";
 import { getGameCountsForTournament } from "../../../../db/game-repository";
 import { getScoreHistoryForUsers } from "../../../../db/score-history-repository";
@@ -104,9 +104,8 @@ export default async function TournamentStatsPage(props: Props) {
   }
 
   // Calculate Prediction Accuracy stats
-  // Get actual game prediction count from game guesses
-  const gameGuessesArray = user ? await findGameGuessesByUserId(user.id, tournamentId) : []
-  const totalPredictionsMade = gameGuessesArray.length
+  // Get actual game prediction count via SQL COUNT(*) query
+  const totalPredictionsMade = await countGameGuessesByUserId(user.id, tournamentId)
 
   // Get total games and played games via efficient COUNT query (1 row instead of all game rows)
   const { total: totalGamesAvailable, played: totalGamesPlayed } = await getGameCountsForTournament(tournamentId)

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-09
 
 ---
 
@@ -74,6 +74,7 @@ Repository for game_guesses table. Handles user predictions with boost tracking 
 - **updateGameGuess(id: string, update: Updateable<GameGuessTable>)**: `Promise<GameGuess>` — Updates an existing game guess.
 - **deleteGameGuess(id: string)**: `Promise<GameGuess>` — Deletes a game guess.
 - **findGameGuessesByUserId(userId: string, tournamentId: string)**: `Promise<GameGuess[]>` — Returns all game guesses for user in tournament (cached).
+- **countGameGuessesByUserId(userId: string, tournamentId: string)**: `Promise<number>` — Returns count of game guesses for user in tournament via SQL COUNT(*) (cached).
 - **updateGameGuessByGameId(gameId: string, userId: string, update: object)**: `Promise<GameGuess | undefined>` — Updates home/away scores for a specific game guess.
 - **updateOrCreateGuess(guess: GameGuessNew)**: `Promise<GameGuess>` — Upserts a game guess (deletes existing, creates new).
 - **legacyGetGameGuessStatisticsForUsers(userIds: string[], tournamentId: string)**: `Promise<GameStatisticForUser[]>` — Legacy SQL aggregation for game statistics; includes goal_difference_guesses count (via prediction_tier column); used for backfill and validation.

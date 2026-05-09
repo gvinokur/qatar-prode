@@ -5,6 +5,7 @@ import {
   updateGameGuess,
   deleteGameGuess,
   findGameGuessesByUserId,
+  countGameGuessesByUserId,
   updateGameGuessByGameId,
   updateOrCreateGuess,
   getGameGuessStatisticsForUsers,
@@ -155,6 +156,46 @@ describe('Game Guess Repository', () => {
         const result = await findGameGuessesByUserId('user-1', 'tournament-1');
 
         expect(result).toEqual([]);
+      });
+    });
+
+    describe('countGameGuessesByUserId', () => {
+      const buildMockCountQuery = (result: { count: string } | undefined) => ({
+        innerJoin: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(result),
+      });
+
+      it('should return the numeric count when guesses exist', async () => {
+        const mockQuery = buildMockCountQuery({ count: '3' });
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countGameGuessesByUserId('user-1', 'tournament-1');
+
+        expect(mockDb.selectFrom).toHaveBeenCalledWith('game_guesses');
+        expect(mockQuery.innerJoin).toHaveBeenCalledWith('games', 'games.id', 'game_guesses.game_id');
+        expect(mockQuery.where).toHaveBeenCalledWith('game_guesses.user_id', '=', 'user-1');
+        expect(mockQuery.where).toHaveBeenCalledWith('games.tournament_id', '=', 'tournament-1');
+        expect(result).toBe(3);
+      });
+
+      it('should return 0 when executeTakeFirst returns undefined (no matching guesses)', async () => {
+        const mockQuery = buildMockCountQuery(undefined);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countGameGuessesByUserId('user-1', 'tournament-1');
+
+        expect(result).toBe(0);
+      });
+
+      it('should return 0 when executeTakeFirst returns undefined for a non-existent userId', async () => {
+        const mockQuery = buildMockCountQuery(undefined);
+        mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+        const result = await countGameGuessesByUserId('nonexistent-user', 'tournament-1');
+
+        expect(result).toBe(0);
       });
     });
 
