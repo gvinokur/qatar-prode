@@ -201,7 +201,13 @@ export default function CompactGameViewCard({
   return (
     <Card
       variant="outlined"
-      onClick={!disabled || specificProps.isGameFixture ? handleEditClick : undefined}
+      onClick={!disabled || specificProps.isGameFixture
+        ? (e: React.MouseEvent) => {
+            // Don't open edit mode when clicking the publish toggle area
+            if ((e.target as HTMLElement).closest?.('[data-publish-toggle]')) return;
+            handleEditClick();
+          }
+        : undefined}
       sx={{
         mb: 1,
         borderColor: cardBorderColor,
@@ -283,8 +289,8 @@ export default function CompactGameViewCard({
                   )}
                   {!specificProps.isGameGuess && !disabled && (
                     <Tooltip title={publishable ? t('game.isPublished') : t('game.incompleteResult')}>
-                      {/* span wrapper required so Tooltip works when Checkbox is disabled; role="group" + tabIndex satisfy S6848 */}
-                      <span role="group" tabIndex={0} aria-label={t('game.isPublished')} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                      {/* span wrapper required so Tooltip works when Checkbox is disabled; data-publish-toggle prevents card onClick from firing */}
+                      <span data-publish-toggle="true">
                         <Checkbox
                           size="medium"
                           color={isDraft ? 'warning' : 'success'}
