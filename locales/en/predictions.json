@@ -33,6 +33,7 @@
     "locked": "Locked",
     "closesIn": "Closes in {countdown}",
     "isPublished": "Is published?",
+    "incompleteResult": "Cannot publish: scores are incomplete",
     "inPlayOrRecentlyFinished": "IN PLAY OR RECENTLY FINISHED",
     "yourPrediction": "Your Prediction",
     "noPrediction": "No Prediction",

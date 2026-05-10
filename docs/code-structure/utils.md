@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-09
 
 ---
 
@@ -43,6 +43,12 @@ Shared urgency derivation for the active games carousel and status widgets (Qual
 - **computeUrgencyLevel(data: { mode: string; games: Array<{ game_date: Date }> })**: `UrgencyLevel` — Maps carousel mode + nearest game deadline to a display urgency. `mode !== 'urgent'` → `'safe'` (fallback) or `'empty'`. `mode === 'urgent'`: finds minimum deadline across games → `< 2h → 'critical'`, `< 24h → 'high'`, `≤ 48h → 'medium'`, otherwise `'safe'`.
   Calls: calculateDeadline
 - **computeStatusWidgetSeverity(msUntilLock: number)**: `StatusWidgetSeverity` — Derives deadline severity from ms remaining until prediction lock. `< 2h → 'error'`, `< 24h → 'warning'`, `< 48h → 'info'`, otherwise `'normal'`.
+  Calls: *(none — pure function)*
+
+### app/utils/game-result-utils.ts
+Pure utility for validating whether a game result is complete enough to be published. Mirrors the completeness logic in `guess-utils.ts` but for admin-entered results rather than user predictions.
+
+- **isGameResultPublishable(result: GameResultNew | null | undefined, isPlayoff: boolean)**: `boolean` — Returns `false` when result is missing, home_score is null/undefined, or away_score is null/undefined. For playoff games where `home_score === away_score`, also returns `false` when either penalty score is null/undefined. Otherwise returns `true`.
   Calls: *(none — pure function)*
 
 ### app/utils/guess-utils.ts

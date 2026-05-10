@@ -17,8 +17,8 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: findTournamentByName, findTeamInTournament, createPlayer, updatePlayer
 - **generateDbTournament(name, deletePrevious)**: `Promise<void>` — Creates a full tournament from seed data.
   Calls: findTournamentByName, deleteDBTournamentTree, createTournament, getTeamByName, createTeam, createTournamentTeam, createTournamentGroup, createTournamentGroupTeam, createPlayoffRound, createGame, createTournamentGroupGame, createPlayoffRoundGame
-- **saveGameResults(gamesWithResults)**: `Promise<void>` — Saves game results with special handling when a published result changes.
-  Calls: findGameResultByGameId, updateGameResult, createGameResult, calculateGameScores
+- **saveGameResults(gamesWithResults)**: `Promise<void>` — Saves game results with special handling when a published result changes. Throws if any result is being published (`is_draft: false`) but fails `isGameResultPublishable` (missing scores or tied playoff without penalty scores).
+  Calls: findGameResultByGameId, updateGameResult, createGameResult, calculateGameScores, isGameResultPublishable
 - **saveGamesData(games)**: `Promise<void>` — Saves game scheduling data (teams, dates).
   Calls: updateGame
 - **calculateAndSavePlayoffGamesForTournament(tournamentId)**: `Promise<void>` — Calculates playoff team assignments from group standings.
