@@ -13,6 +13,7 @@ import {
   findGamesAroundCurrentTime,
   findGamesInNext24Hours,
   findGamesForDashboard,
+  getAllTournamentGames,
 } from '../../app/db/game-repository';
 import { db } from '../../app/db/database';
 import { testFactories } from './test-factories';
@@ -47,6 +48,12 @@ vi.mock('react', async () => {
     cache: vi.fn((fn) => fn),
   };
 });
+
+// Mock kysely helpers so jsonObjectFrom/jsonArrayFrom are safe to call in expression builder callbacks
+vi.mock('kysely/helpers/postgres', () => ({
+  jsonObjectFrom: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue(null) }),
+  jsonArrayFrom: vi.fn().mockReturnValue({ as: vi.fn().mockReturnValue(null) }),
+}));
 
 describe('Game Repository', () => {
   const mockDb = vi.mocked(db);
@@ -661,6 +668,204 @@ describe('Game Repository', () => {
       );
       const floor: Date = deadlineFloorCalls[0][2];
       expect(openGame.game_date.getTime()).toBeGreaterThan(floor.getTime());
+    });
+
+    it('passes through a game with a published result (is_draft: false) unchanged', async () => {
+      const publishedGame = {
+        ...testFactories.game({ id: 'game-pub' }),
+        gameResult: { game_id: 'game-pub', home_score: 2, away_score: 1, is_draft: false },
+      };
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([publishedGame]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findGamesForDashboard('tournament-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].gameResult).toEqual({ game_id: 'game-pub', home_score: 2, away_score: 1, is_draft: false });
+    });
+
+    it('returns gameResult as null for a game with only a draft result (draft filtered at DB level)', async () => {
+      // After the fix, the DB subquery returns no row when is_draft = true only exists,
+      // so jsonObjectFrom produces null — simulated here by what execute() returns.
+      const draftOnlyGame = {
+        ...testFactories.game({ id: 'game-draft' }),
+        gameResult: null,
+      };
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([draftOnlyGame]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findGamesForDashboard('tournament-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].gameResult).toBeNull();
+    });
+
+    it('passes through mixed results: published game has score, draft-only game has null gameResult', async () => {
+      const publishedGame = {
+        ...testFactories.game({ id: 'game-1' }),
+        gameResult: { game_id: 'game-1', home_score: 3, away_score: 0, is_draft: false },
+      };
+      const draftOnlyGame = {
+        ...testFactories.game({ id: 'game-2' }),
+        gameResult: null,
+      };
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([publishedGame, draftOnlyGame]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findGamesForDashboard('tournament-1');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].gameResult).not.toBeNull();
+      expect(result[1].gameResult).toBeNull();
+    });
+
+    it('propagates database errors to the caller', async () => {
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockRejectedValue(new Error('DB timeout')),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await expect(findGamesForDashboard('tournament-1')).rejects.toThrow('DB timeout');
+    });
+
+    it('applies is_draft = false filter inside the game_results correlated subquery', async () => {
+      // This test invokes the select expression-builder callback to verify that
+      // the .where('game_results.is_draft', '=', false) line is reached.
+      const mockInnerSubquery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        whereRef: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        selectAll: vi.fn().mockReturnThis(),
+      };
+      const mockEb = { selectFrom: vi.fn().mockReturnValue(mockInnerSubquery) };
+
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockImplementation((cb: (_eb: typeof mockEb) => unknown) => {
+          if (typeof cb === 'function') cb(mockEb as any);
+          return mockQuery;
+        }),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await findGamesForDashboard('tournament-1');
+
+      const isDraftFilterCall = (mockInnerSubquery.where as ReturnType<typeof vi.fn>).mock.calls.find(
+        ([col, op, val]: [string, string, boolean]) =>
+          col === 'game_results.is_draft' && op === '=' && val === false
+      );
+      expect(isDraftFilterCall).toBeDefined();
+    });
+  });
+
+  describe('getAllTournamentGames', () => {
+    it('returns empty array when tournament has no games', async () => {
+      const mockQuery = createMockSelectQuery([]);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getAllTournamentGames('tournament-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns gameResult as null for a game with only a draft result (draft filtered at DB level)', async () => {
+      const draftOnlyGame = {
+        ...testFactories.game({ id: 'game-draft' }),
+        gameResult: null,
+      };
+      const mockQuery = createMockSelectQuery([draftOnlyGame]);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getAllTournamentGames('tournament-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].gameResult).toBeNull();
+    });
+
+    it('passes through mixed results: published scores visible, draft-only games have null gameResult', async () => {
+      const publishedGame = {
+        ...testFactories.game({ id: 'game-pub' }),
+        gameResult: { game_id: 'game-pub', home_score: 1, away_score: 1, is_draft: false },
+      };
+      const draftOnlyGame = {
+        ...testFactories.game({ id: 'game-draft' }),
+        gameResult: null,
+      };
+      const mockQuery = createMockSelectQuery([publishedGame, draftOnlyGame]);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await getAllTournamentGames('tournament-1');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].gameResult).not.toBeNull();
+      expect(result[1].gameResult).toBeNull();
+    });
+
+    it('propagates database errors to the caller', async () => {
+      const mockQuery = createMockSelectQuery([]);
+      mockQuery.execute.mockRejectedValue(new Error('Connection lost'));
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await expect(getAllTournamentGames('tournament-1')).rejects.toThrow('Connection lost');
+    });
+
+    it('applies is_draft = false filter inside the game_results correlated subquery', async () => {
+      // This test invokes the select expression-builder callback to verify that
+      // the .where('game_results.is_draft', '=', false) line is reached.
+      const mockInnerSubquery = {
+        innerJoin: vi.fn().mockReturnThis(),
+        whereRef: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        selectAll: vi.fn().mockReturnThis(),
+      };
+      const mockEb = { selectFrom: vi.fn().mockReturnValue(mockInnerSubquery) };
+
+      const mockQuery = {
+        selectAll: vi.fn().mockReturnThis(),
+        select: vi.fn().mockImplementation((cb: (_eb: typeof mockEb) => unknown) => {
+          if (typeof cb === 'function') cb(mockEb as any);
+          return mockQuery;
+        }),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      await getAllTournamentGames('tournament-1');
+
+      const isDraftFilterCall = (mockInnerSubquery.where as ReturnType<typeof vi.fn>).mock.calls.find(
+        ([col, op, val]: [string, string, boolean]) =>
+          col === 'game_results.is_draft' && op === '=' && val === false
+      );
+      expect(isDraftFilterCall).toBeDefined();
     });
   });
 
