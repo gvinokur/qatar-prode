@@ -158,7 +158,7 @@ Game prediction scoring calculation with three tiers: exact score (3pt), goal di
 ### app/utils/group-position-calculator.ts
 Group stage team ranking calculator implementing FIFA tiebreaker rules and two-team head-to-head logic.
 
-- **calculateGroupPosition(teamIds, games, sortByGamesBetweenTeams)**: `TeamStats[]` — Calculates final group standings applying FIFA tiebreaker rules (points, goal difference, goals for, conduct score) with support for two-way and three-way ties.
+- **calculateGroupPosition(teamIds, games, sortByGamesBetweenTeams, conductScores)**: `TeamStats[]` — Calculates final group standings applying FIFA tiebreaker rules (points, goal difference, goals for, conduct score) with support for two-way and three-way ties. `conductScores` is an optional map of team_id → conduct_score; missing keys default to 0.
   Calls: getWinner, genericTeamStatsComparator
 - **genericTeamStatsComparator(a, b)**: `number` — Comparator function for sorting teams by complete FIFA stats hierarchy (higher score ranks better).
 - **pointsBasesTeamStatsComparator(a, b)**: `number` — Simple comparator sorting teams by points only (used in first pass for games-between-teams mode).

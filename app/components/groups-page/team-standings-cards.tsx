@@ -22,10 +22,12 @@ export default function TeamStandingsCards({
   const standings = useMemo(() => {
     if (teamStats.length === 0) return []
 
-    // Pre-sort by points DESC, then goal_difference DESC (for tiebreaking)
+    // Pre-sort by full FIFA tiebreaker chain
     const sorted = [...teamStats].sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points
-      return b.goal_difference - a.goal_difference
+      if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
+      if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for
+      return (a.conduct_score || 0) - (b.conduct_score || 0)
     })
 
     // Add ranks using competition ranking (handles ties: 1-2-2-4)
@@ -36,7 +38,9 @@ export default function TeamStandingsCards({
     if (previousTeamStats && previousTeamStats.length > 0) {
       const prevSorted = [...previousTeamStats].sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points
-        return b.goal_difference - a.goal_difference
+        if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
+        if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for
+        return (a.conduct_score || 0) - (b.conduct_score || 0)
       })
       const prevRanked = calculateRanks(prevSorted, 'points')
       previousRanks = new Map(

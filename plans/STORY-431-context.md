@@ -9,9 +9,9 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/440
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** review-ready
 - **Plan File:** plans/STORY-431-plan.md
-- **Task File:** (fill when implementation starts)
+- **Task File:** plans/STORY-431-tasks.md
 
 ## Quick Summary
 Fixes three compounding bugs that cause group standings to display incorrect rankings when admins set conduct scores: (1) `calculateGroupPosition` ignores conduct scores entirely (always starts at 0), (2) `calculateAndStoreGroupPosition` wipes admin-set conduct scores by overwriting them with 0 every time positions are recalculated, and (3) `TeamStandingsCards` client-side sort only uses points and goal_difference, ignoring goals_for and conduct_score.

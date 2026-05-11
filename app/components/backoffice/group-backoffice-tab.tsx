@@ -74,10 +74,11 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         ...game,
         resultOrGuess: game.gameResult
       })),
-      group.sort_by_games_between_teams)
+      group.sort_by_games_between_teams,
+      conductScores)
     setPositions(groupPositions)
 
-  }, [teamsMap, gamesMap, setPositions, group.sort_by_games_between_teams]);
+  }, [teamsMap, gamesMap, setPositions, group.sort_by_games_between_teams, conductScores]);
 
   const saveGamesAndRecalculate = async (newGamesMap: {[k: string]: ExtendedGameData}) => {
     await saveGameResults(Object.values(newGamesMap))

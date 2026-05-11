@@ -24,8 +24,9 @@ export interface GameWithResultOrGuess extends Game{
  *
 * @param teamIds - The Ids of the 4 teams of a given group
 * @param games - Games played by the 4 teams of the group, with the scores filled
+* @param conductScores - Optional map of team_id to conduct_score; missing keys default to 0
 */
-export const calculateGroupPosition = (teamIds: string[], games: GameWithResultOrGuess[], sortByGamesBetweenTeams = false): TeamStats[] => {
+export const calculateGroupPosition = (teamIds: string[], games: GameWithResultOrGuess[], sortByGamesBetweenTeams = false, conductScores: Record<string, number> = {}): TeamStats[] => {
   const gamesWithScores = games.filter(game =>
     (Number.isInteger(game.resultOrGuess?.home_score) && Number.isInteger(game.resultOrGuess?.away_score)))
 
@@ -34,7 +35,7 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
   const teamsStatsByTeam = Object.fromEntries(teamIds.map(teamId => [
     teamId,
     gamesWithScores.filter(game => game.home_team === teamId|| game.away_team === teamId)
-      .reduce(teamStatsGameReducer(teamId), { ...initialTeamStats, team_id: teamId, is_complete: isComplete })
+      .reduce(teamStatsGameReducer(teamId), { ...initialTeamStats, team_id: teamId, is_complete: isComplete, conduct_score: conductScores[teamId] ?? 0 })
   ]))
 
   //Depending on the tournament rules, we may need to calculate differently how teams with the same points are sorted
@@ -48,7 +49,7 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
     const allSamePoints = teamStats.every(teamStat => teamStat.points === teamStats[0].points)
 
     if(allSamePoints) {
-      return calculateGroupPosition(teamIds, games, false)
+      return calculateGroupPosition(teamIds, games, false, conductScores)
     }
   }
 
@@ -66,7 +67,7 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
       const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team_id)
       const tiedTeamGames = games.filter(game =>
         tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string));
-      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams).sort(genericTeamStatsComparator);
+      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams, conductScores).sort(genericTeamStatsComparator);
 
       threeWayTieStats.forEach((teamStat, index) => {
         teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
