@@ -45,66 +45,83 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
   //TODO: cannot do anything more right now about 4 way ties if !sortByGameBetweenTeams
   // But if there is a four way tie when calculating by games between teams, then the proper thing to do
   // is to recalculate the group as we would normally do, fully based on stats.
-  if(sortByGamesBetweenTeams) {
-    const allSamePoints = teamStats.every(teamStat => teamStat.points === teamStats[0].points)
-
-    if(allSamePoints) {
-      return calculateGroupPosition(teamIds, games, false, conductScores)
-    }
+  if(sortByGamesBetweenTeams && teamStats.every(teamStat => teamStat.points === teamStats[0].points)) {
+    return calculateGroupPosition(teamIds, games, false, conductScores)
   }
 
-  let threeWayTie = false
-  //Three way ties
-  if (teamStats.length === 4) {
-    const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
-    const topThreeWayTie = equals(teamStats[0], teamStats[1]) && equals(teamStats[1], teamStats[2])
-    const bottomThreeWayTie = equals(teamStats[1], teamStats[2]) && equals(teamStats[2], teamStats[3])
-    threeWayTie = topThreeWayTie || bottomThreeWayTie
-    if(threeWayTie) {
-      //Three way ties
-      // Among the top 3 teams
-      const baseIndex = topThreeWayTie  ? 0 : 1
-      const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team_id)
-      const tiedTeamGames = games.filter(game =>
-        tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string));
-      const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams, conductScores).sort(genericTeamStatsComparator);
+  const threeWayTie = resolveThreeWayTie(teamStats, teamsStatsByTeam, games, sortByGamesBetweenTeams, conductScores)
 
-      threeWayTieStats.forEach((teamStat, index) => {
-        teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
-      })
-    }
-  }
   if (!threeWayTie) {
-    for(let i = 0; i < teamStats.length - 1; i++) {
-      const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
-      if(equals(teamStats[i], teamStats[i+1])) {
-        const tiedTeams = [teamStats[i].team_id, teamStats[i+1].team_id];
-        const teamsGame = games.find(game =>
-          tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string));
-        const winnerTeam = getWinner(teamsGame?.resultOrGuess?.home_score,
-          teamsGame?.resultOrGuess?.away_score,
-          undefined,
-          undefined,
-          teamsGame?.home_team,
-          teamsGame?.away_team)
-        //First sort by matches played between the 2 teams
-        if (winnerTeam && winnerTeam != teamStats[i].team_id) {
-          const temp = teamStats[i]
-          teamStats[i] = teamStats[i+1];
-          teamStats[i+1] = temp
-        } else if (!winnerTeam && sortByGamesBetweenTeams) {
-          // If there was no winner, and I haven't yet sorted by stats, sort by stats.
-          if (genericTeamStatsComparator(teamStats[i], teamStats[i + 1]) > 0) {
-            const temp = teamStats[i]
-            teamStats[i] = teamStats[i + 1];
-            teamStats[i + 1] = temp
-          }
-        }
-      }
-    }
+    resolveTwoWayTies(teamStats, games, sortByGamesBetweenTeams)
   }
 
   return teamStats;
+}
+
+const resolveThreeWayTie = (
+  teamStats: TeamStats[],
+  teamsStatsByTeam: Record<string, TeamStats>,
+  games: GameWithResultOrGuess[],
+  sortByGamesBetweenTeams: boolean,
+  conductScores: Record<string, number>
+): boolean => {
+  if (teamStats.length !== 4) return false
+
+  const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
+  const topThreeWayTie = equals(teamStats[0], teamStats[1]) && equals(teamStats[1], teamStats[2])
+  const bottomThreeWayTie = equals(teamStats[1], teamStats[2]) && equals(teamStats[2], teamStats[3])
+
+  if (!topThreeWayTie && !bottomThreeWayTie) return false
+
+  //Three way ties
+  // Among the top 3 or bottom 3 teams
+  const baseIndex = topThreeWayTie ? 0 : 1
+  const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team_id)
+  const tiedTeamGames = games.filter(game =>
+    tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string))
+  const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams, conductScores)
+    .sort(genericTeamStatsComparator)
+
+  threeWayTieStats.forEach((teamStat, index) => {
+    teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
+  })
+
+  return true
+}
+
+const resolveTwoWayTies = (
+  teamStats: TeamStats[],
+  games: GameWithResultOrGuess[],
+  sortByGamesBetweenTeams: boolean
+): void => {
+  const equals = sortByGamesBetweenTeams ? pointsBasedTeamStatsEquals : genericTeamStatsEquals
+
+  for(let i = 0; i < teamStats.length - 1; i++) {
+    if (!equals(teamStats[i], teamStats[i+1])) continue
+
+    const tiedTeams = [teamStats[i].team_id, teamStats[i+1].team_id]
+    const teamsGame = games.find(game =>
+      tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string))
+    const winnerTeam = getWinner(teamsGame?.resultOrGuess?.home_score,
+      teamsGame?.resultOrGuess?.away_score,
+      undefined,
+      undefined,
+      teamsGame?.home_team,
+      teamsGame?.away_team)
+    //First sort by matches played between the 2 teams
+    if (winnerTeam && winnerTeam != teamStats[i].team_id) {
+      const temp = teamStats[i]
+      teamStats[i] = teamStats[i+1];
+      teamStats[i+1] = temp
+    } else if (!winnerTeam && sortByGamesBetweenTeams) {
+      // If there was no winner, and I haven't yet sorted by stats, sort by stats.
+      if (genericTeamStatsComparator(teamStats[i], teamStats[i + 1]) > 0) {
+        const temp = teamStats[i]
+        teamStats[i] = teamStats[i + 1];
+        teamStats[i + 1] = temp
+      }
+    }
+  }
 }
 
 /**

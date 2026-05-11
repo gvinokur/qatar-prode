@@ -105,3 +105,24 @@ describe('calculateGroupPosition — conduct_score tiebreaker', () => {
     expect(positions[1].team_id).toBe('X')
   })
 })
+
+describe('calculateGroupPosition — sortByGamesBetweenTeams tie resolution', () => {
+  it('swaps two tied teams when head-to-head is a draw but one has better overall stats', () => {
+    // 4-team group. A and B both have 4pts. Head-to-head A vs B is 0-0 (no winner).
+    // B has more goals_for (2 > 1) so genericTeamStatsComparator should rank B higher.
+    // This exercises the `!winnerTeam && sortByGamesBetweenTeams && comparator > 0` swap.
+    const games = [
+      makeGame('A', 'B', 0, 0), // head-to-head draw
+      makeGame('A', 'C', 1, 0), // A wins
+      makeGame('D', 'A', 2, 0), // D beats A
+      makeGame('B', 'C', 2, 0), // B wins
+      makeGame('D', 'B', 3, 0), // D beats B
+      makeGame('C', 'D', 0, 1), // D beats C
+    ]
+    // A: 4pts, GD=-1, GF=1 | B: 4pts, GD=-1, GF=2 → B should rank above A
+    const positions = calculateGroupPosition(['A', 'B', 'C', 'D'], games, true)
+    const aIndex = positions.findIndex(p => p.team_id === 'A')
+    const bIndex = positions.findIndex(p => p.team_id === 'B')
+    expect(bIndex).toBeLessThan(aIndex)
+  })
+})
