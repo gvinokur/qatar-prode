@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-11
 
 ---
 
@@ -29,8 +29,8 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: updatePlayoffGameGuesses
 - **calculateGameScores(forceDrafts, forceAllGuesses, locale)**: `Promise<void>` — Recalculates all game guess scores, then triggers group rank snapshot materialization for all affected users.
   Calls: findAllGamesWithPublishedResultsAndGameGuesses, findAllGuessesForGamesWithResultsInDraft, findTournamentById, calculateScoreForGame, updateGameGuessWithBoost, updateGameGuess, recalculateGameScoresForUsers, recalculateGroupRankingsForUsers
-- **calculateAndStoreGroupPosition(groupId, teamIds, groupGames, sortByGamesBetweenTeams)**: `Promise<void>` — Updates group standings.
-  Calls: calculateGroupPosition, updateTournamentGroupTeams
+- **calculateAndStoreGroupPosition(groupId, teamIds, groupGames, sortByGamesBetweenTeams)**: `Promise<void>` — Updates group standings. Fetches current conduct_scores from DB before calculating so admin-set values are preserved and used in the tiebreaker sort.
+  Calls: findTeamsInGroup, calculateGroupPosition, updateTournamentGroupTeams
 - **findDataForAwards(tournamentId)**: `Promise<{ tournament: Tournament; players: ExtendedPlayerData[] }>` — Gets tournament and players for award assignment.
   Calls: findTournamentById, findAllPlayersInTournamentWithTeamData, applyLocalization
 - **updateTournamentAwards(tournamentId, withUpdate, locale)**: `Promise<void>` — Updates individual awards, recalculates scores, writes daily score snapshot for each user, then triggers group rank snapshot materialization for all tournament participants.

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-11
 
 ---
 
@@ -117,8 +117,8 @@ Grid of groups with edit action. [Client] group management interface.
 ### app/components/backoffice/group-backoffice-tab.tsx
 Group-specific backoffice with games, standings, and conduct score editing. [Client] group data management.
 - **GroupBackoffice({ group, tournamentId }: Props)**: `JSX.Element` — [Client] Manages games, team standings, and conduct scores for a specific group.
-  Calls: getCompleteGroupData, saveGameResults, calculateAndSavePlayoffGamesForTournament, saveGamesData, calculateAndStoreGroupPosition, calculateGameScores, calculateAndStoreQualifiedTeamsScores, updateGroupTeamConductScores
-  Uses: useLocale, useEffect, useState, useMemo
+  Calls: getCompleteGroupData, calculateGroupPosition, saveGameResults, calculateAndSavePlayoffGamesForTournament, saveGamesData, calculateAndStoreGroupPosition, calculateGameScores, calculateAndStoreQualifiedTeamsScores, updateGroupTeamConductScores
+  Uses: useLocale, useEffect, useState
   Renders: BackofficeFlippableGameCard, BulkActionsMenu, TeamStandingsCards, TeamStatsEditDialog, Button, Grid, Paper, Snackbar, Alert
 
 ### app/components/backoffice/playoff-tab.tsx

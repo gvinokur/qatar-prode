@@ -20,7 +20,9 @@ import {
   createTournamentGroupGame,
   createTournamentGroupTeam,
   deleteAllGroupsFromTournament,
-  findGroupsWithGamesAndTeamsInTournament, updateTournamentGroupTeams
+  findGroupsWithGamesAndTeamsInTournament,
+  findTeamsInGroup,
+  updateTournamentGroupTeams
 } from "../db/tournament-group-repository";
 import {
   createPlayoffRound,
@@ -551,13 +553,19 @@ export async function calculateGameScores(forceDrafts: boolean, forceAllGuesses:
 }
 
 export async function calculateAndStoreGroupPosition(group_id: string, teamIds: string[], groupGames: ExtendedGameData[], sortByGamesBetweenTeams: boolean) {
+  const currentTeamStats = await findTeamsInGroup(group_id)
+  const conductScores: Record<string, number> = Object.fromEntries(
+    currentTeamStats.map(t => [t.team_id, t.conduct_score ?? 0])
+  )
+
   const groupPositions: TournamentGroupTeamNew[] = calculateGroupPosition(
     teamIds,
     groupGames.map(game => ({
       ...game,
       resultOrGuess: game.gameResult
     })),
-    sortByGamesBetweenTeams)
+    sortByGamesBetweenTeams,
+    conductScores)
       .map((teamPosition, index) => ({
         ...teamPosition,
         tournament_group_id: group_id,

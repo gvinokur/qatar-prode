@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-11
 
 ---
 
@@ -235,7 +235,7 @@ Expandable card showing team rank, name, points with collapsible details (W-D-L,
 
 **File:** `app/components/groups-page/team-standings-cards.tsx`
 Container for team standing cards with rank calculation, qualification highlighting, and rank change indicators.
-- **TeamStandingsCards** (FC) - `[Client]` - Calls: none - Uses: `useTranslations, useMemo, useState` - Renders: `LayoutGroup, Box, TeamStandingCard`
+- **TeamStandingsCards** (FC) - `[Client]` - Calls: `calculateRanks` - Uses: `useTranslations, useMemo, useState` - Renders: `LayoutGroup, Box, TeamStandingCard`
 
 **File:** `app/components/groups-page/types.ts`
 Type definitions for team standings components (TeamStanding, TeamStandingsCardsProps, TeamStandingCardProps).
