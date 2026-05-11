@@ -5,8 +5,8 @@
 - **Story Title:** [Bug] Group standings tiebreaker ranks teams incorrectly when conduct scores are set
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-431
 - **Branch:** feature/story-431
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 440
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/440
 
 ## State
 - **Current Phase:** planning
