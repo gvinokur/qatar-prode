@@ -99,9 +99,9 @@ const resolveTwoWayTies = (
   for(let i = 0; i < teamStats.length - 1; i++) {
     if (!equals(teamStats[i], teamStats[i+1])) continue
 
-    const tiedTeams = [teamStats[i].team_id, teamStats[i+1].team_id]
+    const tiedTeams = new Set([teamStats[i].team_id, teamStats[i+1].team_id])
     const teamsGame = games.find(game =>
-      tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string))
+      tiedTeams.has(game.home_team as string) && tiedTeams.has(game.away_team as string))
     const winnerTeam = getWinner(teamsGame?.resultOrGuess?.home_score,
       teamsGame?.resultOrGuess?.away_score,
       undefined,
