@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Configurable group tiebreaker rules per tournament, with head-to-head as default
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/ecstatic-dirac-497fec
 - **Branch:** claude/ecstatic-dirac-497fec
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 444
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/444
 
 ## State
 - **Current Phase:** planning
