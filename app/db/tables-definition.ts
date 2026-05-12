@@ -25,6 +25,15 @@ export interface Theme {
 }
 
 /**
+ * Tiebreaker mode for group standings.
+ * - 'head_to_head': teams tied on points are ranked by H2H results first, then overall stats
+ * - 'standard': teams ranked directly by overall stats (goal diff → goals scored → conduct score)
+ *
+ * Story #443: moved from per-group (sort_by_games_between_teams) to per-tournament level.
+ */
+export type TiebreakerMode = 'head_to_head' | 'standard'
+
+/**
  * Tournament with internationalization support
  *
  * ⚠️ LOCALIZATION PATTERN:
@@ -81,6 +90,11 @@ export interface TournamentTable extends Identifiable{
   // Location data for SportsEvent structured data (story #310)
   // ColumnType: select=string[], insert=optional (DB DEFAULT '[]'), update=accepts array or raw JSON
   locations: ColumnType<string[], string[] | string | undefined, string[] | string>
+
+  // Tiebreaker configuration (story #443)
+  // DB DEFAULT 'standard' ensures existing tournaments stay unaffected on migration.
+  // New tournaments created via backoffice default to 'head_to_head'.
+  tiebreaker_mode: ColumnType<TiebreakerMode, TiebreakerMode | undefined, TiebreakerMode>
 }
 
 export type Tournament = Selectable<TournamentTable>

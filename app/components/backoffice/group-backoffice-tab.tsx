@@ -9,7 +9,8 @@ import {getCompleteGroupData} from "../../actions/tournament-actions";
 import { BackofficeTabsSkeleton } from "../skeletons";
 import {
   Team,
-  TeamStats
+  TeamStats,
+  type TiebreakerMode
 } from "../../db/tables-definition";
 import BackofficeFlippableGameCard from "./backoffice-flippable-game-card";
 import BulkActionsMenu from "./bulk-actions-menu";
@@ -30,9 +31,10 @@ import EditIcon from "@mui/icons-material/Edit";
 type Props = {
   group: ExtendedGroupData
   tournamentId: string
+  tiebreakerMode?: TiebreakerMode
 }
 
-export default function GroupBackoffice({group, tournamentId} :Props) {
+export default function GroupBackoffice({group, tournamentId, tiebreakerMode = 'standard'} :Props) {
   const locale = toLocale(useLocale());
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [sortedGameIds, setSortedGameIds] = useState<string[]>([])
@@ -74,17 +76,17 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
         ...game,
         resultOrGuess: game.gameResult
       })),
-      group.sort_by_games_between_teams,
+      tiebreakerMode === 'head_to_head',
       conductScores)
     setPositions(groupPositions)
 
-  }, [teamsMap, gamesMap, setPositions, group.sort_by_games_between_teams, conductScores]);
+  }, [teamsMap, gamesMap, setPositions, tiebreakerMode, conductScores]);
 
   const saveGamesAndRecalculate = async (newGamesMap: {[k: string]: ExtendedGameData}) => {
     await saveGameResults(Object.values(newGamesMap))
     await calculateAndSavePlayoffGamesForTournament(tournamentId)
     await saveGamesData(Object.values(newGamesMap))
-    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), group.sort_by_games_between_teams)
+    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), tiebreakerMode === 'head_to_head')
     await calculateGameScores(false, false, locale)
     await calculateAndStoreQualifiedTeamsScores(tournamentId)
     setSaved(false)
@@ -143,7 +145,7 @@ export default function GroupBackoffice({group, tournamentId} :Props) {
       group.id,
       Object.keys(teamsMap),
       Object.values(gamesMap),
-      group.sort_by_games_between_teams
+      tiebreakerMode === 'head_to_head'
     );
     await calculateGameScores(false, false, locale);
     await calculateAndStoreQualifiedTeamsScores(tournamentId);

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-11
+**Last updated:** 2026-05-12
 
 ---
 
@@ -21,7 +21,7 @@ Multi-select for users with dev tournament access. [Client] autocomplete for per
 
 ### app/components/backoffice/groups-backoffice-tab.tsx
 Tab container for group and playoff management. [Client] data loading and tab orchestration.
-- **GroupsTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Fetches group data and renders tabs for each group plus playoffs.
+- **GroupsTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Fetches group data (including `tiebreakerMode`) and renders tabs for each group plus playoffs. Passes `tiebreakerMode` down to each `GroupBackoffice` instance (Story #443).
   Calls: getGroupDataWithGamesAndTeams
   Renders: GroupBackoffice, PlayoffTab, BackofficeTabs
 
@@ -68,10 +68,10 @@ Component for editing i18n JSONB fields with English and Spanish inputs. Reusabl
 
 ### app/components/backoffice/tournament-main-data-tab.tsx
 Main tournament configuration form with colors, logos, playoff rounds, and location management. [Client] comprehensive tournament setup.
-- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, third-place qualification settings, Transfermarkt URL template, and city/country locations for SportsEvent JSON-LD (Story #310).
+- **TournamentMainDataTab({ tournamentId, onUpdate }: Props)**: `JSX.Element` — [Client] Configures tournament name, theme colors, logo, dev mode, playoff rounds, third-place qualification settings, Transfermarkt URL template, city/country locations for SportsEvent JSON-LD (Story #310), and tiebreaker mode RadioGroup (Head-to-Head or Standard, Story #443).
   Calls: getTournamentById, createOrUpdateTournament, getPlayoffRounds, getTournamentPermissionData, updateTournamentPermissions
   Uses: useRouter, useCallback, useEffect, useState, useRef
-  Renders: MuiColorInput, ImagePicker, TextField, FormControlLabel, Switch, PlayoffRoundDialog, TournamentPermissionsSelector, Button, Paper, Alert, List, ListItem, IconButton (delete)
+  Renders: MuiColorInput, ImagePicker, TextField, FormControlLabel, Switch, RadioGroup, Radio, FormControl, FormLabel, PlayoffRoundDialog, TournamentPermissionsSelector, Button, Paper, Alert, List, ListItem, IconButton (delete)
 
 ### app/components/backoffice/tournament-game-manager-tab.tsx
 Table for managing all tournament games with create/edit/delete. [Client] game CRUD interface.
@@ -110,13 +110,13 @@ Grid of tournament teams with edit action. [Client] team management with card di
 
 ### app/components/backoffice/tournament-groups-manager-tab.tsx
 Grid of groups with edit action. [Client] group management interface.
-- **TournamentGroups({ tournamentId }: TournamentGroupsProps)**: `React.FC<TournamentGroupsProps>` — [Client] Displays tournament groups as cards with team lists and edit buttons.
+- **TournamentGroups({ tournamentId }: TournamentGroupsProps)**: `React.FC<TournamentGroupsProps>` — [Client] Displays tournament groups as cards with team lists and edit buttons. Per-group H2H display removed — tiebreaker is now tournament-level (Story #443).
   Calls: getCompleteTournamentGroups, getTeamsMap
   Renders: GroupDialog, Paper, Grid, List, Typography, Button, IconButton
 
 ### app/components/backoffice/group-backoffice-tab.tsx
 Group-specific backoffice with games, standings, and conduct score editing. [Client] group data management.
-- **GroupBackoffice({ group, tournamentId }: Props)**: `JSX.Element` — [Client] Manages games, team standings, and conduct scores for a specific group.
+- **GroupBackoffice({ group, tournamentId, tiebreakerMode }: Props)**: `JSX.Element` — [Client] Manages games, team standings, and conduct scores for a specific group. Accepts optional `tiebreakerMode?: TiebreakerMode` (default `'standard'`) from parent `GroupsTab`; passes `sortByGamesBetweenTeams = tiebreakerMode === 'head_to_head'` to `calculateGroupPosition` (Story #443). Per-group H2H toggle removed.
   Calls: getCompleteGroupData, calculateGroupPosition, saveGameResults, calculateAndSavePlayoffGamesForTournament, saveGamesData, calculateAndStoreGroupPosition, calculateGameScores, calculateAndStoreQualifiedTeamsScores, updateGroupTeamConductScores
   Uses: useLocale, useEffect, useState
   Renders: BackofficeFlippableGameCard, BulkActionsMenu, TeamStandingsCards, TeamStatsEditDialog, Button, Grid, Paper, Snackbar, Alert

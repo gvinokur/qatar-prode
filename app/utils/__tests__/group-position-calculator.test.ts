@@ -106,6 +106,79 @@ describe('calculateGroupPosition — conduct_score tiebreaker', () => {
   })
 })
 
+describe('calculateGroupPosition — 3-way tie bug fix (story #443)', () => {
+  /**
+   * Before the bug fix, resolveThreeWayTie called calculateGroupPosition recursively
+   * on the 3 tied teams' H2H games and then re-sorted with genericTeamStatsComparator.
+   * If two teams had identical H2H aggregate stats but one won the direct match,
+   * the re-sort would undo the direct-match resolution.
+   *
+   * After the fix: in H2H mode (sortByGamesBetweenTeams=true), the two-phase comparator
+   * (H2H aggregate → overall fallthrough) is used directly, without a secondary sort.
+   */
+  it('H2H 3-way tie: direct-match winner is not undone by a secondary sort', () => {
+    // D beats everyone. A, B, C are 3-way tied on points.
+    // Among A/B/C: A beats B 1-0, B draws C 0-0, A draws C 0-0.
+    // H2H aggregate: A=4pts, B=1pt, C=1pt → A ranks 1st among the trio.
+    // B and C draw their H2H game → resolved by overall stats or alphabetical.
+    const games = [
+      makeGame('A', 'B', 1, 0), // A wins H2H
+      makeGame('A', 'C', 0, 0), // draw
+      makeGame('B', 'C', 0, 0), // draw
+      makeGame('D', 'A', 3, 0),
+      makeGame('D', 'B', 3, 0),
+      makeGame('D', 'C', 3, 0),
+    ]
+    const positions = calculateGroupPosition(['A', 'B', 'C', 'D'], games, true)
+    // D wins group with most points. Among A/B/C: A should rank 1st due to H2H win.
+    expect(positions[0].team_id).toBe('D')
+    expect(positions[1].team_id).toBe('A')
+    // B and C are still tied (draw between them); order determined by overall stats / id sort
+    expect(['B', 'C']).toContain(positions[2].team_id)
+    expect(['B', 'C']).toContain(positions[3].team_id)
+  })
+
+  it('H2H 3-way tie with identical H2H stats falls through to overall GD tiebreaker', () => {
+    // All 3 tied teams draw all their H2H games (equal H2H stats).
+    // Different overall GD should break the tie.
+    // D beats everyone. A/B/C draw each other.
+    // A has better overall GD than B (lost by less to D).
+    const games = [
+      makeGame('A', 'B', 1, 1),
+      makeGame('A', 'C', 1, 1),
+      makeGame('B', 'C', 1, 1),
+      makeGame('D', 'A', 1, 0), // A loses by 1
+      makeGame('D', 'B', 3, 0), // B loses by 3
+      makeGame('D', 'C', 2, 0), // C loses by 2
+    ]
+    const positions = calculateGroupPosition(['A', 'B', 'C', 'D'], games, true)
+    expect(positions[0].team_id).toBe('D')
+    // A has best overall GD (-1) among tied trio, then C (-2), then B (-3)
+    expect(positions[1].team_id).toBe('A')
+    expect(positions[2].team_id).toBe('C')
+    expect(positions[3].team_id).toBe('B')
+  })
+
+  it('standard mode 3-way tie: same aggregate stats → conduct score tiebreaker unchanged', () => {
+    // Verify that standard mode (sortByGamesBetweenTeams=false) behaviour is unchanged.
+    const games = [
+      makeGame('A', 'B', 1, 1),
+      makeGame('A', 'C', 1, 1),
+      makeGame('B', 'C', 1, 1),
+      makeGame('D', 'A', 2, 0),
+      makeGame('D', 'B', 2, 0),
+      makeGame('D', 'C', 2, 0),
+    ]
+    const positions = calculateGroupPosition(['A', 'B', 'C', 'D'], games, false, {
+      A: 1, B: 3, C: 5, D: 0,
+    })
+    expect(positions[0].team_id).toBe('D')
+    expect(positions[1].team_id).toBe('A')
+    expect(positions[2].team_id).toBe('B')
+    expect(positions[3].team_id).toBe('C')
+  })
+})
+
 describe('calculateGroupPosition — sortByGamesBetweenTeams tie resolution', () => {
   it('swaps two tied teams when head-to-head is a draw but one has better overall stats', () => {
     // 4-team group. A and B both have 4pts. Head-to-head A vs B is 0-0 (no winner).

@@ -5,6 +5,7 @@ import {isTeamWinnerRule} from "./playoffs-rule-helper";
 import {getGuessLoser, getGuessWinner} from "./score-utils";
 import {getThirdPlaceRulesMapForTournament} from "../db/tournament-third-place-rules-repository";
 import {groupCompleteReducer} from "./team-stats-utils";
+import {findTournamentById} from "../db/tournament-repository";
 
 export async function calculatePlayoffTeams(
   tournamentId: string,
@@ -14,6 +15,10 @@ export async function calculatePlayoffTeams(
   gameResultsMap: {[k:string]: GameResultNew},
   gameGuessesMap: {[k:string]: GameGuess}
 ) {
+  // Use tournament-level tiebreaker mode (story #443)
+  const tournament = await findTournamentById(tournamentId);
+  const sortByH2H = tournament?.tiebreaker_mode === 'head_to_head';
+
   // Calculate all groups based on either all Results if they are available or all guesses
   const groupTableMap = Object.fromEntries(
     groups.map(group => {
@@ -45,7 +50,7 @@ export async function calculatePlayoffTeams(
         groupPositions = calculateGroupPosition(
           group.teams.map(({team_id}) => team_id),
           allGamesWithResult ? gamesWithResult : gamesWithGuess,
-          group.sort_by_games_between_teams
+          sortByH2H
         )
       }
       const positionsMap = Object.fromEntries(

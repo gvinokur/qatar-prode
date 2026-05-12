@@ -28,6 +28,10 @@ vi.mock('../../app/db/tournament-group-repository', () => ({
   findTeamsInGroup: vi.fn(),
 }));
 
+vi.mock('../../app/db/tournament-repository', () => ({
+  findTournamentById: vi.fn(),
+}));
+
 vi.mock('../../app/db/database', () => ({
   db: {
     selectFrom: vi.fn(),
@@ -55,6 +59,7 @@ import { auth } from '../../auth';
 import * as gameRepository from '../../app/db/game-repository';
 import * as gameResultRepository from '../../app/db/game-result-repository';
 import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
+import * as tournamentRepository from '../../app/db/tournament-repository';
 import { db } from '../../app/db/database';
 import { generateMatchScore } from '../../app/utils/poisson-generator';
 import * as backofficeActions from '../../app/actions/backoffice-actions';
@@ -68,6 +73,7 @@ const mockCreateGameResult = vi.mocked(gameResultRepository.createGameResult);
 const mockUpdateGameResult = vi.mocked(gameResultRepository.updateGameResult);
 const mockFindTournamentgroupById = vi.mocked(tournamentGroupRepository.findTournamentgroupById);
 const mockFindTeamsInGroup = vi.mocked(tournamentGroupRepository.findTeamsInGroup);
+const mockFindTournamentById = vi.mocked(tournamentRepository.findTournamentById);
 const mockDb = vi.mocked(db);
 const mockGenerateMatchScore = vi.mocked(generateMatchScore);
 const mockCalculateAndSavePlayoffGamesForTournament = vi.mocked(backofficeActions.calculateAndSavePlayoffGamesForTournament);
@@ -104,6 +110,9 @@ describe('Game Score Generator Actions', () => {
       homeScore: 2,
       awayScore: 1,
     });
+
+    // Mock tournament repository (used by runRecalculationPipeline for tiebreaker_mode)
+    mockFindTournamentById.mockResolvedValue(testFactories.tournament({ tiebreaker_mode: 'standard' }));
 
     // Mock recalculation functions
     mockCalculateAndSavePlayoffGamesForTournament.mockResolvedValue(undefined as any);
@@ -511,11 +520,15 @@ describe('Game Score Generator Actions', () => {
         expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1', 'es');
       });
 
-      it('recalculates group standings for group stage games', async () => {
+      it('recalculates group standings using tournament-level tiebreaker_mode', async () => {
+        // Tournament with head_to_head tiebreaker mode (story #443)
+        mockFindTournamentById.mockResolvedValue(
+          testFactories.tournament({ tiebreaker_mode: 'head_to_head' })
+        );
+
         const mockGroup = testFactories.tournamentGroup({
           id: 'group-1',
           tournament_id: 'tournament-1',
-          sort_by_games_between_teams: true,
         });
         const mockGames: ExtendedGameData[] = [
           {
@@ -544,7 +557,7 @@ describe('Game Score Generator Actions', () => {
           'group-1',
           ['team-1', 'team-2'],
           mockGames,
-          true
+          true // tiebreaker_mode === 'head_to_head'
         );
       });
 

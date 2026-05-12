@@ -311,8 +311,14 @@ function prepareTournamentData(
     throw new Error('Invalid theme data - cannot serialize');
   }
 
+  // Default tiebreaker_mode to 'head_to_head' for new tournaments (story #443).
+  // Existing tournaments already have a value from the DB (migration sets 'standard' as default).
+  const tiebreakerMode = tournamentData.tiebreaker_mode
+    ?? (existingTournament ? existingTournament.tiebreaker_mode : 'head_to_head');
+
   return {
     ...tournamentData,
+    tiebreaker_mode: tiebreakerMode,
     theme: JSON.stringify(themeObject) // ✅ Stringify for DB storage (Kysely will auto-parse on read)
   };
 }
@@ -379,7 +385,7 @@ export async function createOrUpdateTournamentGroup(
   groupData: {
     id?: string;
     group_letter: string;
-    sort_by_games_between_teams?: boolean;
+    // sort_by_games_between_teams removed (story #443): tiebreaker is now tournament-level
   },
   teamIds: string[],
   locale: Locale = 'es'
@@ -396,19 +402,20 @@ export async function createOrUpdateTournamentGroup(
 
   // Determine if we're creating or updating
   if (groupData.id) {
-    // Update existing group
+    // Update existing group (no sort_by_games_between_teams — deprecated, story #443)
     group = await updateTournamentGroup(groupData.id, {
       group_letter: groupData.group_letter,
-      sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
     });
 
     existingTeamsIds = (await findTeamInGroup(group.id)).map(team => team.id);
   } else {
-    // Create new group
+    // Create new group. sort_by_games_between_teams is deprecated (story #443) but the DB column
+    // has no default, so we pass false to satisfy the NOT NULL constraint.
+    // Tiebreaker mode is now controlled at tournament level via tiebreaker_mode.
     group = await createTournamentGroup({
       tournament_id: tournamentId,
       group_letter: groupData.group_letter,
-      sort_by_games_between_teams: groupData.sort_by_games_between_teams || false
+      sort_by_games_between_teams: false,
     });
   }
 
@@ -520,7 +527,10 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
   const { calculateGroupPosition } = await import('../utils/group-position-calculator');
   const { findQualifiedTeams } = await import('../db/team-repository');
 
-  // 1. Fetch all tournament groups
+  // 1. Fetch tournament (for tiebreaker mode) and all groups
+  const tournament = await findTournamentById(tournamentId);
+  const sortByH2H = tournament?.tiebreaker_mode === 'head_to_head';
+
   const groups = await findGroupsInTournament(tournamentId);
 
   // 2. Fetch qualified teams for entire tournament (returns teams with position and is_complete flags)
@@ -541,14 +551,15 @@ export async function getGroupStandingsForTournament(tournamentId: string) {
       const teamsMap = toMap(localizedTeams);
       const teamIds = localizedTeams.map(t => t.id);
 
-      // Calculate positions using existing utility (FIFA tiebreaker rules)
+      // Calculate positions using existing utility (FIFA tiebreaker rules).
+      // Use tournament-level tiebreaker mode (story #443) instead of per-group flag.
       const teamStats = calculateGroupPosition(
         teamIds,
         games.map(game => ({
           ...game,
           resultOrGuess: (game as any).gameResult // Use actual results, not guesses
         })),
-        group.sort_by_games_between_teams // Use group-specific tiebreaker rules
+        sortByH2H
       );
 
       // Return TeamStats[] directly - no transformation needed

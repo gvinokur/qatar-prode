@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-12
 
 ---
 
@@ -20,6 +20,10 @@ Kysely database instance and schema definition for PostgreSQL.
 
 ### app/db/tables-definition.ts
 TypeScript type definitions for all database tables, insertable/updateable shapes, and schema interface. No runtime exports — type-only file.
+
+- **TiebreakerMode**: `'head_to_head' | 'standard'` — union type for tournament-level group standings tiebreaker rule (Story #443). Exported for use in actions, components, and tests.
+
+`TournamentTable` includes `tiebreaker_mode: ColumnType<TiebreakerMode, TiebreakerMode | undefined, TiebreakerMode>` — tournament-level tiebreaker configuration; DB DEFAULT `'standard'`; insert is optional (DB default used when omitted), new tournaments created via UI default to `'head_to_head'` (set in `prepareTournamentData`).
 
 Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table (Story #272). Key types:
 - **TournamentScoreHistoryTable**: Interface with `id`, `user_id`, `tournament_id`, `snapshot_date` (YYYYMMDD integer), six score segment columns, `total_points` (Generated — GENERATED ALWAYS computed), `created_at`.

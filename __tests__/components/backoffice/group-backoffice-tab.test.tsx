@@ -861,14 +861,9 @@ describe('GroupBackoffice Integration Tests', () => {
   });
 
   describe('Group Position Recalculation', () => {
-    it('should use sort_by_games_between_teams flag in recalculation', async () => {
-      const groupWithTiebreaker = {
-        ...extendedGroup,
-        sort_by_games_between_teams: true,
-      };
-
+    it('should use tiebreakerMode prop in recalculation', async () => {
       renderWithTheme(
-        <GroupBackoffice group={groupWithTiebreaker} tournamentId={tournament.id} />
+        <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} tiebreakerMode="head_to_head" />
       );
 
       await waitFor(() => {
@@ -883,7 +878,7 @@ describe('GroupBackoffice Integration Tests', () => {
           group.id,
           expect.any(Array),
           expect.any(Array),
-          true // sort_by_games_between_teams
+          true // tiebreakerMode === 'head_to_head'
         );
       });
     });

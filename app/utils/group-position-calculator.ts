@@ -79,12 +79,43 @@ const resolveThreeWayTie = (
   const tiedTeams = teamStats.slice(baseIndex, baseIndex + 3).map(teamStat => teamStat.team_id)
   const tiedTeamGames = games.filter(game =>
     tiedTeams.includes(game.home_team as string) && tiedTeams.includes(game.away_team as string))
-  const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, sortByGamesBetweenTeams, conductScores)
-    .sort(genericTeamStatsComparator)
 
-  threeWayTieStats.forEach((teamStat, index) => {
-    teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
-  })
+  if (sortByGamesBetweenTeams) {
+    // H2H mode: rank the 3 tied teams by their H2H aggregate stats (pts → GD → goals),
+    // falling through to overall stats when H2H criteria are exhausted.
+    //
+    // Bug fix (story #443): the old code called calculateGroupPosition then immediately
+    // re-sorted with genericTeamStatsComparator, which could undo 2-way tie resolution
+    // done inside the recursive call when two teams had equal aggregate H2H stats.
+    // The correct approach is to sort by H2H aggregate stats directly using a two-phase
+    // comparator (H2H first → overall fallthrough), without a secondary sort.
+    const h2hStats = calculateGroupPosition(tiedTeams, tiedTeamGames, false, conductScores)
+    const h2hStatsById = Object.fromEntries(h2hStats.map(s => [s.team_id, s]))
+
+    const sorted = tiedTeams.slice().sort((teamIdA, teamIdB) => {
+      const h2hA = h2hStatsById[teamIdA]
+      const h2hB = h2hStatsById[teamIdB]
+      // Phase 1: H2H aggregate criteria (pts → GD → goals scored)
+      if (h2hB.points !== h2hA.points) return h2hB.points - h2hA.points
+      if (h2hB.goal_difference !== h2hA.goal_difference) return h2hB.goal_difference - h2hA.goal_difference
+      if (h2hB.goals_for !== h2hA.goals_for) return h2hB.goals_for - h2hA.goals_for
+      // Phase 2: fallthrough to overall stats (GD → goals → conduct)
+      return getMagicNumber(teamsStatsByTeam[teamIdB]) - getMagicNumber(teamsStatsByTeam[teamIdA])
+    })
+
+    sorted.forEach((teamId, index) => {
+      teamStats[baseIndex + index] = teamsStatsByTeam[teamId]
+    })
+  } else {
+    // Standard mode: sort tied teams by their H2H sub-stats as a tiebreaker
+    // (preserving existing behaviour)
+    const threeWayTieStats = calculateGroupPosition(tiedTeams, tiedTeamGames, false, conductScores)
+      .sort(genericTeamStatsComparator)
+
+    threeWayTieStats.forEach((teamStat, index) => {
+      teamStats[baseIndex + index] = teamsStatsByTeam[teamStat.team_id]
+    })
+  }
 
   return true
 }

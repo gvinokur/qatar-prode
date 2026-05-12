@@ -317,7 +317,8 @@ function groupGamesByGroupId(
 function computeStandingsByGroup(
   groups: Array<{ id: string; group_letter: string }>,
   gamesByGroup: Map<string, RawGroupGame[]>,
-  guessMap: GuessMap
+  guessMap: GuessMap,
+  tiebreakerMode?: import('../db/tables-definition').TiebreakerMode
 ): { standingsByGroup: Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>; thirdPlaceCandidates: ThirdPlaceCandidate[] } {
   const standingsByGroup = new Map<string, ReturnType<typeof computeGroupStandingsFromGuesses>>();
   const thirdPlaceCandidates: ThirdPlaceCandidate[] = [];
@@ -328,7 +329,7 @@ function computeStandingsByGroup(
       .filter((g) => g.home_team && g.away_team)
       .map((g) => ({ id: g.game_id, home_team: g.home_team!, away_team: g.away_team! }));
 
-    const standings = computeGroupStandingsFromGuesses(groupGames, guessMap);
+    const standings = computeGroupStandingsFromGuesses(groupGames, guessMap, tiebreakerMode);
     standingsByGroup.set(group.id, standings);
 
     const third = standings.find((s) => s.position === 3);
@@ -381,7 +382,7 @@ export async function bulkAutoFillFromPredictions(
   const tournament = await db
     .selectFrom('tournaments')
     .where('id', '=', tournamentId)
-    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only'])
+    .select(['id', 'is_active', 'allows_third_place_qualification', 'max_third_place_qualifiers', 'dev_only', 'tiebreaker_mode'])
     .executeTakeFirst();
 
   if (!tournament) {
@@ -429,7 +430,8 @@ export async function bulkAutoFillFromPredictions(
     return { success: false, message: t('nudge.autoFillError'), groupsProcessed: 0 };
   }
 
-  const { standingsByGroup, thirdPlaceCandidates } = computeStandingsByGroup(groups, gamesByGroup, guessMap);
+  const tiebreakerMode = (tournament.tiebreaker_mode ?? 'standard') as import('../db/tables-definition').TiebreakerMode;
+  const { standingsByGroup, thirdPlaceCandidates } = computeStandingsByGroup(groups, gamesByGroup, guessMap, tiebreakerMode);
 
   const maxThirdPlace = tournament.max_third_place_qualifiers ?? 0;
   const allowsThirdPlace = tournament.allows_third_place_qualification ?? false;

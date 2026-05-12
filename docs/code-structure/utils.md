@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-11
+**Last updated:** 2026-05-12
 
 ---
 
@@ -142,9 +142,9 @@ Game outcome determination utilities for winner and loser identification.
 - **getWinner(homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner, homeTeam, awayTeam)**: `string | undefined` — Core logic to determine the winner considering scores and penalty results.
 
 ### app/utils/group-standings-calculator.ts
-Pure utility for computing simulated group standings from user's predicted game scores. No DB dependency.
+Pure utility for computing simulated group standings from user's predicted game scores. No DB dependency. Supports standard and H2H tiebreaker modes (Story #443).
 
-- **computeGroupStandingsFromGuesses(groupGames: GroupGame[], guessMap: Record<string, { home_score: number | null; away_score: number | null }>)**: `TeamStanding[]` — Distributes points (3/1/0), accumulates goals for/against per team. Returns sorted standings (points DESC → goal difference DESC → goals scored DESC → teamId alphabetical). Skips games where home_score or away_score is null.
+- **computeGroupStandingsFromGuesses(groupGames: GroupGame[], guessMap: Record<string, { home_score: number | null; away_score: number | null }>, tiebreakerMode?: TiebreakerMode)**: `TeamStanding[]` — Distributes points (3/1/0), accumulates goals for/against per team. Returns sorted standings. When `tiebreakerMode === 'head_to_head'`, delegates to `calculateGroupPosition` from `group-position-calculator.ts` for FIFA H2H tiebreaker resolution; otherwise uses standard points DESC → goal difference DESC → goals scored DESC → teamId alphabetical sort. Skips games where home_score or away_score is null. Returns empty array when groupGames is empty.
 
 ### app/utils/game-score-calculator.ts
 Game prediction scoring calculation with three tiers: exact score (3pt), goal difference (2pt), correct outcome (1pt).
@@ -156,7 +156,7 @@ Game prediction scoring calculation with three tiers: exact score (3pt), goal di
 - **checkGoalDifferenceMatch(gameHomeScore, gameAwayScore, gameGuess, homePenaltyWin, awayPenaltyWin, goalDifferencePoints)**: `ScoreResult | null` — Returns goal_difference tier when `(gameHomeScore - gameAwayScore) === (guessHome - guessAway)`. Returns null when margin doesn't match; returns score=0/tier=missed when margin matches but penalty winner wrong.
 
 ### app/utils/group-position-calculator.ts
-Group stage team ranking calculator implementing FIFA tiebreaker rules and two-team head-to-head logic.
+Group stage team ranking calculator implementing FIFA tiebreaker rules and two-team head-to-head logic. Story #443 fixed a bug in `resolveThreeWayTie` where the H2H path now uses a two-phase comparator (H2H aggregate → overall fallthrough) instead of a secondary re-sort that could undo direct-match resolution.
 
 - **calculateGroupPosition(teamIds, games, sortByGamesBetweenTeams, conductScores)**: `TeamStats[]` — Calculates final group standings applying FIFA tiebreaker rules (points, goal difference, goals for, conduct score) with support for two-way and three-way ties. `conductScores` is an optional map of team_id → conduct_score; missing keys default to 0.
   Calls: getWinner, genericTeamStatsComparator
@@ -317,8 +317,8 @@ Email template generators for verification, password reset, join request notific
 ### app/utils/playoff-teams-calculator.ts
 Playoff bracket team determination from group predictions with third-place rule handling.
 
-- **calculatePlayoffTeams(tournamentId, firstPlayoffStage, groups, gamesMap, gameResultsMap, gameGuessesMap)**: `Promise<{[gameId]: {gameId, homeTeam?, awayTeam?}}>` — Calculates playoff bracket teams from group results/guesses with third-place rule application.
-  Calls: calculateGroupPosition, getThirdPlaceRulesMapForTournament, groupCompleteReducer, genericTeamStatsComparator
+- **calculatePlayoffTeams(tournamentId, firstPlayoffStage, groups, gamesMap, gameResultsMap, gameGuessesMap)**: `Promise<{[gameId]: {gameId, homeTeam?, awayTeam?}}>` — Calculates playoff bracket teams from group results/guesses with third-place rule application. Fetches the tournament's `tiebreaker_mode` to determine `sortByGamesBetweenTeams` for group position calculation.
+  Calls: findTournamentById, calculateGroupPosition, getThirdPlaceRulesMapForTournament, groupCompleteReducer, genericTeamStatsComparator
 - **calculatePlayoffTeamsFromPositions(tournamentId, firstPlayoffStage, gamesMap, positionsByGroup)**: `Promise<{[gameId]: {gameId, homeTeam?, awayTeam?}}>` — Calculates playoff teams from pre-calculated group positions with third-place handling.
   Calls: getThirdPlaceRulesMapForTournament, groupCompleteReducer, genericTeamStatsComparator
 - **calculateTeamNamesForPlayoffGame(isPlayoffGame, game, gameGuesses, gamesMap)**: `{homeTeam?, awayTeam?}` — Calculates team names for playoff games based on guesses (duplicate of playoff-utils version).

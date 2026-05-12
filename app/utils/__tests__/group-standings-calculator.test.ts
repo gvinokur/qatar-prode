@@ -125,4 +125,55 @@ describe('computeGroupStandingsFromGuesses', () => {
     const standings = computeGroupStandingsFromGuesses(games, guessMap);
     expect(standings.map((s) => s.position)).toEqual([1, 2]);
   });
+
+  it('returns empty array when groupGames is empty', () => {
+    const standings = computeGroupStandingsFromGuesses([], {});
+    expect(standings).toEqual([]);
+  });
+});
+
+describe('computeGroupStandingsFromGuesses — H2H mode (story #443)', () => {
+  it('uses head_to_head tiebreaker when tiebreakerMode is head_to_head', () => {
+    // A beats B in their direct match. Both have 3pts overall (A beats B, C beats A, B beats C).
+    // In standard mode the order is determined by GD/GF. In H2H mode, direct match matters.
+    // Here: A beats B → in H2H, A should rank above B when both have 3pts.
+    const games = makeGames([['A', 'B'], ['C', 'A'], ['B', 'C']]);
+    const guessMap = {
+      g0: makeGuess(1, 0), // A beats B
+      g1: makeGuess(1, 0), // C beats A
+      g2: makeGuess(1, 0), // B beats C
+    };
+    // All have 3pts. H2H: A beat B → A ranks above B.
+    const standings = computeGroupStandingsFromGuesses(games, guessMap, 'head_to_head');
+    const aPos = standings.find((s) => s.teamId === 'A')!.position;
+    const bPos = standings.find((s) => s.teamId === 'B')!.position;
+    expect(aPos).toBeLessThan(bPos);
+  });
+
+  it('falls back to standard sort when tiebreakerMode is standard', () => {
+    // Same scenario — without H2H, purely points-based then GD.
+    const games = makeGames([['A', 'B'], ['C', 'A'], ['B', 'C']]);
+    const guessMap = {
+      g0: makeGuess(1, 0),
+      g1: makeGuess(1, 0),
+      g2: makeGuess(1, 0),
+    };
+    const standings = computeGroupStandingsFromGuesses(games, guessMap, 'standard');
+    // All 3pts, GD=0, GF=1 — alphabetical fallback: A < B < C
+    expect(standings[0].teamId).toBe('A');
+    expect(standings[1].teamId).toBe('B');
+    expect(standings[2].teamId).toBe('C');
+  });
+
+  it('omitting tiebreakerMode behaves as standard', () => {
+    const games = makeGames([['A', 'B'], ['C', 'A'], ['B', 'C']]);
+    const guessMap = {
+      g0: makeGuess(1, 0),
+      g1: makeGuess(1, 0),
+      g2: makeGuess(1, 0),
+    };
+    const withStandard = computeGroupStandingsFromGuesses(games, guessMap, 'standard');
+    const withUndefined = computeGroupStandingsFromGuesses(games, guessMap);
+    expect(withUndefined.map((s) => s.teamId)).toEqual(withStandard.map((s) => s.teamId));
+  });
 });

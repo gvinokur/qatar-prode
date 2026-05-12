@@ -98,6 +98,7 @@ export const testFactories = {
     dev_only: false,
     display_name: true,
     theme: null,
+    tiebreaker_mode: 'standard' as const,
     game_exact_score_points: 10,
     game_correct_outcome_points: 5,
     champion_points: 15,
