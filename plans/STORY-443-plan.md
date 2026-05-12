@@ -13,11 +13,13 @@ Currently each tournament group has a `sort_by_games_between_teams: boolean` fie
 - [ ] Existing tournaments migrate to Standard; new tournaments default to Head-to-Head
 - [ ] Works in EN and ES
 
-## Key Insight: Algorithm Already Correct
+## Key Insight: Algorithm Mostly Correct, One Bug to Fix
 
-`group-position-calculator.ts` — `calculateGroupPosition(teamIds, games, sortByGamesBetweenTeams, conductScores)` — already implements FIFA-correct H2H tiebreaking. No logic changes needed; only the source of the `sortByGamesBetweenTeams` flag changes (from per-group to per-tournament).
+`group-position-calculator.ts` — `calculateGroupPosition(teamIds, games, sortByGamesBetweenTeams, conductScores)` — is mostly FIFA-correct. The source of the `sortByGamesBetweenTeams` flag moves from per-group to per-tournament, AND one bug in `resolveThreeWayTie` is fixed in this story.
 
-For 2-team H2H draws: H2H GD and H2H goals are always equal (draw = same goals), so falling through to overall stats is always correct. The existing implementation handles this.
+**2-way H2H ties**: Correct as-is. A draw means both teams scored the same goals, so H2H GD = 0 and H2H goals are equal — falling through to overall stats is always correct.
+
+**3-way tie bug** (`resolveThreeWayTie`): The current code calls `calculateGroupPosition` recursively on the H2H games (which internally resolves 2-way ties via direct match winner via `resolveTwoWayTies`), then immediately re-sorts the result with `genericTeamStatsComparator`. This re-sort discards the direct-match resolution: if two of the three teams have identical aggregate H2H stats but one beat the other in their direct match, the re-sort treats them as equal and can swap them back. Fix: replace the `calculateGroupPosition(…).sort(genericTeamStatsComparator)` pattern with a two-phase comparator — H2H aggregate criteria first (pts → GD → goals), then fallthrough to overall stats (GD → goals → conduct) when H2H is exhausted.
 
 ## Migration
 
@@ -62,6 +64,7 @@ The "Group Rules Configuration" paper section with the `sort_by_games_between_te
 |------|--------|
 | `migrations/YYYYMMDD-add-tiebreaker-mode-to-tournaments.sql` | **CREATE** — add column |
 | `app/db/tables-definition.ts` | Add `TiebreakerMode` type + `tiebreaker_mode` field to `TournamentTable` |
+| `app/utils/group-position-calculator.ts` | Fix `resolveThreeWayTie` bug (re-sort undoes direct-match resolution) |
 | `app/db/tournament-group-repository.ts` | No change (keep deprecated column) |
 | `app/actions/tournament-actions.ts` | `prepareTournamentData`: include `tiebreaker_mode`; `getCompleteTournamentData`: use tournament tiebreaker mode |
 | `app/actions/backoffice-actions.ts` | `calculateAndStoreGroupPosition`: fetch tournament for tiebreaker mode; `createOrUpdateTournamentGroup`: remove `sort_by_games_between_teams` param |
@@ -84,6 +87,7 @@ The "Group Rules Configuration" paper section with the `sort_by_games_between_te
 - **Flow 5 (Group stats / leaderboard)** — `getCompleteTournamentData` now derives `sortByGamesBetweenTeams` from `tournament.tiebreaker_mode` instead of `group.sort_by_games_between_teams`
 - **Backoffice group position recalculation** — `calculateAndStoreGroupPosition` now calls `findTournamentById(group.tournament_id)` before calling `calculateGroupPosition`
 - **Game score generator** — `autoFillGameScores` / `clearGameScores` path now fetches tournament tiebreaker mode before calling `calculateGroupPosition`
+- **3-way tie resolution** — `resolveThreeWayTie` in `group-position-calculator.ts` replaces the buggy `calculateGroupPosition(…).sort(genericTeamStatsComparator)` pattern with a two-phase comparator
 
 **New flows:** none
 
@@ -97,6 +101,25 @@ The "Group Rules Configuration" paper section with the `sort_by_games_between_te
 
 **Changed interface:**
 - **TournamentTable** — add field `tiebreaker_mode: TiebreakerMode` (Kysely will read it as `string` from DB, TypeScript types it as the union)
+
+---
+
+### `app/utils/group-position-calculator.ts` *(modified)*
+
+**Changed functions:**
+
+- **resolveThreeWayTie(teamStats, teamsStatsByTeam, games, sortByGamesBetweenTeams, conductScores)**: `boolean` *(same signature)*
+  Fix the re-sort bug. When `sortByGamesBetweenTeams === true`:
+  1. Compute H2H aggregate stats for each of the 3 tied teams by reducing `tiedTeamGames` with `teamStatsGameReducer` (reuse the existing private helper, or call `calculateGroupPosition(tiedTeams, tiedTeamGames, false, conductScores)` to get the stat objects).
+  2. Sort using a two-phase comparator: H2H pts → H2H GD → H2H goals; if equal, fallthrough to `getMagicNumber(teamsStatsByTeam[teamId])` (overall stats).
+  3. Map the sorted order back into `teamStats` using overall stat objects.
+  No longer calls `.sort(genericTeamStatsComparator)` after the inner `calculateGroupPosition` — that was the bug.
+  Calls: calculateGroupPosition (inner, for H2H stat computation only), getMagicNumber (existing private fn)
+  Tests:
+  - two of three teams have identical H2H aggregate stats but one beat the other in their direct match → the match winner is ranked higher (was previously flipped by the re-sort)
+  - three teams with different H2H points → ranked correctly by H2H points (unchanged behavior)
+  - three teams all exhausting H2H criteria → fallthrough to overall GD ranks them correctly
+  - three teams all exhausting both H2H and overall GD/goals → conduct score is final tiebreaker
 
 ---
 
@@ -219,6 +242,7 @@ The "Group Rules Configuration" paper section with the `sort_by_games_between_te
 **Wave 1 (no dependencies):**
 - Migration file
 - `tables-definition.ts` — add type + field
+- `group-position-calculator.ts` — fix `resolveThreeWayTie` bug (no new dependencies)
 
 **Wave 2 (depends on Wave 1 types):**
 - `tournament-actions.ts` — `prepareTournamentData` + `getCompleteTournamentData`
@@ -240,6 +264,7 @@ The "Group Rules Configuration" paper section with the `sort_by_games_between_te
 ### Unit Tests
 Use `testFactories.*` for all test data construction (tournament, group, team fixtures). Use `createMockSelectQuery()` for DB layer mocks in action tests.
 
+- `group-position-calculator.test.ts` — add 4 new test cases for the 3-way tie bug fix (see Mid-Level Design); use inline game/stat data (pure function, no factory needed)
 - `group-standings-calculator.test.ts` — new H2H mode tests for `computeGroupStandingsFromGuesses`; use inline game/guess data (no factory needed for pure function)
 - `tournament-actions.test.ts` — update `getCompleteTournamentData` fixtures with `tiebreaker_mode` via `testFactories.tournament({ tiebreaker_mode: 'head_to_head' })`
 - `backoffice-actions.test.ts` — update `calculateAndStoreGroupPosition` to test both modes using `testFactories.tournament` + `testFactories.tournamentGroup`
@@ -262,7 +287,7 @@ Use `testFactories.*` for all test data construction (tournament, group, team fi
 
 ## CODE-STRUCTURE Files to Update
 - `docs/code-structure/db.md` — `tables-definition.ts` (add `TiebreakerMode` type, `tiebreaker_mode` field to `TournamentTable`)
-- `docs/code-structure/utils.md` — `group-standings-calculator.ts` (updated signature)
+- `docs/code-structure/utils.md` — `group-position-calculator.ts` (updated `resolveThreeWayTie` behavior), `group-standings-calculator.ts` (updated signature)
 - `docs/code-structure/actions.md` — `tournament-actions.ts`, `backoffice-actions.ts`, `game-score-generator-actions.ts`
 - `docs/code-structure/components/components-backoffice.md` — `tournament-main-data-tab.tsx`, `group-backoffice-tab.tsx`, `groups-backoffice-tab.tsx`, `group-dialog.tsx`
 - Call graph: **YES** — Flow 5 updated, backoffice position recalc updated
