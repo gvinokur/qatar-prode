@@ -1,15 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Paper, Stack, Avatar, Typography, Button } from '@mui/material'
-import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined'
-import InstallMobileIcon from '@mui/icons-material/InstallMobile'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { getDismissalState, setDismissalState } from '../../utils/dismissal-storage'
 import { EDIT_NEXT_TOKEN } from '../../utils/prediction-constants'
+import { PredictionStatusHeader } from '../prediction-status-header'
+import { computeEngagementVariant } from '../prediction-status-header/hub-header-variant'
 
 const OnboardingDialogClient = dynamic(
   () => import('../onboarding/onboarding-dialog-client'),
@@ -21,64 +18,6 @@ const APP_INSTALL_DISMISSED_KEY = 'engagement-app-install-dismissed'
 const NOTIFICATION_DISMISSED_KEY = 'engagement-notification-dismissed'
 
 type EngagementCardType = 'pre-tournament-cta' | 'app-install' | 'notification-opt-in'
-
-interface CardProps {
-  readonly avatarBgColor: string
-  readonly avatarIcon: React.ReactNode
-  readonly title: string
-  readonly subtitle: string
-  readonly cta: string
-  readonly onCtaClick?: () => void
-  readonly onDismiss?: () => void
-  readonly dismissLabel?: string
-  readonly secondaryAction?: React.ReactNode
-}
-
-function EngagementCard({ avatarBgColor, avatarIcon, title, subtitle, cta, onCtaClick, onDismiss, dismissLabel = 'Dismiss', secondaryAction }: CardProps) {
-  return (
-    <Paper variant="outlined" sx={{ p: 2.5 }}>
-      <Stack direction="row" alignItems="center" gap={2}>
-        <Avatar
-          sx={{
-            bgcolor: avatarBgColor,
-            width: 40,
-            height: 40,
-            fontSize: '1.2rem',
-            flexShrink: 0,
-          }}
-        >
-          {avatarIcon}
-        </Avatar>
-
-        <Stack flexGrow={1} minWidth={0}>
-          <Typography variant="body1" fontWeight={600} noWrap>
-            {title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
-            {subtitle}
-          </Typography>
-        </Stack>
-
-        <Stack direction="row" alignItems="center" gap={0.5} flexShrink={0}>
-          {secondaryAction}
-          <Button
-            variant="contained"
-            size="small"
-            color="primary"
-            onClick={onCtaClick}
-          >
-            {cta}
-          </Button>
-          {onDismiss && (
-            <Button size="small" color="inherit" onClick={onDismiss} sx={{ color: 'text.secondary' }}>
-              {dismissLabel}
-            </Button>
-          )}
-        </Stack>
-      </Stack>
-    </Paper>
-  )
-}
 
 interface EngagementRotatorWidgetProps {
   readonly tournamentStarted: boolean
@@ -179,30 +118,15 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
   const currentCard = pool[currentIndex % pool.length]
 
   if (currentCard === 'pre-tournament-cta') {
-    const gamesCta = predictedGames > 0 ? t('newUser.tracks.matches.ctaKeep') : t('newUser.tracks.matches.cta')
     const gamesEditHref = `${gamesHref}?edit=${EDIT_NEXT_TOKEN}`
+    const variant = computeEngagementVariant('pre-tournament-cta', t, {
+      predictedGames,
+      gamesEditHref,
+      onTutorial: () => setTutorialOpen(true),
+    })
     return (
       <>
-        <EngagementCard
-          avatarBgColor="primary.main"
-          avatarIcon={<MenuBookOutlinedIcon fontSize="small" />}
-          title={t('newUser.tutorial.title')}
-          subtitle={t('newUser.tutorial.subtitle')}
-          cta={t('newUser.tutorial.cta')}
-          onCtaClick={() => setTutorialOpen(true)}
-          secondaryAction={
-            <Button
-              variant="outlined"
-              size="small"
-              color="primary"
-              component={Link}
-              href={gamesEditHref}
-              sx={{ flexShrink: 0 }}
-            >
-              {gamesCta}
-            </Button>
-          }
-        />
+        <PredictionStatusHeader variant={variant} />
         {tutorialOpen && <OnboardingDialogClient initialOpen={true} onClose={() => setTutorialOpen(false)} />}
       </>
     )
@@ -210,44 +134,31 @@ export function EngagementRotatorWidget({ tournamentStarted, gamesHref, predicte
 
   if (currentCard === 'app-install') {
     if (showIosInstallHint) {
-      return (
-        <EngagementCard
-          avatarBgColor="primary.main"
-          avatarIcon={<InstallMobileIcon fontSize="small" />}
-          title={t('attentionWidget.appInstall.title')}
-          subtitle="Tap the share icon and select 'Add to Home Screen'"
-          cta="Got it"
-          onCtaClick={() => setPool((prev) => prev.filter((c) => c !== 'app-install'))}
-          onDismiss={handleDismissAppInstall}
-        />
-      )
+      const iosVariant = computeEngagementVariant('app-install', t, {
+        onInstall: () => setPool((prev) => prev.filter((c) => c !== 'app-install')),
+        onDismiss: handleDismissAppInstall,
+      })
+      // Override statusText for iOS hint
+      const iosHintVariant = {
+        ...iosVariant,
+        message: "Tap the share icon and select 'Add to Home Screen'",
+        action: { label: 'Got it', onClick: () => setPool((prev) => prev.filter((c) => c !== 'app-install')) },
+      }
+      return <PredictionStatusHeader variant={iosHintVariant} />
     }
-    return (
-      <EngagementCard
-        avatarBgColor="primary.main"
-        avatarIcon={<InstallMobileIcon fontSize="small" />}
-        title={t('attentionWidget.appInstall.title')}
-        subtitle={t('attentionWidget.appInstall.subtitle')}
-        cta={t('attentionWidget.appInstall.cta')}
-        onCtaClick={handleAppInstallCta}
-        onDismiss={handleDismissAppInstall}
-      />
-    )
+    const variant = computeEngagementVariant('app-install', t, {
+      onInstall: handleAppInstallCta,
+      onDismiss: handleDismissAppInstall,
+    })
+    return <PredictionStatusHeader variant={variant} />
   }
 
   if (currentCard === 'notification-opt-in') {
-    return (
-      <EngagementCard
-        avatarBgColor="primary.main"
-        avatarIcon={<NotificationsNoneIcon fontSize="small" />}
-        title={t('attentionWidget.notificationOptIn.title')}
-        subtitle={t('attentionWidget.notificationOptIn.subtitle')}
-        cta={t('attentionWidget.notificationOptIn.cta')}
-        onCtaClick={handleNotificationCta}
-        onDismiss={handleDismissNotification}
-        dismissLabel={t('attentionWidget.notificationOptIn.dismiss')}
-      />
-    )
+    const variant = computeEngagementVariant('notification-opt-in', t, {
+      onEnable: handleNotificationCta,
+      onDismiss: handleDismissNotification,
+    })
+    return <PredictionStatusHeader variant={variant} />
   }
 
   return null

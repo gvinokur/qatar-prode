@@ -251,6 +251,7 @@ Type definitions for the status header variant descriptor pattern.
 - **StatusHeaderTone** (type) - Union: 'brand' | 'calm' | 'success' | 'deadlineSoon' | 'deadlineUrgent' | 'deadlineNow' | 'locked'
 - **HeaderAction** (type) - `{ label: string; href: string } | { label: string; onClick: () => void }`
 - **StatusHeaderVariant** (interface) - Full descriptor: tone, stageLabel?, leadIcon, statusText, chip?, boosts?, pointsBadge?, message?, action?, secondaryAction?
+  - **leadIcon** union: 'rocket' | 'check' | 'info' | 'warning' | 'error' | 'lock' | 'flag' | 'trophy' | 'login' | 'clock' | 'book' | 'mobile' | 'bell'
 
 **File:** `app/components/prediction-status-header/prediction-status-header.tsx`
 Presentational component rendering any StatusHeaderVariant descriptor as a toned MUI card with optional action buttons.
@@ -276,6 +277,14 @@ Pure selector function for the Awards prediction page header variant.
 - **computeAwardsHeaderVariant(input: AwardsHeaderInput, t: TFunction)**: `StatusHeaderVariant` — Priority: never-filled-locked → locked-with-results → locked-pending → completed-pre-lock → pre-tournament (with urgency)
 - **computeAwardsActionLabel(awardsCompleted: number, awardsTotal: number, t: TFunction)**: `string` — Returns 'Define'/'Continue'/'Finish' key based on progress
 - **AwardsHeaderInput** (interface) — isLocked, awardsLockAt, awardsCompleted, awardsTotal, decidedSoFar, correctSoFar, awardsPointsEarned?, tournamentId, locale, now?
+
+**File:** `app/components/prediction-status-header/hub-header-variant.ts`
+Pure selector functions for the Tournament Hub banner variants (S1 logged-out, P1–P5 priority states, P6–P8 engagement rotation).
+- **computeHubPriorityVariant(state: PriorityAttentionState, t: TFunction, gamesHref, qtHref, awardsHref)**: `StatusHeaderVariant` — Maps all 5 PriorityAttentionState types. urgent-games: deadlineNow (<2h via state.msUntilMostUrgentGame) or deadlineUrgent tone, clock icon, href=gamesHref?edit=firstUrgentGameId. now-available-playoff: success, rocket icon, href=gamesHref?edit=firstGameId. deadline: deadlineUrgent (<24h via state.msUntilPredictionLock) or deadlineSoon, clock icon, primaryCTA=QT or Awards, optional secondaryAction=Awards when both incomplete. new-actions-qt: success, rocket icon, href=qtHref. new-actions-awards: success, trophy icon, href=awardsHref.
+- **computeLoggedOutVariant(t: TFunction, onSignIn: () => void, onLearnHow: () => void)**: `StatusHeaderVariant` — S1 logged-out CTA; brand tone, login icon; both actions are onClick callbacks (tournament.public.* translation keys).
+- **computeEngagementVariant(cardType: EngagementCardType, t: TFunction, props: EngagementVariantProps)**: `StatusHeaderVariant` — pre-tournament-cta: brand, book icon, tutorial onClick + predict href. app-install: brand, mobile icon, install onClick + dismiss onClick. notification-opt-in: brand, bell icon, enable onClick + dismiss onClick.
+- **EngagementCardType** (type) - 'pre-tournament-cta' | 'app-install' | 'notification-opt-in'
+- **EngagementVariantProps** (interface) - predictedGames?, gamesEditHref?, onTutorial?, onInstall?, onDismiss?, onEnable?
 
 **File:** `app/components/prediction-status-header/index.ts`
 Barrel export for the prediction-status-header folder.

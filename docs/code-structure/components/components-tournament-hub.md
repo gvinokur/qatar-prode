@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-12
 
 ---
 
@@ -11,22 +11,28 @@ Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index
 ### app/components/tournament-hub/dashboard-banner.tsx
 Server Component stacking hero + secondary CTA banners in the dashboard Banner Area.
 
-- **DashboardBanner({ user, timing })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `TournamentTiming | null` (always available, even for guests). Hero layer reads from `timing`: renders `TournamentStartBanner` when `timing?.tournamentJustStarted`; else `PreTournamentCountdown` when `timing && !timing.tournamentHasStarted && timing.firstGameDate !== null`; else null. Secondary layer: renders `LoggedOffBanner` when `!user`; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
+- **DashboardBanner({ user, timing })**: `Promise<JSX.Element | null>` — [Server] Receives pre-fetched `TournamentTiming | null` (always available, even for guests). Hero layer reads from `timing`: renders `TournamentStartBanner` when `timing?.tournamentJustStarted`; else `PreTournamentCountdown` when `timing && !timing.tournamentHasStarted && timing.firstGameDate !== null`; else null. Secondary layer: renders `HubLoggedOutHeader` when `!user`; else null. Returns null when both layers are null; otherwise wraps non-null banners in `Stack gap={2}`.
   Calls: (none)
-  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), LoggedOffBanner (conditional)
+  Renders: TournamentStartBanner (conditional), PreTournamentCountdown (conditional), HubLoggedOutHeader (conditional)
+
+### app/components/tournament-hub/hub-logged-out-header.tsx
+Client Component rendering the S1 logged-out CTA banner using PredictionStatusHeader via computeLoggedOutVariant.
+
+- **HubLoggedOutHeader()**: `JSX.Element` — [Client] Calls `computeLoggedOutVariant(t, onSignIn, onLearnHow)` and renders `<PredictionStatusHeader variant={variant} />`. Manages `openAuthDialog` and `openOnboarding` state to conditionally render `LoginOrSignupDialog` and `OnboardingDialogClient` (dynamic import, ssr:false).
+  Uses: useState, useTranslations('tournament.public'), computeLoggedOutVariant, PredictionStatusHeader, LoginOrSignupDialog, OnboardingDialogClient (dynamic)
 
 ### app/components/tournament-hub/priority-attention-widget.tsx
 Server Component rendering the single priority action card between DashboardBanner and the widget grid.
 
-- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref })**: `Promise<JSX.Element | null>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → renders `Paper variant="outlined" p:2.5` > `Stack direction="row"` > `Avatar 40x40` + `Stack flexGrow` (title + subtitle) + `Stack direction="row"` (secondaryAction? + primary CTA Button). Card types: `urgent-games` (error/red, AccessTimeIcon, href=gamesHref?edit=next); `now-available-playoff` (success/green, PlayCircleOutlineIcon, title="{roundName} is Now Available", href=gamesHref?edit={firstGameId}); `deadline` (warning/orange, AccessTimeIcon, primary CTA=QT or Awards, optional secondary Awards Button when both incomplete); `new-actions-qt` (success/green, PlayCircleOutlineIcon, href=qtHref); `new-actions-awards` (success/green, PlayCircleOutlineIcon, href=awardsHref).
-  Calls: computePriorityAttention
-  Renders: EngagementRotatorWidget (when priority null), Paper card (when priority non-null)
+- **PriorityAttentionWidget({ data, gamesHref, qtHref, awardsHref, locale, tournamentId })**: `Promise<JSX.Element>` — [Server] Calls `computePriorityAttention(data)`. When null → renders `<EngagementRotatorWidget>` (Tier 3). When non-null → calls `getTranslations('hub')`, then `computeHubPriorityVariant(state, t, gamesHref, qtHref, awardsHref)` and renders `<PredictionStatusHeader variant={variant} />`. No bespoke card rendering — all visual logic delegated to PSH + hub-header-variant.
+  Calls: computePriorityAttention, computeHubPriorityVariant, getTranslations('hub')
+  Renders: EngagementRotatorWidget (when priority null), PredictionStatusHeader (when priority non-null)
 
 ### app/components/tournament-hub/engagement-rotator-widget.tsx
 Client Component handling Tier 3 visit-based rotation between pre-tournament CTA, app install, and notification opt-in cards.
 
-- **EngagementRotatorWidget({ gamesHref, tournamentStarted, predictedGames })**: `JSX.Element | null` — [Client] On mount: reads/increments `hub-engagement-visit-count` in localStorage; detects PWA install state (`beforeinstallprompt` event + iOS check), notification permission, dismissal states (`getDismissalState`). Builds pool: `pre-tournament-cta` (when `!tournamentStarted`), `app-install` (when installable + not dismissed), `notification-opt-in` (when permission !== 'denied'/'granted' + not dismissed). Shows `pool[visitCount % pool.length]` or null when pool is empty. Dismiss handlers use `setDismissalState`. App install CTA calls `deferredPrompt.prompt()` or shows iOS share hint. Notification CTA calls `Notification.requestPermission()`. Dismiss for notification uses text Button ("Not now") instead of icon button. Pre-tournament CTA card has secondary outline Button ("Start/Keep Predicting" based on `predictedGames`) linking to `gamesHref?edit=next`. Returns null during SSR (mounted=false).
-  Uses: useState, useEffect, useRef, useTranslations, getDismissalState, setDismissalState, Paper, Stack, Avatar, Typography, Button, Link
+- **EngagementRotatorWidget({ gamesHref, tournamentStarted, predictedGames })**: `JSX.Element | null` — [Client] On mount: reads/increments `hub-engagement-visit-count` in localStorage; detects PWA install state (`beforeinstallprompt` event + iOS check), notification permission, dismissal states (`getDismissalState`). Builds pool: `pre-tournament-cta` (when `!tournamentStarted`), `app-install` (when installable + not dismissed), `notification-opt-in` (when permission !== 'denied'/'granted' + not dismissed). Shows `pool[visitCount % pool.length]` or null when pool is empty. Each card branch calls `computeEngagementVariant(cardType, t, props)` and renders `<PredictionStatusHeader variant={variant} />`. iOS install hint overrides the variant object with a custom message. Tutorial dialog rendered separately below PSH when `tutorialOpen`. Returns null during SSR (mounted=false).
+  Uses: useState, useEffect, useRef, useTranslations('hub'), getDismissalState, setDismissalState, computeEngagementVariant, PredictionStatusHeader, OnboardingDialogClient (dynamic)
 
 ### app/components/tournament-hub/dashboard-card.tsx
 Reusable presentational Server Component establishing the standard card layout for all hub widgets.

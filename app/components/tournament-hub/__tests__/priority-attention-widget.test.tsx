@@ -127,11 +127,11 @@ describe('PriorityAttentionWidget', () => {
   })
 
   describe('urgent-games card', () => {
-    it('renders error-color CTA with href containing ?edit=next', async () => {
+    it('renders CTA with href deep-linking to firstUrgentGameId', async () => {
       mockPriority({ type: 'urgent-games', urgentCount: 3, firstUrgentGameId: 'g1', completedCount: 5, totalCount: 64 })
       render(await PriorityAttentionWidget(defaultProps))
       const links = screen.getAllByRole('link')
-      expect(links[0].getAttribute('href')).toContain('?edit=next')
+      expect(links[0].getAttribute('href')).toContain('?edit=g1')
       expect(links[0].getAttribute('href')).toContain('/games')
     })
   })
