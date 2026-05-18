@@ -30,6 +30,17 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
   const gamesWithScores = games.filter(game =>
     (Number.isInteger(game.resultOrGuess?.home_score) && Number.isInteger(game.resultOrGuess?.away_score)))
 
+  // DEBUG: log inputs to identify H2H tiebreaker issue
+  if (typeof window !== 'undefined' && sortByGamesBetweenTeams) {
+    console.warn('[calculateGroupPosition] H2H mode, teamIds:', teamIds)
+    console.warn('[calculateGroupPosition] gamesWithScores:', gamesWithScores.map(g => ({
+      home_team: g.home_team,
+      away_team: g.away_team,
+      home_score: g.resultOrGuess?.home_score,
+      away_score: g.resultOrGuess?.away_score
+    })))
+  }
+
   const isComplete = gamesWithScores.length === games.length
 
   const teamsStatsByTeam = Object.fromEntries(teamIds.map(teamId => [
@@ -53,6 +64,11 @@ export const calculateGroupPosition = (teamIds: string[], games: GameWithResultO
 
   if (!threeWayTie) {
     resolveTwoWayTies(teamStats, games, sortByGamesBetweenTeams)
+  }
+
+  // DEBUG: log final result
+  if (typeof window !== 'undefined' && sortByGamesBetweenTeams) {
+    console.warn('[calculateGroupPosition] result order:', teamStats.map(t => ({ team_id: t.team_id, points: t.points, goals_for: t.goals_for, goal_difference: t.goal_difference })))
   }
 
   return teamStats;
@@ -139,6 +155,12 @@ const resolveTwoWayTies = (
       undefined,
       teamsGame?.home_team,
       teamsGame?.away_team)
+    // DEBUG
+    if (typeof window !== 'undefined' && sortByGamesBetweenTeams) {
+      console.warn(`[resolveTwoWayTies] i=${i}: team[i]=${teamStats[i].team_id}(${teamStats[i].points}pts), team[i+1]=${teamStats[i+1].team_id}(${teamStats[i+1].points}pts)`)
+      console.warn(`[resolveTwoWayTies] teamsGame:`, teamsGame ? { home: teamsGame.home_team, away: teamsGame.away_team, home_score: teamsGame.resultOrGuess?.home_score, away_score: teamsGame.resultOrGuess?.away_score } : 'NOT FOUND')
+      console.warn(`[resolveTwoWayTies] winnerTeam:`, winnerTeam)
+    }
     //First sort by matches played between the 2 teams
     if (winnerTeam && winnerTeam != teamStats[i].team_id) {
       const temp = teamStats[i]
