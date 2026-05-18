@@ -5,8 +5,8 @@
 - **Story Title:** Consolidate tournament stats page to use single data fetch
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-424
 - **Branch:** feature/story-424
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 447
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/447
 
 ## State
 - **Current Phase:** planning
