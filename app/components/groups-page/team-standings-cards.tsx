@@ -22,27 +22,15 @@ export default function TeamStandingsCards({
   const standings = useMemo(() => {
     if (teamStats.length === 0) return []
 
-    // Pre-sort by full FIFA tiebreaker chain
-    const sorted = [...teamStats].sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points
-      if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
-      if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for
-      return (a.conduct_score || 0) - (b.conduct_score || 0)
-    })
-
-    // Add ranks using competition ranking (handles ties: 1-2-2-4)
-    const ranked = calculateRanks(sorted, 'points')
+    // Trust the order provided by the caller: calculateGroupPosition (backoffice) or
+    // findTeamsInGroup order-by-position (public page) already handle H2H and standard
+    // tiebreakers correctly. Re-sorting here would override H2H ordering with overall stats.
+    const ranked = calculateRanks([...teamStats], 'points')
 
     // Calculate previous ranks if previous stats provided
     let previousRanks: Map<string, number> | null = null
     if (previousTeamStats && previousTeamStats.length > 0) {
-      const prevSorted = [...previousTeamStats].sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points
-        if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
-        if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for
-        return (a.conduct_score || 0) - (b.conduct_score || 0)
-      })
-      const prevRanked = calculateRanks(prevSorted, 'points')
+      const prevRanked = calculateRanks([...previousTeamStats], 'points')
       previousRanks = new Map(
         prevRanked.map(stats => [stats.team_id, stats.currentRank])
       )
