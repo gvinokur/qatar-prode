@@ -297,6 +297,28 @@ The PSH card is more information-dense (shows chip, tone-colored border, message
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: S1 logged-out variant — two-line layout, no secondary action
+**Date:** 2026-05-18
+**Reason:** UX improvement discovered during implementation review — a two-line expanded banner with a description is clearer than a compact single-line with two buttons.
+**Change:** `computeLoggedOutVariant` signature simplified from `(t, onSignIn, onLearnHow)` to `(t, onSignIn)`. No `secondaryAction`; `message: t('ctaDescription')` added to trigger PSH expanded layout. New locale keys `welcome` + `ctaDescription` added to `tournament.public` namespace (plan incorrectly stated no new keys required). `HubLoggedOutHeader` simplified: `openOnboarding` state and `OnboardingDialogClient` removed entirely.
+
+### Amendment 2: P6 pre-tournament-cta — predict is primary action, tutorial is secondary
+**Date:** 2026-05-18
+**Reason:** Plan had tutorial (onClick) as primary and predict (href) as secondary. User feedback: the predict CTA should be the filled primary button; tutorial should be the outlined secondary.
+**Change:** In `computeEngagementVariant` `pre-tournament-cta` case: `action` is the predict href (filled `contained`), `secondaryAction` is the tutorial onClick (outlined).
+
+### Amendment 3: PSH `bothActions` rendering — primary contained, secondary outlined
+**Date:** 2026-05-18
+**Reason:** Previous PSH code rendered both actions as `outlined` when `bothActions` was true. Change needed to establish clear visual hierarchy.
+**Change:** `prediction-status-header.tsx` `bothActions` branch now renders `action` as `contained` and `secondaryAction` as `outlined`.
+
+### Amendment 4: P2/P4/P5 tones changed from `success` to `brand`
+**Date:** 2026-05-18
+**Reason:** `success` (green) semantically means completion; P2/P4/P5 are invitations to act on new opportunities. `brand` (primary blue) correctly signals "something new to do", consistent with P6–P8 and S1.
+**Change:** `now-available-playoff`, `new-actions-qt`, `new-actions-awards` all use `tone: 'brand'` instead of `tone: 'success'`.
+
 ## Testing Strategy
 
 ### Unit Tests (`hub-header-variant.test.ts`)
