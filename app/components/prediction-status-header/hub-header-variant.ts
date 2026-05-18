@@ -119,23 +119,21 @@ export function computeHubPriorityVariant(
 /**
  * Returns a StatusHeaderVariant for the S1 logged-out CTA state.
  * Uses `tournament.public.*` translation keys.
- * Both actions use onClick callbacks (login/onboarding dialogs, no hrefs).
+ * Renders in expanded (two-line) mode with a single filled login/signup CTA.
  *
  * @param t - Translation function bound to the 'tournament.public' namespace
  * @param onSignIn - Callback to open the login/signup dialog
- * @param onLearnHow - Callback to open the onboarding dialog
  */
 export function computeLoggedOutVariant(
   t: TFunction,
   onSignIn: () => void,
-  onLearnHow: () => void,
 ): StatusHeaderVariant {
   return {
     tone: 'brand',
     leadIcon: 'login',
-    statusText: t('ctaMessage'),
+    statusText: t('welcome'),
+    message: t('ctaDescription'),
     action: { label: t('loginOrSignup'), onClick: onSignIn },
-    secondaryAction: { label: t('learnHow'), onClick: onLearnHow },
   }
 }
 
@@ -173,7 +171,7 @@ export function computeEngagementVariant(
 ): StatusHeaderVariant {
   switch (cardType) {
     case 'pre-tournament-cta': {
-      const secondaryLabel =
+      const predictLabel =
         (props.predictedGames ?? 0) > 0
           ? t('newUser.tracks.matches.ctaKeep')
           : t('newUser.tracks.matches.cta')
@@ -182,8 +180,8 @@ export function computeEngagementVariant(
         leadIcon: 'book',
         statusText: t('newUser.tutorial.title'),
         message: t('newUser.tutorial.subtitle'),
-        action: { label: t('newUser.tutorial.cta'), onClick: props.onTutorial ?? (() => undefined) },
-        secondaryAction: { label: secondaryLabel, href: props.gamesEditHref ?? '#' },
+        action: { label: predictLabel, href: props.gamesEditHref ?? '#' },
+        secondaryAction: { label: t('newUser.tutorial.cta'), onClick: props.onTutorial ?? (() => undefined) },
       }
     }
 

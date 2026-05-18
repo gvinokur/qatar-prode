@@ -187,38 +187,36 @@ describe('computeHubPriorityVariant — new-actions-awards', () => {
 
 describe('computeLoggedOutVariant', () => {
   it('returns brand tone with login icon', () => {
-    const variant = computeLoggedOutVariant(mockT, vi.fn(), vi.fn())
+    const variant = computeLoggedOutVariant(mockT, vi.fn())
     expect(variant.tone).toBe('brand')
     expect(variant.leadIcon).toBe('login')
   })
 
   it('primary action onClick is the provided onSignIn callback', () => {
     const onSignIn = vi.fn()
-    const variant = computeLoggedOutVariant(mockT, onSignIn, vi.fn())
+    const variant = computeLoggedOutVariant(mockT, onSignIn)
     expect(variant.action?.onClick).toBe(onSignIn)
   })
 
-  it('secondary action onClick is the provided onLearnHow callback', () => {
-    const onLearnHow = vi.fn()
-    const variant = computeLoggedOutVariant(mockT, vi.fn(), onLearnHow)
-    expect(variant.secondaryAction?.onClick).toBe(onLearnHow)
-  })
-
-  it('primary action label uses ctaMessage key for statusText and loginOrSignup key for action', () => {
-    const variant = computeLoggedOutVariant(mockT, vi.fn(), vi.fn())
-    expect(variant.statusText).toBe('ctaMessage')
+  it('statusText uses welcome key and action label uses loginOrSignup key', () => {
+    const variant = computeLoggedOutVariant(mockT, vi.fn())
+    expect(variant.statusText).toBe('welcome')
     expect(variant.action?.label).toBe('loginOrSignup')
   })
 
-  it('secondary action label uses learnHow key', () => {
-    const variant = computeLoggedOutVariant(mockT, vi.fn(), vi.fn())
-    expect(variant.secondaryAction?.label).toBe('learnHow')
+  it('message uses ctaDescription key for the expanded description', () => {
+    const variant = computeLoggedOutVariant(mockT, vi.fn())
+    expect(variant.message).toBe('ctaDescription')
+  })
+
+  it('has no secondaryAction — single CTA only', () => {
+    const variant = computeLoggedOutVariant(mockT, vi.fn())
+    expect(variant.secondaryAction).toBeUndefined()
   })
 
   it('action does not have an href (onClick only)', () => {
-    const variant = computeLoggedOutVariant(mockT, vi.fn(), vi.fn())
+    const variant = computeLoggedOutVariant(mockT, vi.fn())
     expect('href' in (variant.action ?? {})).toBe(false)
-    expect('href' in (variant.secondaryAction ?? {})).toBe(false)
   })
 })
 
@@ -231,26 +229,26 @@ describe('computeEngagementVariant — pre-tournament-cta', () => {
     expect(variant.leadIcon).toBe('book')
   })
 
-  it('secondary action label uses ctaKeep key when predictedGames > 0', () => {
+  it('primary action label uses ctaKeep key when predictedGames > 0', () => {
     const variant = computeEngagementVariant('pre-tournament-cta', mockT, { predictedGames: 3, gamesEditHref: '/games?edit=next' })
-    expect(variant.secondaryAction?.label).toBe('newUser.tracks.matches.ctaKeep')
+    expect(variant.action?.label).toBe('newUser.tracks.matches.ctaKeep')
   })
 
-  it('secondary action label uses cta key when predictedGames === 0', () => {
+  it('primary action label uses cta key when predictedGames === 0', () => {
     const variant = computeEngagementVariant('pre-tournament-cta', mockT, { predictedGames: 0, gamesEditHref: '/games?edit=next' })
-    expect(variant.secondaryAction?.label).toBe('newUser.tracks.matches.cta')
+    expect(variant.action?.label).toBe('newUser.tracks.matches.cta')
   })
 
-  it('secondary action is an href action linking to gamesEditHref', () => {
+  it('primary action is an href action linking to gamesEditHref', () => {
     const href = '/en/tournaments/t1/games?edit=next'
     const variant = computeEngagementVariant('pre-tournament-cta', mockT, { predictedGames: 0, gamesEditHref: href })
-    expect(variant.secondaryAction?.href).toBe(href)
+    expect(variant.action?.href).toBe(href)
   })
 
-  it('primary action onClick is the provided onTutorial callback', () => {
+  it('secondary action onClick is the provided onTutorial callback', () => {
     const onTutorial = vi.fn()
     const variant = computeEngagementVariant('pre-tournament-cta', mockT, { onTutorial, gamesEditHref: '/games?edit=next' })
-    expect(variant.action?.onClick).toBe(onTutorial)
+    expect(variant.secondaryAction?.onClick).toBe(onTutorial)
   })
 })
 

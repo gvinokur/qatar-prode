@@ -1,6 +1,8 @@
 {
   "public": {
     "ctaMessage": "Login or sign up to make predictions",
+    "welcome": "Welcome to Prode Mundial",
+    "ctaDescription": "Sign in or create a free account to make predictions and compete with friends.",
     "learnHow": "Learn How",
     "loginOrSignup": "Login or Sign Up",
     "cardLockMessage": "Login or sign up to predict",
