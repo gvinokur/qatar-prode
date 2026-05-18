@@ -4,9 +4,9 @@
 - **Story Number:** 445
 - **Story Title:** [Story] Replace bespoke LoggedOffBanner on Games page with PredictionStatusHeader
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/naughty-edison-6a9b9c
-- **Branch:** (fill after worktree creation)
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **Branch:** claude/naughty-edison-6a9b9c
+- **PR Number:** 446
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/446
 
 ## State
 - **Current Phase:** planning
