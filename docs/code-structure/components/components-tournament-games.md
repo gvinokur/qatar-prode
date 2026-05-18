@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-09
+**Last updated:** 2026-05-18
 
 ---
 
@@ -280,9 +280,9 @@ Pure selector function for the Awards prediction page header variant.
 
 **File:** `app/components/prediction-status-header/hub-header-variant.ts`
 Pure selector functions for the Tournament Hub banner variants (S1 logged-out, P1–P5 priority states, P6–P8 engagement rotation).
-- **computeHubPriorityVariant(state: PriorityAttentionState, t: TFunction, gamesHref, qtHref, awardsHref)**: `StatusHeaderVariant` — Maps all 5 PriorityAttentionState types. urgent-games: deadlineNow (<2h via state.msUntilMostUrgentGame) or deadlineUrgent tone, clock icon, href=gamesHref?edit=firstUrgentGameId. now-available-playoff: success, rocket icon, href=gamesHref?edit=firstGameId. deadline: deadlineUrgent (<24h via state.msUntilPredictionLock) or deadlineSoon, clock icon, primaryCTA=QT or Awards, optional secondaryAction=Awards when both incomplete. new-actions-qt: success, rocket icon, href=qtHref. new-actions-awards: success, trophy icon, href=awardsHref.
-- **computeLoggedOutVariant(t: TFunction, onSignIn: () => void, onLearnHow: () => void)**: `StatusHeaderVariant` — S1 logged-out CTA; brand tone, login icon; both actions are onClick callbacks (tournament.public.* translation keys).
-- **computeEngagementVariant(cardType: EngagementCardType, t: TFunction, props: EngagementVariantProps)**: `StatusHeaderVariant` — pre-tournament-cta: brand, book icon, tutorial onClick + predict href. app-install: brand, mobile icon, install onClick + dismiss onClick. notification-opt-in: brand, bell icon, enable onClick + dismiss onClick.
+- **computeHubPriorityVariant(state: PriorityAttentionState, t: TFunction, gamesHref, qtHref, awardsHref)**: `StatusHeaderVariant` — Maps all 5 PriorityAttentionState types. urgent-games: deadlineNow (<2h via state.msUntilMostUrgentGame) or deadlineUrgent tone, clock icon, href=gamesHref?edit=firstUrgentGameId. now-available-playoff: brand, rocket icon, href=gamesHref?edit=firstGameId. deadline: deadlineUrgent (<24h via state.msUntilPredictionLock) or deadlineSoon, clock icon, primaryCTA=QT or Awards, optional secondaryAction=Awards when both incomplete. new-actions-qt: brand, rocket icon, href=qtHref. new-actions-awards: brand, trophy icon, href=awardsHref.
+- **computeLoggedOutVariant(t: TFunction, onSignIn: () => void)**: `StatusHeaderVariant` — S1 logged-out CTA; brand tone, login icon; single action onClick=onSignIn (contained); message field set for two-line expanded layout. Translation namespace: tournament.public (welcome, ctaDescription, loginOrSignup keys).
+- **computeEngagementVariant(cardType: EngagementCardType, t: TFunction, props: EngagementVariantProps)**: `StatusHeaderVariant` — pre-tournament-cta: brand, book icon, predict href (primary/contained) + tutorial onClick (secondary/outlined). app-install: brand, mobile icon, install onClick + dismiss onClick. notification-opt-in: brand, bell icon, enable onClick + dismiss onClick.
 - **EngagementCardType** (type) - 'pre-tournament-cta' | 'app-install' | 'notification-opt-in'
 - **EngagementVariantProps** (interface) - predictedGames?, gamesEditHref?, onTutorial?, onInstall?, onDismiss?, onEnable?
 

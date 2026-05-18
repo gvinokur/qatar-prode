@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-12
+**Last updated:** 2026-05-18
 
 ---
 
@@ -18,8 +18,8 @@ Server Component stacking hero + secondary CTA banners in the dashboard Banner A
 ### app/components/tournament-hub/hub-logged-out-header.tsx
 Client Component rendering the S1 logged-out CTA banner using PredictionStatusHeader via computeLoggedOutVariant.
 
-- **HubLoggedOutHeader()**: `JSX.Element` — [Client] Calls `computeLoggedOutVariant(t, onSignIn, onLearnHow)` and renders `<PredictionStatusHeader variant={variant} />`. Manages `openAuthDialog` and `openOnboarding` state to conditionally render `LoginOrSignupDialog` and `OnboardingDialogClient` (dynamic import, ssr:false).
-  Uses: useState, useTranslations('tournament.public'), computeLoggedOutVariant, PredictionStatusHeader, LoginOrSignupDialog, OnboardingDialogClient (dynamic)
+- **HubLoggedOutHeader()**: `JSX.Element` — [Client] Calls `computeLoggedOutVariant(t, onSignIn)` and renders `<PredictionStatusHeader variant={variant} />`. Manages `openAuthDialog` state to conditionally render `LoginOrSignupDialog`.
+  Uses: useState, useTranslations('tournament.public'), computeLoggedOutVariant, PredictionStatusHeader, LoginOrSignupDialog
 
 ### app/components/tournament-hub/priority-attention-widget.tsx
 Server Component rendering the single priority action card between DashboardBanner and the widget grid.
