@@ -2,7 +2,7 @@
 
 import { Box, Stack, Typography } from '@mui/material'
 import { useTranslations } from 'next-intl'
-import { LoggedOffBanner } from './public-cta-bar'
+import { GamesLoggedOutHeader } from './games-logged-out-header'
 import ReadOnlyGameCard from './read-only-game-card'
 import { ScrollShadowContainer } from '../common/scroll-shadow-container'
 import { ExtendedGameData } from '../../definitions'
@@ -70,7 +70,7 @@ export default function PublicGamesPageClient({
     >
       <Stack spacing={2}>
         {/* Public CTA Bar */}
-        <LoggedOffBanner sticky />
+        <GamesLoggedOutHeader />
 
         {/* Games List */}
         <Stack spacing={1.5}>

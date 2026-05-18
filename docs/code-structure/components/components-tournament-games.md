@@ -288,3 +288,11 @@ Pure selector functions for the Tournament Hub banner variants (S1 logged-out, P
 
 **File:** `app/components/prediction-status-header/index.ts`
 Barrel export for the prediction-status-header folder.
+
+**File:** `app/components/tournament-page/games-logged-out-header.tsx`
+Logged-out CTA banner for the Games page. Renders `PredictionStatusHeader` via `computeLoggedOutVariant` wrapped in a sticky `Box` so the banner stays visible while the user scrolls through the games list.
+- **GamesLoggedOutHeader()**: `JSX.Element` — [Client] Calls `computeLoggedOutVariant(t, onSignIn)` and renders `<PredictionStatusHeader variant={variant} />` inside a `Box sx={{ position: 'sticky', top: 0, zIndex: 1000 }}`. Manages `openAuthDialog` state to conditionally render `LoginOrSignupDialog`.
+
+**File:** `app/components/tournament-page/public-games-page-client.tsx`
+Client component rendering the read-only games list for logged-out users. Sorts games by date and game number, shows a no-games empty state, and renders `GamesLoggedOutHeader` (sticky PSH banner) above the list of `ReadOnlyGameCard` items.
+- **PublicGamesPageClient({ games, teamsMap, groups, rounds })**: `JSX.Element` — [Client] Renders `GamesLoggedOutHeader` + list of `ReadOnlyGameCard` inside `ScrollShadowContainer`.
