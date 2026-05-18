@@ -200,8 +200,8 @@ User tournament statistics page showing performance, accuracy, boost analysis, a
 
 - **generateMetadata({ params }: { params: Promise<{ id: string }> })**: `Promise<Metadata>` — [Server] Returns sub-page title `"{sidebar.title} – {long_name} | {appName}"` with localized description; falls back to appName on error.
   Calls: buildTournamentMetadata, getTranslations, getLocale
-- **TournamentStatsPage(props: Props)**: `JSX.Element` — [Server] Counts game guesses via SQL COUNT, fetches tournament guesses, boost allocations, and score history (tournament via cache); calculates performance and accuracy metrics; renders stats with BreadcrumbList JSON-LD.
-  Calls: getLoggedInUser, findTournamentByIdCached, getLocale, getTranslations, getGameGuessStatisticsForUsers, findTournamentGuessByUserIdTournament, getBoostAllocationBreakdown, getGameCountsForTournament, countGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers, buildBreadcrumbListJsonLd
+- **TournamentStatsPage(props: Props)**: `JSX.Element` — [Server] Fetches all stats via a single `getGameGuessStatisticsForUsers` call (game scores, accuracy counts, and tournament-level fields), plus boost allocations, game counts, and score history; calculates performance and accuracy metrics; renders stats with BreadcrumbList JSON-LD.
+  Calls: getLoggedInUser, findTournamentByIdCached, getLocale, getTranslations, getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, getGameCountsForTournament, countGameGuessesByUserId, calculateAccuracyStats, calculateBoostStats, getScoreHistoryForUsers, buildBreadcrumbListJsonLd
   Renders: JsonLd, StatsTabs, PerformanceOverviewCard, PredictionAccuracyCard, BoostAnalysisCard, HistoryTabCard
 
 ### app/[locale]/tournaments/[id]/awards/page.tsx

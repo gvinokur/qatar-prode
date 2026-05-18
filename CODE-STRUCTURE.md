@@ -379,8 +379,7 @@ Key flows:
     TournamentStatsPage (Server)
       ├── getLoggedInUser
       ├── findTournamentByIdCached
-      ├── getGameGuessStatisticsForUsers
-      ├── findTournamentGuessByUserIdTournament
+      ├── getGameGuessStatisticsForUsers          ← single query for all score + accuracy + tournament-level fields
       ├── getBoostAllocationBreakdown
       ├── getGameCountsForTournament
       ├── countGameGuessesByUserId

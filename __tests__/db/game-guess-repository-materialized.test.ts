@@ -38,6 +38,8 @@ describe('Game Guess Repository - Materialized Queries', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 4,
           playoff_exact_guesses: 2,
+          qualified_teams_correct: 4,
+          qualified_teams_exact: 2,
           last_game_score_update_at: new Date('2024-07-14'),
         },
         {
@@ -54,6 +56,8 @@ describe('Game Guess Repository - Materialized Queries', () => {
           group_exact_guesses: 3,
           playoff_correct_guesses: 5,
           playoff_exact_guesses: 3,
+          qualified_teams_correct: 6,
+          qualified_teams_exact: 3,
           last_game_score_update_at: new Date('2024-07-14'),
         },
       ];
@@ -74,8 +78,12 @@ describe('Game Guess Repository - Materialized Queries', () => {
       expect(result).toHaveLength(2);
       expect(result[0].user_id).toBe(userId1);
       expect(result[0].total_game_score).toBe(75);
+      expect(result[0].qualified_teams_correct).toBe(4);
+      expect(result[0].qualified_teams_exact).toBe(2);
       expect(result[1].user_id).toBe(userId2);
       expect(result[1].total_game_score).toBe(85);
+      expect(result[1].qualified_teams_correct).toBe(6);
+      expect(result[1].qualified_teams_exact).toBe(3);
     });
 
     it('should return empty array when no users found', async () => {
@@ -90,6 +98,61 @@ describe('Game Guess Repository - Materialized Queries', () => {
       mockDb.selectFrom.mockReturnValue(mockQuery);
 
       const result = await getGameGuessStatisticsForUsers(['user-nonexistent'], 'tournament-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return null for qualified_teams_correct and qualified_teams_exact when row has null values (pre-qualified-teams tournament)', async () => {
+      const { getGameGuessStatisticsForUsers } = await import('../../app/db/game-guess-repository');
+
+      const userId = 'user-legacy';
+      const tournamentId = 'tournament-legacy';
+
+      const mockMaterializedData = [{
+        user_id: userId,
+        total_game_score: 40,
+        group_stage_game_score: 25,
+        playoff_stage_game_score: 15,
+        total_boost_bonus: 5,
+        group_stage_boost_bonus: 3,
+        playoff_stage_boost_bonus: 2,
+        total_correct_guesses: 6,
+        total_exact_guesses: 2,
+        group_correct_guesses: 4,
+        group_exact_guesses: 1,
+        playoff_correct_guesses: 2,
+        playoff_exact_guesses: 1,
+        qualified_teams_correct: null,
+        qualified_teams_exact: null,
+      }];
+
+      const mockQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(mockMaterializedData),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery);
+
+      const result = await getGameGuessStatisticsForUsers([userId], tournamentId);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].qualified_teams_correct).toBeNull();
+      expect(result[0].qualified_teams_exact).toBeNull();
+    });
+
+    it('should return empty array when called with empty userIds', async () => {
+      const { getGameGuessStatisticsForUsers } = await import('../../app/db/game-guess-repository');
+
+      const mockQuery = {
+        where: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+
+      mockDb.selectFrom.mockReturnValue(mockQuery);
+
+      const result = await getGameGuessStatisticsForUsers([], 'tournament-1');
 
       expect(result).toEqual([]);
     });

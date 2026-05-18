@@ -5,7 +5,6 @@ import { Box } from "../../../../components/mui-wrappers";
 import { getLoggedInUser } from "../../../../actions/user-actions";
 import { redirect } from "next/navigation";
 import { getGameGuessStatisticsForUsers, getBoostAllocationBreakdown, countGameGuessesByUserId } from "../../../../db/game-guess-repository";
-import { findTournamentGuessByUserIdTournament } from "../../../../db/tournament-guess-repository";
 import { getGameCountsForTournament } from "../../../../db/game-repository";
 import { getScoreHistoryForUsers } from "../../../../db/score-history-repository";
 import { PerformanceOverviewCard } from "../../../../components/tournament-stats/performance-overview-card";
@@ -65,22 +64,20 @@ export default async function TournamentStatsPage(props: Props) {
   const userGameStatsList = await getGameGuessStatisticsForUsers([user.id], tournamentId)
   const userGameStats = userGameStatsList.length > 0 ? userGameStatsList[0] : null
 
-  const tournamentGuess = await findTournamentGuessByUserIdTournament(user.id, tournamentId)
-
   const silverBoostData = await getBoostAllocationBreakdown(user.id, tournamentId, 'silver')
   const goldenBoostData = await getBoostAllocationBreakdown(user.id, tournamentId, 'golden')
 
   // Calculate derived metrics for Performance Overview
   const groupGamePoints = userGameStats?.group_score ?? 0
   const groupBoostBonus = userGameStats?.group_boost_bonus ?? 0
-  const groupQualifiedTeamsPoints = tournamentGuess?.qualified_teams_score ?? 0
-  const groupQualifiedTeamsCorrect = tournamentGuess?.qualified_teams_correct ?? 0
-  const groupQualifiedTeamsExact = tournamentGuess?.qualified_teams_exact ?? 0
-  const groupPositionPoints = tournamentGuess?.group_position_score ?? 0 // Legacy, always 0 now
+  const groupQualifiedTeamsPoints = userGameStats?.qualified_teams_score ?? 0
+  const groupQualifiedTeamsCorrect = userGameStats?.qualified_teams_correct ?? 0
+  const groupQualifiedTeamsExact = userGameStats?.qualified_teams_exact ?? 0
+  const groupPositionPoints = userGameStats?.group_position_score ?? 0 // Legacy, always 0 now
   const playoffGamePoints = userGameStats?.playoff_score ?? 0
   const playoffBoostBonus = userGameStats?.playoff_boost_bonus ?? 0
-  const honorRollPoints = tournamentGuess?.honor_roll_score ?? 0
-  const individualAwardsPoints = tournamentGuess?.individual_awards_score ?? 0
+  const honorRollPoints = userGameStats?.honor_roll_score ?? 0
+  const individualAwardsPoints = userGameStats?.individual_awards_score ?? 0
 
   // Note: groupPositionPoints excluded from calculation as it's deprecated (always 0)
   const groupStagePoints = groupGamePoints + groupBoostBonus + groupQualifiedTeamsPoints
