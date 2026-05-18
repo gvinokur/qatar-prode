@@ -292,5 +292,22 @@ Use `testFactories.*` for all test data construction (tournament, group, team fi
 - `docs/code-structure/components/components-backoffice.md` — `tournament-main-data-tab.tsx`, `group-backoffice-tab.tsx`, `groups-backoffice-tab.tsx`, `group-dialog.tsx`
 - Call graph: **YES** — Flow 5 updated, backoffice position recalc updated
 
+## Implementation Amendments
+
+### Amendment 1: qualification-actions.ts also required tiebreaker_mode threading
+**Date:** 2026-05-18
+**Reason:** Discovered during implementation that `bulkAutoFillFromPredictions` calls `computeGroupStandingsFromGuesses` via `computeStandingsByGroup`, which also needed the tournament's `tiebreaker_mode` to produce correct H2H standings for prediction auto-fill. Not listed in plan but logically consistent with the story's intent.
+**Change:** `bulkAutoFillFromPredictions` now selects `tiebreaker_mode` from the tournament query and passes it through `computeStandingsByGroup` → `computeGroupStandingsFromGuesses`.
+
+### Amendment 2: TeamStandingsCards bug fix — internal re-sort overrode H2H order
+**Date:** 2026-05-18
+**Reason:** Discovered during user testing in Vercel Preview: the backoffice standings display was showing the wrong order (Netherlands above Spain) even though `calculateGroupPosition` correctly produced Spain first in H2H mode. Root cause: `TeamStandingsCards` was re-sorting its `teamStats` input with the standard stats comparator (pts → GD → GF → conduct), silently overriding the caller-provided H2H order. The algorithm was correct; the display component was the bug.
+**Change:** Removed internal sort from `TeamStandingsCards` (both main sort and `previousTeamStats` sort). The component now trusts the caller-provided order. `calculateGroupPosition` already handles all tiebreaker modes; `findTeamsInGroup` already orders by `position asc` (DB-stored from the correct algorithm). A regression test was added for the exact NL vs Spain H2H scenario.
+
+### Amendment 3: group-position-calculator.test.ts — regression tests added
+**Date:** 2026-05-18
+**Reason:** Plan stated "no changes needed" since the algorithm was mostly correct, but the TeamStandingsCards bug investigation warranted a targeted regression test to confirm the algorithm itself was correct.
+**Change:** Added two tests in a new `H2H tiebreaker - exact scenario regression test` describe block: Spain above Netherlands in H2H mode (Spain won direct match), Netherlands above Spain in standard mode (more GF). Both pass.
+
 ## Open Questions
 - None — requirements are clear from the issue.
