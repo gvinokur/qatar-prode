@@ -8,9 +8,8 @@ import type { ExtendedGameData } from '@/app/definitions'
 import type { Team, TournamentGroup, PlayoffRound } from '@/app/db/tables-definition'
 
 // Mock child components
-vi.mock('@/app/components/tournament-page/public-cta-bar', () => ({
-  LoggedOffBanner: () => <div data-testid="public-cta-bar">Public CTA Bar</div>,
-  default: () => <div data-testid="public-cta-bar">Public CTA Bar</div>,
+vi.mock('@/app/components/tournament-page/games-logged-out-header', () => ({
+  GamesLoggedOutHeader: () => <div data-testid="games-logged-out-header">Games Logged Out Header</div>,
 }))
 
 vi.mock('@/app/components/tournament-page/read-only-game-card', () => ({
@@ -108,7 +107,7 @@ describe('PublicGamesPageClient', () => {
       )
 
       expect(screen.getByText('No games available')).toBeInTheDocument()
-      expect(screen.queryByTestId('public-cta-bar')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('games-logged-out-header')).not.toBeInTheDocument()
       expect(screen.queryByTestId('scroll-shadow-container')).not.toBeInTheDocument()
     })
 
@@ -193,7 +192,7 @@ describe('PublicGamesPageClient', () => {
       expect(cards[2]).toHaveAttribute('data-testid', 'game-card-3')
     })
 
-    it('renders PublicCTABar', () => {
+    it('renders GamesLoggedOutHeader', () => {
       const games: ExtendedGameData[] = [
         {
           ...testFactories.game({
@@ -219,7 +218,7 @@ describe('PublicGamesPageClient', () => {
         'en'
       )
 
-      expect(screen.getByTestId('public-cta-bar')).toBeInTheDocument()
+      expect(screen.getByTestId('games-logged-out-header')).toBeInTheDocument()
     })
 
     it('renders scroll shadow container', () => {
