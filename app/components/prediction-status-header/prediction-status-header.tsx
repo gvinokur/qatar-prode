@@ -116,7 +116,7 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
     expandedActions = (
       <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
         {renderAction(variant.action!, 'contained')}
-        {renderAction(variant.secondaryAction!, 'text')}
+        {renderAction(variant.secondaryAction!, 'outlined')}
       </Box>
     );
   } else if (variant.action) {
