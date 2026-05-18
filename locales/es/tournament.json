@@ -1,6 +1,8 @@
 {
   "public": {
     "ctaMessage": "Inicia sesión o regístrate para hacer predicciones",
+    "welcome": "Bienvenido a Prode Mundial",
+    "ctaDescription": "Iniciá sesión o creá una cuenta para hacer predicciones y competir con tus amigos.",
     "learnHow": "Cómo Funciona",
     "loginOrSignup": "Iniciar Sesión o Registrarse",
     "cardLockMessage": "Inicia sesión o regístrate para predecir",

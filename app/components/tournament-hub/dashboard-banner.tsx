@@ -1,6 +1,6 @@
 import { Stack } from '@mui/material'
 import type { TournamentTiming } from '../../actions/hub-actions'
-import { LoggedOffBanner } from '../tournament-page/public-cta-bar'
+import { HubLoggedOutHeader } from './hub-logged-out-header'
 import { TournamentStartBanner } from './tournament-start-banner'
 import { PreTournamentCountdown } from './pre-tournament-hero'
 
@@ -24,7 +24,7 @@ export async function DashboardBanner({ user, timing }: DashboardBannerProps) {
   }
 
   // Secondary layer: logged-off users only
-  const secondary: React.ReactNode = user ? null : <LoggedOffBanner />
+  const secondary: React.ReactNode = user ? null : <HubLoggedOutHeader />
 
   if (!hero && !secondary) return null
 

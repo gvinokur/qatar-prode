@@ -15,6 +15,8 @@ export interface PriorityAttentionState {
   urgentCount?: number
   /** urgent-games: id of first (most urgent) game for deep-link */
   firstUrgentGameId?: string
+  /** urgent-games: ms until the soonest game kicks off (enables deadlineNow vs deadlineUrgent tone selection) */
+  msUntilMostUrgentGame?: number
   completedCount: number
   totalCount: number
   /** deadline only: whether QT predictions are still incomplete */
@@ -29,6 +31,8 @@ export interface PriorityAttentionState {
   awardsCompleted?: number
   /** deadline only: total awards predictions available */
   awardsTotal?: number
+  /** deadline only: ms until QT/awards prediction window closes (enables deadlineUrgent vs deadlineSoon tone selection) */
+  msUntilPredictionLock?: number
   /** now-available-playoff: localized name of the newly available round */
   availableRoundName?: string
   /** now-available-playoff: ID of the first unpredicted game in the round (for deep-link) */
@@ -53,6 +57,7 @@ function buildDeadlineState(data: ActionCenterData): PriorityAttentionState | nu
     awardsIncomplete,
     awardsCompleted: data.awardsCompleted,
     awardsTotal: data.awardsTotal,
+    msUntilPredictionLock: data.msUntilPredictionLock,
   }
 }
 
@@ -76,10 +81,14 @@ export function computePriorityAttention(data: ActionCenterData): PriorityAttent
       (g) => calculateDeadline(g.game_date) - now <= HOURS_24_MS
     )
     if (within24h.length > 0) {
+      const msUntilMostUrgentGame = Math.min(
+        ...within24h.map((g) => calculateDeadline(g.game_date) - now)
+      )
       return {
         type: 'urgent-games',
         urgentCount: within24h.length,
         firstUrgentGameId: within24h[0]?.id,
+        msUntilMostUrgentGame,
         completedCount: data.predictedGames,
         totalCount: data.totalGames,
       }

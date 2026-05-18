@@ -612,23 +612,23 @@ Key flows:
       → passed to FriendGroupPage → ProdeGroupTable → LeaderboardView → LeaderboardCards
       → LeaderboardCards uses currentRank and rankChange from map; falls back to positional rank when map empty
 
-29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic; #356 — Games widget; #390 — Priority Attention Widget; #411 — merged timing into getTournamentHubPageData)
+29. Tournament Hub shell (Story #316; updated #317, #318, #319, #338 — promoted to root; #349 — data lift; #354 — two-zone layout; #355 — real banner logic; #356 — Games widget; #390 — Priority Attention Widget; #411 — merged timing into getTournamentHubPageData; #441 — migrated banners to PredictionStatusHeader)
     TournamentHubPage (Server) — /tournaments/[id]  (root; /tournaments/[id]/hub redirects here)
       → getTournamentHubPageData(tournamentId, locale) + getLoggedInUser() [parallel; Story #356; locale added #411]
       → getRulesBySection(scoringConfig, tRules)  [page-level, shared scoringRules; Story #356]
       → getActionCenterGames(id, locale)  [conditional: user && !isFinished; null otherwise; timing fields now in hubData #411]
           → findPlayoffRoundsWithAvailabilityInfo + computeNowAvailableRoundIds → nowAvailablePlayoffRound
-      → renders DashboardBanner(user, hubData) [Story #355: hero + secondary banner stack; Story #390: TutorialCTACard removed; #411: hubData replaces timing param]
+      → renders DashboardBanner(user, hubData) [Story #355: hero + secondary banner stack; Story #390: TutorialCTACard removed; #411: hubData replaces timing param; #441: LoggedOffBanner → HubLoggedOutHeader]
           DashboardBanner (Server)
             → [hero reads from hubData — available for all users]
             → [hero] TournamentStartBanner [Client] (when hubData.tournamentJustStarted)
             → [hero] PreTournamentCountdown [Client] (when !hubData.tournamentHasStarted && hubData.firstGameDate set)
-            → [secondary] LoggedOffBanner [Client] (when !user)
+            → [secondary] HubLoggedOutHeader [Client] (when !user; Story #441: uses computeLoggedOutVariant → PredictionStatusHeader)
       → renders PriorityAttentionWidget(data, gamesHref, qtHref, awardsHref, locale, tournamentId) [Story #390: only when user && actionCenterData]
           PriorityAttentionWidget (Server)
             → computePriorityAttention(data)  [pure; returns PriorityAttentionState | null]
-            → [null] EngagementRotatorWidget [Client] (Tier 3: pre-tournament CTA / app install / notification opt-in rotation)
-            → [non-null] Paper card (outlined; Avatar + title + subtitle + Button[Link])
+            → [null] EngagementRotatorWidget [Client] (Tier 3: uses computeEngagementVariant → PredictionStatusHeader; Story #441)
+            → [non-null] computeHubPriorityVariant(state, t, ...) → PredictionStatusHeader [Story #441: replaces bespoke Paper card]
       → renders GamesPredictionWidget (zero-fetch orchestrator; Story #356)
           → [isFinished] → null
           → [!actionCenterData] → GamesInfoWidget(isLoggedOff=true, predictedGames=0)

@@ -18,6 +18,11 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import FlagIcon from '@mui/icons-material/Flag';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import LoginIcon from '@mui/icons-material/Login';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import InstallMobileIcon from '@mui/icons-material/InstallMobile';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import Link from 'next/link';
 import { BoostCountBadge } from '../boost-badge';
 import type { StatusHeaderVariant, StatusHeaderTone, HeaderAction } from './types';
@@ -67,14 +72,19 @@ const ICON_SX = { fontSize: 16, flexShrink: 0 };
 function LeadIcon({ icon, color }: { readonly icon: StatusHeaderVariant['leadIcon']; readonly color: string }) {
   const sx = { ...ICON_SX, color };
   switch (icon) {
-    case 'rocket': return <RocketLaunchIcon sx={sx} />;
-    case 'flag':   return <FlagIcon sx={sx} />;
-    case 'check':  return <CheckCircleIcon sx={sx} />;
-    case 'info':   return <InfoOutlinedIcon sx={sx} />;
+    case 'rocket':  return <RocketLaunchIcon sx={sx} />;
+    case 'flag':    return <FlagIcon sx={sx} />;
+    case 'check':   return <CheckCircleIcon sx={sx} />;
+    case 'info':    return <InfoOutlinedIcon sx={sx} />;
     case 'warning': return <WarningAmberIcon sx={sx} />;
-    case 'error':  return <ErrorOutlineIcon sx={sx} />;
-    case 'lock':   return <LockOutlinedIcon sx={sx} />;
-    case 'trophy': return <EmojiEventsIcon sx={sx} />;
+    case 'error':   return <ErrorOutlineIcon sx={sx} />;
+    case 'lock':    return <LockOutlinedIcon sx={sx} />;
+    case 'trophy':  return <EmojiEventsIcon sx={sx} />;
+    case 'login':   return <LoginIcon sx={sx} />;
+    case 'clock':   return <AccessTimeIcon sx={sx} />;
+    case 'book':    return <MenuBookIcon sx={sx} />;
+    case 'mobile':  return <InstallMobileIcon sx={sx} />;
+    case 'bell':    return <NotificationsNoneIcon sx={sx} />;
   }
 }
 
@@ -104,8 +114,8 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
   let expandedActions: React.ReactNode = null;
   if (bothActions) {
     expandedActions = (
-      <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap' }}>
-        {renderAction(variant.action!, 'outlined')}
+      <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+        {renderAction(variant.action!, 'contained')}
         {renderAction(variant.secondaryAction!, 'outlined')}
       </Box>
     );

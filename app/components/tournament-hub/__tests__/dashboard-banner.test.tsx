@@ -13,8 +13,8 @@ vi.mock('../pre-tournament-hero', () => ({
   ),
 }))
 
-vi.mock('../../tournament-page/public-cta-bar', () => ({
-  LoggedOffBanner: () => <div data-testid="logged-off-banner" />,
+vi.mock('../hub-logged-out-header', () => ({
+  HubLoggedOutHeader: () => <div data-testid="logged-off-banner" />,
 }))
 
 const mockUser = { id: 'user-1', email: 'test@example.com' }
