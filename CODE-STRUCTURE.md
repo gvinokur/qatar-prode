@@ -215,8 +215,9 @@ Key flows:
                  └── QualifiedTeamsUI [renders]
                        ├── computeQTHeaderVariant → PredictionStatusHeader [renders]
                        │     └── (auto-fill action) on confirm: bulkAutoFillFromPredictions [server action]
+                       │                     ├── findTournamentById (→ tiebreaker_mode)
                        │                     ├── findGameGuessesByUserId
-                       │                     ├── computeGroupStandingsFromGuesses (util)
+                       │                     ├── computeGroupStandingsFromGuesses (util, tiebreakerMode)
                        │                     ├── upsertGroupPositionsPrediction
                        │                     └── updatePlayoffGameGuesses
                        │     └── on success: onAutoFillSuccess → resetPredictions (context, no refresh)
@@ -361,7 +362,8 @@ Key flows:
       ├── findGamesInTournament
       ├── getTeamsMap [server action]
       ├── getGroupStandingsForTournament [server action]
-      │     └── calculateGroupPosition (util)
+      │     ├── findTournamentById (→ tiebreaker_mode)
+      │     └── calculateGroupPosition (util, sortByGamesBetweenTeams from tiebreaker_mode)
       └── findPlayoffStagesWithGamesInTournament
       └── ResultsPageClient [renders]
             ├── GroupsStageView [renders] (groups tab)
@@ -426,10 +428,13 @@ Key flows:
             └── sendNotification
 
 14. Backoffice game result editing
-    GroupBackoffice [Client] (group stage)
+    GroupsTab [Client] → getGroupDataWithGamesAndTeams [server action]
+      ├── findGroupsWithGamesAndTeamsInTournament
+      └── findTournamentById (→ tiebreakerMode passed to each GroupBackoffice)
+    GroupBackoffice [Client] (group stage, receives tiebreakerMode prop)
       ├── getCompleteGroupData [server action]
       ├── saveGamesData [server action]
-      ├── calculateAndStoreGroupPosition [server action]
+      ├── calculateAndStoreGroupPosition [server action] (sortByGamesBetweenTeams from tiebreakerMode)
       ├── calculateAndStoreQualifiedTeamsScores [server action]
       │     ├── writeScoreSnapshot (per user, upsert RETURNING *)
       │     └── recalculateGroupRankingsForUsers(tournamentId, affectedUserIds) [see flow 27]

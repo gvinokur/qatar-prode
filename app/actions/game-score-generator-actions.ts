@@ -13,6 +13,7 @@ import {
 } from './backoffice-actions';
 import { calculateAndStoreQualifiedTeamsScores } from './qualified-teams-scoring-actions';
 import { findTeamsInGroup, findTournamentgroupById } from '../db/tournament-group-repository';
+import { findTournamentById } from '../db/tournament-repository';
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
 
@@ -122,16 +123,21 @@ async function runRecalculationPipeline(
 ): Promise<void> {
   // First recalculate group standings (playoff calculation depends on this)
   if (groupId) {
-    const group = await findTournamentgroupById(groupId);
+    const [group, tournament] = await Promise.all([
+      findTournamentgroupById(groupId),
+      findTournamentById(tournamentId),
+    ]);
     if (group) {
       const teams = await findTeamsInGroup(groupId);
       const teamIds = teams.map(t => t.team_id);
       const updatedGames = await findGamesInGroup(groupId, true, false);
+      // Use tournament-level tiebreaker mode (story #443) instead of per-group flag
+      const sortByH2H = tournament?.tiebreaker_mode === 'head_to_head';
       await calculateAndStoreGroupPosition(
         groupId,
         teamIds,
         updatedGames,
-        group.sort_by_games_between_teams
+        sortByH2H
       );
     }
   }

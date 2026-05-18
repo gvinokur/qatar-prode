@@ -424,6 +424,7 @@ describe('Backoffice Actions', () => {
     exact_position_qualified_points: 1,
     max_silver_games: 3,
     max_golden_games: 1,
+    tiebreaker_mode: 'standard' as const,
   };
 
   const mockTeam = {
@@ -953,11 +954,14 @@ describe('Backoffice Actions', () => {
     it('returns group data with games and teams', async () => {
       const mockGroups = [mockExtendedGroupData];
       mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue(mockGroups);
+      mockFindTournamentById.mockResolvedValue(mockTournament);
 
       const result = await getGroupDataWithGamesAndTeams('tournament1');
 
       expect(mockFindGroupsWithGamesAndTeamsInTournament).toHaveBeenCalledWith('tournament1');
-      expect(result).toEqual(mockGroups);
+      expect(result.groups).toEqual(mockGroups);
+      // tiebreaker_mode not in mockTournament → defaults to 'standard'
+      expect(result.tiebreakerMode).toBe('standard');
     });
   });
 
@@ -1054,6 +1058,7 @@ describe('Backoffice Actions', () => {
           exact_position_qualified_points: 1,
           max_silver_games: 3,
           max_golden_games: 1,
+          tiebreaker_mode: 'standard', // story #443
         },
         players: [mockPlayer]
       });
@@ -1400,7 +1405,7 @@ describe('Backoffice Actions', () => {
       const groupsResult = await getGroupDataWithGamesAndTeams('tournament1');
 
       expect(awardsResult.tournamentUpdate).toEqual({});
-      expect(groupsResult).toEqual([]);
+      expect(groupsResult.groups).toEqual([]);
 
       // updateTournamentAwards now throws when tournament not found
       await expect(updateTournamentAwards('tournament1', {})).rejects.toThrow('notFound');

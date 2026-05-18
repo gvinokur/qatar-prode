@@ -175,6 +175,7 @@ describe('Tournament Actions', () => {
     exact_position_qualified_points: 1,
     max_silver_games: 3,
     max_golden_games: 1,
+    tiebreaker_mode: 'standard' as const,
   };
 
   const _mockTournamentNew: TournamentNew = {
@@ -609,6 +610,7 @@ describe('Tournament Actions', () => {
 
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
+        tiebreaker_mode: 'head_to_head', // default for new tournaments (story #443)
         locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
@@ -629,6 +631,7 @@ describe('Tournament Actions', () => {
       expect(mockFindTournamentById).toHaveBeenCalledWith('tournament1');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
+        tiebreaker_mode: 'standard', // preserves existing tournament's tiebreaker_mode (story #443)
         locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
@@ -679,6 +682,7 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.uploadFile).toHaveBeenCalled();
       expect(mockCreateTournament).toHaveBeenCalledWith({
         ...mockTournamentData,
+        tiebreaker_mode: 'head_to_head', // default for new tournaments (story #443)
         locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
@@ -705,6 +709,7 @@ describe('Tournament Actions', () => {
       expect(mockS3Client.deleteFile).toHaveBeenCalledWith('logos/logo.png');
       expect(mockUpdateTournament).toHaveBeenCalledWith('tournament1', {
         ...mockTournamentData,
+        tiebreaker_mode: 'standard', // preserves existing tournament's tiebreaker_mode (story #443)
         locations: '[]',
         theme: JSON.stringify({
           primary_color: '#ff0000',
@@ -831,9 +836,9 @@ describe('Tournament Actions', () => {
 
       const result = await createOrUpdateTournamentGroup('tournament1', groupDataWithId, mockTeamIds);
 
+      // sort_by_games_between_teams removed (story #443): tiebreaker is now tournament-level
       expect(mockUpdateTournamentGroup).toHaveBeenCalledWith('group1', {
         group_letter: 'A',
-        sort_by_games_between_teams: false,
       });
       expect(mockFindTeamInGroup).toHaveBeenCalledWith('group1');
       expect(result).toEqual(mockUpdatedGroups);
@@ -1229,6 +1234,10 @@ describe('Tournament Actions', () => {
     });
 
     it('calls calculateGroupPosition with correct parameters for each group', async () => {
+      // Story #443: tiebreaker is now tournament-level, not per-group.
+      // mockFindTournamentById returns mockTournament (no tiebreaker_mode) → sortByH2H = false.
+      mockFindTournamentById.mockResolvedValue(mockTournament);
+
       const mockLatestGame = {
         id: 'game1',
         game_date: new Date(),
@@ -1248,7 +1257,7 @@ describe('Tournament Actions', () => {
       // Called twice (once per group)
       expect(mockCalculateGroupPosition).toHaveBeenCalledTimes(2);
 
-      // First call for Group A
+      // Both groups use the tournament-level tiebreaker (false = standard mode)
       expect(mockCalculateGroupPosition).toHaveBeenNthCalledWith(
         1,
         ['team1', 'team2'],
@@ -1256,10 +1265,9 @@ describe('Tournament Actions', () => {
           ...mockGame1,
           resultOrGuess: mockGame1.gameResult
         })]),
-        false // sort_by_games_between_teams for Group A
+        false // tournament tiebreaker_mode not set → sortByH2H = false
       );
 
-      // Second call for Group B
       expect(mockCalculateGroupPosition).toHaveBeenNthCalledWith(
         2,
         ['team1', 'team2'],
@@ -1267,7 +1275,7 @@ describe('Tournament Actions', () => {
           ...mockGame1,
           resultOrGuess: mockGame1.gameResult
         })]),
-        true // sort_by_games_between_teams for Group B
+        false // same tournament-level value for all groups
       );
     });
 

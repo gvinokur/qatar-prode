@@ -15,9 +15,10 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  Button, FormControlLabel, Switch
+  Button, FormControlLabel, Switch,
+  FormControl, FormLabel, RadioGroup, Radio
 } from "@mui/material";
-import {PlayoffRound, Theme, Tournament} from '../../db/tables-definition';
+import {PlayoffRound, Theme, Tournament, type TiebreakerMode} from '../../db/tables-definition';
 import {createOrUpdateTournament, getTournamentById, getPlayoffRounds} from '../../actions/tournament-actions';
 import { MuiColorInput } from 'mui-color-input';
 import LinkIcon from '@mui/icons-material/Link';
@@ -81,6 +82,9 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
   const [allowsThirdPlaceQualification, setAllowsThirdPlaceQualification] = useState<boolean>(false);
   const [maxThirdPlaceQualifiers, setMaxThirdPlaceQualifiers] = useState<number>(4);
 
+  // Tiebreaker mode
+  const [tiebreakerMode, setTiebreakerMode] = useState<TiebreakerMode>('head_to_head');
+
   // Transfermarkt import configuration
   const [transfermarktUrlTemplate, setTransfermarktUrlTemplate] = useState<string>('');
 
@@ -135,6 +139,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
         setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
         setTransfermarktUrlTemplate(tournamentData.transfermarkt_url_template || '');
+        setTiebreakerMode(tournamentData.tiebreaker_mode ?? 'head_to_head');
         setLocations((tournamentData.locations ?? []).map((v: string) => ({ id: locationIdCounterRef.current++, value: v })));
 
         // Fetch playoff rounds
@@ -196,6 +201,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         display_name: displayName,
         allows_third_place_qualification: allowsThirdPlaceQualification,
         max_third_place_qualifiers: maxThirdPlaceQualifiers,
+        tiebreaker_mode: tiebreakerMode,
         transfermarkt_url_template: transfermarktUrlTemplate || null,
       }));
 
@@ -676,6 +682,45 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
                 helperText="Maximum number of third place teams that can qualify (e.g., 4 for best 4 third-place teams)"
               />
             )}
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FormControl component="fieldset">
+              <FormLabel component="legend">
+                <Typography variant="subtitle2" gutterBottom>
+                  Group Tiebreaker Rules
+                </Typography>
+              </FormLabel>
+              <RadioGroup
+                value={tiebreakerMode}
+                onChange={(e) => setTiebreakerMode(e.target.value as TiebreakerMode)}
+              >
+                <FormControlLabel
+                  value="head_to_head"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography variant="body2">Head-to-Head (recommended)</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Ties broken by direct matches between teams first (FIFA standard)
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  value="standard"
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <Typography variant="body2">Standard (aggregate)</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Ties broken by overall goal difference and goals scored
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
           </Grid>
 
           <Grid size={{ xs: 12 }}>

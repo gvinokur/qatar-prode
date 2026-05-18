@@ -433,7 +433,15 @@ export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
   // Note: This function returns groups with only game_id and team_id arrays,
   // not full game/team objects, so no localization can be applied here.
   // Localization should be done where full objects are fetched.
-  return await findGroupsWithGamesAndTeamsInTournament(tournamentId);
+  const [groups, tournament] = await Promise.all([
+    findGroupsWithGamesAndTeamsInTournament(tournamentId),
+    findTournamentById(tournamentId),
+  ]);
+  return {
+    groups,
+    // story #443: expose tournament-level tiebreaker mode for backoffice components
+    tiebreakerMode: tournament?.tiebreaker_mode ?? 'standard',
+  };
 }
 
 export async function recalculateAllPlayoffFirstRoundGameGuesses(tournamentId: string) {

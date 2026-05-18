@@ -638,4 +638,63 @@ describe('group-position-calculator', () => {
       expect(result).toBe(0); // teams should be equal
     });
   });
+
+  describe('H2H tiebreaker - exact scenario regression test', () => {
+    // Reproduces user-reported bug: in Group B of Mini World Cup XY,
+    // Netherlands (more GF overall) was ranking above Spain even in H2H mode,
+    // despite Spain having beaten Netherlands directly (NL 0-1 Spain).
+    //
+    // Setup (6 games, 4 teams):
+    //   NL  0-1 Spain  → Spain wins  (Spain: +3pts, GF+1; NL: +0pts, GF+0, GA+1)
+    //   NL  2-1 TeamC  → NL wins     (NL: +3pts, GF+2; TeamC: +0pts)
+    //   NL  1-1 TeamD  → draw        (NL: +1pt; TeamD: +1pt)
+    //   Spain 0-0 TeamC→ draw        (Spain: +1pt; TeamC: +1pt)
+    //   Spain 1-2 TeamD→ TeamD wins  (Spain: +0pts, GF+1; TeamD: +3pts)
+    //   TeamC 0-1 TeamD→ TeamD wins  (TeamD: +3pts)
+    //
+    // Final standings:
+    //   TeamD: 7pts
+    //   NL:    4pts, GF=3, GD=0
+    //   Spain: 4pts, GF=2, GD=0
+    //   TeamC: 1pt
+    it('should rank Spain above Netherlands in H2H mode when Spain won the direct match', () => {
+      const teamIds = ['NL', 'Spain', 'TeamC', 'TeamD'];
+      const games = [
+        mockGameWithResult('NL',    'Spain',  0, 1), // Spain wins
+        mockGameWithResult('NL',    'TeamC',  2, 1), // NL wins
+        mockGameWithResult('NL',    'TeamD',  1, 1), // draw
+        mockGameWithResult('Spain', 'TeamC',  0, 0), // draw
+        mockGameWithResult('Spain', 'TeamD',  1, 2), // TeamD wins
+        mockGameWithResult('TeamC', 'TeamD',  0, 1), // TeamD wins
+      ];
+
+      const result = calculateGroupPosition(teamIds, games, true); // H2H mode
+
+      expect(result).toHaveLength(4);
+      expect(result[0].team_id).toBe('TeamD');   // 7pts
+      expect(result[1].team_id).toBe('Spain');   // 4pts, won H2H vs NL
+      expect(result[2].team_id).toBe('NL');      // 4pts, lost H2H vs Spain
+      expect(result[3].team_id).toBe('TeamC');   // 1pt
+    });
+
+    it('should rank Netherlands above Spain in standard mode when Netherlands has more GF', () => {
+      const teamIds = ['NL', 'Spain', 'TeamC', 'TeamD'];
+      const games = [
+        mockGameWithResult('NL',    'Spain',  0, 1),
+        mockGameWithResult('NL',    'TeamC',  2, 1),
+        mockGameWithResult('NL',    'TeamD',  1, 1),
+        mockGameWithResult('Spain', 'TeamC',  0, 0),
+        mockGameWithResult('Spain', 'TeamD',  1, 2),
+        mockGameWithResult('TeamC', 'TeamD',  0, 1),
+      ];
+
+      const result = calculateGroupPosition(teamIds, games, false); // standard mode
+
+      expect(result).toHaveLength(4);
+      expect(result[0].team_id).toBe('TeamD');   // 7pts
+      expect(result[1].team_id).toBe('NL');      // 4pts, more GF (3 vs 2)
+      expect(result[2].team_id).toBe('Spain');   // 4pts, fewer GF
+      expect(result[3].team_id).toBe('TeamC');   // 1pt
+    });
+  });
 }); 

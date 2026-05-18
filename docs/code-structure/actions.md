@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-11
+**Last updated:** 2026-05-12
 
 ---
 
@@ -23,8 +23,8 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: updateGame
 - **calculateAndSavePlayoffGamesForTournament(tournamentId)**: `Promise<void>` — Calculates playoff team assignments from group standings.
   Calls: findGroupsWithGamesAndTeamsInTournament, findGamesInTournament, findPlayoffStagesWithGamesInTournament, findGameResultByGameIds, calculatePlayoffTeams, updateGame
-- **getGroupDataWithGamesAndTeams(tournamentId)**: `Promise<ExtendedGroupData[]>` — Gets group data structure for admin UI.
-  Calls: findGroupsWithGamesAndTeamsInTournament
+- **getGroupDataWithGamesAndTeams(tournamentId)**: `Promise<{ groups: ExtendedGroupData[]; tiebreakerMode: TiebreakerMode }>` — Gets group data structure and tournament tiebreaker mode for admin UI (Story #443).
+  Calls: findGroupsWithGamesAndTeamsInTournament, findTournamentById
 - **recalculateAllPlayoffFirstRoundGameGuesses(tournamentId)**: `Promise<void>` — Recalculates all users' playoff guesses.
   Calls: updatePlayoffGameGuesses
 - **calculateGameScores(forceDrafts, forceAllGuesses, locale)**: `Promise<void>` — Recalculates all game guess scores, then triggers group rank snapshot materialization for all affected users.
@@ -79,10 +79,10 @@ Sends game-related push notifications and emails to users.
 ### app/actions/game-score-generator-actions.ts
 Auto-fills and clears game scores for bulk admin operations.
 
-- **autoFillGameScores(groupId, playoffRoundId, locale)**: `Promise<AutoFillResult>` — Generates realistic scores for games without results.
-  Calls: findGamesInGroup, findGamesInTournament, generateMatchScore, updateGameResult, createGameResult, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateGameScores, calculateAndStoreQualifiedTeamsScores
-- **clearGameScores(groupId, playoffRoundId, locale)**: `Promise<ClearResult>` — Clears all game scores and triggers recalculation.
-  Calls: findGamesInGroup, findGamesInTournament, updateGameResult, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateGameScores, calculateAndStoreQualifiedTeamsScores
+- **autoFillGameScores(groupId, playoffRoundId, locale)**: `Promise<AutoFillResult>` — Generates realistic scores for games without results. Uses tournament's `tiebreaker_mode` when calling `calculateAndStoreGroupPosition`.
+  Calls: findGamesInGroup, findGamesInTournament, findTournamentById, findTournamentgroupById, generateMatchScore, updateGameResult, createGameResult, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateGameScores, calculateAndStoreQualifiedTeamsScores
+- **clearGameScores(groupId, playoffRoundId, locale)**: `Promise<ClearResult>` — Clears all game scores and triggers recalculation. Uses tournament's `tiebreaker_mode` when calling `calculateAndStoreGroupPosition`.
+  Calls: findGamesInGroup, findGamesInTournament, findTournamentById, findTournamentgroupById, updateGameResult, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateGameScores, calculateAndStoreQualifiedTeamsScores
 
 ### app/actions/group-tournament-betting-actions.ts
 Manages tournament betting configuration and payment tracking for friend groups.
@@ -225,7 +225,7 @@ Manages qualified team position predictions for group stages.
   Calls: getTournamentStartDate
 - **updateGroupPositionsJsonb(groupId, tournamentId, positionUpdates, locale)**: `Promise<{ success: boolean; message: string }>` — Updates all team positions for a group including qualification flags.
   Calls: getLoggedInUser, validateTeamsInGroup, validateNoDuplicateTeams, validatePositionsValidAndUnique, validateQualificationFlagsForPositions, validateThirdPlaceForGroup, upsertGroupPositionsPrediction, updatePlayoffGameGuesses
-- **bulkAutoFillFromPredictions(tournamentId: string, locale: Locale)**: `Promise<{ success: boolean; message: string; groupsProcessed: number; predictions?: QualifiedTeamPrediction[] }>` — Computes simulated group standings from user's own game guess scores and saves QT predictions for all groups at once. All-or-nothing: aborts if any group has incomplete game predictions. Selects top `maxThirdPlace` 3rd-place teams by simulated performance. Returns `predictions` array on success for client-side context update without a page refresh.
+- **bulkAutoFillFromPredictions(tournamentId: string, locale: Locale)**: `Promise<{ success: boolean; message: string; groupsProcessed: number; predictions?: QualifiedTeamPrediction[] }>` — Computes simulated group standings from user's own game guess scores and saves QT predictions for all groups at once. All-or-nothing: aborts if any group has incomplete game predictions. Selects top `maxThirdPlace` 3rd-place teams by simulated performance. Returns `predictions` array on success for client-side context update without a page refresh. Fetches tournament via raw `db.selectFrom` (not `findTournamentById`) to include `tiebreaker_mode`; passes it through to `computeGroupStandingsFromGuesses` (Story #443).
   Calls: getLoggedInUser, findGameGuessesByUserId, computeGroupStandingsFromGuesses, upsertGroupPositionsPrediction, updatePlayoffGameGuesses
 
 ### app/actions/qualified-teams-scoring-actions.ts
@@ -312,7 +312,7 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
   Calls: findFirstGameInTournament
 - **deactivateTournament(tournamentId, locale)**: `Promise<Tournament>` — Deactivates tournament (admin).
   Calls: getLoggedInUser, findTournamentById, updateTournament, applyLocalization
-- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template` and `locations` when included in the JSON payload.
+- **createOrUpdateTournament(tournamentId, tournamentFormData, locale)**: `Promise<Tournament>` — Creates or updates tournament with optional logo upload. Persists `transfermarkt_url_template`, `locations`, and `tiebreaker_mode` when included in the JSON payload. New tournaments default to `tiebreaker_mode: 'head_to_head'`; updates preserve the existing value from the DB (Story #443).
   Calls: validateAdminUser, parseFormData, getExistingTournament, handleLogoUpload, prepareTournamentData, saveOrUpdateTournament, cleanupOldLogo, handleLocationsUpdate, applyLocalization
 - **getTournamentLocations(tournamentId)**: `Promise<TournamentLocation[]>` — Fetches all stored locations for a given tournament as `TournamentLocation` objects.
   Calls: tournamentLocationRepository.findByTournamentId
@@ -333,8 +333,8 @@ Tournament CRUD and data retrieval — the primary data access layer for tournam
 - **createOrUpdatePlayoffRound(playoffRoundData, locale)**: `Promise<PlayoffRound>` — Creates or updates playoff stage.
   Calls: getLoggedInUser, updatePlayoffRound, createPlayoffRound, applyLocalization
 - **findLatestFinishedGroupGame(tournamentId)**: `Promise<Game | undefined>` — Finds the most recently completed group game.
-- **getGroupStandingsForTournament(tournamentId)**: `Promise<GroupStandings[]>` — Gets standings for all groups in a tournament.
-  Calls: findGroupsInTournament, findQualifiedTeams, findGamesInGroup, findTeamInGroup, calculateGroupPosition, applyLocalizationBatch, toMap
+- **getGroupStandingsForTournament(tournamentId)**: `Promise<GroupStandings[]>` — Gets standings for all groups in a tournament. Uses tournament's `tiebreaker_mode` to set `sortByGamesBetweenTeams` for `calculateGroupPosition` (Story #443).
+  Calls: findTournamentById, findGroupsInTournament, findQualifiedTeams, findGamesInGroup, findTeamInGroup, calculateGroupPosition, applyLocalizationBatch, toMap
 
 ### app/actions/score-history-actions.ts
 Server Action for reading daily score history for a friend group in a tournament (Story #272). Also provides snapshot score utilities for leaderboard rank-change computation (Story #277).

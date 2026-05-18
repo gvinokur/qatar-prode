@@ -15,7 +15,7 @@ import {
   IconButton,
   Divider,
   FormHelperText,
-  CircularProgress, Paper, FormControlLabel, Switch
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -46,7 +46,6 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [letterError, setLetterError] = useState<string | null>(null);
-  const [sortByGamesBetweenTeams, setSortByGamesBetweenTeams] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -57,7 +56,6 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
         // Filter out teams that are already in the group
         const teamIds = (group.teams || []).map(team => team.team_id);
         setUnselectedTeams(Object.values(availableTeams).filter(team => !teamIds.includes(team.id)));
-        setSortByGamesBetweenTeams(group.sort_by_games_between_teams || false);
       } else {
         setLetter('');
         setSelectedTeams([]);
@@ -111,7 +109,6 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
       const updatedGroups = await createOrUpdateTournamentGroup(tournamentId, {
         id: group?.id,
         group_letter: letter,
-        sort_by_games_between_teams: sortByGamesBetweenTeams,
       }, teamIds)
       setLoading(false)
       onSave(updatedGroups);
@@ -142,25 +139,6 @@ const GroupDialog: React.FC<GroupDialogProps> = ({
           />
           <FormHelperText>Enter a single uppercase letter (A-Z)</FormHelperText>
         </Box>
-
-        <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Group Rules Configuration
-          </Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={sortByGamesBetweenTeams}
-                onChange={(e) => setSortByGamesBetweenTeams(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Sort by games between teams"
-          />
-          <FormHelperText>
-            When enabled, direct matches between tied teams will be prioritized in group standings
-          </FormHelperText>
-        </Paper>
 
         <Divider sx={{ my: 2 }} />
 

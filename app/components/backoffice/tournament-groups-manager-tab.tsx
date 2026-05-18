@@ -195,13 +195,6 @@ const TournamentGroups: React.FC<TournamentGroupsProps> = ({ tournamentId }) => 
                       </Typography>
                     )}
                   </Box>
-                  {group.sort_by_games_between_teams && (
-                    <Box sx={{ p: 1.5, bgcolor: 'grey.100', borderTop: '1px solid', borderColor: 'divider' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Uses head-to-head results for tiebreakers
-                      </Typography>
-                    </Box>
-                  )}
                 </Paper>
               </Grid>
             ))}
