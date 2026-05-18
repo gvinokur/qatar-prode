@@ -34,7 +34,7 @@ type Props = {
   tiebreakerMode?: TiebreakerMode
 }
 
-export default function GroupBackoffice({group, tournamentId, tiebreakerMode = 'standard'} :Props) {
+export default function GroupBackoffice({group, tournamentId, tiebreakerMode = 'standard'} : Readonly<Props>) {
   const locale = toLocale(useLocale());
   const [gamesMap, setGamesMap] = useState<{[k: string]: ExtendedGameData}>({})
   const [sortedGameIds, setSortedGameIds] = useState<string[]>([])

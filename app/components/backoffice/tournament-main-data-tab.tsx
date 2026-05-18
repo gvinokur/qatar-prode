@@ -139,7 +139,7 @@ export default function TournamentMainDataTab({ tournamentId, onUpdate }: Props)
         setAllowsThirdPlaceQualification(tournamentData.allows_third_place_qualification || false);
         setMaxThirdPlaceQualifiers(tournamentData.max_third_place_qualifiers || 4);
         setTransfermarktUrlTemplate(tournamentData.transfermarkt_url_template || '');
-        setTiebreakerMode((tournamentData.tiebreaker_mode ?? 'head_to_head') as TiebreakerMode);
+        setTiebreakerMode(tournamentData.tiebreaker_mode ?? 'head_to_head');
         setLocations((tournamentData.locations ?? []).map((v: string) => ({ id: locationIdCounterRef.current++, value: v })));
 
         // Fetch playoff rounds

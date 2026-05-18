@@ -430,7 +430,7 @@ export async function bulkAutoFillFromPredictions(
     return { success: false, message: t('nudge.autoFillError'), groupsProcessed: 0 };
   }
 
-  const tiebreakerMode = (tournament.tiebreaker_mode ?? 'standard') as import('../db/tables-definition').TiebreakerMode;
+  const tiebreakerMode = tournament.tiebreaker_mode ?? 'standard';
   const { standingsByGroup, thirdPlaceCandidates } = computeStandingsByGroup(groups, gamesByGroup, guessMap, tiebreakerMode);
 
   const maxThirdPlace = tournament.max_third_place_qualifiers ?? 0;

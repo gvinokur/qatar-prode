@@ -34,7 +34,6 @@ import {
   PlayerNew,
   Team,
   Tournament,
-  TiebreakerMode,
   TournamentGroupTeamNew, TournamentUpdate
 } from "../db/tables-definition";
 import {
@@ -441,7 +440,7 @@ export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
   return {
     groups,
     // story #443: expose tournament-level tiebreaker mode for backoffice components
-    tiebreakerMode: (tournament?.tiebreaker_mode ?? 'standard') as TiebreakerMode,
+    tiebreakerMode: tournament?.tiebreaker_mode ?? 'standard',
   };
 }
 
