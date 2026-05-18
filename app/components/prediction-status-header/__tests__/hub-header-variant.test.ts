@@ -92,10 +92,10 @@ describe('computeHubPriorityVariant — urgent-games', () => {
 })
 
 describe('computeHubPriorityVariant — now-available-playoff', () => {
-  it('returns success tone with rocket icon', () => {
+  it('returns brand tone with rocket icon', () => {
     const state = makePlayoffState()
     const variant = computeHubPriorityVariant(state, mockT, GAMES_HREF, QT_HREF, AWARDS_HREF)
-    expect(variant.tone).toBe('success')
+    expect(variant.tone).toBe('brand')
     expect(variant.leadIcon).toBe('rocket')
   })
 
@@ -156,28 +156,28 @@ describe('computeHubPriorityVariant — deadline', () => {
 })
 
 describe('computeHubPriorityVariant — new-actions-qt', () => {
-  it('returns success tone with rocket icon and qtHref', () => {
+  it('returns brand tone with rocket icon and qtHref', () => {
     const state: PriorityAttentionState = {
       type: 'new-actions-qt',
       completedCount: 48,
       totalCount: 48,
     }
     const variant = computeHubPriorityVariant(state, mockT, GAMES_HREF, QT_HREF, AWARDS_HREF)
-    expect(variant.tone).toBe('success')
+    expect(variant.tone).toBe('brand')
     expect(variant.leadIcon).toBe('rocket')
     expect(variant.action?.href).toBe(QT_HREF)
   })
 })
 
 describe('computeHubPriorityVariant — new-actions-awards', () => {
-  it('returns success tone with trophy icon and awardsHref', () => {
+  it('returns brand tone with trophy icon and awardsHref', () => {
     const state: PriorityAttentionState = {
       type: 'new-actions-awards',
       completedCount: 32,
       totalCount: 32,
     }
     const variant = computeHubPriorityVariant(state, mockT, GAMES_HREF, QT_HREF, AWARDS_HREF)
-    expect(variant.tone).toBe('success')
+    expect(variant.tone).toBe('brand')
     expect(variant.leadIcon).toBe('trophy')
     expect(variant.action?.href).toBe(AWARDS_HREF)
   })

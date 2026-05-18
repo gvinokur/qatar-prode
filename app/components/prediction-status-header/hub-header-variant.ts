@@ -61,7 +61,7 @@ export function computeHubPriorityVariant(
 
     case 'now-available-playoff':
       return {
-        tone: 'success',
+        tone: 'brand',
         leadIcon: 'rocket',
         statusText: t('attentionWidget.nowAvailablePlayoff.title', { roundName: state.availableRoundName ?? '' }),
         message: t('attentionWidget.nowAvailablePlayoff.subtitle'),
@@ -96,7 +96,7 @@ export function computeHubPriorityVariant(
 
     case 'new-actions-qt':
       return {
-        tone: 'success',
+        tone: 'brand',
         leadIcon: 'rocket',
         statusText: t('attentionWidget.newActionsQt.title'),
         message: t('attentionWidget.newActionsQt.subtitle'),
@@ -105,7 +105,7 @@ export function computeHubPriorityVariant(
 
     case 'new-actions-awards':
       return {
-        tone: 'success',
+        tone: 'brand',
         leadIcon: 'trophy',
         statusText: t('attentionWidget.newActionsAwards.title'),
         message: t('attentionWidget.newActionsAwards.subtitle'),
