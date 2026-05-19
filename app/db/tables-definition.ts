@@ -188,6 +188,9 @@ export interface TeamTable extends Identifiable {
 
   // Transfermarkt import data
   transfermarkt_id?: string | null
+
+  // FIFA World Rankings (lower = stronger). Nullable for non-FIFA-2026 teams.
+  rank?: number | null
 }
 
 export type Team = Selectable<TeamTable>
