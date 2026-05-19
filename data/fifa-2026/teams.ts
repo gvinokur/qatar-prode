@@ -27,13 +27,13 @@ export const teams = [
   team(TeamNames.Mexico, 'MEX', '#006847', '#FFFFFF', 15),
   team(TeamNames.SouthKorea, 'KOR', '#C60C30', '#FFFFFF', 22),
   team(TeamNames.SouthAfrica, 'RSA', '#007749', '#FFB81C', 61),
-  team(TeamNames.UEFAPlayoffD, 'PO-D', '#CCCCCC', '#333333', 41), // Czech Republic
+  team(TeamNames.UEFAPlayoffD, 'CZE', '#CCCCCC', '#333333', 41), // Czech Republic
 
   // Group B
   team(TeamNames.Canada, 'CAN', '#FF0000', '#FFFFFF', 27),
   team(TeamNames.Switzerland, 'SUI', '#FF0000', '#FFFFFF', 19),
   team(TeamNames.Qatar, 'QAT', '#8A1538', '#FFFFFF', 51),
-  team(TeamNames.UEFAPlayoffA, 'PO-A', '#CCCCCC', '#333333', 65), // Bosnia & Herzegovina
+  team(TeamNames.UEFAPlayoffA, 'BOS', '#CCCCCC', '#333333', 65), // Bosnia & Herzegovina
 
   // Group C
   team(TeamNames.Brazil, 'BRA', '#009C3B', '#FFDF00', 6),
@@ -45,7 +45,7 @@ export const teams = [
   team(TeamNames.USA, 'USA', '#002868', '#FFFFFF', 16),
   team(TeamNames.Australia, 'AUS', '#FFC72C', '#00843D', 26),
   team(TeamNames.Paraguay, 'PAR', '#D40000', '#0038A8', 39),
-  team(TeamNames.UEFAPlayoffC, 'PO-C', '#CCCCCC', '#333333', 22), // Turkey
+  team(TeamNames.UEFAPlayoffC, 'TUR', '#CCCCCC', '#333333', 22), // Turkey
 
   // Group E
   team(TeamNames.Germany, 'GER', '#FFFFFF', '#000000', 10),
@@ -57,7 +57,7 @@ export const teams = [
   team(TeamNames.Netherlands, 'NED', '#FF4F00', '#21468B', 7),
   team(TeamNames.Japan, 'JPN', '#002395', '#FFFFFF', 18),
   team(TeamNames.Tunisia, 'TUN', '#E70013', '#FFFFFF', 40),
-  team(TeamNames.UEFAPlayoffB, 'PO-B', '#CCCCCC', '#333333', 38), // Sweden
+  team(TeamNames.UEFAPlayoffB, 'SWE', '#CCCCCC', '#333333', 38), // Sweden
 
   // Group G
   team(TeamNames.Belgium, 'BEL', '#ED1C24', '#000000', 9),
@@ -75,7 +75,7 @@ export const teams = [
   team(TeamNames.France, 'FRA', '#0055A4', '#FFFFFF', 1),
   team(TeamNames.Senegal, 'SEN', '#00A650', '#FFD100', 14),
   team(TeamNames.Norway, 'NOR', '#BA0C2F', '#FFFFFF', 29),
-  team(TeamNames.IntercontinentalPlayoff2, 'IC-2', '#CCCCCC', '#333333', 57), // Iraq
+  team(TeamNames.IntercontinentalPlayoff2, 'IRK', '#CCCCCC', '#333333', 57), // Iraq
 
   // Group J
   team(TeamNames.Argentina, 'ARG', '#75AADB', '#FFFFFF', 3),
@@ -87,7 +87,7 @@ export const teams = [
   team(TeamNames.Portugal, 'POR', '#FF0000', '#006600', 5),
   team(TeamNames.Colombia, 'COL', '#FFD100', '#003893', 13),
   team(TeamNames.Uzbekistan, 'UZB', '#1EB53A', '#FFFFFF', 50),
-  team(TeamNames.IntercontinentalPlayoff1, 'IC-1', '#CCCCCC', '#333333', 46), // DR Congo
+  team(TeamNames.IntercontinentalPlayoff1, 'CON', '#CCCCCC', '#333333', 46), // Congo
 
   // Group L
   team(TeamNames.England, 'ENG', '#FFFFFF', '#1C2E4D', 4),
