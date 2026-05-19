@@ -276,6 +276,13 @@ All mock data uses `testFactories.prodeGroup(...)`, `testFactories.user(...)` â€
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Betting actions use two-wave Promise.all instead of single 5-call wave
+**Date:** 2026-05-19
+**Reason:** Mixing `getTranslations` (next-intl, reads Next.js request context) with `getLoggedInUser()` (NextAuth, reads cookies via `next/headers`) in the same `Promise.all` within a Server Action causes interference â€” betting config save broke silently in production. Discovered during Vercel Preview testing.
+**Change:** Both `setGroupTournamentBettingConfigAction` and `setUserGroupTournamentBettingPaymentAction` use two sequential `Promise.all` calls: Wave 1 resolves translations, Wave 2 resolves auth + DB calls. The plan section "2. `group-tournament-betting-actions.ts`" (single 5-call `Promise.all`) was superseded by this fix.
+
 ## Verification
 
 ```bash
