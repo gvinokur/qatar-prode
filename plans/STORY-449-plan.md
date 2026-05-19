@@ -2,11 +2,11 @@
 
 ## Context
 
-The app has no concept of team strength. Adding a nullable `rank` field (lower = stronger, following FIFA World Rankings convention) to the `teams` table allows future features (e.g., auto-fill predictions, smart defaults) to use relative team strength without re-importing data. The field is intentionally generic — it works for any tournament type. This story seeds official FIFA World Rankings as of March 2026 (the most recent ranking before the tournament) for all 42 confirmed FIFA 2026 teams, while leaving the field NULL for Copa América, Euro, and playoff placeholder teams.
+The app has no concept of team strength. Adding a nullable `rank` field (lower = stronger, following FIFA World Rankings convention) to the `teams` table allows future features (e.g., auto-fill predictions, smart defaults) to use relative team strength without re-importing data. The field is intentionally generic — it works for any tournament type. This story seeds official FIFA World Rankings (April 1, 2026 — the most recent update) for all 48 FIFA 2026 teams, including the 6 playoff-qualified teams (UEFA paths A–D + two inter-confederation paths), which were settled on March 31, 2026. Only Copa América and Euro teams remain NULL.
 
 ## Acceptance Criteria
 
-- Every FIFA 2026 team has a `rank` value reflecting official FIFA World Rankings as of March 2026
+- All 48 FIFA 2026 teams have a `rank` value reflecting official FIFA World Rankings (April 1, 2026), including the 6 playoff-qualified teams settled March 31, 2026
 - Teams without a rank (Copa América, Euro, playoff placeholders) display and function correctly (rank is nullable)
 - The rank field is available via TypeScript types for use by other features
 - No user-facing display of rankings (out of scope)
@@ -63,6 +63,7 @@ Source: Official FIFA World Rankings, April 1, 2026 update (the most recent befo
 | JPN | Japan | 18 | Apr 2026 |
 | SUI | Switzerland | 19 | Apr 2026 |
 | IRN | Iran | 20 | Nov 2025 |
+| TUR | Turkey (UEFA Path C) | 22 | Apr 2026 |
 | KOR | South Korea | 22 | Nov 2025 |
 | ECU | Ecuador | 23 | Nov 2025 |
 | AUT | Austria | 24 | Nov 2025 |
@@ -71,15 +72,20 @@ Source: Official FIFA World Rankings, April 1, 2026 update (the most recent befo
 | NOR | Norway | 29 | Nov 2025 |
 | PAN | Panama | 30 | Nov 2025 |
 | EGY | Egypt | 34 | Nov 2025 |
+| SWE | Sweden (UEFA Path B) | 38 | Apr 2026 |
 | ALG | Algeria | 35 | Nov 2025 |
 | SCO | Scotland | 36 | Nov 2025 |
+| CZE | Czech Republic (UEFA Path D) | 41 | Apr 2026 |
 | PAR | Paraguay | 39 | Nov 2025 |
 | TUN | Tunisia | 40 | Nov 2025 |
 | CIV | Ivory Coast | 42 | Nov 2025 |
+| COD | DR Congo (IC Path 1) | 46 | Apr 2026 |
 | UZB | Uzbekistan | 50 | Nov 2025 |
 | QAT | Qatar | 51 | Nov 2025 |
+| IRQ | Iraq (IC Path 2) | 57 | Apr 2026 |
 | KSA | Saudi Arabia | 60 | Nov 2025 |
 | RSA | South Africa | 61 | Nov 2025 |
+| BIH | Bosnia & Herzegovina (UEFA Path A) | 65 | Apr 2026 |
 | JOR | Jordan | 66 | Nov 2025 |
 | CPV | Cape Verde | 68 | Nov 2025 |
 | GHA | Ghana | 72 | Nov 2025 |
@@ -87,8 +93,15 @@ Source: Official FIFA World Rankings, April 1, 2026 update (the most recent befo
 | HAI | Haiti | 84 | Nov 2025 |
 | NZL | New Zealand | 86 | Nov 2025 |
 
-**Playoff teams (NULL rank — team identity unknown):**
-PO-A, PO-B, PO-C, PO-D, IC-1, IC-2
+**Playoff teams now settled (qualified March 31, 2026):**
+- PO-A → Bosnia & Herzegovina (BIH, rank 65)
+- PO-B → Sweden (SWE, rank 38)
+- PO-C → Turkey (TUR, rank 22)
+- PO-D → Czech Republic (CZE, rank 41)
+- IC-1 → DR Congo (COD, rank 46)
+- IC-2 → Iraq (IRQ, rank 57)
+
+> ⚠️ **Implementer note on playoff teams:** The DB likely stores these teams under their placeholder short_names (PO-A, PO-B, etc.) from the original import. The seed migration should UPDATE by `short_name = 'PO-A'` etc. If the teams have already been renamed in the DB, adjust accordingly.
 
 ## Mid-Level Design
 
@@ -131,8 +144,8 @@ No call graph changes. The `rank` field is additive — existing queries return 
 **Task 2: Add seed migration for FIFA 2026 team ranks**
 - Create `migrations/20260519000001_seed_fifa_2026_team_ranks.sql`
   - UPDATE each team by `short_name` with its FIFA ranking
-  - 42 UPDATE statements for confirmed teams
-  - Playoff placeholder teams (PO-A, PO-B, etc.) remain NULL (no UPDATE needed)
+  - 48 UPDATE statements — all 48 teams now have ranks (playoffs settled March 31, 2026)
+  - Playoff teams UPDATE by their placeholder short_name (PO-A, PO-B, PO-C, PO-D, IC-1, IC-2) since that's how they were imported
 - CODE-STRUCTURE files to update: none (no new functions)
 
 ### Wave 2: TypeScript Types + Data File
@@ -168,8 +181,8 @@ Test cases:
 
 ### Manual verification
 After running migrations on dev:
-1. `SELECT short_name, rank FROM teams ORDER BY rank NULLS LAST;` — confirm 42 teams have ranks, 6 playoff teams have NULL
-2. `SELECT COUNT(*) FROM teams WHERE rank IS NOT NULL;` — should be 42
+1. `SELECT short_name, rank FROM teams ORDER BY rank NULLS LAST;` — confirm all 48 FIFA 2026 teams have ranks
+2. `SELECT COUNT(*) FROM teams WHERE rank IS NOT NULL;` — should be 48
 3. Confirm Copa América and Euro teams (if they exist in DB) have NULL rank and app works correctly
 
 ## Verification Checklist
