@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-12
+**Last updated:** 2026-05-19
 
 ---
 
@@ -161,8 +161,8 @@ Friend group management — creation, membership, scoring, and theme updates.
 
 - **createDbGroup(groupName)**: `Promise<ProdeGroup>` — Creates a new friend group.
   Calls: getLoggedInUser, createProdeGroup
-- **getGroupsForUser()**: `Promise<{ userGroups: ProdeGroup[]; participantGroups: ProdeGroup[]; pendingRequests: { id: string; group_id: string; group_name: string | null }[]; favoriteGroupIds: string[]; mainGroupId: string | null } | undefined>` — Gets user's groups (owned, participating, pending join requests) plus favorite group IDs and main group ID in parallel.
-  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser, getFavoriteGroupIds, getMainGroupId
+- **getGroupsForUser()**: `Promise<{ userGroups: ProdeGroup[]; participantGroups: ProdeGroup[]; pendingRequests: { id: string; group_id: string; group_name: string | null }[]; favoriteGroupIds: string[] } | undefined>` — Gets user's groups (owned, participating, pending join requests) plus favorite group IDs in parallel.
+  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser, getFavoriteGroupIds
 - **deleteGroup(groupId)**: `Promise<void>` — Deletes group (owner only).
   Calls: getLoggedInUser, findProdeGroupById, deleteAllParticipantsFromGroup, deleteProdeGroup
 - **promoteParticipantToAdmin(groupId, userId)**: `Promise<void>` — Promotes participant to admin.
@@ -209,8 +209,8 @@ Manages join requests for friend groups — requesting, approving, rejecting, an
   Calls: getLoggedInUser, findJoinRequestsByUser
 - **getGroupJoinRequests(groupId)**: `Promise<JoinRequest[]>` — Gets pending and recent rejected requests for a group (admin only). Fetches participants, pending, and rejected requests in parallel after group lookup.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findJoinRequestsByGroup
-- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: true; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Fetches group and participants in parallel. Returns analytics event payload on success.
-  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath, trackEvent
+- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: boolean; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Fetches group and participants in parallel. Returns analytics event payload on success.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath
 - **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: true; message: string }>` — Rejects a join request (admin). Fetches group and participants in parallel.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, rejectJoinRequestRepo, findUsersByIds, generateJoinRequestRejectedEmail, sendEmail, revalidatePath
 - **cancelJoinRequestAction(requestId)**: `Promise<{ success: true; message: string }>` — Cancels own pending join request.
