@@ -64,7 +64,7 @@ async function fetchGroupsWithTeams(tournamentId: string) {
         .selectFrom('tournament_group_teams')
         .innerJoin('teams', 'teams.id', 'tournament_group_teams.team_id')
         .where('tournament_group_teams.tournament_group_id', '=', group.id)
-        .select(['teams.id', 'teams.name', 'teams.name_i18n', 'teams.short_name', 'teams.theme', 'teams.transfermarkt_id'])
+        .select(['teams.id', 'teams.name', 'teams.name_i18n', 'teams.short_name', 'teams.theme', 'teams.transfermarkt_id', 'teams.rank'])
         .execute();
 
       // Apply localization to team names

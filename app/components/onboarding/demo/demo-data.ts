@@ -22,10 +22,10 @@ export const DEMO_TOURNAMENT = {
 
 // 4 teams (1 group)
 export const DEMO_TEAMS: Team[] = [
-  { id: 'team-1', name: 'Brasil', short_name: 'BRA', theme: null, name_i18n: undefined, transfermarkt_id: undefined },
-  { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null, name_i18n: undefined, transfermarkt_id: undefined },
-  { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null, name_i18n: undefined, transfermarkt_id: undefined },
-  { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null, name_i18n: undefined, transfermarkt_id: undefined },
+  { id: 'team-1', name: 'Brasil', short_name: 'BRA', theme: null, name_i18n: undefined, transfermarkt_id: undefined, rank: undefined },
+  { id: 'team-2', name: 'Argentina', short_name: 'ARG', theme: null, name_i18n: undefined, transfermarkt_id: undefined, rank: undefined },
+  { id: 'team-3', name: 'Uruguay', short_name: 'URU', theme: null, name_i18n: undefined, transfermarkt_id: undefined, rank: undefined },
+  { id: 'team-4', name: 'Chile', short_name: 'CHI', theme: null, name_i18n: undefined, transfermarkt_id: undefined, rank: undefined },
 ]
 
 // Demo players for individual awards
