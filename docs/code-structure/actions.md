@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-12
+**Last updated:** 2026-05-19
 
 ---
 
@@ -89,11 +89,11 @@ Manages tournament betting configuration and payment tracking for friend groups.
 
 - **getGroupTournamentBettingConfigAction(groupId, tournamentId)**: `Promise<ProdeGroupTournamentBetting | undefined>` — Gets betting config for group/tournament.
   Calls: getGroupTournamentBettingConfig
-- **setGroupTournamentBettingConfigAction(groupId, tournamentId, config, locale)**: `Promise<ProdeGroupTournamentBetting>` — Sets betting config (owner/admin only).
+- **setGroupTournamentBettingConfigAction(groupId, tournamentId, config, locale)**: `Promise<ProdeGroupTournamentBetting>` — Sets betting config (owner/admin only). Fetches both translation namespaces in parallel, then fetches user, group, and participants in parallel before auth/permission check.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, getGroupTournamentBettingConfig, updateGroupTournamentBettingConfig, createGroupTournamentBettingConfig
 - **getGroupTournamentBettingPaymentsAction(groupTournamentBettingId)**: `Promise<ProdeGroupTournamentBettingPayment[]>` — Gets all payment statuses.
   Calls: getGroupTournamentBettingPayments
-- **setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId, hasPaid, groupId, locale)**: `Promise<ProdeGroupTournamentBettingPayment>` — Sets user payment status (admin only).
+- **setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId, hasPaid, groupId, locale)**: `Promise<ProdeGroupTournamentBettingPayment>` — Sets user payment status (admin only). Fetches both translation namespaces in parallel, then fetches user, group, and participants in parallel before auth/permission check.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, setUserGroupTournamentBettingPayment
 - **getUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId)**: `Promise<ProdeGroupTournamentBettingPayment | undefined>` — Gets a user's payment status.
   Calls: getUserGroupTournamentBettingPayment
@@ -161,8 +161,8 @@ Friend group management — creation, membership, scoring, and theme updates.
 
 - **createDbGroup(groupName)**: `Promise<ProdeGroup>` — Creates a new friend group.
   Calls: getLoggedInUser, createProdeGroup
-- **getGroupsForUser()**: `Promise<{ userGroups: ProdeGroup[]; participantGroups: ProdeGroup[]; pendingRequests: { id: string; group_id: string; group_name: string | null }[]; favoriteGroupIds: string[]; mainGroupId: string | null } | undefined>` — Gets user's groups (owned, participating, pending join requests) plus favorite group IDs and main group ID in parallel.
-  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser, getFavoriteGroupIds, getMainGroupId
+- **getGroupsForUser()**: `Promise<{ userGroups: ProdeGroup[]; participantGroups: ProdeGroup[]; pendingRequests: { id: string; group_id: string; group_name: string | null }[]; favoriteGroupIds: string[] } | undefined>` — Gets user's groups (owned, participating, pending join requests) plus favorite group IDs in parallel.
+  Calls: getLoggedInUser, findProdeGroupsByOwner, findProdeGroupsByParticipant, findJoinRequestsByUser, getFavoriteGroupIds
 - **deleteGroup(groupId)**: `Promise<void>` — Deletes group (owner only).
   Calls: getLoggedInUser, findProdeGroupById, deleteAllParticipantsFromGroup, deleteProdeGroup
 - **promoteParticipantToAdmin(groupId, userId)**: `Promise<void>` — Promotes participant to admin.
@@ -181,7 +181,7 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: getGameGuessStatisticsForUsers, findTournamentGuessByUserIdsTournament, getBoostStatsForUsersInTournament
 - **calculateTournamentGroupStats(groupId, tournamentId, userId)**: `Promise<TournamentGroupStats>` — Gets aggregated group stats for a tournament.
   Calls: findProdeGroupById, findParticipantsInGroup, getUserScoresForTournament, getGroupTournamentBettingConfig, findUsersByIds
-- **sendGroupEmailInvitations(groupId, recipients, customMessage, locale, groupLogoUrl?, themeColor?)**: `Promise<{sent: number; failed: string[]}>` — Sends localized group invitation emails to up to 50 recipients. Validates user is owner or admin, deduplicates by email, sends in parallel via Promise.allSettled, returns counts of sent/failed.
+- **sendGroupEmailInvitations(groupId, recipients, customMessage, locale, groupLogoUrl?, themeColor?)**: `Promise<{sent: number; failed: string[]}>` — Sends localized group invitation emails to up to 50 recipients. Fetches group and participants in parallel, validates user is owner or admin, deduplicates by email, sends in parallel via Promise.allSettled, returns counts of sent/failed.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, generateShortUrlForGroup, buildShortUrl, generateGroupInvitationEmail, sendEmail
 
 ### app/actions/favorite-group-actions.ts
@@ -203,19 +203,19 @@ Public group discovery and search for group browsing.
 ### app/actions/prode-group-join-request-actions.ts
 Manages join requests for friend groups — requesting, approving, rejecting, and cancelling.
 
-- **requestToJoinGroup(groupId, source, locale, tournamentId, message)**: `Promise<{ success: true; message: string }>` — Sends a join request to a group.
+- **requestToJoinGroup(groupId, source, locale, tournamentId, message)**: `Promise<{ success: true; message: string }>` — Sends a join request to a group. After fetching group and checking owner, fetches participants, pending request, and recent rejection in parallel.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findPendingJoinRequest, findRecentRejectedRequest, createJoinRequest, findUsersByIds, generateJoinRequestNotificationEmail, sendEmail
 - **getUserJoinRequests()**: `Promise<JoinRequest[]>` — Gets current user's join requests.
   Calls: getLoggedInUser, findJoinRequestsByUser
-- **getGroupJoinRequests(groupId)**: `Promise<JoinRequest[]>` — Gets pending requests for a group (admin only).
+- **getGroupJoinRequests(groupId)**: `Promise<JoinRequest[]>` — Gets pending and recent rejected requests for a group (admin only). Fetches participants, pending, and rejected requests in parallel after group lookup.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, findJoinRequestsByGroup
-- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: true; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Returns analytics event payload on success.
-  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath, trackEvent
-- **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: true; message: string }>` — Rejects a join request (admin).
+- **approveJoinRequestAction(requestId, groupId, tournamentId)**: `Promise<{ success: boolean; message: string; analyticsEvent?: AnalyticsEventPayload }>` — Approves a join request (admin). Fetches group and participants in parallel. Returns analytics event payload on success.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, approveJoinRequestRepo, findUsersByIds, generateJoinRequestApprovedEmail, sendEmail, revalidatePath
+- **rejectJoinRequestAction(requestId, groupId)**: `Promise<{ success: true; message: string }>` — Rejects a join request (admin). Fetches group and participants in parallel.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, rejectJoinRequestRepo, findUsersByIds, generateJoinRequestRejectedEmail, sendEmail, revalidatePath
 - **cancelJoinRequestAction(requestId)**: `Promise<{ success: true; message: string }>` — Cancels own pending join request.
   Calls: getLoggedInUser, cancelJoinRequestRepo
-- **getPendingRequestCount(groupId)**: `Promise<number>` — Gets pending request count for notification badge (admin).
+- **getPendingRequestCount(groupId)**: `Promise<number>` — Gets pending request count for notification badge (admin). Fetches group and participants in parallel.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, countPendingRequestsRepo
 
 ### app/actions/qualification-actions.ts

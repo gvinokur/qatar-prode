@@ -365,10 +365,12 @@ export async function sendGroupEmailInvitations(
   const user = await getLoggedInUser();
   if (!user) throw new Error('Unauthorized');
 
-  const group = await findProdeGroupById(groupId);
+  const [group, participants] = await Promise.all([
+    findProdeGroupById(groupId),
+    findParticipantsInGroup(groupId),
+  ]);
   if (!group) throw new Error('Group not found');
 
-  const participants = await findParticipantsInGroup(groupId);
   const isOwner = group.owner_user_id === user.id;
   const participantRecord = participants.find(p => p.user_id === user.id);
   const isAdmin = isOwner || !!participantRecord?.is_admin;

@@ -15,6 +15,22 @@ import { ProdeGroupTournamentBettingNew, ProdeGroupTournamentBettingUpdate } fro
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n.config';
 
+async function requireBettingAdmin(groupId: string, locale: Locale) {
+  const [t, tErrors] = await Promise.all([
+    getTranslations({ locale, namespace: 'groups' }),
+    getTranslations({ locale, namespace: 'errors' }),
+  ]);
+  const [user, group, groupParticipants] = await Promise.all([
+    getLoggedInUser(),
+    findProdeGroupById(groupId),
+    findParticipantsInGroup(groupId),
+  ]);
+  if (!user) throw new Error(tErrors('notAuthenticated'));
+  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  if (!group || !(group.owner_user_id === user.id || isAdmin))
+    throw new Error(t('betting.ownerOnly'));
+}
+
 // Get betting config for a group/tournament
 export async function getGroupTournamentBettingConfigAction(groupId: string, tournamentId: string) {
   return getGroupTournamentBettingConfig(groupId, tournamentId);
@@ -22,17 +38,8 @@ export async function getGroupTournamentBettingConfigAction(groupId: string, tou
 
 // Set betting config (admin only: group owner)
 export async function setGroupTournamentBettingConfigAction(groupId: string, tournamentId: string, config: Omit<ProdeGroupTournamentBettingNew, 'group_id' | 'tournament_id'>, locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'groups' });
-  const tErrors = await getTranslations({ locale, namespace: 'errors' });
-  const user = await getLoggedInUser();
-  if (!user) throw new Error(tErrors('notAuthenticated'));
-  const group = await findProdeGroupById(groupId);
-  const groupParticipants = await findParticipantsInGroup(groupId);
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
-  if (!group ||
-    !(group.owner_user_id === user.id || isAdmin))
-    throw new Error(t('betting.ownerOnly'));
-  let existing = await getGroupTournamentBettingConfig(groupId, tournamentId);
+  await requireBettingAdmin(groupId, locale);
+  const existing = await getGroupTournamentBettingConfig(groupId, tournamentId);
   if (existing) {
     return updateGroupTournamentBettingConfig(existing.id, config as ProdeGroupTournamentBettingUpdate);
   } else {
@@ -47,20 +54,11 @@ export async function getGroupTournamentBettingPaymentsAction(groupTournamentBet
 
 // Set payment status for a user (admin only: group owner)
 export async function setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId: string, userId: string, hasPaid: boolean, groupId: string, locale: Locale = 'es') {
-  const t = await getTranslations({ locale, namespace: 'groups' });
-  const tErrors = await getTranslations({ locale, namespace: 'errors' });
-  const user = await getLoggedInUser();
-  if (!user) throw new Error(tErrors('notAuthenticated'));
-  const group = await findProdeGroupById(groupId);
-  const groupParticipants = await findParticipantsInGroup(groupId);
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
-  if (!group ||
-    !(group.owner_user_id === user.id || isAdmin))
-    throw new Error(t('betting.ownerOnly'));
+  await requireBettingAdmin(groupId, locale);
   return setUserGroupTournamentBettingPayment(groupTournamentBettingId, userId, hasPaid);
 }
 
 // Get payment status for a user
 export async function getUserGroupTournamentBettingPaymentAction(groupTournamentBettingId: string, userId: string) {
   return getUserGroupTournamentBettingPayment(groupTournamentBettingId, userId);
-} 
+}

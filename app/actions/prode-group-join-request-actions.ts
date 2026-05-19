@@ -51,21 +51,21 @@ export async function requestToJoinGroup(groupId: string, source: JoinRequestSou
     throw new Error('You are the owner of this group');
   }
 
-  // Check user is not already a member
-  const participants = await findParticipantsInGroup(groupId);
+  // Check user is not already a member, has no pending request, and is not in cooldown — run in parallel
+  const [participants, existingPendingRequest, recentRejection] = await Promise.all([
+    findParticipantsInGroup(groupId),
+    findPendingJoinRequest(groupId, user.id),
+    findRecentRejectedRequest(groupId, user.id),
+  ]);
+
   const isAlreadyMember = participants.some(p => p.user_id === user.id);
   if (isAlreadyMember) {
     throw new Error('You are already a member of this group');
   }
 
-  // Check no pending request exists
-  const existingPendingRequest = await findPendingJoinRequest(groupId, user.id);
   if (existingPendingRequest) {
     throw new Error('You already have a pending request for this group');
   }
-
-  // Check for recent rejection with active cooldown
-  const recentRejection = await findRecentRejectedRequest(groupId, user.id);
   if (recentRejection?.resolved_at) {
     const nextEligibleDate = new Date(recentRejection.resolved_at);
     nextEligibleDate.setDate(nextEligibleDate.getDate() + 7);
@@ -147,18 +147,17 @@ export async function getGroupJoinRequests(groupId: string) {
     throw new Error('Group not found');
   }
 
-  const groupParticipants = await findParticipantsInGroup(groupId);
+  const [groupParticipants, pendingRequests, rejectedRequests] = await Promise.all([
+    findParticipantsInGroup(groupId),
+    findJoinRequestsByGroup(groupId, 'pending'),
+    findJoinRequestsByGroup(groupId, 'rejected'),
+  ]);
+
   const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
     throw new Error('Only group owner or admins can view join requests');
   }
-
-  // Get pending requests
-  const pendingRequests = await findJoinRequestsByGroup(groupId, 'pending');
-
-  // Get recently-rejected requests (within last 7 days) so admins can approve if they made a mistake
-  const rejectedRequests = await findJoinRequestsByGroup(groupId, 'rejected');
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const recentlyRejected = rejectedRequests.filter(r =>
@@ -166,6 +165,16 @@ export async function getGroupJoinRequests(groupId: string) {
   );
 
   return [...pendingRequests, ...recentlyRejected];
+}
+
+async function fetchGroupAndCheckMember(groupId: string, userId: string) {
+  const [group, groupParticipants] = await Promise.all([
+    findProdeGroupById(groupId),
+    findParticipantsInGroup(groupId),
+  ]);
+  if (!group) throw new Error('Group not found');
+  const isAdmin = !!groupParticipants.find(p => p.user_id === userId)?.is_admin;
+  return { group, isAdmin };
 }
 
 /**
@@ -182,13 +191,7 @@ export async function approveJoinRequestAction(
   }
 
   // Check permission: owner OR admin
-  const group = await findProdeGroupById(groupId);
-  if (!group) {
-    throw new Error('Group not found');
-  }
-
-  const groupParticipants = await findParticipantsInGroup(groupId);
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  const { group, isAdmin } = await fetchGroupAndCheckMember(groupId, user.id);
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
     throw new Error('Only group owner or admins can approve join requests');
@@ -243,13 +246,7 @@ export async function rejectJoinRequestAction(requestId: string, groupId: string
   }
 
   // Check permission: owner OR admin
-  const group = await findProdeGroupById(groupId);
-  if (!group) {
-    throw new Error('Group not found');
-  }
-
-  const groupParticipants = await findParticipantsInGroup(groupId);
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  const { group, isAdmin } = await fetchGroupAndCheckMember(groupId, user.id);
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
     throw new Error('Only group owner or admins can reject join requests');
@@ -305,12 +302,14 @@ export async function getPendingRequestCount(groupId: string): Promise<number> {
   }
 
   // Check permission: owner OR admin
-  const group = await findProdeGroupById(groupId);
+  const [group, groupParticipants] = await Promise.all([
+    findProdeGroupById(groupId),
+    findParticipantsInGroup(groupId),
+  ]);
   if (!group) {
     return 0;
   }
 
-  const groupParticipants = await findParticipantsInGroup(groupId);
   const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
