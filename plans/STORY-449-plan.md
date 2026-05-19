@@ -36,56 +36,56 @@ Additionally, update `data/fifa-2026/teams.ts` so fresh dev imports also include
 | `data/fifa-2026/teams.ts` | Modify: add optional rank param to team helper + values |
 | `docs/code-structure/db.md` | Modify: document rank field on TeamTable |
 
-## FIFA 2026 Team Rankings (March 2026)
+## FIFA 2026 Team Rankings (April 1, 2026)
 
-Source: Official FIFA World Rankings, March 2026 release. Use the most recent ranking published at [https://www.fifa.com/fifa-world-ranking](https://www.fifa.com/fifa-world-ranking) before implementation.
+Source: Official FIFA World Rankings, April 1, 2026 update (the most recent before tournament; next update scheduled June 9, 2026).
+- **Ranks 1–20**: April 1, 2026 official update (via Wikipedia FIFA World Rankings article)
+- **Ranks 21+**: November 19, 2025 official update (official draw seedings, via Wikipedia 2026 FIFA World Cup seeding article)
 
-> ⚠️ **Implementer note:** My training data does not extend to March 2026. Look up the official FIFA World Rankings for March 2026 and fill in this table before writing the seed migration. The FIFA website provides a full historical archive. All 42 confirmed teams below need a rank value; the 6 playoff placeholder teams (PO-A, PO-B, PO-C, PO-D, IC-1, IC-2) remain NULL.
-
-| Short Name | Team | FIFA Rank (March 2026) |
-|-----------|------|-----------|
-| ARG | Argentina | *look up* |
-| FRA | France | *look up* |
-| BEL | Belgium | *look up* |
-| ENG | England | *look up* |
-| BRA | Brazil | *look up* |
-| POR | Portugal | *look up* |
-| NED | Netherlands | *look up* |
-| ESP | Spain | *look up* |
-| CRO | Croatia | *look up* |
-| USA | USA | *look up* |
-| URU | Uruguay | *look up* |
-| MAR | Morocco | *look up* |
-| GER | Germany | *look up* |
-| MEX | Mexico | *look up* |
-| COL | Colombia | *look up* |
-| JPN | Japan | *look up* |
-| SUI | Switzerland | *look up* |
-| SEN | Senegal | *look up* |
-| IRN | Iran | *look up* |
-| KOR | South Korea | *look up* |
-| AUS | Australia | *look up* |
-| AUT | Austria | *look up* |
-| ECU | Ecuador | *look up* |
-| CAN | Canada | *look up* |
-| NOR | Norway | *look up* |
-| TUN | Tunisia | *look up* |
-| EGY | Egypt | *look up* |
-| ALG | Algeria | *look up* |
-| KSA | Saudi Arabia | *look up* |
-| SCO | Scotland | *look up* |
-| GHA | Ghana | *look up* |
-| PAR | Paraguay | *look up* |
-| PAN | Panama | *look up* |
-| RSA | South Africa | *look up* |
-| QAT | Qatar | *look up* |
-| CPV | Cape Verde | *look up* |
-| CIV | Ivory Coast | *look up* |
-| NZL | New Zealand | *look up* |
-| JOR | Jordan | *look up* |
-| UZB | Uzbekistan | *look up* |
-| CUW | Curacao | *look up* |
-| HAI | Haiti | *look up* |
+| Short Name | Team | FIFA Rank | Source |
+|-----------|------|-----------|--------|
+| FRA | France | 1 | Apr 2026 |
+| ESP | Spain | 2 | Apr 2026 |
+| ARG | Argentina | 3 | Apr 2026 |
+| ENG | England | 4 | Apr 2026 |
+| POR | Portugal | 5 | Apr 2026 |
+| BRA | Brazil | 6 | Apr 2026 |
+| NED | Netherlands | 7 | Apr 2026 |
+| MAR | Morocco | 8 | Apr 2026 |
+| BEL | Belgium | 9 | Apr 2026 |
+| GER | Germany | 10 | Apr 2026 |
+| CRO | Croatia | 11 | Apr 2026 |
+| COL | Colombia | 13 | Apr 2026 |
+| SEN | Senegal | 14 | Apr 2026 |
+| MEX | Mexico | 15 | Apr 2026 |
+| USA | USA | 16 | Apr 2026 |
+| URU | Uruguay | 17 | Apr 2026 |
+| JPN | Japan | 18 | Apr 2026 |
+| SUI | Switzerland | 19 | Apr 2026 |
+| IRN | Iran | 20 | Nov 2025 |
+| KOR | South Korea | 22 | Nov 2025 |
+| ECU | Ecuador | 23 | Nov 2025 |
+| AUT | Austria | 24 | Nov 2025 |
+| AUS | Australia | 26 | Nov 2025 |
+| CAN | Canada | 27 | Nov 2025 |
+| NOR | Norway | 29 | Nov 2025 |
+| PAN | Panama | 30 | Nov 2025 |
+| EGY | Egypt | 34 | Nov 2025 |
+| ALG | Algeria | 35 | Nov 2025 |
+| SCO | Scotland | 36 | Nov 2025 |
+| PAR | Paraguay | 39 | Nov 2025 |
+| TUN | Tunisia | 40 | Nov 2025 |
+| CIV | Ivory Coast | 42 | Nov 2025 |
+| UZB | Uzbekistan | 50 | Nov 2025 |
+| QAT | Qatar | 51 | Nov 2025 |
+| KSA | Saudi Arabia | 60 | Nov 2025 |
+| RSA | South Africa | 61 | Nov 2025 |
+| JOR | Jordan | 66 | Nov 2025 |
+| CPV | Cape Verde | 68 | Nov 2025 |
+| GHA | Ghana | 72 | Nov 2025 |
+| CUW | Curacao | 82 | Nov 2025 |
+| HAI | Haiti | 84 | Nov 2025 |
+| NZL | New Zealand | 86 | Nov 2025 |
 
 **Playoff teams (NULL rank — team identity unknown):**
 PO-A, PO-B, PO-C, PO-D, IC-1, IC-2
