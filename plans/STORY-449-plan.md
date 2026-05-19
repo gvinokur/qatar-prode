@@ -2,11 +2,11 @@
 
 ## Context
 
-The app has no concept of team strength. Adding a nullable `rank` field (lower = stronger, following FIFA World Rankings convention) to the `teams` table allows future features (e.g., auto-fill predictions, smart defaults) to use relative team strength without re-importing data. The field is intentionally generic — it works for any tournament type. This story seeds official FIFA World Rankings as of the December 2023 tournament draw for all 48 FIFA 2026 teams, while leaving the field NULL for Copa América and Euro teams.
+The app has no concept of team strength. Adding a nullable `rank` field (lower = stronger, following FIFA World Rankings convention) to the `teams` table allows future features (e.g., auto-fill predictions, smart defaults) to use relative team strength without re-importing data. The field is intentionally generic — it works for any tournament type. This story seeds official FIFA World Rankings as of March 2026 (the most recent ranking before the tournament) for all 42 confirmed FIFA 2026 teams, while leaving the field NULL for Copa América, Euro, and playoff placeholder teams.
 
 ## Acceptance Criteria
 
-- Every FIFA 2026 team has a `rank` value reflecting official FIFA World Rankings as of the draw date (Dec 2023)
+- Every FIFA 2026 team has a `rank` value reflecting official FIFA World Rankings as of March 2026
 - Teams without a rank (Copa América, Euro, playoff placeholders) display and function correctly (rank is nullable)
 - The rank field is available via TypeScript types for use by other features
 - No user-facing display of rankings (out of scope)
@@ -36,59 +36,59 @@ Additionally, update `data/fifa-2026/teams.ts` so fresh dev imports also include
 | `data/fifa-2026/teams.ts` | Modify: add optional rank param to team helper + values |
 | `docs/code-structure/db.md` | Modify: document rank field on TeamTable |
 
-## FIFA 2026 Team Rankings (December 2023)
+## FIFA 2026 Team Rankings (March 2026)
 
-Source: Official FIFA World Rankings as of the tournament draw (December 2, 2023). The November 23, 2023 ranking update is the reference.
+Source: Official FIFA World Rankings, March 2026 release. Use the most recent ranking published at [https://www.fifa.com/fifa-world-ranking](https://www.fifa.com/fifa-world-ranking) before implementation.
 
-| Short Name | Team | FIFA Rank |
+> ⚠️ **Implementer note:** My training data does not extend to March 2026. Look up the official FIFA World Rankings for March 2026 and fill in this table before writing the seed migration. The FIFA website provides a full historical archive. All 42 confirmed teams below need a rank value; the 6 playoff placeholder teams (PO-A, PO-B, PO-C, PO-D, IC-1, IC-2) remain NULL.
+
+| Short Name | Team | FIFA Rank (March 2026) |
 |-----------|------|-----------|
-| ARG | Argentina | 1 |
-| FRA | France | 2 |
-| BEL | Belgium | 3 |
-| ENG | England | 4 |
-| BRA | Brazil | 5 |
-| POR | Portugal | 6 |
-| NED | Netherlands | 7 |
-| ESP | Spain | 8 |
-| CRO | Croatia | 10 |
-| USA | USA | 11 |
-| URU | Uruguay | 12 |
-| MAR | Morocco | 13 |
-| GER | Germany | 16 |
-| MEX | Mexico | 15 |
-| COL | Colombia | 17 |
-| JPN | Japan | 19 |
-| SUI | Switzerland | 20 |
-| SEN | Senegal | 18 |
-| IRN | Iran | 21 |
-| KOR | South Korea | 24 |
-| AUS | Australia | 25 |
-| AUT | Austria | 23 |
-| ECU | Ecuador | 41 |
-| CAN | Canada | 49 |
-| NOR | Norway | 38 |
-| TUN | Tunisia | 31 |
-| EGY | Egypt | 42 |
-| ALG | Algeria | 51 |
-| KSA | Saudi Arabia | 57 |
-| SCO | Scotland | 39 |
-| GHA | Ghana | 64 |
-| PAR | Paraguay | 66 |
-| PAN | Panama | 75 |
-| RSA | South Africa | 70 |
-| QAT | Qatar | 58 |
-| CPV | Cape Verde | 63 |
-| CIV | Ivory Coast | 52 |
-| NZL | New Zealand | 92 |
-| JOR | Jordan | 84 |
-| UZB | Uzbekistan | 74 |
-| CUW | Curacao | 89 |
-| HAI | Haiti | 83 |
+| ARG | Argentina | *look up* |
+| FRA | France | *look up* |
+| BEL | Belgium | *look up* |
+| ENG | England | *look up* |
+| BRA | Brazil | *look up* |
+| POR | Portugal | *look up* |
+| NED | Netherlands | *look up* |
+| ESP | Spain | *look up* |
+| CRO | Croatia | *look up* |
+| USA | USA | *look up* |
+| URU | Uruguay | *look up* |
+| MAR | Morocco | *look up* |
+| GER | Germany | *look up* |
+| MEX | Mexico | *look up* |
+| COL | Colombia | *look up* |
+| JPN | Japan | *look up* |
+| SUI | Switzerland | *look up* |
+| SEN | Senegal | *look up* |
+| IRN | Iran | *look up* |
+| KOR | South Korea | *look up* |
+| AUS | Australia | *look up* |
+| AUT | Austria | *look up* |
+| ECU | Ecuador | *look up* |
+| CAN | Canada | *look up* |
+| NOR | Norway | *look up* |
+| TUN | Tunisia | *look up* |
+| EGY | Egypt | *look up* |
+| ALG | Algeria | *look up* |
+| KSA | Saudi Arabia | *look up* |
+| SCO | Scotland | *look up* |
+| GHA | Ghana | *look up* |
+| PAR | Paraguay | *look up* |
+| PAN | Panama | *look up* |
+| RSA | South Africa | *look up* |
+| QAT | Qatar | *look up* |
+| CPV | Cape Verde | *look up* |
+| CIV | Ivory Coast | *look up* |
+| NZL | New Zealand | *look up* |
+| JOR | Jordan | *look up* |
+| UZB | Uzbekistan | *look up* |
+| CUW | Curacao | *look up* |
+| HAI | Haiti | *look up* |
 
-**Playoff teams (NULL rank — team identity unknown at draw time):**
+**Playoff teams (NULL rank — team identity unknown):**
 PO-A, PO-B, PO-C, PO-D, IC-1, IC-2
-
-> ⚠️ **Implementer note:** Verify these values against the official FIFA World Rankings released November 23, 2023 before writing the migration. The FIFA World Rankings page archives historical rankings.
 
 ## Mid-Level Design
 
