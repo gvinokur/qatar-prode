@@ -22,9 +22,11 @@ export async function getGroupTournamentBettingConfigAction(groupId: string, tou
 
 // Set betting config (admin only: group owner)
 export async function setGroupTournamentBettingConfigAction(groupId: string, tournamentId: string, config: Omit<ProdeGroupTournamentBettingNew, 'group_id' | 'tournament_id'>, locale: Locale = 'es') {
-  const [t, tErrors, user, group, groupParticipants] = await Promise.all([
+  const [t, tErrors] = await Promise.all([
     getTranslations({ locale, namespace: 'groups' }),
     getTranslations({ locale, namespace: 'errors' }),
+  ]);
+  const [user, group, groupParticipants] = await Promise.all([
     getLoggedInUser(),
     findProdeGroupById(groupId),
     findParticipantsInGroup(groupId),
@@ -49,9 +51,11 @@ export async function getGroupTournamentBettingPaymentsAction(groupTournamentBet
 
 // Set payment status for a user (admin only: group owner)
 export async function setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId: string, userId: string, hasPaid: boolean, groupId: string, locale: Locale = 'es') {
-  const [t, tErrors, user, group, groupParticipants] = await Promise.all([
+  const [t, tErrors] = await Promise.all([
     getTranslations({ locale, namespace: 'groups' }),
     getTranslations({ locale, namespace: 'errors' }),
+  ]);
+  const [user, group, groupParticipants] = await Promise.all([
     getLoggedInUser(),
     findProdeGroupById(groupId),
     findParticipantsInGroup(groupId),

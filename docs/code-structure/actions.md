@@ -89,11 +89,11 @@ Manages tournament betting configuration and payment tracking for friend groups.
 
 - **getGroupTournamentBettingConfigAction(groupId, tournamentId)**: `Promise<ProdeGroupTournamentBetting | undefined>` — Gets betting config for group/tournament.
   Calls: getGroupTournamentBettingConfig
-- **setGroupTournamentBettingConfigAction(groupId, tournamentId, config, locale)**: `Promise<ProdeGroupTournamentBetting>` — Sets betting config (owner/admin only). Fetches translations, user, group, and participants in parallel before auth/permission check.
+- **setGroupTournamentBettingConfigAction(groupId, tournamentId, config, locale)**: `Promise<ProdeGroupTournamentBetting>` — Sets betting config (owner/admin only). Fetches both translation namespaces in parallel, then fetches user, group, and participants in parallel before auth/permission check.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, getGroupTournamentBettingConfig, updateGroupTournamentBettingConfig, createGroupTournamentBettingConfig
 - **getGroupTournamentBettingPaymentsAction(groupTournamentBettingId)**: `Promise<ProdeGroupTournamentBettingPayment[]>` — Gets all payment statuses.
   Calls: getGroupTournamentBettingPayments
-- **setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId, hasPaid, groupId, locale)**: `Promise<ProdeGroupTournamentBettingPayment>` — Sets user payment status (admin only). Fetches translations, user, group, and participants in parallel before auth/permission check.
+- **setUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId, hasPaid, groupId, locale)**: `Promise<ProdeGroupTournamentBettingPayment>` — Sets user payment status (admin only). Fetches both translation namespaces in parallel, then fetches user, group, and participants in parallel before auth/permission check.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, setUserGroupTournamentBettingPayment
 - **getUserGroupTournamentBettingPaymentAction(groupTournamentBettingId, userId)**: `Promise<ProdeGroupTournamentBettingPayment | undefined>` — Gets a user's payment status.
   Calls: getUserGroupTournamentBettingPayment
