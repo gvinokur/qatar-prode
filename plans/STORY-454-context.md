@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Show and edit team FIFA rank in backoffice
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/suspicious-raman-ddd3d1
 - **Branch:** claude/suspicious-raman-ddd3d1
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 455
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/455
 
 ## State
 - **Current Phase:** planning
