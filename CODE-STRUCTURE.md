@@ -3,7 +3,7 @@
 Living map of all production source files, their exported functions/components, and call relationships.
 
 **Format guide:** `docs/claude/code-structure.md`
-**Last updated:** 2026-04-15
+**Last updated:** 2026-05-19
 
 ---
 
