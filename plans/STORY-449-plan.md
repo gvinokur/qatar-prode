@@ -197,6 +197,18 @@ After running migrations on dev:
 - [ ] `docs/code-structure/db.md` updated to document rank field
 - [ ] User approves running migrations on dev database
 
+## Implementation Amendments
+
+### Amendment 1: Playoff teams use actual DB short names, not placeholders
+**Date:** 2026-05-19
+**Reason:** The DB already had playoff teams stored under their real short names (playoffs settled March 31, 2026 before this story ran). The plan assumed placeholder names (PO-A, PO-B, etc.) would be in the DB.
+**Change:** Seed migration uses actual DB short names: BOS (Bosnia), SWE (Sweden), TUR (Turkey), CZE (Czech Republic), CON (Congo), IRK (Iraq). `data/fifa-2026/teams.ts` also updated to match.
+
+### Amendment 2: Two additional files required TypeScript fixes
+**Date:** 2026-05-19
+**Reason:** Adding `rank` to `TeamTable` caused TypeScript errors in files using explicit `.select([...])` column lists — they needed `'teams.rank'` added. `demo-data.ts` uses `Team[]` with literal objects that needed `rank: undefined`.
+**Change:** Added `'teams.rank'` to the explicit select in `app/[locale]/tournaments/[id]/qualified-teams/page.tsx:67`. Added `rank: undefined` to all 4 `DEMO_TEAMS` entries in `app/components/onboarding/demo/demo-data.ts`.
+
 ## Open Questions
 
 None — story scope is well-defined.
