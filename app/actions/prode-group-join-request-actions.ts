@@ -167,6 +167,16 @@ export async function getGroupJoinRequests(groupId: string) {
   return [...pendingRequests, ...recentlyRejected];
 }
 
+async function fetchGroupAndCheckMember(groupId: string, userId: string) {
+  const [group, groupParticipants] = await Promise.all([
+    findProdeGroupById(groupId),
+    findParticipantsInGroup(groupId),
+  ]);
+  if (!group) throw new Error('Group not found');
+  const isAdmin = !!groupParticipants.find(p => p.user_id === userId)?.is_admin;
+  return { group, isAdmin };
+}
+
 /**
  * Approve join request
  */
@@ -181,15 +191,7 @@ export async function approveJoinRequestAction(
   }
 
   // Check permission: owner OR admin
-  const [group, groupParticipants] = await Promise.all([
-    findProdeGroupById(groupId),
-    findParticipantsInGroup(groupId),
-  ]);
-  if (!group) {
-    throw new Error('Group not found');
-  }
-
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  const { group, isAdmin } = await fetchGroupAndCheckMember(groupId, user.id);
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
     throw new Error('Only group owner or admins can approve join requests');
@@ -244,15 +246,7 @@ export async function rejectJoinRequestAction(requestId: string, groupId: string
   }
 
   // Check permission: owner OR admin
-  const [group, groupParticipants] = await Promise.all([
-    findProdeGroupById(groupId),
-    findParticipantsInGroup(groupId),
-  ]);
-  if (!group) {
-    throw new Error('Group not found');
-  }
-
-  const isAdmin = groupParticipants.find(p => p.user_id === user.id)?.is_admin;
+  const { group, isAdmin } = await fetchGroupAndCheckMember(groupId, user.id);
 
   if (!(group.owner_user_id === user.id || isAdmin)) {
     throw new Error('Only group owner or admins can reject join requests');
