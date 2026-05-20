@@ -206,6 +206,20 @@ Tests:
 8. Update `docs/code-structure/db.md`, `actions.md`, `components-backoffice.md`
 9. Run `npm test`, `npm run lint`, `npm run build`
 
+## Implementation Amendments
+
+### Amendment 1: Fix inline Team literals missing rank field
+**Date:** 2026-05-20
+**Reason:** Adding `rank` to `TeamTable` caused TypeScript build failures in two files that construct `Team` objects inline without going through Kysely's `selectAll()`.
+**Change:**
+- `app/[locale]/tournaments/[id]/qualified-teams/page.tsx`: added `'teams.rank'` to the explicit `.select([...])` list in `fetchGroupsWithTeams`
+- `app/components/onboarding/demo/demo-data.ts`: added `rank: null` to each entry in the `DEMO_TEAMS` array
+
+### Amendment 2: Improved catch block in TeamDialog
+**Date:** 2026-05-20
+**Reason:** The existing catch block discarded the error message, which meant validation errors (rank out of range) would show a generic "Error updating team" message instead of the specific reason.
+**Change:** `team-dialog.tsx` catch block now reads `err.message` when available, so client-side and server-side validation errors are surfaced to the user.
+
 ## Testing Strategy
 
 **Unit tests (`__tests__/actions/team-actions-rank.test.ts`):**
