@@ -73,7 +73,7 @@ Algorithm:
 
    **Extreme (50+)**
    - Win: 5-0 (20%), 4-0 (15%), 6-0 (15%), 5-1 (12%), 6-1 (10%), 7-0 (10%), 3-0 (8%), 7-1 (6%), 8-0 (4%)
-   - Draw: 2-2 (40%), 3-3 (30%), 1-1 (20%), 4-4 (10%)
+   - Draw: 0-0 (30%), 1-1 (44%), 2-2 (20%), 3-3 (6%) — defensive masterclass / lucky day, mirrors Even distribution
 
    For underdog wins, use the **Even** win distribution regardless of tier (upsets are fluky, not high-scoring demolitions). Swap scores so the underdog's goals come first.
 
@@ -230,7 +230,7 @@ Spanish equivalents in `es/predictions.json`.
   - with mock Math.random() returning 0: Extreme away favourite (diff=-55) produces a high-scoring away win
   - Even matchup (diff=3) outcome distribution is symmetric (home/away win equally likely across many calls)
   - Dominant tier (diff=40) underdog win uses Even distribution (low-scoring upset, not a demolition)
-  - Extreme tier draw (forced via mock) produces score from Extreme draw distribution (2-2, 3-3, not 0-0)
+  - Extreme tier draw (forced via mock) produces score from Extreme draw distribution (0-0, 1-1 weighted heavily — not 3-3 or 4-4)
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
