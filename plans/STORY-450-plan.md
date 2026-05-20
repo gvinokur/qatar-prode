@@ -35,32 +35,49 @@ function pickWeighted<T>(options: Array<{ value: T; weight: number }>): T
 
 Algorithm:
 1. Lookup `homeRank` and `awayRank` from rankings map (default 50 if missing)
-2. `strengthRatio = awayRank / homeRank` — higher = home team is proportionally stronger
-3. Classify into **strength tier** (from the home team's perspective):
-   - **Dominant** (ratio > 3): home 80% win / 15% draw / 5% away
-   - **Strong** (ratio 2–3): home 70% win / 20% draw / 10% away
-   - **Moderate** (ratio 1.3–2): home 50% win / 30% draw / 20% away
-   - **Even** (ratio 0.77–1.3): home 35% win / 30% draw / 35% away
-   - **Moderate away** (ratio 0.5–0.77): mirror of Moderate
-   - **Strong away** (ratio 0.33–0.5): mirror of Strong
-   - **Dominant away** (ratio < 0.33): mirror of Dominant
-4. Pick outcome (home win / draw / away win) using `pickWeighted` with tier probabilities
-5. Generate score using `pickWeighted` with the following **score distributions per tier**:
+2. `diff = awayRank - homeRank` — positive = home team is stronger (lower rank = better)
+3. `absDiff = Math.abs(diff)` — classify into **strength tier**:
+   - **Even** (0–8): ~equal quality, e.g. Rank 1 vs Rank 3, Rank 10 vs Rank 15
+   - **Moderate** (9–18): noticeable gap, e.g. Rank 1 vs Rank 10, Rank 5 vs Rank 20
+   - **Strong** (19–28): clear mismatch, e.g. Rank 1 vs Rank 22, Rank 10 vs Rank 30
+   - **Dominant** (29–49): heavy favourite, e.g. Rank 1 vs Rank 35, Rank 10 vs Rank 48
+   - **Extreme** (50+): near-certain result, e.g. Germany vs Curaçao, Argentina vs Trinidad
+4. Pick outcome (favoured win / draw / underdog win) using `pickWeighted` with tier probabilities:
+   | Tier | Favoured win | Draw | Underdog win |
+   |------|-------------|------|-------------|
+   | Even | 35% | 30% | 35% |
+   | Moderate | 50% | 30% | 20% |
+   | Strong | 70% | 20% | 10% |
+   | Dominant | 80% | 15% | 5% |
+   | Extreme | 93% | 5% | 2% |
 
-   | Tier | Outcome | Score options (winner–loser or draw) |
-   |------|---------|--------------------------------------|
-   | Even | Win | 1-0 (35%), 2-1 (30%), 2-0 (15%), 3-1 (10%), 3-2 (7%), 4-2 (3%) |
-   | Even | Draw | 1-1 (50%), 0-0 (25%), 2-2 (20%), 3-3 (5%) |
-   | Moderate | Win | 1-0 (25%), 2-0 (22%), 2-1 (25%), 3-0 (12%), 3-1 (12%), 4-1 (4%) |
-   | Moderate | Draw | 1-1 (50%), 0-0 (25%), 2-2 (20%), 3-3 (5%) |
-   | Strong | Win | 2-0 (25%), 3-0 (22%), 2-1 (18%), 3-1 (15%), 4-0 (10%), 4-1 (7%), 5-0 (3%) |
-   | Strong | Draw | 1-1 (40%), 0-0 (30%), 2-2 (20%), 3-3 (10%) |
-   | Dominant | Win | 3-0 (25%), 4-0 (20%), 3-1 (15%), 4-1 (15%), 5-0 (10%), 5-1 (8%), 6-0 (7%) |
-   | Dominant | Draw | 1-1 (35%), 2-2 (35%), 3-3 (20%), 0-0 (10%) |
+   Direction: if `diff > 0`, home team is the favoured side; if `diff < 0`, away team is.
 
-   The "away" mirror tiers use the same distributions with home/away scores swapped.
+5. Generate score using `pickWeighted` with **score distributions per tier and outcome**:
 
-6. For playoff draw: use `pickWeighted([{ value: 'home', weight: 50 + rankAdvantage }, { value: 'away', weight: 50 - rankAdvantage }])` where `rankAdvantage = Math.min(20, Math.round((strengthRatio - 1) * 5))` (stronger team slightly favored in penalties, capped at +/-20%)
+   **Even (0–8)**
+   - Win: 1-0 (28%), 2-1 (27%), 2-0 (15%), 3-1 (10%), 3-2 (8%), 3-0 (5%), 4-2 (4%), 4-3 (3%)
+   - Draw: 1-1 (44%), 0-0 (24%), 2-2 (20%), 3-3 (8%), 4-4 (4%)
+
+   **Moderate (9–18)**
+   - Win: 2-0 (22%), 2-1 (22%), 1-0 (20%), 3-0 (15%), 3-1 (12%), 4-1 (5%), 4-2 (3%), 5-2 (1%)
+   - Draw: 1-1 (48%), 0-0 (20%), 2-2 (22%), 3-3 (8%), 4-4 (2%)
+
+   **Strong (19–28)**
+   - Win: 3-0 (22%), 2-0 (20%), 3-1 (18%), 4-0 (15%), 4-1 (12%), 5-0 (7%), 5-1 (4%), 5-2 (2%)
+   - Draw: 1-1 (42%), 2-2 (30%), 3-3 (20%), 0-0 (5%), 4-4 (3%)
+
+   **Dominant (29–49)**
+   - Win: 4-0 (20%), 3-0 (18%), 4-1 (15%), 3-1 (15%), 5-0 (12%), 5-1 (10%), 6-0 (7%), 6-1 (3%)
+   - Draw: 2-2 (40%), 1-1 (30%), 3-3 (22%), 4-4 (8%)
+
+   **Extreme (50+)**
+   - Win: 5-0 (20%), 4-0 (15%), 6-0 (15%), 5-1 (12%), 6-1 (10%), 7-0 (10%), 3-0 (8%), 7-1 (6%), 8-0 (4%)
+   - Draw: 2-2 (40%), 3-3 (30%), 1-1 (20%), 4-4 (10%)
+
+   For underdog wins, use the **Even** win distribution regardless of tier (upsets are fluky, not high-scoring demolitions). Swap scores so the underdog's goals come first.
+
+6. For playoff draw: `favoured wins penalties` with probability `Math.min(75, 50 + absDiff / 3)%` (stronger team more likely to win shootout, capped at 75%)
 
 ### 3. `app/components/ai-generate-all-dialog.tsx`
 Reusable confirmation dialog component. Props:
@@ -203,15 +220,17 @@ Spanish equivalents in `es/predictions.json`.
   - over many calls, distribution roughly matches weights (statistical smoke test with 1000 samples)
 
 - **generateAIPrediction(homeTeamId, awayTeamId, rankings, isPlayoff)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
-  Probabilistic score prediction using rank ratio + `Math.random()`-based weighted selection.
+  Probabilistic score prediction using absolute rank difference + `Math.random()`-based weighted selection.
   Tests:
   - scores are non-negative integers in all cases
   - missing team in rankings defaults gracefully (rank 50)
   - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
   - non-playoff draw never sets penalty winner fields
-  - with mock Math.random() returning 0: dominant home (ratio=5) produces high-scoring home win from Dominant tier distribution
-  - with mock Math.random() returning 0: dominant away (ratio=0.2) produces high-scoring away win
-  - with mock Math.random() returning 0.5: even matchup (ratio=1.0) produces a draw from Even tier distribution
+  - with mock Math.random() returning 0: Extreme home favourite (diff=55) produces a high-scoring home win (≥3 home goals, 0-1 away goals)
+  - with mock Math.random() returning 0: Extreme away favourite (diff=-55) produces a high-scoring away win
+  - Even matchup (diff=3) outcome distribution is symmetric (home/away win equally likely across many calls)
+  - Dominant tier (diff=40) underdog win uses Even distribution (low-scoring upset, not a demolition)
+  - Extreme tier draw (forced via mock) produces score from Extreme draw distribution (2-2, 3-3, not 0-0)
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
