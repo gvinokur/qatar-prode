@@ -37,6 +37,13 @@ export async function createTeam(formData: FormData, tournamentId: string): Prom
 
   const teamData = JSON.parse(teamDataStr);
 
+  // Validate rank if provided
+  if (teamData.rank !== null && teamData.rank !== undefined) {
+    if (teamData.rank <= 0 || teamData.rank >= 1000) {
+      throw new Error('Rank must be between 1 and 999');
+    }
+  }
+
   // Handle logo upload if provided
   const logoFile = formData.get('logo') as File;
   let logoUrl = null;
@@ -97,6 +104,13 @@ export async function updateTeam(teamId: string, formData: FormData): Promise<Te
   }
 
   const teamData = JSON.parse(teamDataStr);
+
+  // Validate rank if provided
+  if (teamData.rank !== null && teamData.rank !== undefined) {
+    if (teamData.rank <= 0 || teamData.rank >= 1000) {
+      throw new Error('Rank must be between 1 and 999');
+    }
+  }
 
   // Handle logo upload if provided
   const logoFile = formData.get('logo') as File;

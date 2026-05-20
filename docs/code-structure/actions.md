@@ -272,9 +272,9 @@ Manages third-place playoff bracket rules (admin only).
 ### app/actions/team-actions.ts
 Team and player management for backoffice — creates/updates teams, imports player rosters from Transfermarkt, and manages player assignments.
 
-- **createTeam(formData: FormData, tournamentId: string)**: `Promise<Team>` — Creates a new team with optional logo upload (admin only).
+- **createTeam(formData: FormData, tournamentId: string)**: `Promise<Team>` — Creates a new team with optional logo upload (admin only). Validates rank (1–999 or null) before persisting (Story #454).
   Calls: getLoggedInUser, createTeaminDb, handleLogoUpload
-- **updateTeam(teamId: string, formData: FormData)**: `Promise<Team>` — Updates team fields and logo (admin only).
+- **updateTeam(teamId: string, formData: FormData)**: `Promise<Team>` — Updates team fields and logo (admin only). Validates rank (1–999 or null) before persisting (Story #454).
   Calls: getLoggedInUser, updateTeaminDb, handleLogoUpload
 - **getPlayersInTournament(tournamentId: string)**: `Promise<{team: Team, players: Player[]}[]>` — Returns all teams in a tournament with their player rosters.
   Calls: findTeamInTournament, findPlayersByTeamId

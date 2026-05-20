@@ -60,7 +60,8 @@ Includes `TournamentScoreHistoryTable` for the `tournament_score_history` table 
 
 `TeamTable` includes `transfermarkt_id?: string | null` — the Transfermarkt team ID persisted after a successful player import for pre-filling on re-import (Story #306).
 
-`TeamTable` includes `rank?: number | null` — FIFA World Rankings position (lower = stronger). Seeded for all 48 FIFA 2026 teams (April 1, 2026 rankings); NULL for Copa América, Euro, and other non-FIFA-2026 teams. CHECK constraint enforces 1–999. Available for ranking-based features (Story #449).
+`TeamTable` includes `rank?: number | null` — FIFA World Rankings position (lower = stronger). Seeded for all 48 FIFA 2026 teams (April 1, 2026 rankings); NULL for Copa América, Euro, and other non-FIFA-2026 teams. CHECK constraint enforces 1–999. Displayed and editable in the backoffice Teams tab (Story #449, #454).
+
 
 Note: `yesterday_tournament_score`, `yesterday_total_game_score`, `yesterday_boost_bonus`, and `last_score_update_date` fields were removed from `TournamentGuessTable` in Story #278. Rank-change tracking now uses `tournament_score_history` snapshots (Story #272/#277).
 

@@ -191,6 +191,9 @@ export default function TournamentTeamsManagerTab({ tournamentId }: TournamentTe
                     <Typography variant="h4" color={team.theme?.secondary_color || '#000'}>
                       {team.name} ({team.short_name})
                     </Typography>
+                    <Typography variant="caption" color={team.theme?.secondary_color || '#000'} sx={{ opacity: 0.8 }}>
+                      {team.rank != null ? `#${team.rank}` : '—'}
+                    </Typography>
 
                   </CardMedia>
                 </Card>
