@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-19
+**Last updated:** 2026-05-20
 
 ---
 
@@ -273,9 +273,9 @@ Manages third-place playoff bracket rules (admin only).
 Team and player management for backoffice — creates/updates teams, imports player rosters from Transfermarkt, and manages player assignments.
 
 - **createTeam(formData: FormData, tournamentId: string)**: `Promise<Team>` — Creates a new team with optional logo upload (admin only). Validates rank (1–999 or null) before persisting (Story #454).
-  Calls: getLoggedInUser, createTeaminDb, handleLogoUpload
+  Calls: getLoggedInUser, createTeamInDb, createTournamentTeam, applyLocalization
 - **updateTeam(teamId: string, formData: FormData)**: `Promise<Team>` — Updates team fields and logo (admin only). Validates rank (1–999 or null) before persisting (Story #454).
-  Calls: getLoggedInUser, updateTeaminDb, handleLogoUpload
+  Calls: getLoggedInUser, updateTeaminDb, deleteThemeLogoFromS3, applyLocalization
 - **getPlayersInTournament(tournamentId: string)**: `Promise<{team: Team, players: Player[]}[]>` — Returns all teams in a tournament with their player rosters.
   Calls: findTeamInTournament, findPlayersByTeamId
 - **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only).
