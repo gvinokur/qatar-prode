@@ -8,6 +8,8 @@ FIFA 2026 has 48 group-stage games — manually filling every score is a signifi
 
 Generate predictions **entirely client-side** using a pure utility function + static rankings data, then save via the existing `updateOrCreateGameGuesses()` server action. No new server action needed. The GuessesContext gains one new method (`bulkSetGameGuesses`) for efficient batch state updates after bulk generation.
 
+The algorithm uses **real randomness** (`Math.random()`) so each invocation — and each user — gets different predictions for the same game. The rank ratio drives the *probability distribution*, not the outcome itself.
+
 ---
 
 ## Files to Create
@@ -16,34 +18,49 @@ Generate predictions **entirely client-side** using a pure utility function + st
 Static record mapping TeamNames → FIFA world ranking (integer, 1 = best). Covers all 48 qualified teams. Used by the generation utility on the client. Playoff placeholder entries (UEFAPlayoffA, etc.) receive a default rank of 50 so the algorithm degrades gracefully if team is unknown.
 
 ### 2. `app/utils/ai-prediction-generator.ts`
-Pure, deterministic utility.
+Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
 
 ```typescript
-/** Deterministic float in [0,1) derived from a string key. */
-function hashSeed(key: string): number
-
-/** Main export: generate a probabilistic but deterministic score for a game. */
+/** Main export: generate a random score for a game, weighted by rank ratio. */
 export function generateAIPrediction(
   homeTeamId: string,
   awayTeamId: string,
   rankings: Record<string, number>,
   isPlayoff: boolean
 ): { homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }
+
+/** Internal: pick a value from a weighted distribution using Math.random(). */
+function pickWeighted<T>(options: Array<{ value: T; weight: number }>): T
 ```
 
 Algorithm:
 1. Lookup `homeRank` and `awayRank` from rankings map (default 50 if missing)
-2. `strengthRatio = awayRank / homeRank` — higher means home is proportionally stronger
-3. Two deterministic seeds: `s1 = hashSeed(homeTeamId + awayTeamId)`, `s2 = hashSeed(awayTeamId + homeTeamId)`
-4. Map `s1` to outcome bucket using strength-based thresholds:
-   - ratio > 2.0: home win 70%, draw 20%, away win 10%
-   - ratio 1.3–2.0: home win 50%, draw 30%, away win 20%
-   - ratio 0.77–1.3: roughly equal: home 35%, draw 30%, away 35%
-   - ratio < 0.77: mirror of strong-home case for away team
-5. Generate realistic scores per outcome using `s2`:
-   - Win: winner scores 1–3 (weighted toward 1–2), loser 0–1
-   - Draw: both score 0 or 1 (weighted toward 1-1 and 0-0)
-6. For playoff draw: `homePenaltyWinner = hashSeed(homeTeamId) > 0.4 + (1/strengthRatio - 1) * 0.1` (stronger team slightly favored)
+2. `strengthRatio = awayRank / homeRank` — higher = home team is proportionally stronger
+3. Classify into **strength tier** (from the home team's perspective):
+   - **Dominant** (ratio > 3): home 80% win / 15% draw / 5% away
+   - **Strong** (ratio 2–3): home 70% win / 20% draw / 10% away
+   - **Moderate** (ratio 1.3–2): home 50% win / 30% draw / 20% away
+   - **Even** (ratio 0.77–1.3): home 35% win / 30% draw / 35% away
+   - **Moderate away** (ratio 0.5–0.77): mirror of Moderate
+   - **Strong away** (ratio 0.33–0.5): mirror of Strong
+   - **Dominant away** (ratio < 0.33): mirror of Dominant
+4. Pick outcome (home win / draw / away win) using `pickWeighted` with tier probabilities
+5. Generate score using `pickWeighted` with the following **score distributions per tier**:
+
+   | Tier | Outcome | Score options (winner–loser or draw) |
+   |------|---------|--------------------------------------|
+   | Even | Win | 1-0 (35%), 2-1 (30%), 2-0 (15%), 3-1 (10%), 3-2 (7%), 4-2 (3%) |
+   | Even | Draw | 1-1 (50%), 0-0 (25%), 2-2 (20%), 3-3 (5%) |
+   | Moderate | Win | 1-0 (25%), 2-0 (22%), 2-1 (25%), 3-0 (12%), 3-1 (12%), 4-1 (4%) |
+   | Moderate | Draw | 1-1 (50%), 0-0 (25%), 2-2 (20%), 3-3 (5%) |
+   | Strong | Win | 2-0 (25%), 3-0 (22%), 2-1 (18%), 3-1 (15%), 4-0 (10%), 4-1 (7%), 5-0 (3%) |
+   | Strong | Draw | 1-1 (40%), 0-0 (30%), 2-2 (20%), 3-3 (10%) |
+   | Dominant | Win | 3-0 (25%), 4-0 (20%), 3-1 (15%), 4-1 (15%), 5-0 (10%), 5-1 (8%), 6-0 (7%) |
+   | Dominant | Draw | 1-1 (35%), 2-2 (35%), 3-3 (20%), 0-0 (10%) |
+
+   The "away" mirror tiers use the same distributions with home/away scores swapped.
+
+6. For playoff draw: use `pickWeighted([{ value: 'home', weight: 50 + rankAdvantage }, { value: 'away', weight: 50 - rankAdvantage }])` where `rankAdvantage = Math.min(20, Math.round((strengthRatio - 1) * 5))` (stronger team slightly favored in penalties, capped at +/-20%)
 
 ### 3. `app/components/ai-generate-all-dialog.tsx`
 Reusable confirmation dialog component. Props:
@@ -178,22 +195,23 @@ Spanish equivalents in `es/predictions.json`.
   Static ranking map for all 48 teams. Exported as a named const.
 
 ### `app/utils/ai-prediction-generator.ts` *(new)*
-- **hashSeed(key: string)**: `number`
-  Deterministic [0,1) float from a string. Used internally.
+- **pickWeighted\<T\>(options: Array<{ value: T; weight: number }>)**: `T`
+  Picks a random value from a weighted array using Math.random(). Used internally.
   Tests:
-  - same key always returns same value
-  - different keys return different values (spot check 5 pairs)
-  - returns value in [0, 1) range
+  - returns a value that exists in the options array
+  - throws (or handles) when options array is empty
+  - over many calls, distribution roughly matches weights (statistical smoke test with 1000 samples)
 
 - **generateAIPrediction(homeTeamId, awayTeamId, rankings, isPlayoff)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
-  Deterministic score prediction using rank ratio + seeded outcome selection.
+  Probabilistic score prediction using rank ratio + `Math.random()`-based weighted selection.
   Tests:
-  - strongly favored home team wins in generated prediction (ratio=5.0)
-  - strongly favored away team wins in generated prediction (ratio=0.2)
-  - equal-ranked teams produce reasonable varied results (several pairs)
-  - playoff game with drawn score includes a defined penalty winner (one of home/away true, other false or undefined)
+  - scores are non-negative integers in all cases
   - missing team in rankings defaults gracefully (rank 50)
-  - scores are non-negative integers
+  - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
+  - non-playoff draw never sets penalty winner fields
+  - with mock Math.random() returning 0: dominant home (ratio=5) produces high-scoring home win from Dominant tier distribution
+  - with mock Math.random() returning 0: dominant away (ratio=0.2) produces high-scoring away win
+  - with mock Math.random() returning 0.5: even matchup (ratio=1.0) produces a draw from Even tier distribution
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
