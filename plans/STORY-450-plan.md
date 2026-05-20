@@ -21,16 +21,18 @@ Static record mapping TeamNames → FIFA world ranking (integer, 1 = best). Cove
 Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
 
 ```typescript
-/** Main export: generate a random score for a game, weighted by rank ratio. */
+/** Internal: pick a value from a weighted distribution using the provided RNG. */
+function pickWeighted<T>(options: Array<{ value: T; weight: number }>, rng: () => number): T
+
+/** Main export: generate a random score for a game, weighted by rank difference.
+ *  rng defaults to Math.random; inject a deterministic function in tests. */
 export function generateAIPrediction(
   homeTeamId: string,
   awayTeamId: string,
   rankings: Record<string, number>,
-  isPlayoff: boolean
+  isPlayoff: boolean,
+  rng?: () => number
 ): { homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }
-
-/** Internal: pick a value from a weighted distribution using Math.random(). */
-function pickWeighted<T>(options: Array<{ value: T; weight: number }>): T
 ```
 
 Algorithm:
@@ -212,25 +214,27 @@ Spanish equivalents in `es/predictions.json`.
   Static ranking map for all 48 teams. Exported as a named const.
 
 ### `app/utils/ai-prediction-generator.ts` *(new)*
-- **pickWeighted\<T\>(options: Array<{ value: T; weight: number }>)**: `T`
-  Picks a random value from a weighted array using Math.random(). Used internally.
+- **pickWeighted\<T\>(options: Array<{ value: T; weight: number }>, rng: () => number)**: `T`
+  Picks a value from a weighted array using the provided RNG. Used internally.
   Tests:
+  - `rng = () => 0` always returns the first option
+  - `rng = () => 0.9999` always returns the last option
   - returns a value that exists in the options array
-  - throws (or handles) when options array is empty
-  - over many calls, distribution roughly matches weights (statistical smoke test with 1000 samples)
 
-- **generateAIPrediction(homeTeamId, awayTeamId, rankings, isPlayoff)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
-  Probabilistic score prediction using absolute rank difference + `Math.random()`-based weighted selection.
+- **generateAIPrediction(homeTeamId, awayTeamId, rankings, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
+  Probabilistic score prediction using absolute rank difference + injectable RNG (defaults to `Math.random`).
+  Tests use `rng` sequences to make assertions fully deterministic — no `vi.spyOn(Math, 'random')`.
   Tests:
   - scores are non-negative integers in all cases
   - missing team in rankings defaults gracefully (rank 50)
   - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
   - non-playoff draw never sets penalty winner fields
-  - with mock Math.random() returning 0: Extreme home favourite (diff=55) produces a high-scoring home win (≥3 home goals, 0-1 away goals)
-  - with mock Math.random() returning 0: Extreme away favourite (diff=-55) produces a high-scoring away win
-  - Even matchup (diff=3) outcome distribution is symmetric (home/away win equally likely across many calls)
-  - Dominant tier (diff=40) underdog win uses Even distribution (low-scoring upset, not a demolition)
-  - Extreme tier draw (forced via mock) produces score from Extreme draw distribution (0-0, 1-1 weighted heavily — not 3-3 or 4-4)
+  - `rng = () => 0`: Extreme home favourite (diff=55) produces high-scoring home win (≥3 home goals, 0–1 away)
+  - `rng = () => 0`: Extreme away favourite (diff=-55) produces high-scoring away win
+  - `rng = () => 0.9999`: Extreme home favourite still produces a home win from the last distribution entry
+  - Even matchup (diff=3) with `rng = () => 0.5`: produces a draw from Even draw distribution
+  - Dominant tier (diff=40) underdog win (`rng` sequence forcing last outcome bucket): score comes from Even win distribution (low-scoring upset)
+  - Extreme tier draw (`rng` sequence forcing draw outcome): score is 0-0 or 1-1 (not 3-3 or 4-4)
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
