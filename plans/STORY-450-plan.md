@@ -14,10 +14,7 @@ The algorithm uses **real randomness** (`Math.random()`) so each invocation — 
 
 ## Files to Create
 
-### 1. `data/fifa-2026/rankings.ts`
-Static record mapping TeamNames → FIFA world ranking (integer, 1 = best). Covers all 48 qualified teams. Used by the generation utility on the client. Playoff placeholder entries (UEFAPlayoffA, etc.) are not included — missing rankings are handled in the algorithm (see step 1 below).
-
-### 2. `app/utils/ai-prediction-generator.ts`
+### 1. `app/utils/ai-prediction-generator.ts`
 Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
 
 ```typescript
@@ -25,18 +22,18 @@ Pure utility using `Math.random()` — each call produces a fresh probabilistic 
 function pickWeighted<T>(options: Array<{ value: T; weight: number }>, rng: () => number): T
 
 /** Main export: generate a random score for a game, weighted by rank difference.
+ *  homeRank/awayRank come from team.fifa_rank in the teamsMap.
  *  rng defaults to Math.random; inject a deterministic function in tests. */
 export function generateAIPrediction(
-  homeTeamId: string,
-  awayTeamId: string,
-  rankings: Record<string, number>,
+  homeRank: number | null | undefined,
+  awayRank: number | null | undefined,
   isPlayoff: boolean,
   rng?: () => number
 ): { homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }
 ```
 
 Algorithm:
-1. Lookup `homeRank` and `awayRank` from rankings map. If one team is missing, use the opponent's rank for the missing team (so `diff = 0` → Even tier — unknown strength means assume parity)
+1. Resolve ranks: if one team's rank is missing, use the opponent's rank for both (so `diff = 0` → Even tier — unknown strength assumes parity). If both are missing, treat as Even.
 2. `diff = awayRank - homeRank` — positive = home team is stronger (lower rank = better)
 3. `absDiff = Math.abs(diff)` — classify into **strength tier**:
    - **Even** (0–8): ~equal quality, e.g. Rank 1 vs Rank 3, Rank 10 vs Rank 15
@@ -96,7 +93,18 @@ Uses MUI Dialog. Shows "Generate predictions for {count} unfilled games based on
 
 ## Files to Modify
 
-### 4. `app/components/context-providers/guesses-context-provider.tsx`
+### 2. `app/db/tables-definition.ts`
+Add `fifa_rank?: number | null` to `TeamTable`. This is the FIFA world ranking for the team (1 = best). Nullable because playoff placeholders (e.g. "Winner Group A") have no ranking until the team is determined.
+
+### 3. `migrations/YYYYMMDD_add_fifa_rank_to_teams.sql`
+```sql
+ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_rank integer;
+```
+
+### 4. `data/fifa-2026/teams.ts`
+Add `fifa_rank` values for all 48 qualified teams. This file is the seed source used to populate the DB. Playoff placeholder entries leave `fifa_rank` as `undefined`/null.
+
+### 5. `app/components/context-providers/guesses-context-provider.tsx`
 Add `bulkSetGameGuesses(guesses: GameGuessNew[]): void` to both the context interface and implementation. Merges the provided guesses into state (no individual saves). This is used after bulk AI generation to update local state without triggering N auto-saves.
 
 ```typescript
@@ -113,32 +121,33 @@ const bulkSetGameGuesses = useCallback((guesses: GameGuessNew[]) => {
 }, []);
 ```
 
-### 5. `app/components/compact-game-view-card.tsx`
+### 6. `app/components/compact-game-view-card.tsx`
 Add `onAIGenerateClick?: () => void` to `GameGuessProps` only. Render an `AutoAwesome` icon button adjacent to the edit button when:
 - `specificProps.isGameGuess && !hasResult && !disabled && onAIGenerateClick`
 
 Button should be small (same size as edit button), use `AutoAwesome` icon from `@mui/icons-material`, and include a tooltip with the `aiGenerate.buttonLabel` translation key.
 
-### 6. `app/components/game-view.tsx`
-Add `onAIGenerateClick?: (gameId: string) => void` to `GameViewProps`. When provided, compute the AI prediction for this specific game and call `updateGameGuess()`:
+### 7. `app/components/game-view.tsx`
+Add `onAIGenerateClick?: (gameId: string) => void` to `GameViewProps`. When provided, read ranks from `teamsMap` and call `generateAIPrediction()`:
 
 ```typescript
 const handleAIGenerateClick = useMemo(() => {
   if (!onAIGenerateClick || !game.home_team || !game.away_team) return undefined;
   return () => {
-    const prediction = generateAIPrediction(game.home_team!, game.away_team!, FIFA_2026_RANKINGS, isPlayoffGame);
-    const updatedGuess = { ...gameGuess, ...prediction };
-    updateGameGuess(game.id, updatedGuess); // auto-saves via context
+    const homeRank = teamsMap[game.home_team!]?.fifa_rank;
+    const awayRank = teamsMap[game.away_team!]?.fifa_rank;
+    const prediction = generateAIPrediction(homeRank, awayRank, isPlayoffGame);
+    updateGameGuess(game.id, { ...gameGuess, ...prediction });
   };
-}, [onAIGenerateClick, game, isPlayoffGame, gameGuess, updateGameGuess]);
+}, [onAIGenerateClick, game, teamsMap, isPlayoffGame, gameGuess, updateGameGuess]);
 ```
 
 Pass `handleAIGenerateClick` down to `CompactGameViewCard` as `onAIGenerateClick`. Skip if `editDisabled` is true (uses same deadline check).
 
-### 7. `app/components/games-list-with-scroll.tsx` (if GameView props are passed through)
+### 8. `app/components/games-list-with-scroll.tsx` (if GameView props are passed through)
 Pass the new `onAIGenerateClick` prop down the chain to `GameView`. Check how GameView is rendered here.
 
-### 8. `app/components/unified-games-page-client.tsx`
+### 9. `app/components/unified-games-page-client.tsx`
 Two additions:
 
 **A) AI-generate FAB (mobile) / Button (desktop):**
@@ -160,7 +169,11 @@ const handleAIGenerateAll = useCallback(async () => {
       game_id: game.id,
       game_number: game.game_number,
       user_id: '', // server derives from session
-      ...generateAIPrediction(game.home_team!, game.away_team!, FIFA_2026_RANKINGS, !!game.playoffStage)
+      ...generateAIPrediction(
+        teamsMap[game.home_team!]?.fifa_rank,
+        teamsMap[game.away_team!]?.fifa_rank,
+        !!game.playoffStage
+      )
     }));
     const result = await updateOrCreateGameGuesses(guessesToSave, locale as Locale);
     if (result.success) {
@@ -181,7 +194,7 @@ The AI-generate FAB is disabled while `aiGenerating === true` to prevent concurr
 
 Also pass `onAIGenerateClick` to `GamesListWithScroll` (or handled per-game by GameView if the prop chain supports it).
 
-### 9. `locales/en/predictions.json` + `locales/es/predictions.json`
+### 10. `locales/en/predictions.json` + `locales/es/predictions.json`
 Add under an `aiGenerate` namespace:
 ```json
 {
@@ -213,6 +226,10 @@ Spanish equivalents in `es/predictions.json`.
 - **FIFA_2026_RANKINGS**: `Record<string, number>`
   Static ranking map for all 48 teams. Exported as a named const.
 
+### `app/db/tables-definition.ts` *(modified)*
+- **TeamTable** gains `fifa_rank?: number | null`
+  No new functions — type change only.
+
 ### `app/utils/ai-prediction-generator.ts` *(new)*
 - **pickWeighted\<T\>(options: Array<{ value: T; weight: number }>, rng: () => number)**: `T`
   Picks a value from a weighted array using the provided RNG. Used internally.
@@ -221,19 +238,21 @@ Spanish equivalents in `es/predictions.json`.
   - `rng = () => 0.9999` always returns the last option
   - returns a value that exists in the options array
 
-- **generateAIPrediction(homeTeamId, awayTeamId, rankings, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
+- **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
   Probabilistic score prediction using absolute rank difference + injectable RNG (defaults to `Math.random`).
+  Callers read `team.fifa_rank` from `teamsMap` and pass directly — no rankings map needed.
   Tests use `rng` sequences to make assertions fully deterministic — no `vi.spyOn(Math, 'random')`.
   Tests:
   - scores are non-negative integers in all cases
-  - if one team is missing from rankings, uses opponent's rank for both → diff=0 → Even tier result
+  - one rank null → uses other rank for both → diff=0 → Even tier result
+  - both ranks null → Even tier result
   - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
   - non-playoff draw never sets penalty winner fields
-  - `rng = () => 0`: Extreme home favourite (diff=55) produces high-scoring home win (≥3 home goals, 0–1 away)
-  - `rng = () => 0`: Extreme away favourite (diff=-55) produces high-scoring away win
+  - `rng = () => 0`: Extreme home favourite (homeRank=1, awayRank=56) produces high-scoring home win (≥3 home goals, 0–1 away)
+  - `rng = () => 0`: Extreme away favourite (homeRank=56, awayRank=1) produces high-scoring away win
   - `rng = () => 0.9999`: Extreme home favourite still produces a home win from the last distribution entry
-  - Even matchup (diff=3) with `rng = () => 0.5`: produces a draw from Even draw distribution
-  - Dominant tier (diff=40) underdog win (`rng` sequence forcing last outcome bucket): score comes from Even win distribution (low-scoring upset)
+  - Even matchup (homeRank=10, awayRank=12) with `rng = () => 0.5`: produces a draw from Even draw distribution
+  - Dominant tier underdog win (`rng` sequence forcing last outcome bucket): score comes from Even win distribution (low-scoring upset)
   - Extreme tier draw (`rng` sequence forcing draw outcome): score is 0-0 or 1-1 (not 3-3 or 4-4)
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
@@ -343,8 +362,10 @@ Spanish equivalents in `es/predictions.json`.
 
 ## Implementation Order (Waves)
 
-**Wave 1 — Data + Algorithm (no UI, fully testable):**
-- `data/fifa-2026/rankings.ts`
+**Wave 1 — DB schema + seed data + Algorithm (no UI, fully testable):**
+- `app/db/tables-definition.ts` — add `fifa_rank` to `TeamTable`
+- `migrations/YYYYMMDD_add_fifa_rank_to_teams.sql`
+- `data/fifa-2026/teams.ts` — add `fifa_rank` values for all 48 teams
 - `app/utils/ai-prediction-generator.ts` + tests
 
 **Wave 2 — Context + Server plumbing:**
