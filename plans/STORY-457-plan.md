@@ -59,6 +59,18 @@ Manual verification:
 2. Trigger the onboarding dialog — browser console should show no `[OnboardingDialogClient]` messages.
 3. Confirm scrolling/shadow behavior and onboarding dialog behavior are functionally unchanged.
 
+## Implementation Amendments
+
+### Amendment 1: Test file required updates
+**Date:** 2026-05-21
+**Reason:** The plan stated "no test files cover these debug lines" but `onboarding-dialog-client.test.tsx` had 7 assertions and 2 full tests (`logs tournament data for debugging`, `describe('Console Logging')`) that directly asserted the removed `console.warn` calls. These were removed from the test file.
+**Change:** Deleted `describe('Console Logging')` block (2 tests), and removed `console.warn` assertion blocks from `handles tournament with boosts configured`, `handles tournament without boosts`, `handles case when no tournaments exist`, and `handles multiple tournaments` tests. Net: 170 lines removed, 3 lines added.
+
+### Amendment 2: Observer callback parameters simplified
+**Date:** 2026-05-21
+**Reason:** After removing the `console.warn` calls that used the `entries` and `mutations` parameters in the ResizeObserver and MutationObserver callbacks, those parameters became unused.
+**Change:** Changed `ResizeObserver((entries) => {` to `ResizeObserver(() => {` and `MutationObserver((mutations) => {` to `MutationObserver(() => {` to avoid lint unused-variable warnings.
+
 ## Validation
 
 - `npm run lint` — no ESLint errors (removing console.warn may satisfy any `no-console` lint rules)
