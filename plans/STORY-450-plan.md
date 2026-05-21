@@ -18,10 +18,10 @@ The algorithm uses **real randomness** (`Math.random()`) so each invocation — 
 Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
 
 ```typescript
-/** Internal: pick a value from a weighted distribution using the provided RNG. */
-function pickWeighted<T>(options: Array<{ value: T; weight: number }>, rng: () => number): T
+/** Internal: Box-Muller normal sample using the provided RNG. */
+function sampleNormal(mean: number, std: number, rng: () => number): number
 
-/** Main export: generate a random score for a game, weighted by rank difference.
+/** Main export: generate a random score for a game, driven by rank difference bell curves.
  *  homeRank/awayRank come from team.fifa_rank in the teamsMap.
  *  rng defaults to Math.random; inject a deterministic function in tests. */
 export function generateAIPrediction(
@@ -52,29 +52,39 @@ Algorithm:
 
    Direction: if `diff > 0`, home team is the favoured side; if `diff < 0`, away team is.
 
-5. Generate score using `pickWeighted` with **score distributions per tier and outcome**:
+5. Generate score using **parametric bell curves** — no hardcoded tables. Two parameters per tier drive everything:
 
-   **Even (0–8)**
-   - Win: 1-0 (28%), 2-1 (27%), 2-0 (15%), 3-1 (10%), 3-2 (8%), 3-0 (5%), 4-2 (4%), 4-3 (3%)
-   - Draw: 1-1 (44%), 0-0 (24%), 2-2 (20%), 3-3 (8%), 4-4 (4%)
+   | Tier | GD center | GD spread | Loser goals center | Loser goals spread |
+   |------|-----------|-----------|--------------------|--------------------|
+   | Even | 1.2 | 0.8 | 0.5 | 0.5 |
+   | Moderate | 1.8 | 0.8 | 0.3 | 0.4 |
+   | Strong | 2.5 | 0.9 | 0.2 | 0.3 |
+   | Dominant | 3.2 | 1.0 | 0.1 | 0.2 |
+   | Extreme | 4.5 | 1.2 | 0.05 | 0.1 |
 
-   **Moderate (9–18)**
-   - Win: 2-0 (22%), 2-1 (22%), 1-0 (20%), 3-0 (15%), 3-1 (12%), 4-1 (5%), 4-2 (3%), 5-2 (1%)
-   - Draw: 1-1 (48%), 0-0 (20%), 2-2 (22%), 3-3 (8%), 4-4 (2%)
+   **Win score generation:**
+   ```
+   GD         = max(1, round(sampleNormal(gdCenter, gdSpread, rng)))
+   loserGoals = max(0, round(sampleNormal(loserCenter, loserSpread, rng)))
+   winnerGoals = loserGoals + GD
+   ```
+   A 1-0 is naturally possible at any tier (including Dominant/Extreme) when GD rounds to 1 and loser scores 0 — rare but not excluded.
 
-   **Strong (19–28)**
-   - Win: 3-0 (22%), 2-0 (20%), 3-1 (18%), 4-0 (15%), 4-1 (12%), 5-0 (7%), 5-1 (4%), 5-2 (2%)
-   - Draw: 1-1 (42%), 2-2 (30%), 3-3 (20%), 0-0 (5%), 4-4 (3%)
+   **Draw score generation:**
+   ```
+   goalsEach = max(0, round(sampleNormal(drawCenter, 0.6, rng)))
+   ```
+   | Tier | Draw center |
+   |------|------------|
+   | Even | 1.0 |
+   | Moderate | 0.9 |
+   | Strong | 0.8 |
+   | Dominant | 0.7 |
+   | Extreme | 0.5 (mirrors Even — defensive masterclass) |
 
-   **Dominant (29–49)**
-   - Win: 4-0 (20%), 3-0 (18%), 4-1 (15%), 3-1 (15%), 5-0 (12%), 5-1 (10%), 6-0 (7%), 6-1 (3%)
-   - Draw: 2-2 (40%), 1-1 (30%), 3-3 (22%), 4-4 (8%)
+   **`sampleNormal`** uses Box-Muller (two `rng()` calls) to generate a normally distributed float, then rounds to the nearest integer with the given floor.
 
-   **Extreme (50+)**
-   - Win: 5-0 (20%), 4-0 (15%), 6-0 (15%), 5-1 (12%), 6-1 (10%), 7-0 (10%), 3-0 (8%), 7-1 (6%), 8-0 (4%)
-   - Draw: 0-0 (30%), 1-1 (44%), 2-2 (20%), 3-3 (6%) — defensive masterclass / lucky day, mirrors Even distribution
-
-   For underdog wins, use the **Even** win distribution regardless of tier (upsets are fluky, not high-scoring demolitions). Swap scores so the underdog's goals come first.
+   For underdog wins, use **Even tier parameters** regardless of actual tier (upsets are fluky low-scoring affairs, not demolitions). Swap scores so the underdog's goals come first.
 
 6. For playoff draw: `favoured wins penalties` with probability `Math.min(75, 50 + absDiff / 3)%` (stronger team more likely to win shootout, capped at 75%)
 
@@ -231,29 +241,26 @@ Spanish equivalents in `es/predictions.json`.
   No new functions — type change only.
 
 ### `app/utils/ai-prediction-generator.ts` *(new)*
-- **pickWeighted\<T\>(options: Array<{ value: T; weight: number }>, rng: () => number)**: `T`
-  Picks a value from a weighted array using the provided RNG. Used internally.
+- **sampleNormal(mean: number, std: number, rng: () => number)**: `number`
+  Box-Muller normal sample. Used internally by score generation.
   Tests:
-  - `rng = () => 0` always returns the first option
-  - `rng = () => 0.9999` always returns the last option
-  - returns a value that exists in the options array
+  - with `rng` fixed at 0.5: returns value close to mean (smoke test)
+  - returns a finite number for valid inputs
 
 - **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
-  Probabilistic score prediction using absolute rank difference + injectable RNG (defaults to `Math.random`).
-  Callers read `team.fifa_rank` from `teamsMap` and pass directly — no rankings map needed.
-  Tests use `rng` sequences to make assertions fully deterministic — no `vi.spyOn(Math, 'random')`.
+  Probabilistic score using rank diff → tier → bell curve parameters → sampled scores.
+  Callers read `team.fifa_rank` from `teamsMap` and pass directly.
+  `rng` defaults to `Math.random`; inject for deterministic tests.
   Tests:
   - scores are non-negative integers in all cases
-  - one rank null → uses other rank for both → diff=0 → Even tier result
-  - both ranks null → Even tier result
-  - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
-  - non-playoff draw never sets penalty winner fields
-  - `rng = () => 0`: Extreme home favourite (homeRank=1, awayRank=56) produces high-scoring home win (≥3 home goals, 0–1 away)
-  - `rng = () => 0`: Extreme away favourite (homeRank=56, awayRank=1) produces high-scoring away win
-  - `rng = () => 0.9999`: Extreme home favourite still produces a home win from the last distribution entry
-  - Even matchup (homeRank=10, awayRank=12) with `rng = () => 0.5`: produces a draw from Even draw distribution
-  - Dominant tier underdog win (`rng` sequence forcing last outcome bucket): score comes from Even win distribution (low-scoring upset)
-  - Extreme tier draw (`rng` sequence forcing draw outcome): score is 0-0 or 1-1 (not 3-3 or 4-4)
+  - one rank null → uses other rank for both → Even tier parameters
+  - both ranks null → Even tier parameters
+  - playoff draw: exactly one of homePenaltyWinner/awayPenaltyWinner is true
+  - non-playoff draw: no penalty winner fields set
+  - Extreme home favourite (homeRank=1, awayRank=56): winner score ≥ loser score (home wins)
+  - Extreme away favourite (homeRank=56, awayRank=1): away score > home score
+  - Dominant underdog win (rng sequence forcing last outcome): score is low-scoring (Even parameters used)
+  - Extreme draw (rng sequence forcing draw): goalsEach uses low draw center (~0.5), produces 0-0 or 1-1
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
