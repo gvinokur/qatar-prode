@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateAIPrediction } from '../ai-prediction-generator';
 
 const BASE_LAMBDA = 1.2;
-const K = 0.45;
+const K = 0.013;
 
 /** Deterministic counter-based RNG — always returns the same sequence. */
 const makeCounterRng = (values: number[]) => {
@@ -59,47 +59,35 @@ describe('generateAIPrediction', () => {
   });
 
   describe('lambda computation', () => {
-    it('rank 10 vs 50 (log-ratio≈1.61): λHome ≈ 2.47, λAway ≈ 0.58', () => {
-      // log(50/10) ≈ 1.609 — same 40-rank gap as 70 vs 110, but larger quality gap at top
-      const diff = Math.log(50 / 10);
+    it('diff=40 (rank 10 vs 50): λHome ≈ 2.02, λAway ≈ 0.71', () => {
+      const diff = 40;
       const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
       const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
-      expect(lambdaHome).toBeCloseTo(2.47, 1);
-      expect(lambdaAway).toBeCloseTo(0.58, 1);
+      expect(lambdaHome).toBeCloseTo(2.02, 1);
+      expect(lambdaAway).toBeCloseTo(0.71, 1);
     });
 
-    it('rank 50 vs 10 (log-ratio≈-1.61): λHome ≈ 0.58, λAway ≈ 2.47', () => {
-      const diff = Math.log(10 / 50);
+    it('diff=-40 (rank 50 vs 10): λHome ≈ 0.71, λAway ≈ 2.02', () => {
+      const diff = -40;
       const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
       const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
-      expect(lambdaHome).toBeCloseTo(0.58, 1);
-      expect(lambdaAway).toBeCloseTo(2.47, 1);
+      expect(lambdaHome).toBeCloseTo(0.71, 1);
+      expect(lambdaAway).toBeCloseTo(2.02, 1);
     });
 
-    it('equal ranks (diff=0): λHome = λAway = BASE_λ', () => {
-      const diff = Math.log(30 / 30);
-      const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
-      const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
+    it('diff=0: λHome = λAway = BASE_λ', () => {
+      const lambdaHome = BASE_LAMBDA * Math.exp(0);
+      const lambdaAway = BASE_LAMBDA * Math.exp(0);
       expect(lambdaHome).toBe(BASE_LAMBDA);
       expect(lambdaAway).toBe(BASE_LAMBDA);
     });
 
-    it('λHome · λAway = BASE_λ² invariant holds for any rank pair', () => {
-      for (const [home, away] of [[10, 50], [30, 30], [50, 10], [5, 90], [70, 80]]) {
-        const diff = Math.log(away / home);
+    it('λHome · λAway = BASE_λ² invariant holds', () => {
+      for (const diff of [-70, -40, 0, 40, 70]) {
         const lh = BASE_LAMBDA * Math.exp(K * diff);
         const la = BASE_LAMBDA * Math.exp(-K * diff);
         expect(lh * la).toBeCloseTo(BASE_LAMBDA * BASE_LAMBDA, 5);
       }
-    });
-
-    it('same absolute gap means less at low ranks (30v50 < 10v30)', () => {
-      // log-ratio model: 10v30 ≈ 1.10, 30v50 ≈ 0.51 — top gap is 2x larger
-      const diff10v30 = Math.log(30 / 10);
-      const diff30v50 = Math.log(50 / 30);
-      const lambda10v30 = BASE_LAMBDA * Math.exp(K * diff10v30);
-      const lambda30v50 = BASE_LAMBDA * Math.exp(K * diff30v50);
-      expect(lambda10v30).toBeGreaterThan(lambda30v50);
     });
   });
 
@@ -148,9 +136,9 @@ describe('generateAIPrediction', () => {
 
     it('stronger home team (diff=50) has higher penalty win probability', () => {
       // With diff=50 (strong home), homeWinPct = min(75, 50 + 50/3) = min(75,66.7) ≈ 66.7%
-      // home=10, away=60: diff=log(60/10)=1.792; λHome=1.2*e^(0.45*1.792)≈2.69 → L≈0.068
-      // first rng=0.01 < 0.068 → homeScore=0 in one step
-      // λAway=1.2*e^(-0.806)≈0.54 → L≈0.584; second rng=0.5 < 0.584 → awayScore=0 in one step
+      // home=10, away=60: diff=50; λHome=1.2*e^(0.013*50)≈2.27 → L=exp(-2.27)≈0.103
+      // first rng=0.01 < 0.103 → homeScore=0 in one step
+      // λAway=1.2*e^(-0.65)≈0.63 → L≈0.532; second rng=0.5 < 0.532 → awayScore=0 in one step
       // third rng is the penalty rng: 0.5 < 0.667 → home wins; 0.9 > 0.667 → away wins
       const homeWinsRng = makeCounterRng([0.01, 0.5, 0.5]);
       const awayWinsRng = makeCounterRng([0.01, 0.5, 0.9]);
