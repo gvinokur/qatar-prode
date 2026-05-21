@@ -1,5 +1,7 @@
 const BASE_LAMBDA = 1.2;
-const K = 0.015;
+// K scales the log-ratio of ranks. Log-ratio naturally compresses low-end gaps
+// (70→90 ≈ 0.25) and expands top-end gaps (10→30 ≈ 1.10), matching FIFA quality layers.
+const K = 0.45;
 
 /** Poisson sample using Knuth's algorithm with the provided RNG. */
 function samplePoisson(lambda: number, rng: () => number): number {
@@ -16,9 +18,12 @@ function samplePoisson(lambda: number, rng: () => number): number {
 /**
  * Generate a probabilistic score for a game using the Skellam model.
  * Each team's goals are sampled independently from Poisson(λ).
- * λ is derived from the rank difference via symmetric exponential scaling:
- *   λHome = BASE_λ · exp(K · diff)   where diff = awayRank − homeRank
+ * λ is derived from the log-ratio of ranks:
+ *   diff = log(awayRank / homeRank)   (positive = home team is stronger)
+ *   λHome = BASE_λ · exp(K · diff)   = BASE_λ · (awayRank/homeRank)^K
  *   λAway = BASE_λ · exp(−K · diff)
+ * Using log-ratio instead of raw difference naturally models FIFA ranking layers:
+ * the gap between rank 10 and 30 (log ≈ 1.1) is much larger than 70 to 90 (log ≈ 0.25).
  *
  * rng defaults to Math.random; inject a deterministic function in tests.
  */
@@ -32,7 +37,7 @@ export function generateAIPrediction(
   const resolvedHome = homeRank ?? awayRank ?? 50;
   const resolvedAway = awayRank ?? homeRank ?? 50;
 
-  const diff = resolvedAway - resolvedHome;
+  const diff = Math.log(resolvedAway / resolvedHome);
   const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
   const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
 
