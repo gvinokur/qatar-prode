@@ -170,6 +170,7 @@ export const testFactories = {
     name: 'Test Team',
     short_name: 'TST',
     theme: null,
+    rank: null,
     ...overrides,
   }),
 

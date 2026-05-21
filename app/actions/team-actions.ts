@@ -16,8 +16,13 @@ import {
 } from "../db/player-repository";
 import {getTournamentStartDate} from "./tournament-actions";
 
-// Initialize S3 client
 const s3Client = createS3Client('team_logos')
+
+function validateRank(rank: number | null | undefined): void {
+  if (rank !== null && rank !== undefined && (rank <= 0 || rank >= 1000)) {
+    throw new Error('Rank must be between 1 and 999');
+  }
+}
 
 /**
  * Create a new team and associate it with a tournament
@@ -36,6 +41,7 @@ export async function createTeam(formData: FormData, tournamentId: string): Prom
   }
 
   const teamData = JSON.parse(teamDataStr);
+  validateRank(teamData.rank);
 
   // Handle logo upload if provided
   const logoFile = formData.get('logo') as File;
@@ -97,6 +103,7 @@ export async function updateTeam(teamId: string, formData: FormData): Promise<Te
   }
 
   const teamData = JSON.parse(teamDataStr);
+  validateRank(teamData.rank);
 
   // Handle logo upload if provided
   const logoFile = formData.get('logo') as File;

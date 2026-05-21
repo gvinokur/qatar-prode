@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-12
+**Last updated:** 2026-05-20
 
 ---
 
@@ -103,10 +103,17 @@ Player management with Transfermarkt import. [Client] import interface and playe
 
 ### app/components/backoffice/tournament-teams-manager-tab.tsx
 Grid of tournament teams with edit action. [Client] team management with card display.
-- **TournamentTeamsManagerTab({ tournamentId }: TournamentTeamsManagerProps)**: `JSX.Element` — [Client] Displays teams in grid cards with logos and edit option.
+- **TournamentTeamsManagerTab({ tournamentId }: TournamentTeamsManagerProps)**: `JSX.Element` — [Client] Displays teams in grid cards with logos, name, and FIFA rank badge (`#N` or `—` when unranked, Story #454). Edit option opens TeamDialog.
   Calls: getTeamsMap
   Uses: useEffect, useState
-  Renders: Card, CardMedia, Grid, Button, IconButton, Tooltip, Alert, TeamDialog
+  Renders: Card, CardMedia, Grid, Button, IconButton, Tooltip, Alert, TeamDialog, Typography (rank badge)
+
+### app/components/backoffice/internal/team-dialog.tsx
+Create/edit dialog for a single team. [Client] form with name, short name, FIFA rank, colors, and logo.
+- **TeamDialog({ open, onClose, tournamentId, team, onTeamSaved }: TeamDialogProps)**: `JSX.Element` — [Client] Modal form for creating or editing a team. Includes FIFA rank field (numeric, optional, 1–999; blank = unranked). Client-side validation rejects rank 0 or ≥1000; shows specific error message from server (Story #454).
+  Calls: createTeam, updateTeam
+  Uses: useEffect, useState
+  Renders: Dialog, TextField, MuiColorInput, ImagePicker, I18nFieldEditor, Button, Alert, Grid
 
 ### app/components/backoffice/tournament-groups-manager-tab.tsx
 Grid of groups with edit action. [Client] group management interface.

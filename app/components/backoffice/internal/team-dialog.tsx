@@ -42,6 +42,7 @@ export default function TeamDialog({
   const [name, setName] = useState<string>('');
   const [nameI18n, setNameI18n] = useState<{ en: string; es: string } | null>(null);
   const [shortName, setShortName] = useState<string>('');
+  const [rank, setRank] = useState<number | ''>('');
   const [primaryColor, setPrimaryColor] = useState<string>('#1976d2');
   const [secondaryColor, setSecondaryColor] = useState<string>('#dc004e');
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -54,6 +55,7 @@ export default function TeamDialog({
       setName(team.name || '');
       setNameI18n((team.name_i18n as { en: string; es: string } | null) || null);
       setShortName(team.short_name || '');
+      setRank(team.rank ?? '');
       setPrimaryColor(team.theme?.primary_color || '#1976d2');
       setSecondaryColor(team.theme?.secondary_color || '#dc004e');
     } else {
@@ -67,6 +69,7 @@ export default function TeamDialog({
     setName('');
     setNameI18n(null);
     setShortName('');
+    setRank('');
     setPrimaryColor('#1976d2');
     setSecondaryColor('#dc004e');
     setLogoFile(null);
@@ -88,12 +91,17 @@ export default function TeamDialog({
         throw new Error('Short name must be exactly 3 letters');
       }
 
+      if (rank !== '' && (rank <= 0 || rank >= 1000)) {
+        throw new Error('Rank must be between 1 and 999');
+      }
+
       // Create form data
       const formData = new FormData();
       formData.append('team', JSON.stringify({
         name: name.trim(),
         name_i18n: nameI18n,
         short_name: shortName.toUpperCase(),
+        rank: rank === '' ? null : rank,
         theme: {
           primary_color: primaryColor,
           secondary_color: secondaryColor,
@@ -123,9 +131,10 @@ export default function TeamDialog({
 
       // Notify parent component
       onTeamSaved(savedTeam);
-    } catch {
-      console.error(`Error ${isEditMode ? 'updating' : 'creating'} team`);
-      setError(`Error ${isEditMode ? 'updating' : 'creating'} team`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `Error ${isEditMode ? 'updating' : 'creating'} team`;
+      console.error(message);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -192,6 +201,23 @@ export default function TeamDialog({
               margin="normal"
               helperText="3-letter code (e.g. 'ARG')"
               slotProps={{ htmlInput: { maxLength: 3 } }}
+            />
+          </Grid>
+
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
+            <TextField
+              label="FIFA Rank"
+              fullWidth
+              type="number"
+              value={rank}
+              onChange={(e) => setRank(e.target.value === '' ? '' : Number(e.target.value))}
+              margin="normal"
+              helperText="Optional (1–999). Leave blank if unranked."
+              slotProps={{ htmlInput: { min: 1, max: 999 } }}
             />
           </Grid>
 
