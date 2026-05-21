@@ -317,22 +317,12 @@ export function ScrollShadowContainer({
 
     // Scroll event handler - NOT debounced for immediate visual feedback
     const handleScroll = () => {
-      console.warn('[ScrollShadow] Scroll event fired', {
-        scrollTop: container.scrollTop,
-        scrollHeight: container.scrollHeight,
-        clientHeight: container.clientHeight,
-        hasOverflow: container.scrollHeight > container.clientHeight,
-      })
       setShadows(calculateShadowVisibility(container, direction))
     }
 
     // ResizeObserver - debounced (20ms) for very responsive feel while preventing excessive recalculations
     let resizeTimeout: NodeJS.Timeout
-    const resizeObserver = new ResizeObserver((entries) => {
-      console.warn('[ScrollShadow] ResizeObserver fired', {
-        entries: entries.length,
-        containerSize: { width: container.clientWidth, height: container.clientHeight },
-      })
+    const resizeObserver = new ResizeObserver(() => {
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
         setShadows(calculateShadowVisibility(container, direction))
@@ -345,16 +335,12 @@ export function ScrollShadowContainer({
         // Skip shadow divs (they have data-shadow attribute)
         if (!(child as HTMLElement).dataset.shadow) {
           resizeObserver.observe(child)
-          console.warn('[ScrollShadow] Observing child:', child)
         }
       })
     }
 
     // MutationObserver - watch for children being added/removed
-    const mutationObserver = new MutationObserver((mutations) => {
-      console.warn('[ScrollShadow] MutationObserver fired', {
-        mutations: mutations.length,
-      })
+    const mutationObserver = new MutationObserver(() => {
       // Re-observe all children when DOM changes
       observeChildren()
       // Recalculate shadows
