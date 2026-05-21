@@ -357,7 +357,7 @@ function UnifiedGamesPageContent({
           onAIGenerateClick={() => {}}
         />
 
-        {/* Floating Action Button - AI Generate All (mobile only) */}
+        {/* Floating Action Button - AI Generate All */}
         {openUnpredictedGames.length > 0 && (
           <Tooltip title={t('aiGenerate.generateAllButton')}>
             <Fab
@@ -366,9 +366,8 @@ function UnifiedGamesPageContent({
               onClick={() => setAiDialogOpen(true)}
               disabled={aiGenerating}
               sx={{
-                display: { xs: 'flex', md: 'none' },
                 position: 'fixed',
-                bottom: 140,
+                bottom: { xs: 140, md: 32 },
                 right: 16,
                 zIndex: 1000
               }}
