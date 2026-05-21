@@ -28,9 +28,28 @@ vi.mock('../context-providers/guesses-context-provider', () => ({
     boostCounts: {
       silver: { used: 0, max: 5 },
       golden: { used: 0, max: 3 }
-    }
+    },
+    bulkSetGameGuesses: vi.fn()
   })
 }));
+
+vi.mock('../ai-generate-all-dialog', () => ({
+  default: () => <div>AiDialog</div>
+}));
+
+vi.mock('../../utils/ai-prediction-generator', () => ({
+  generateAIPrediction: vi.fn(() => ({ homeScore: 1, awayScore: 0 }))
+}));
+
+vi.mock('../../actions/guesses-actions', () => ({
+  updateOrCreateGameGuesses: vi.fn(() => Promise.resolve({ success: true }))
+}));
+
+vi.mock('../prediction-status-header', () => ({
+  PredictionStatusHeader: () => <div>StatusHeader</div>,
+  computeGamesHeaderVariant: vi.fn(() => null)
+}));
+
 
 vi.mock('../../utils/auto-scroll', () => ({
   scrollToGame: vi.fn(),
@@ -40,6 +59,7 @@ vi.mock('../../utils/auto-scroll', () => ({
 vi.mock('@mui/material', () => ({
   Box: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   Fab: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Tooltip: ({ children }: any) => <>{children}</>,
   useTheme: vi.fn(() => ({ breakpoints: { down: () => false } })),
   useMediaQuery: vi.fn(() => false)
 }));

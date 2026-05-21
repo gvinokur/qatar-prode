@@ -332,6 +332,23 @@ function UnifiedGamesPageContent({
             nowAvailableRoundIds={nowAvailableRoundIdsSet}
           />
         </Box>
+
+        {/* AI Generate All button */}
+        {openUnpredictedGames.length > 0 && (
+          <Tooltip title={t('aiGenerate.generateAllButton')}>
+            <span>
+              <Fab
+                size="small"
+                color="primary"
+                aria-label={t('aiGenerate.generateAllButton')}
+                onClick={() => setAiDialogOpen(true)}
+                disabled={aiGenerating}
+              >
+                <AutoAwesomeIcon fontSize="small" />
+              </Fab>
+            </span>
+          </Tooltip>
+        )}
       </Box>
 
       {/* Scrollable Games List */}
@@ -356,26 +373,6 @@ function UnifiedGamesPageContent({
           nowAvailableRoundIds={nowAvailableRoundIdsSet}
           onAIGenerateClick={() => {}}
         />
-
-        {/* Floating Action Button - AI Generate All */}
-        {openUnpredictedGames.length > 0 && (
-          <Tooltip title={t('aiGenerate.generateAllButton')}>
-            <Fab
-              color="primary"
-              aria-label={t('aiGenerate.generateAllButton')}
-              onClick={() => setAiDialogOpen(true)}
-              disabled={aiGenerating}
-              sx={{
-                position: 'fixed',
-                bottom: { xs: 140, md: 32 },
-                right: 16,
-                zIndex: 1000
-              }}
-            >
-              <AutoAwesomeIcon />
-            </Fab>
-          </Tooltip>
-        )}
 
         {/* Floating Action Button - Scroll to Next Game (mobile only) */}
         {filteredGames.length > 0 && (
