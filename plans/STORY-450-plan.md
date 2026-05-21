@@ -18,10 +18,10 @@ The algorithm uses **real randomness** (`Math.random()`) so each invocation — 
 Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
 
 ```typescript
-/** Internal: Box-Muller normal sample using the provided RNG. */
-function sampleNormal(mean: number, std: number, rng: () => number): number
+/** Internal: Poisson sample using Knuth's algorithm with the provided RNG. */
+function samplePoisson(lambda: number, rng: () => number): number
 
-/** Main export: generate a random score for a game, driven by rank difference bell curves.
+/** Main export: generate a random score using independent Poisson sampling (Skellam model).
  *  homeRank/awayRank come from team.fifa_rank in the teamsMap.
  *  rng defaults to Math.random; inject a deterministic function in tests. */
 export function generateAIPrediction(
@@ -33,60 +33,33 @@ export function generateAIPrediction(
 ```
 
 Algorithm:
-1. Resolve ranks: if one team's rank is missing, use the opponent's rank for both (so `diff = 0` → Even tier — unknown strength assumes parity). If both are missing, treat as Even.
-2. `diff = awayRank - homeRank` — positive = home team is stronger (lower rank = better)
-3. `absDiff = Math.abs(diff)` — classify into **strength tier**:
-   - **Even** (0–8): ~equal quality, e.g. Rank 1 vs Rank 3, Rank 10 vs Rank 15
-   - **Moderate** (9–18): noticeable gap, e.g. Rank 1 vs Rank 10, Rank 5 vs Rank 20
-   - **Strong** (19–28): clear mismatch, e.g. Rank 1 vs Rank 22, Rank 10 vs Rank 30
-   - **Dominant** (29–49): heavy favourite, e.g. Rank 1 vs Rank 35, Rank 10 vs Rank 48
-   - **Extreme** (50+): near-certain result, e.g. Germany vs Curaçao, Argentina vs Trinidad
-4. Pick outcome (favoured win / draw / underdog win) using `pickWeighted` with tier probabilities:
-   | Tier | Favoured win | Draw | Underdog win |
-   |------|-------------|------|-------------|
-   | Even | 35% | 30% | 35% |
-   | Moderate | 50% | 30% | 20% |
-   | Strong | 70% | 20% | 10% |
-   | Dominant | 80% | 15% | 5% |
-   | Extreme | 93% | 5% | 2% |
-
-   Direction: if `diff > 0`, home team is the favoured side; if `diff < 0`, away team is.
-
-5. Generate score using **parametric bell curves** — no hardcoded tables. Two parameters per tier drive everything:
-
-   | Tier | GD center | GD spread | Loser goals center | Loser goals spread |
-   |------|-----------|-----------|--------------------|--------------------|
-   | Even | 1.2 | 0.8 | 0.5 | 0.5 |
-   | Moderate | 1.8 | 0.8 | 0.3 | 0.4 |
-   | Strong | 2.5 | 0.9 | 0.2 | 0.3 |
-   | Dominant | 3.2 | 1.0 | 0.1 | 0.2 |
-   | Extreme | 4.5 | 1.2 | 0.05 | 0.1 |
-
-   **Win score generation:**
+1. Resolve ranks: if one team's rank is missing, use the opponent's rank for both (`diff = 0` → equal λ). If both missing, treat as equal.
+2. `diff = awayRank - homeRank` (positive = home is stronger, lower rank = better)
+3. Compute **expected goals (xG)** using symmetric exponential scaling — two constants, no tier tables:
    ```
-   GD         = max(1, round(sampleNormal(gdCenter, gdSpread, rng)))
-   loserGoals = max(0, round(sampleNormal(loserCenter, loserSpread, rng)))
-   winnerGoals = loserGoals + GD
+   BASE_λ = 1.2   // avg WC goals per team per game
+   K      = 0.024 // tuned so diff=50 → λHome ≈ 4.0
+
+   λHome = BASE_λ · exp(K · diff)
+   λAway = BASE_λ · exp(−K · diff)
    ```
-   A 1-0 is naturally possible at any tier (including Dominant/Extreme) when GD rounds to 1 and loser scores 0 — rare but not excluded.
+   Invariant: `λHome · λAway = BASE_λ²` always. Total expected goals grow naturally with mismatch.
 
-   **Draw score generation:**
+   Spot checks:
+   | diff | λHome | λAway | Character |
+   |------|-------|-------|-----------|
+   | 0 | 1.20 | 1.20 | Equal (~35/30/35 win/draw/win) |
+   | 18 | 1.84 | 0.78 | Clear home favourite |
+   | 30 | 2.46 | 0.59 | Strong home |
+   | 50 | 3.98 | 0.36 | Germany vs Curaçao |
+
+4. Sample scores independently — win/draw/loss emerge naturally, no outcome pre-selection needed:
    ```
-   goalsEach = max(0, round(sampleNormal(drawCenter, 0.6, rng)))
+   homeScore = samplePoisson(λHome, rng)
+   awayScore = samplePoisson(λAway, rng)
    ```
-   | Tier | Draw center |
-   |------|------------|
-   | Even | 1.0 |
-   | Moderate | 0.9 |
-   | Strong | 0.8 |
-   | Dominant | 0.7 |
-   | Extreme | 0.5 (mirrors Even — defensive masterclass) |
 
-   **`sampleNormal`** uses Box-Muller (two `rng()` calls) to generate a normally distributed float, then rounds to the nearest integer with the given floor.
-
-   For underdog wins, use **Even tier parameters** regardless of actual tier (upsets are fluky low-scoring affairs, not demolitions). Swap scores so the underdog's goals come first.
-
-6. For playoff draw: `favoured wins penalties` with probability `Math.min(75, 50 + absDiff / 3)%` (stronger team more likely to win shootout, capped at 75%)
+5. For playoff draw (`homeScore === awayScore`): stronger team wins penalties with probability `min(75, 50 + absDiff / 3)%`, sampled via `rng()`.
 
 ### 3. `app/components/ai-generate-all-dialog.tsx`
 Reusable confirmation dialog component. Props:
@@ -241,26 +214,26 @@ Spanish equivalents in `es/predictions.json`.
   No new functions — type change only.
 
 ### `app/utils/ai-prediction-generator.ts` *(new)*
-- **sampleNormal(mean: number, std: number, rng: () => number)**: `number`
-  Box-Muller normal sample. Used internally by score generation.
+- **samplePoisson(lambda: number, rng: () => number)**: `number`
+  Knuth's algorithm: multiply `rng()` values until product < `exp(-lambda)`. Returns a non-negative integer.
   Tests:
-  - with `rng` fixed at 0.5: returns value close to mean (smoke test)
-  - returns a finite number for valid inputs
+  - returns 0 for very small lambda with `rng` fixed near 1
+  - returns a non-negative integer for all valid lambda inputs
+  - over 1000 calls, sample mean approximates lambda (statistical smoke test)
 
 - **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
-  Probabilistic score using rank diff → tier → bell curve parameters → sampled scores.
+  Computes `λHome` and `λAway` via symmetric exponential scaling (`BASE_λ · exp(±K · diff)`), then samples each team's goals independently via Poisson. Win/draw/loss emerge naturally.
   Callers read `team.fifa_rank` from `teamsMap` and pass directly.
   `rng` defaults to `Math.random`; inject for deterministic tests.
   Tests:
   - scores are non-negative integers in all cases
-  - one rank null → uses other rank for both → Even tier parameters
-  - both ranks null → Even tier parameters
-  - playoff draw: exactly one of homePenaltyWinner/awayPenaltyWinner is true
+  - one rank null → diff=0 → λHome = λAway = BASE_λ
+  - both ranks null → λHome = λAway = BASE_λ
+  - playoff draw (homeScore === awayScore): exactly one penalty winner set
   - non-playoff draw: no penalty winner fields set
-  - Extreme home favourite (homeRank=1, awayRank=56): winner score ≥ loser score (home wins)
-  - Extreme away favourite (homeRank=56, awayRank=1): away score > home score
-  - Dominant underdog win (rng sequence forcing last outcome): score is low-scoring (Even parameters used)
-  - Extreme draw (rng sequence forcing draw): goalsEach uses low draw center (~0.5), produces 0-0 or 1-1
+  - diff=50 (Extreme home): λHome ≈ 4.0, λAway ≈ 0.36 (verify computed lambdas directly)
+  - diff=−50 (Extreme away): λHome ≈ 0.36, λAway ≈ 4.0
+  - diff=0: λHome = λAway = BASE_λ
 
 ### `app/components/context-providers/guesses-context-provider.tsx` *(modified)*
 - **bulkSetGameGuesses(guesses: GameGuessNew[])**: `void`
