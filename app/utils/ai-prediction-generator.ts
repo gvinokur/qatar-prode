@@ -1,5 +1,5 @@
 const BASE_LAMBDA = 1.2;
-const K = 0.024;
+const K = 0.015;
 
 /** Poisson sample using Knuth's algorithm with the provided RNG. */
 function samplePoisson(lambda: number, rng: () => number): number {
