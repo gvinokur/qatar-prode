@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Remove leftover debug console.warn() logs from components
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/magical-cartwright-42dba2
 - **Branch:** claude/magical-cartwright-42dba2
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 458
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/458
 
 ## State
 - **Current Phase:** planning
