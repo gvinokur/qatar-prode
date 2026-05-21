@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateAIPrediction } from '../ai-prediction-generator';
 
 const BASE_LAMBDA = 1.2;
-const K = 0.013;
+const K = 0.017;
 
 /** Deterministic counter-based RNG — always returns the same sequence. */
 const makeCounterRng = (values: number[]) => {
@@ -59,20 +59,20 @@ describe('generateAIPrediction', () => {
   });
 
   describe('lambda computation', () => {
-    it('diff=40 (rank 10 vs 50): λHome ≈ 2.02, λAway ≈ 0.71', () => {
+    it('diff=40 (rank 10 vs 50): λHome ≈ 2.36, λAway ≈ 0.61', () => {
       const diff = 40;
       const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
       const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
-      expect(lambdaHome).toBeCloseTo(2.02, 1);
-      expect(lambdaAway).toBeCloseTo(0.71, 1);
+      expect(lambdaHome).toBeCloseTo(2.36, 1);
+      expect(lambdaAway).toBeCloseTo(0.61, 1);
     });
 
-    it('diff=-40 (rank 50 vs 10): λHome ≈ 0.71, λAway ≈ 2.02', () => {
+    it('diff=-40 (rank 50 vs 10): λHome ≈ 0.61, λAway ≈ 2.36', () => {
       const diff = -40;
       const lambdaHome = BASE_LAMBDA * Math.exp(K * diff);
       const lambdaAway = BASE_LAMBDA * Math.exp(-K * diff);
-      expect(lambdaHome).toBeCloseTo(0.71, 1);
-      expect(lambdaAway).toBeCloseTo(2.02, 1);
+      expect(lambdaHome).toBeCloseTo(0.61, 1);
+      expect(lambdaAway).toBeCloseTo(2.36, 1);
     });
 
     it('diff=0: λHome = λAway = BASE_λ', () => {
@@ -136,9 +136,9 @@ describe('generateAIPrediction', () => {
 
     it('stronger home team (diff=50) has higher penalty win probability', () => {
       // With diff=50 (strong home), homeWinPct = min(75, 50 + 50/3) = min(75,66.7) ≈ 66.7%
-      // home=10, away=60: diff=50; λHome=1.2*e^(0.013*50)≈2.27 → L=exp(-2.27)≈0.103
-      // first rng=0.01 < 0.103 → homeScore=0 in one step
-      // λAway=1.2*e^(-0.65)≈0.63 → L≈0.532; second rng=0.5 < 0.532 → awayScore=0 in one step
+      // home=10, away=60: diff=50; λHome=1.2*e^(0.017*50)≈2.80 → L=exp(-2.80)≈0.061
+      // first rng=0.01 < 0.061 → homeScore=0 in one step
+      // λAway=1.2*e^(-0.85)≈0.51 → L≈0.600; second rng=0.5 < 0.600 → awayScore=0 in one step
       // third rng is the penalty rng: 0.5 < 0.667 → home wins; 0.9 > 0.667 → away wins
       const homeWinsRng = makeCounterRng([0.01, 0.5, 0.5]);
       const awayWinsRng = makeCounterRng([0.01, 0.5, 0.9]);
