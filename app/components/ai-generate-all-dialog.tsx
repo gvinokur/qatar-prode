@@ -39,12 +39,12 @@ export default function AiGenerateAllDialog({
       </DialogTitle>
 
       <DialogContent>
-        <Typography
-          variant="body1"
-          dangerouslySetInnerHTML={{
-            __html: t('aiGenerate.dialogMessage', { count: pendingCount }),
-          }}
-        />
+        <Typography variant="body1">
+          {t.rich('aiGenerate.dialogMessage', {
+            count: pendingCount,
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
+        </Typography>
         {errorMessage && (
           <Typography variant="body2" color="error" sx={{ mt: 1 }}>
             {errorMessage}

@@ -5,9 +5,13 @@ import { renderWithTheme } from '@/__tests__/utils/test-utils';
 import AiGenerateAllDialog from '../ai-generate-all-dialog';
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string, params?: Record<string, unknown>) => {
-    if (params && 'count' in params) return `${key}:${params.count}`;
-    return key;
+  useTranslations: () => {
+    const t = (key: string) => key;
+    t.rich = (key: string, params?: Record<string, unknown>) => {
+      if (params && 'count' in params) return `${key}:${params.count}`;
+      return key;
+    };
+    return t;
   },
 }));
 

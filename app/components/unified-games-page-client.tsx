@@ -112,16 +112,22 @@ function UnifiedGamesPageContent({
     setAiGenerating(true);
     setAiGenerateError(null);
     try {
-      const guessesToSave: GameGuessNew[] = openUnpredictedGames.map(game => ({
-        game_id: game.id,
-        game_number: game.game_number,
-        user_id: '',
-        ...generateAIPrediction(
+      const guessesToSave: GameGuessNew[] = openUnpredictedGames.map(game => {
+        const { homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner } = generateAIPrediction(
           (teamsMap[game.home_team!] as { rank?: number | null })?.rank,
           (teamsMap[game.away_team!] as { rank?: number | null })?.rank,
           !!game.playoffStage
-        )
-      }));
+        );
+        return {
+          game_id: game.id,
+          game_number: game.game_number,
+          user_id: '',
+          home_score: homeScore,
+          away_score: awayScore,
+          ...(homePenaltyWinner !== undefined && { home_penalty_winner: homePenaltyWinner }),
+          ...(awayPenaltyWinner !== undefined && { away_penalty_winner: awayPenaltyWinner }),
+        };
+      });
       const result = await updateOrCreateGameGuesses(guessesToSave, locale as Locale);
       if (result.success) {
         guessesContext.bulkSetGameGuesses(guessesToSave);

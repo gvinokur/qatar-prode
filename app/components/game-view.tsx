@@ -47,8 +47,14 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageCli
     return () => {
       const homeRank = (teamsMap[game.home_team!] as { rank?: number | null })?.rank;
       const awayRank = (teamsMap[game.away_team!] as { rank?: number | null })?.rank;
-      const prediction = generateAIPrediction(homeRank, awayRank, isPlayoffGame);
-      groupContext.updateGameGuess(game.id, { ...gameGuess, ...prediction });
+      const { homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner } = generateAIPrediction(homeRank, awayRank, isPlayoffGame);
+      groupContext.updateGameGuess(game.id, {
+        ...gameGuess,
+        home_score: homeScore,
+        away_score: awayScore,
+        ...(homePenaltyWinner !== undefined && { home_penalty_winner: homePenaltyWinner }),
+        ...(awayPenaltyWinner !== undefined && { away_penalty_winner: awayPenaltyWinner }),
+      });
       onAIGenerateClick(game.id);
     };
   }, [onAIGenerateClick, game, teamsMap, isPlayoffGame, editDisabled, gameGuess, groupContext]);
