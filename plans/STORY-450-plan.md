@@ -15,7 +15,7 @@ The algorithm uses **real randomness** (`Math.random()`) so each invocation — 
 ## Files to Create
 
 ### 1. `data/fifa-2026/rankings.ts`
-Static record mapping TeamNames → FIFA world ranking (integer, 1 = best). Covers all 48 qualified teams. Used by the generation utility on the client. Playoff placeholder entries (UEFAPlayoffA, etc.) receive a default rank of 50 so the algorithm degrades gracefully if team is unknown.
+Static record mapping TeamNames → FIFA world ranking (integer, 1 = best). Covers all 48 qualified teams. Used by the generation utility on the client. Playoff placeholder entries (UEFAPlayoffA, etc.) are not included — missing rankings are handled in the algorithm (see step 1 below).
 
 ### 2. `app/utils/ai-prediction-generator.ts`
 Pure utility using `Math.random()` — each call produces a fresh probabilistic result.
@@ -36,7 +36,7 @@ export function generateAIPrediction(
 ```
 
 Algorithm:
-1. Lookup `homeRank` and `awayRank` from rankings map (default 50 if missing)
+1. Lookup `homeRank` and `awayRank` from rankings map. If one team is missing, use the opponent's rank for the missing team (so `diff = 0` → Even tier — unknown strength means assume parity)
 2. `diff = awayRank - homeRank` — positive = home team is stronger (lower rank = better)
 3. `absDiff = Math.abs(diff)` — classify into **strength tier**:
    - **Even** (0–8): ~equal quality, e.g. Rank 1 vs Rank 3, Rank 10 vs Rank 15
@@ -226,7 +226,7 @@ Spanish equivalents in `es/predictions.json`.
   Tests use `rng` sequences to make assertions fully deterministic — no `vi.spyOn(Math, 'random')`.
   Tests:
   - scores are non-negative integers in all cases
-  - missing team in rankings defaults gracefully (rank 50)
+  - if one team is missing from rankings, uses opponent's rank for both → diff=0 → Even tier result
   - playoff game with drawn score always has exactly one of homePenaltyWinner/awayPenaltyWinner set to true
   - non-playoff draw never sets penalty winner fields
   - `rng = () => 0`: Extreme home favourite (diff=55) produces high-scoring home win (≥3 home goals, 0–1 away)
