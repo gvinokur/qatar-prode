@@ -56,6 +56,7 @@ Manages tournament game filters (active filter, group filter, round filter) with
 **app/components/context-providers/guesses-context-provider.tsx**
 Manages game guesses and tournament-wide boost counts for the carousel window with optional auto-save functionality.
 - `GuessesContextProvider({ children, gameGuesses, autoSave?, tournamentMaxSilver?, tournamentMaxGolden?, tournamentSilverUsed?, tournamentGoldenUsed? })` - [Provider] - Accepts optional `tournamentSilverUsed`/`tournamentGoldenUsed` baseline counts (tournament-wide, not just carousel). When provided, `boostCounts.silver.used` = baseline + delta (change in carousel session); when absent, falls back to counting from local guesses only. Delta computed vs `initialCarouselBoostsRef` snapshot (resets on remount). Syncs `gameGuesses` state via `useEffect` when prop changes. - Calls: `updateOrCreateGameGuesses`, `trackEvent` - Renders: GuessesContext.Provider
+- `GuessesContextValue.bulkSetGameGuesses(guesses: GameGuessNew[])` — merges a batch of guesses into state atomically without triggering auto-save. Used by `handleAIGenerateAll` after a successful bulk server action call.
 - `GuessesContext` - Context export
 - `useLocale` - Uses: next-intl hook
 
@@ -156,6 +157,10 @@ Animation effects for score celebrations: confetti, trophy bounce, sob shake, an
 - `TrophyBounce` - [Client] - Renders: motion.div with TrophyIcon
 - `SobEffect` - [Client] - Renders: motion.div with SobIcon
 - `CheckEffect` - [Client] - Renders: motion.div with CheckIcon
+
+**app/components/ai-generate-all-dialog.tsx**
+Confirmation dialog for bulk AI prediction generation. Shows pending count, loading state on confirm button, and inline error on failure.
+- **AiGenerateAllDialog({ open, onClose, onConfirm, pendingCount, loading, errorMessage? })** - `[Client]` - Uses: `useTranslations` - Renders: `Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress`
 
 **app/components/confirm-dialog.tsx**
 Reusable confirmation dialog with customizable text, colors, and loading state.

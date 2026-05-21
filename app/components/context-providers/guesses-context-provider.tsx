@@ -22,12 +22,14 @@ interface GuessesContextValue {
   gameGuesses: GameGuessMap;
   boostCounts: BoostCounts;
   updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
+  bulkSetGameGuesses: (guesses: GameGuessNew[]) => void;
 }
 
 export const GuessesContext = React.createContext<GuessesContextValue>({
   gameGuesses: {} as GameGuessMap,
   boostCounts: { silver: { used: 0, max: 0 }, golden: { used: 0, max: 0 } },
   updateGameGuess: async (_gameId:string, _gameGuess: GameGuessNew) => {},
+  bulkSetGameGuesses: (_guesses: GameGuessNew[]) => {},
 })
 
 export interface GuessesContextProviderProps {
@@ -99,6 +101,14 @@ export function GuessesContextProvider ({children,
     };
   }, [gameGuesses, tournamentMaxSilver, tournamentMaxGolden, tournamentSilverUsed, tournamentGoldenUsed]);
 
+  const bulkSetGameGuesses = useCallback((guesses: GameGuessNew[]) => {
+    setGameGuesses(prev => {
+      const updated = { ...prev };
+      for (const g of guesses) updated[g.game_id] = g;
+      return updated;
+    });
+  }, []);
+
   const updateGameGuess = useCallback(async (
     gameId: string,
     gameGuess: GameGuessNew
@@ -129,8 +139,9 @@ export function GuessesContextProvider ({children,
   const context = useMemo(() => ({
     gameGuesses,
     boostCounts,
-    updateGameGuess
-  }), [gameGuesses, boostCounts, updateGameGuess])
+    updateGameGuess,
+    bulkSetGameGuesses
+  }), [gameGuesses, boostCounts, updateGameGuess, bulkSetGameGuesses])
 
   return (
     <GuessesContext.Provider value={context}>

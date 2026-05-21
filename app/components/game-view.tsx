@@ -1,6 +1,6 @@
 'use client'
 
-import { useContext} from "react";
+import { useContext, useMemo } from "react";
 import { useTranslations } from 'next-intl';
 import {calculateScoreForGame} from "../utils/game-score-calculator";
 import {ExtendedGameData} from "../definitions";
@@ -9,6 +9,7 @@ import {GuessesContext} from "./context-providers/guesses-context-provider";
 import {getTeamNames} from "../utils/team-name-helper";
 import CompactGameViewCard from "./compact-game-view-card";
 import { ONE_HOUR } from "../utils/countdown-utils";
+import { generateAIPrediction } from "../utils/ai-prediction-generator";
 
 type GameViewProps = {
   game: ExtendedGameData,
@@ -16,6 +17,7 @@ type GameViewProps = {
   handleEditClick: (_gameNumber: number) => void
   disabled?: boolean
   onStageClick?: () => void
+  onAIGenerateClick?: (gameId: string) => void
 }
 
 const buildGameGuess = (game: Game) => ({
@@ -28,7 +30,7 @@ const buildGameGuess = (game: Game) => ({
   away_penalty_winner: false
 })
 
-const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageClick}: GameViewProps) => {
+const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageClick, onAIGenerateClick}: GameViewProps) => {
   const t = useTranslations('predictions');
   const isPlayoffGame = (!!game.playoffStage);
   const groupContext = useContext(GuessesContext)
@@ -39,6 +41,17 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageCli
   if(!gameGuess.game_id) gameGuess.game_id = game.id
 
   const editDisabled = (Date.now() + ONE_HOUR > game.game_date.getTime()) || disabled
+
+  const handleAIGenerateClick = useMemo(() => {
+    if (!onAIGenerateClick || !game.home_team || !game.away_team || editDisabled) return undefined;
+    return () => {
+      const homeRank = (teamsMap[game.home_team!] as { rank?: number | null })?.rank;
+      const awayRank = (teamsMap[game.away_team!] as { rank?: number | null })?.rank;
+      const prediction = generateAIPrediction(homeRank, awayRank, isPlayoffGame);
+      groupContext.updateGameGuess(game.id, { ...gameGuess, ...prediction });
+      onAIGenerateClick(game.id);
+    };
+  }, [onAIGenerateClick, game, teamsMap, isPlayoffGame, editDisabled, gameGuess, groupContext]);
   const { score: scoreForGame } = calculateScoreForGame(game, gameGuess)
 
   let stageLabel: string | undefined
@@ -84,6 +97,7 @@ const GameView = ({game, teamsMap, handleEditClick, disabled = false, onStageCli
       onEditClick={handleEditClick}
       stageLabel={stageLabel}
       onStageClick={onStageClick}
+      onAIGenerateClick={handleAIGenerateClick}
     />
   )
 }

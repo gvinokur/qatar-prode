@@ -270,5 +270,16 @@
     "winnerShort": "W{game}",
     "loser": "Loser #{game}",
     "loserShort": "L{game}"
+  },
+  "aiGenerate": {
+    "buttonLabel": "AI-generate",
+    "generateAllButton": "AI-generate all",
+    "dialogTitle": "AI-generate predictions",
+    "dialogMessage": "Generate predictions for <strong>{count}</strong> unfilled games based on team rankings?",
+    "confirmButton": "Generate",
+    "cancelButton": "Cancel",
+    "generating": "Generating...",
+    "tooltipSingle": "Generate prediction",
+    "errorMessage": "Failed to generate predictions"
   }
 }

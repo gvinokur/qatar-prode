@@ -44,6 +44,9 @@ interface FlippableGameCardProps {
   // Stage click handler (optional — omit for static stage label)
   readonly onStageClick?: () => void;
 
+  // AI generate click handler (optional)
+  readonly onAIGenerateClick?: (gameId: string) => void;
+
   // Guided mode: passed through to GamePredictionEditControls
   readonly isGuidedMode?: boolean;
 }
@@ -66,6 +69,7 @@ export default function FlippableGameCard({
   onAutoAdvanceNext,
   onAutoGoPrevious,
   onStageClick,
+  onAIGenerateClick,
   isGuidedMode = false
 }: FlippableGameCardProps) {
   const t = useTranslations('predictions');
@@ -302,6 +306,7 @@ export default function FlippableGameCard({
             handleEditClick={handleEditClick}
             disabled={disabled}
             onStageClick={onStageClick}
+            onAIGenerateClick={onAIGenerateClick}
           />
         </Box>
 

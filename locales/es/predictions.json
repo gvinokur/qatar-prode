@@ -270,5 +270,16 @@
     "winnerShort": "G{game}",
     "loser": "Perdedor #{game}",
     "loserShort": "P{game}"
+  },
+  "aiGenerate": {
+    "buttonLabel": "Generar con IA",
+    "generateAllButton": "Generar todo con IA",
+    "dialogTitle": "Generar predicciones con IA",
+    "dialogMessage": "¿Generar predicciones para <strong>{count}</strong> partidos sin completar según el ranking de los equipos?",
+    "confirmButton": "Generar",
+    "cancelButton": "Cancelar",
+    "generating": "Generando...",
+    "tooltipSingle": "Generar predicción",
+    "errorMessage": "Error al generar predicciones"
   }
 }

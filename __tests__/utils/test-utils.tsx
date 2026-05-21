@@ -46,6 +46,7 @@ export interface GuessesContextValue {
   guessedPositions: TournamentGroupTeamStatsGuessNew[];
   boostCounts: BoostCounts;
   updateGameGuess: (gameId: string, gameGuess: GameGuessNew) => Promise<void>;
+  bulkSetGameGuesses: (guesses: GameGuessNew[]) => void;
   pendingSaves: Set<string>;
   saveErrors: Record<string, string>;
   clearSaveError: (gameId: string) => void;
@@ -173,6 +174,7 @@ export const createMockGuessesContext = (
       golden: { used: 0, max: 2 }
     },
     updateGameGuess: vi.fn().mockResolvedValue(undefined),
+    bulkSetGameGuesses: vi.fn(),
     pendingSaves: new Set<string>(),
     saveErrors: {},
     clearSaveError: vi.fn(),

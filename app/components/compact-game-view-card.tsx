@@ -13,7 +13,7 @@ import {
   Chip,
   alpha
 } from "@mui/material";
-import { ArrowForwardIos as ArrowForwardIosIcon, Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Lock as LockIcon } from "@mui/icons-material";
+import { ArrowForwardIos as ArrowForwardIosIcon, AutoAwesome as AutoAwesomeIcon, Edit as EditIcon, Save as SaveIcon, SaveOutlined as SaveOutlinedIcon, Scoreboard as ScoreboardIcon, EmojiEvents as TrophyIcon, Lock as LockIcon } from "@mui/icons-material";
 import { GameResultNew, Theme} from "../db/tables-definition";
 import {useState} from "react";
 import { useTranslations } from 'next-intl';
@@ -51,6 +51,7 @@ type GameGuessProps =  {
   boostType?: 'silver' | 'golden' | null
   stageLabel?: string
   onStageClick?: () => void
+  onAIGenerateClick?: () => void
 } & SharedProps
 
 type GameResultProps = {
@@ -262,6 +263,17 @@ export default function CompactGameViewCard({
                           }
                         }}
                       />
+                    </Tooltip>
+                  )}
+                  {specificProps.isGameGuess && !hasResult && !disabled && specificProps.onAIGenerateClick && (
+                    <Tooltip title={t('aiGenerate.tooltipSingle')}>
+                      <IconButton
+                        size="large"
+                        onClick={(e) => { e.stopPropagation(); specificProps.onAIGenerateClick!(); }}
+                        aria-label={t('aiGenerate.tooltipSingle')}
+                      >
+                        <AutoAwesomeIcon sx={{ width: '20px', height: '20px' }} />
+                      </IconButton>
                     </Tooltip>
                   )}
                   {(!disabled) && (
