@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Add copy-to-clipboard UX to OTP authentication email
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode/.claude/worktrees/sweet-panini-099f38
 - **Branch:** claude/sweet-panini-099f38
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 460
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/460
 
 ## State
 - **Current Phase:** planning
