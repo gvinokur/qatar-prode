@@ -265,7 +265,7 @@ export default function CompactGameViewCard({
                       />
                     </Tooltip>
                   )}
-                  {specificProps.isGameGuess && !hasResult && !disabled && specificProps.onAIGenerateClick && (
+                  {specificProps.isGameGuess && !disabled && specificProps.onAIGenerateClick && (
                     <Tooltip title={t('aiGenerate.tooltipSingle')}>
                       <IconButton
                         size="large"
