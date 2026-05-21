@@ -369,6 +369,23 @@ Coverage target: ≥80% on all new files.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: K constant tuned to 0.017
+**Date:** 2026-05-21
+**Reason:** Initial K=0.024 produced blowout scores for mid-tier matchups (10 vs 50). Multiple tuning rounds (0.024 → 0.015 → log-ratio/0.45 → linear/0.013 → 0.017) settled on K=0.017 as the best balance: diff=15 → narrow favourite (λ≈1.55), diff=40 → comfortable win (λ≈2.36), diff=70 → blowout (λ≈3.94). Log-ratio approach was tried and reverted as it was harder to reason about.
+**Change:** `K = 0.017` in `ai-prediction-generator.ts`; test assertions updated accordingly (lambda spot-check uses diff=40 → λHome≈2.36, λAway≈0.61).
+
+### Amendment 2: Per-game AI button shows even when prediction exists
+**Date:** 2026-05-21
+**Reason:** User feedback — "I think we should not remove the AI generate once a result has been filled. The point is 'don't regenerate on bulk, but allow regenerate on a per game basis'."
+**Change:** Removed `!hasResult` from the `CompactGameViewCard` render condition. The ✨ button now shows whenever `isGameGuess && !disabled && onAIGenerateClick`. The bulk handler still only fills unpredicted games.
+
+### Amendment 3: Bulk AI button moved to sticky filter bar
+**Date:** 2026-05-21
+**Reason:** Fixed-position FAB overlapped content on desktop and was partially hidden during mobile scroll. After evaluating options, the filter bar was chosen as the optimal placement — it is sticky on mobile and always visible.
+**Change:** Removed fixed-position `<Fab>`. Added a small `<Fab size="small">` inside the sticky filter bar Box (after `SecondaryFilters`). No change to dialog logic or `handleAIGenerateAll`.
+
 ## Verification
 
 1. Start dev server: `npm run dev`
