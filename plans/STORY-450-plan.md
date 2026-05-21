@@ -22,7 +22,7 @@ Pure utility using `Math.random()` — each call produces a fresh probabilistic 
 function samplePoisson(lambda: number, rng: () => number): number
 
 /** Main export: generate a random score using independent Poisson sampling (Skellam model).
- *  homeRank/awayRank come from team.fifa_rank in the teamsMap.
+ *  homeRank/awayRank come from team.rank in the teamsMap.
  *  rng defaults to Math.random; inject a deterministic function in tests. */
 export function generateAIPrediction(
   homeRank: number | null | undefined,
@@ -76,18 +76,7 @@ Uses MUI Dialog. Shows "Generate predictions for {count} unfilled games based on
 
 ## Files to Modify
 
-### 2. `app/db/tables-definition.ts`
-Add `fifa_rank?: number | null` to `TeamTable`. This is the FIFA world ranking for the team (1 = best). Nullable because playoff placeholders (e.g. "Winner Group A") have no ranking until the team is determined.
-
-### 3. `migrations/YYYYMMDD_add_fifa_rank_to_teams.sql`
-```sql
-ALTER TABLE teams ADD COLUMN IF NOT EXISTS fifa_rank integer;
-```
-
-### 4. `data/fifa-2026/teams.ts`
-Add `fifa_rank` values for all 48 qualified teams. This file is the seed source used to populate the DB. Playoff placeholder entries leave `fifa_rank` as `undefined`/null.
-
-### 5. `app/components/context-providers/guesses-context-provider.tsx`
+### 2. `app/components/context-providers/guesses-context-provider.tsx`
 Add `bulkSetGameGuesses(guesses: GameGuessNew[]): void` to both the context interface and implementation. Merges the provided guesses into state (no individual saves). This is used after bulk AI generation to update local state without triggering N auto-saves.
 
 ```typescript
@@ -104,21 +93,21 @@ const bulkSetGameGuesses = useCallback((guesses: GameGuessNew[]) => {
 }, []);
 ```
 
-### 6. `app/components/compact-game-view-card.tsx`
+### 4. `app/components/compact-game-view-card.tsx`
 Add `onAIGenerateClick?: () => void` to `GameGuessProps` only. Render an `AutoAwesome` icon button adjacent to the edit button when:
 - `specificProps.isGameGuess && !hasResult && !disabled && onAIGenerateClick`
 
 Button should be small (same size as edit button), use `AutoAwesome` icon from `@mui/icons-material`, and include a tooltip with the `aiGenerate.buttonLabel` translation key.
 
-### 7. `app/components/game-view.tsx`
+### 5. `app/components/game-view.tsx`
 Add `onAIGenerateClick?: (gameId: string) => void` to `GameViewProps`. When provided, read ranks from `teamsMap` and call `generateAIPrediction()`:
 
 ```typescript
 const handleAIGenerateClick = useMemo(() => {
   if (!onAIGenerateClick || !game.home_team || !game.away_team) return undefined;
   return () => {
-    const homeRank = teamsMap[game.home_team!]?.fifa_rank;
-    const awayRank = teamsMap[game.away_team!]?.fifa_rank;
+    const homeRank = teamsMap[game.home_team!]?.rank;
+    const awayRank = teamsMap[game.away_team!]?.rank;
     const prediction = generateAIPrediction(homeRank, awayRank, isPlayoffGame);
     updateGameGuess(game.id, { ...gameGuess, ...prediction });
   };
@@ -127,10 +116,10 @@ const handleAIGenerateClick = useMemo(() => {
 
 Pass `handleAIGenerateClick` down to `CompactGameViewCard` as `onAIGenerateClick`. Skip if `editDisabled` is true (uses same deadline check).
 
-### 8. `app/components/games-list-with-scroll.tsx` (if GameView props are passed through)
+### 6. `app/components/games-list-with-scroll.tsx` (if GameView props are passed through)
 Pass the new `onAIGenerateClick` prop down the chain to `GameView`. Check how GameView is rendered here.
 
-### 9. `app/components/unified-games-page-client.tsx`
+### 7. `app/components/unified-games-page-client.tsx`
 Two additions:
 
 **A) AI-generate FAB (mobile) / Button (desktop):**
@@ -153,8 +142,8 @@ const handleAIGenerateAll = useCallback(async () => {
       game_number: game.game_number,
       user_id: '', // server derives from session
       ...generateAIPrediction(
-        teamsMap[game.home_team!]?.fifa_rank,
-        teamsMap[game.away_team!]?.fifa_rank,
+        teamsMap[game.home_team!]?.rank,
+        teamsMap[game.away_team!]?.rank,
         !!game.playoffStage
       )
     }));
@@ -177,7 +166,7 @@ The AI-generate FAB is disabled while `aiGenerating === true` to prevent concurr
 
 Also pass `onAIGenerateClick` to `GamesListWithScroll` (or handled per-game by GameView if the prop chain supports it).
 
-### 10. `locales/en/predictions.json` + `locales/es/predictions.json`
+### 8. `locales/en/predictions.json` + `locales/es/predictions.json`
 Add under an `aiGenerate` namespace:
 ```json
 {
@@ -209,9 +198,8 @@ Spanish equivalents in `es/predictions.json`.
 - **FIFA_2026_RANKINGS**: `Record<string, number>`
   Static ranking map for all 48 teams. Exported as a named const.
 
-### `app/db/tables-definition.ts` *(modified)*
-- **TeamTable** gains `fifa_rank?: number | null`
-  No new functions — type change only.
+### `app/db/tables-definition.ts`
+No changes needed — `team.rank` already exists via Story #449.
 
 ### `app/utils/ai-prediction-generator.ts` *(new)*
 - **samplePoisson(lambda: number, rng: () => number)**: `number`
@@ -223,7 +211,7 @@ Spanish equivalents in `es/predictions.json`.
 
 - **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }`
   Computes `λHome` and `λAway` via symmetric exponential scaling (`BASE_λ · exp(±K · diff)`), then samples each team's goals independently via Poisson. Win/draw/loss emerge naturally.
-  Callers read `team.fifa_rank` from `teamsMap` and pass directly.
+  Callers read `team.rank` from `teamsMap` and pass directly.
   `rng` defaults to `Math.random`; inject for deterministic tests.
   Tests:
   - scores are non-negative integers in all cases
@@ -342,11 +330,9 @@ Spanish equivalents in `es/predictions.json`.
 
 ## Implementation Order (Waves)
 
-**Wave 1 — DB schema + seed data + Algorithm (no UI, fully testable):**
-- `app/db/tables-definition.ts` — add `fifa_rank` to `TeamTable`
-- `migrations/YYYYMMDD_add_fifa_rank_to_teams.sql`
-- `data/fifa-2026/teams.ts` — add `fifa_rank` values for all 48 teams
+**Wave 1 — Algorithm (no UI, fully testable):**
 - `app/utils/ai-prediction-generator.ts` + tests
+- Note: `team.rank` is already available via Story #449 — no DB/migration/seed work needed
 
 **Wave 2 — Context + Server plumbing:**
 - Add `bulkSetGameGuesses` to GuessesContext + tests
