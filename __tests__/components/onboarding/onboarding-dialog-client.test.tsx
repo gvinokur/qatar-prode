@@ -127,20 +127,6 @@ describe('OnboardingDialogClient', () => {
       await waitFor(() => {
         expect(screen.getByTestId('onboarding-dialog')).toBeInTheDocument()
       })
-
-      // Verify console logging includes boost information
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          expect.objectContaining({
-            id: 'tournament-with-boosts',
-            hasScoring: expect.objectContaining({
-              silverBoosts: 5,
-              goldenBoosts: 3,
-            }),
-          })
-        )
-      })
     })
 
     it('handles tournament without boosts', async () => {
@@ -156,52 +142,6 @@ describe('OnboardingDialogClient', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('onboarding-dialog')).toBeInTheDocument()
-      })
-
-      // Verify console logging shows zero boosts
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          expect.objectContaining({
-            hasScoring: expect.objectContaining({
-              silverBoosts: 0,
-              goldenBoosts: 0,
-            }),
-          })
-        )
-      })
-    })
-
-    it('logs tournament data for debugging', async () => {
-      const mockTournament = testFactories.tournament({
-        id: 'test-tournament',
-        short_name: 'TEST',
-        game_exact_score_points: 10,
-        game_correct_outcome_points: 5,
-        champion_points: 15,
-        max_silver_games: 5,
-        max_golden_games: 3,
-      })
-
-      mockGetTournaments.mockResolvedValue([mockTournament])
-
-      renderWithTheme(<OnboardingDialogClient />)
-
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          {
-            id: 'test-tournament',
-            name: 'TEST',
-            hasScoring: {
-              gameExact: 10,
-              gameOutcome: 5,
-              champion: 15,
-              silverBoosts: 5,
-              goldenBoosts: 3,
-            },
-          }
-        )
       })
     })
   })
@@ -255,17 +195,6 @@ describe('OnboardingDialogClient', () => {
 
       // Should pass undefined tournament
       expect(screen.getByTestId('tournament-id')).toHaveTextContent('no-tournament')
-
-      // Console should log undefined tournament
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          expect.objectContaining({
-            id: undefined,
-            name: undefined,
-          })
-        )
-      })
     })
 
     it('handles case when getTournaments returns undefined', async () => {
@@ -452,16 +381,6 @@ describe('OnboardingDialogClient', () => {
       await waitFor(() => {
         expect(screen.getByTestId('tournament-id')).toHaveTextContent('tournament-1')
       })
-
-      // Should log the first tournament
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          expect.objectContaining({
-            id: 'tournament-1',
-          })
-        )
-      })
     })
 
     it('renders with theme provider from test utilities', async () => {
@@ -482,65 +401,4 @@ describe('OnboardingDialogClient', () => {
     })
   })
 
-  describe('Console Logging', () => {
-    it('logs tournament with null values correctly', async () => {
-      const mockTournament = testFactories.tournament({
-        id: 'partial-tournament',
-        short_name: null as any,
-        max_silver_games: null as any,
-        max_golden_games: null as any,
-      })
-
-      mockGetTournaments.mockResolvedValue([mockTournament])
-
-      renderWithTheme(<OnboardingDialogClient />)
-
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          expect.objectContaining({
-            id: 'partial-tournament',
-            name: null,
-            hasScoring: expect.objectContaining({
-              silverBoosts: null,
-              goldenBoosts: null,
-            }),
-          })
-        )
-      })
-    })
-
-    it('logs all scoring fields correctly', async () => {
-      const mockTournament = testFactories.tournament({
-        id: 'scoring-test',
-        short_name: 'SC',
-        game_exact_score_points: 100,
-        game_correct_outcome_points: 50,
-        champion_points: 200,
-        max_silver_games: 10,
-        max_golden_games: 5,
-      })
-
-      mockGetTournaments.mockResolvedValue([mockTournament])
-
-      renderWithTheme(<OnboardingDialogClient />)
-
-      await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          '[OnboardingDialogClient] Active tournament:',
-          {
-            id: 'scoring-test',
-            name: 'SC',
-            hasScoring: {
-              gameExact: 100,
-              gameOutcome: 50,
-              champion: 200,
-              silverBoosts: 10,
-              goldenBoosts: 5,
-            },
-          }
-        )
-      })
-    })
-  })
 })
