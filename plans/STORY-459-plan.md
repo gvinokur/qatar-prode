@@ -122,6 +122,18 @@ No call graph changes.
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: generateOTPEmailContent exported for testability
+**Date:** 2026-05-22
+**Reason:** The function needed direct unit testing to verify subject and plain-text format independently of `sendOTPCode`. Exporting it is the cleanest approach without changing the overall architecture.
+**Change:** Changed `async function generateOTPEmailContent(...)` → `export async function generateOTPEmailContent(...)`.
+
+### Amendment 2: Plain-text code line uses otp.title translation key
+**Date:** 2026-05-22
+**Reason:** Using `t('otp.title')` (→ "Your Access Code") rather than hardcoded "Your code:" keeps the label localised for both EN and ES. The plan already noted "or locale equivalent" — this is that equivalent.
+**Change:** Plain text opens with `${t('otp.title')}: ${otpCode}` (e.g. "Your Access Code: 847391") instead of literal "Your code: 847391".
+
 ## Open Questions
 
 None.

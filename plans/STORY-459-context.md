@@ -14,7 +14,7 @@
 - **Task File:** (fill when implementation starts)
 
 ## Quick Summary
-Adds copy-to-clipboard UX to the OTP auth email: a "Copy code" link in the email opens a minimal
-browser page that auto-copies the 6-digit code to clipboard. Also updates the email subject to
-include the OTP code for iOS/Android/Gmail smart autofill detection. New route: /[locale]/otp-copy.
-New client component: OtpCopyPage. Modifies generateOTPEmailContent() to accept a copyUrl param.
+Updates OTP email subject and plain-text body to trigger native iOS/Android/Gmail OTP autofill
+detection. Subject prefixed with the code ("847391 - Your Access Code - Prode Mundial"). Plain-text
+opens with the code on its own line before the greeting. No new pages or components. One file
+changed: app/actions/otp-actions.ts. generateOTPEmailContent() exported for testability.
