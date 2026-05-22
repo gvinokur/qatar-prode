@@ -9,10 +9,10 @@ import { User } from "../db/tables-definition";
 /**
  * Generate OTP email template with internationalized content
  */
-async function generateOTPEmailContent(email: string, otpCode: string, locale: Locale = 'es'): Promise<{ subject: string; html: string; text: string }> {
+export async function generateOTPEmailContent(email: string, otpCode: string, locale: Locale = 'es'): Promise<{ subject: string; html: string; text: string }> {
   const t = await getTranslations({ locale, namespace: 'emails' });
 
-  const subject = t('otp.subject');
+  const subject = `${otpCode} - ${t('otp.subject')}`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -56,11 +56,9 @@ async function generateOTPEmailContent(email: string, otpCode: string, locale: L
   `;
 
   const text = `
-${t('otp.subject')}
+${t('otp.title')}: ${otpCode}
 
 ${t('otp.greeting')}
-
-${t('otp.title')}: ${otpCode}
 
 ${t('otp.validity')}
 ${t('otp.attempts')}

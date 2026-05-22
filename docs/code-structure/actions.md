@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-20
+**Last updated:** 2026-05-21
 
 ---
 
@@ -147,6 +147,8 @@ Manages user onboarding flow, checklist state, and tooltip dismissal.
 ### app/actions/otp-actions.ts
 OTP (one-time password) based authentication and account creation.
 
+- **generateOTPEmailContent(email, otpCode, locale)**: `Promise<{ subject: string; html: string; text: string }>` — Generates localised OTP email content. Subject is prefixed with the OTP code (`"${otpCode} - ${subject}"`) for iOS/Android/Gmail native autofill detection. Plain-text opens with `"${title}: ${otpCode}"` for OS-level code heuristics. (Story #459)
+  Calls: getTranslations
 - **sendOTPCode(email, locale)**: `Promise<{ success: boolean; error?: string }>` — Sends OTP to email address.
   Calls: generateOTP, findUserByEmail, generateOTPEmailContent, sendEmail
 - **verifyOTPCode(email, code, locale)**: `Promise<{ success: boolean; user?: User; error?: string }>` — Verifies OTP code.
