@@ -5,6 +5,7 @@ import GameView from '../../app/components/game-view';
 import { ExtendedGameData } from '../../app/definitions';
 import { Team, GameGuessNew } from '../../app/db/tables-definition';
 import { renderWithProviders, createMockGuessesContext } from '../utils/test-utils';
+import * as aiPredictionGenerator from '../../app/utils/ai-prediction-generator';
 
 // Mock next-auth dependencies
 vi.mock('next-auth', () => ({
@@ -33,7 +34,7 @@ vi.mock('../../app/utils/playoffs-rule-helper', () => ({
 }));
 
 vi.mock('../../app/components/compact-game-view-card', () => ({
-    default: ({ onEditClick, gameNumber, disabled, ...props }: any) => (
+    default: ({ onEditClick, onAIGenerateClick, gameNumber, disabled, ...props }: any) => (
         <div data-testid="compact-game-view-card">
             <span data-testid="game-number">{gameNumber}</span>
             <span data-testid="disabled">{disabled ? 'true' : 'false'}</span>
@@ -44,6 +45,11 @@ vi.mock('../../app/components/compact-game-view-card', () => ({
             >
                 Edit
             </button>
+            {onAIGenerateClick && (
+                <button data-testid="ai-generate-button" onClick={onAIGenerateClick}>
+                    AI
+                </button>
+            )}
             <span data-testid="home-team">{props.homeTeamNameOrDescription}</span>
             <span data-testid="away-team">{props.awayTeamNameOrDescription}</span>
             <span data-testid="home-score">{props.homeScore}</span>
@@ -52,6 +58,15 @@ vi.mock('../../app/components/compact-game-view-card', () => ({
             <span data-testid="score-for-game">{props.scoreForGame}</span>
         </div>
     ),
+}));
+
+vi.mock('../../app/utils/ai-prediction-generator', () => ({
+    generateAIPrediction: vi.fn(() => ({
+        homeScore: 2,
+        awayScore: 1,
+        homePenaltyWinner: undefined,
+        awayPenaltyWinner: undefined,
+    })),
 }));
 
 const mockGameGuesses: { [k: string]: GameGuessNew } = {
@@ -112,7 +127,8 @@ const renderGameView = (
     teamsMap: { [k: string]: Team } = mockTeamsMap,
     handleEditClick = vi.fn(),
     disabled = false,
-    gameGuesses = mockGameGuesses
+    gameGuesses = mockGameGuesses,
+    onAIGenerateClick?: (gameId: string) => void
 ) => {
     return renderWithProviders(
         <GameView
@@ -120,6 +136,7 @@ const renderGameView = (
             teamsMap={teamsMap}
             handleEditClick={handleEditClick}
             disabled={disabled}
+            onAIGenerateClick={onAIGenerateClick}
         />,
         {
             guessesContext: createMockGuessesContext({ gameGuesses }),
@@ -363,5 +380,54 @@ describe('GameView', () => {
         renderGameView(baseGame, teamsWithNullTheme);
 
         expect(screen.getByTestId('compact-game-view-card')).toBeInTheDocument();
+    });
+
+    describe('AI generate click', () => {
+        it('does not render AI button when onAIGenerateClick prop is not provided', () => {
+            renderGameView();
+            expect(screen.queryByTestId('ai-generate-button')).not.toBeInTheDocument();
+        });
+
+        it('does not render AI button when editDisabled (within 1 hour of game)', () => {
+            vi.setSystemTime(new Date('2024-07-01T17:30:00Z')); // 30 min before game
+            const onAIGenerateClick = vi.fn();
+            renderGameView(baseGame, mockTeamsMap, vi.fn(), false, mockGameGuesses, onAIGenerateClick);
+            expect(screen.queryByTestId('ai-generate-button')).not.toBeInTheDocument();
+        });
+
+        it('calls updateGameGuess with snake_case prediction fields when AI button is clicked', () => {
+            const onAIGenerateClick = vi.fn();
+            const mockUpdateGameGuess = vi.fn();
+            const teamsWithRank = {
+                team1: { ...mockTeamsMap.team1, rank: 10 },
+                team2: { ...mockTeamsMap.team2, rank: 50 },
+            };
+
+            renderWithProviders(
+                <GameView
+                    game={baseGame}
+                    teamsMap={teamsWithRank as any}
+                    handleEditClick={vi.fn()}
+                    disabled={false}
+                    onAIGenerateClick={onAIGenerateClick}
+                />,
+                {
+                    guessesContext: createMockGuessesContext({
+                        gameGuesses: mockGameGuesses,
+                        updateGameGuess: mockUpdateGameGuess,
+                    }),
+                    timezone: true,
+                }
+            );
+
+            fireEvent.click(screen.getByTestId('ai-generate-button'));
+
+            expect(aiPredictionGenerator.generateAIPrediction).toHaveBeenCalledWith(10, 50, false);
+            expect(mockUpdateGameGuess).toHaveBeenCalledWith(
+                'game1',
+                expect.objectContaining({ home_score: 2, away_score: 1 })
+            );
+            expect(onAIGenerateClick).toHaveBeenCalledWith('game1');
+        });
     });
 });

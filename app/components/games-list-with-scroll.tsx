@@ -32,6 +32,7 @@ interface GamesListWithScrollProps {
   readonly qtPredictionLocked: boolean;
   readonly qualifiedTeamsHref: string;
   readonly nowAvailableRoundIds?: Set<string>;
+  readonly onAIGenerateClick?: (gameId: string) => void;
 }
 
 const buildGameGuess = (game: Game, userId: string): GameGuessNew => ({
@@ -57,6 +58,7 @@ export function GamesListWithScroll({
   qtPredictionLocked,
   qualifiedTeamsHref,
   nowAvailableRoundIds,
+  onAIGenerateClick,
 }: GamesListWithScrollProps) {
   const t = useTranslations('predictions');
   const groupContext = useContext(GuessesContext);
@@ -342,6 +344,7 @@ export function GamesListWithScroll({
                       onAutoAdvanceNext={() => handleAutoAdvanceNext(game.id)}
                       onAutoGoPrevious={() => handleAutoGoPrevious(game.id)}
                       onStageClick={onGameStageClick ? () => onGameStageClick(game) : undefined}
+                      onAIGenerateClick={onAIGenerateClick}
                       isGuidedMode={true}
                     />
                   </Box>

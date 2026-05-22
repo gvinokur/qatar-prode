@@ -51,7 +51,7 @@ Full-width banner replacing StageSeparator at the Group Stage→Playoff boundary
 **File:** `app/components/compact-game-view-card.tsx`
 Compact card displaying a single game with prediction and result. Handles game guesses, fixtures, and results with optional boost display. Computes prediction row winner inline (predictionHomeIsWinner/predictionAwayIsWinner) and passes C2 props to the prediction TeamScoreRow; actual result row winner is handled independently by ActualResultDisplay. When `isGameGuess && stageLabel` is provided, renders a stage label row below the location — clickable (with ArrowForwardIos icon) when `onStageClick` is provided, static otherwise.
 - **CompactGameViewCard** (FC) - `[Client]` - Calls: none - Uses: `useTheme, useTranslations` - Renders: `Card, GameCountdownDisplay, TeamScoreRow` (prediction row with C2 winner props)`, ActualResultDisplay, GameCardPointOverlay`
-- Props `GameGuessProps` include: `stageLabel?: string`, `onStageClick?: () => void`
+- Props `GameGuessProps` include: `stageLabel?: string`, `onStageClick?: () => void`, `onAIGenerateClick?: () => void` — when provided and game has no prediction and is not disabled, renders an `AutoAwesome` icon button beside the edit button
 - Props `GameResultProps` include: `canPublish?: boolean` — when `false`, the publish toggle Checkbox is disabled and shows `game.incompleteResult` tooltip instead of `game.isPublished`
 - **calculatePredictionResult(predictedHome, predictedAway, actualHome, actualAway, penaltyOptions?)** (fn) - Determines prediction accuracy (exact/goal_difference/correct/incorrect). Checks exact → goal_difference (same margin) → correct winner → incorrect. `penaltyOptions` groups `{predictedHomePenaltyWinner?, predictedAwayPenaltyWinner?, actualHomePenaltyScore?, actualAwayPenaltyScore?}`. Returns 'incorrect' when scores or margin match but penalty winner wrong (Story #364).
 
@@ -62,7 +62,7 @@ Compact dashboard showing game and tournament prediction progress with urgency i
 **File:** `app/components/flippable-game-card.tsx`
 3D flip card for inline game editing. Shows game view on front, edit controls on back with keyboard navigation support.
 - **FlippableGameCard** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useReducedMotion` - Renders: `Box, GameView, Card, GamePredictionEditControls`
-- Props include: `onStageClick?: () => void` — passed through to `GameView`; `isGuidedMode?: boolean` — threaded to `GamePredictionEditControls`
+- Props include: `onStageClick?: () => void` — passed through to `GameView`; `isGuidedMode?: boolean` — threaded to `GamePredictionEditControls`; `onAIGenerateClick?: (gameId: string) => void` — passed through to `GameView`
 
 **File:** `app/components/game-boost-selector.tsx`
 Interactive boost selector with silver/golden buttons, count badges, and dialog for boost limit warnings.
@@ -95,7 +95,7 @@ Dialog for editing game results or guesses. Supports penalty shootouts, game dat
 
 **File:** `app/components/game-view.tsx`
 Displays a single game prediction card. Gets game data from context, computes stageLabel from group letter or playoff round name, and renders CompactGameViewCard.
-- **GameView({ game, teamsMap, handleEditClick, disabled?, onStageClick? })** (FC) - `[Client]` - Calls: `calculateScoreForGame` - Uses: `useContext(GuessesContext), useTranslations` - Renders: `CompactGameViewCard`
+- **GameView({ game, teamsMap, handleEditClick, disabled?, onStageClick?, onAIGenerateClick? })** (FC) - `[Client]` - Calls: `calculateScoreForGame, generateAIPrediction, updateGameGuess` - Uses: `useContext(GuessesContext), useTranslations, useMemo` - Renders: `CompactGameViewCard`
 - **buildGameGuess** (fn) - Helper to build empty GameGuess object
 
 **File:** `app/components/games-grid.tsx`
@@ -111,7 +111,7 @@ Skeleton loading component displaying game card loaders.
 
 **File:** `app/components/games-list-with-scroll.tsx`
 Scrollable list of games with stage separators, filter integration, auto-scroll to first unpredicted game, and keyboard navigation support. Groups games into `GameSection[]` (by matchday for group games, by round for playoff games). Renders `StageTransitionBanner` at the Group Stage→Playoff boundary (first playoff section) and `StageSeparator` for all other sections. Always passes `isGuidedMode={true}` to each `FlippableGameCard`. Auto-advance skips predicted games and stops at the group stage boundary.
-- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick?, qtPredictionLocked, qualifiedTeamsHref, nowAvailableRoundIds?: Set<string> })** (FC) - `[Client]` - Calls: `isGamePredictionComplete` - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator (with isNowAvailable), StageTransitionBanner (with isNowAvailable), FlippableGameCard, EmptyGamesState`
+- **GamesListWithScroll({ games, teamsMap, tournamentId, activeFilter, tournament, onGameStageClick?, qtPredictionLocked, qualifiedTeamsHref, nowAvailableRoundIds?: Set<string>, onAIGenerateClick?: (gameId: string) => void })** (FC) - `[Client]` - Calls: `isGamePredictionComplete` - Uses: `useContext(GuessesContext), useEditMode, useEditTrigger, useSession, useTranslations, useMemo` - Renders: `Box, StageSeparator (with isNowAvailable), StageTransitionBanner (with isNowAvailable), FlippableGameCard, EmptyGamesState`
 
 **File:** `app/components/stepper-score-input.tsx`
 Stepper input for scores with increment/decrement buttons, imperatively expose focus method.
@@ -143,9 +143,11 @@ Helper functions and constants for urgency level calculations, color mapping, an
 
 **File:** `app/components/unified-games-page-client.tsx`
 Main games page with filter integration, edit parameter handling, auto-scroll to next/urgent games, and stage-click filter handler. Imports `EDIT_NEXT_TOKEN` from `prediction-constants` and `findScrollTarget` from `auto-scroll`.
-- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: `computeGamesHeaderVariant` - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTranslations, useLocale, useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, PredictionStatusHeader, GameFilters, SecondaryFilters, GamesListWithScroll, Fab`
+- **UnifiedGamesPageContent** (FC) - `[Client]` - Calls: `computeGamesHeaderVariant, generateAIPrediction, updateOrCreateGameGuesses, isGuessComplete, calculateDeadline` - Uses: `useSearchParams, useRouter, useFilterContext, useEditTrigger, useContext(GuessesContext), useTranslations, useLocale, useTheme, useMediaQuery, useMemo, useEffect, useState, useCallback` - Renders: `ScrollShadowContainer, PredictionStatusHeader, GameFilters, SecondaryFilters, GamesListWithScroll, Fab, AiGenerateAllDialog`
 - Props include: `qualifiedTeamsHref: string` — forwarded to `GamesListWithScroll`; `qtPredictionLocked` derived from `tournamentPredictionCompletion?.isPredictionLocked ?? false`; `nowAvailableRoundIds?: string[]` — converted to `Set<string>` via `useMemo`, forwarded to both `GamesListWithScroll` and `SecondaryFilters`
 - Effect 1 handles `?edit` param: if value equals `EDIT_NEXT_TOKEN` ("next"), finds the first upcoming game (`game_date >= now`) where `isGuessComplete` returns false (skipping already-predicted games); falls back to `findScrollTarget(games)` (first chronological upcoming) only when all upcoming games are predicted or no upcoming game exists. For a specific game ID, uses the param value directly. Clears all filters and sets `pendingEditGameId` so Effect 2 can scroll+trigger edit.
+- `openUnpredictedGames` memo: games where `deadline > now`, both teams known, and guess not complete — drives AI FAB visibility and bulk handler input
+- `handleAIGenerateAll` — generates predictions for all `openUnpredictedGames` in one `updateOrCreateGameGuesses` call; guards against concurrent calls; on success calls `bulkSetGameGuesses` and closes dialog
 - `handleGameStageClick(game: ExtendedGameData)` — sets `activeFilter` + group/round filter based on the game's stage; passed to `GamesListWithScroll` as `onGameStageClick`
 - **UnifiedGamesPageClient** (FC) - `[Client]` - Calls: none - Uses: none - Renders: `FilterContextProvider, UnifiedGamesPageContent`
 

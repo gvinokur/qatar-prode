@@ -61,13 +61,25 @@ export function MockGuessesContextProvider({ children }: MockGuessesContextProvi
     };
   }, [gameGuesses]);
 
+  const bulkSetGameGuesses = useCallback(
+    (guesses: GameGuessNew[]) => {
+      setGameGuesses(prev => {
+        const updated = { ...prev };
+        for (const g of guesses) updated[g.game_id] = g;
+        return updated;
+      });
+    },
+    []
+  );
+
   const context = useMemo(
     () => ({
       gameGuesses,
       boostCounts,
       updateGameGuess,
+      bulkSetGameGuesses,
     }),
-    [gameGuesses, boostCounts, updateGameGuess]
+    [gameGuesses, boostCounts, updateGameGuess, bulkSetGameGuesses]
   )
 
   return <GuessesContext.Provider value={context}>{children}</GuessesContext.Provider>

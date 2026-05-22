@@ -152,12 +152,20 @@ Key flows:
                                                └── FlippableGameCard [renders]
                                                      └── uses: GuessesContext
                                                      ├── GameView [renders] (front face)
-                                                     │     └── CompactGameViewCard [renders]
+                                                     │     ├── CompactGameViewCard [renders]
+                                                     │     │     └── AutoAwesome button → onAIGenerateClick (per-game AI)
+                                                     │     └── onAIGenerateClick → generateAIPrediction → GuessesContext.updateGameGuess
                                                      └── GamePredictionEditControls [renders] (back face)
                                                            └── uses: GuessesContext (reads + writes guess)
                                                            └── GameBoostSelector [renders]
                                                                  └── setGameBoostAction [server action]
                                                                        └── setGameGuessBoost
+
+                                               AI-generate all (bulk path):
+                                               UnifiedGamesPageContent.handleAIGenerateAll
+                                                     ├── generateAIPrediction (per game in openUnpredictedGames)
+                                                     ├── updateOrCreateGameGuesses [server action]
+                                                     └── GuessesContext.bulkSetGameGuesses (local state update, no auto-save)
 
 2. Game scoring pipeline
    Triggered by: cron via app/api/update-guesses GET → calculateGameScores

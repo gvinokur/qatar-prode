@@ -149,8 +149,14 @@ vi.mock('next-intl', async (importOriginal) => {
   return {
     ...actual,
     useLocale: () => currentTestLocale, // Use current test locale
-    useTranslations: (namespace: string = 'predictions') => (key: string, values?: Record<string, any>) => {
-      return getTranslation(namespace, key, values);
+    useTranslations: (namespace: string = 'predictions') => {
+      const t = (key: string, values?: Record<string, any>) => {
+        return getTranslation(namespace, key, values);
+      };
+      (t as any).rich = (key: string, params?: Record<string, any>) => { // NOSONAR
+        return getTranslation(namespace, key, params);
+      };
+      return t;
     },
     useFormatter: () => ({
       dateTime: (date: Date) => date.toISOString(),

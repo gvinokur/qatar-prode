@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, act } from '@testing-library/react';
+import { render, act, screen, fireEvent } from '@testing-library/react';
 import { UnifiedGamesPageClient } from '../unified-games-page-client';
 import { GuessesContext } from '../context-providers/guesses-context-provider';
 import * as nextNavigation from 'next/navigation';
 import * as autoScroll from '../../utils/auto-scroll';
+import * as guessesActions from '../../actions/guesses-actions';
 import { testFactories } from '@/__tests__/db/test-factories';
 
 // Mock dependencies
@@ -28,9 +29,33 @@ vi.mock('../context-providers/guesses-context-provider', () => ({
     boostCounts: {
       silver: { used: 0, max: 5 },
       golden: { used: 0, max: 3 }
-    }
+    },
+    bulkSetGameGuesses: vi.fn()
   })
 }));
+
+vi.mock('../ai-generate-all-dialog', () => ({
+  default: ({ onConfirm, loading, open }: any) => open ? (
+    <div data-testid="ai-dialog">
+      <span data-testid="ai-dialog-loading">{loading ? 'true' : 'false'}</span>
+      <button data-testid="ai-dialog-confirm" onClick={onConfirm} disabled={loading}>Confirm</button>
+    </div>
+  ) : null
+}));
+
+vi.mock('../../utils/ai-prediction-generator', () => ({
+  generateAIPrediction: vi.fn(() => ({ homeScore: 1, awayScore: 0 }))
+}));
+
+vi.mock('../../actions/guesses-actions', () => ({
+  updateOrCreateGameGuesses: vi.fn(() => Promise.resolve({ success: true }))
+}));
+
+vi.mock('../prediction-status-header', () => ({
+  PredictionStatusHeader: () => <div>StatusHeader</div>,
+  computeGamesHeaderVariant: vi.fn(() => null)
+}));
+
 
 vi.mock('../../utils/auto-scroll', () => ({
   scrollToGame: vi.fn(),
@@ -40,6 +65,7 @@ vi.mock('../../utils/auto-scroll', () => ({
 vi.mock('@mui/material', () => ({
   Box: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   Fab: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Tooltip: ({ children }: any) => <>{children}</>,
   useTheme: vi.fn(() => ({ breakpoints: { down: () => false } })),
   useMediaQuery: vi.fn(() => false)
 }));
@@ -468,5 +494,115 @@ describe('UnifiedGamesPageClient URL Parameter Handling', () => {
     // Verify no filter changes or edit triggers
     expect(mockSetActiveFilter).not.toHaveBeenCalledWith('all');
     expect(mockTriggerEdit).not.toHaveBeenCalled();
+  });
+});
+
+describe('UnifiedGamesPageClient AI Generate All', () => {
+  const now = Date.now();
+  // Game with deadline well in the future
+  const openGame = testFactories.game({
+    id: 'open-game',
+    home_team: 'team-a',
+    away_team: 'team-b',
+    game_date: new Date(now + 5 * 60 * 60 * 1000), // 5 hours from now
+  });
+  const tournament = testFactories.tournament();
+  const team = testFactories.team();
+
+  const mockBulkSetGameGuesses = vi.fn();
+
+  const renderComponent = (contextOverrides: any = {}) =>
+    render(
+      <GuessesContext.Provider value={{
+        gameGuesses: {},
+        boostCounts: { silver: { used: 0, max: 5 }, golden: { used: 0, max: 3 } },
+        bulkSetGameGuesses: mockBulkSetGameGuesses,
+        ...contextOverrides,
+      }}>
+        <UnifiedGamesPageClient
+          games={[openGame] as any}
+          gameCounts={{ total: 1, predicted: 0, remaining: 1 }}
+          teamsMap={{ [team.id]: team }}
+          tournamentId={tournament.id}
+          groups={[]}
+          rounds={[]}
+          tournament={tournament}
+          closingGames={[]}
+          tournamentPredictionCompletion={null}
+          tournamentStartDate={undefined}
+          qualifiedTeamsHref="/en/tournaments/t1/qualified-teams"
+        />
+      </GuessesContext.Provider>
+    );
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const { useFilterContext } = vi.mocked(await import('../context-providers/filter-context-provider'));
+    useFilterContext.mockReturnValue({
+      activeFilter: 'all', groupFilter: null, roundFilter: null,
+      setActiveFilter: vi.fn(), setGroupFilter: vi.fn(), setRoundFilter: vi.fn()
+    });
+    const { useEditTrigger } = vi.mocked(await import('../context-providers/edit-trigger-context-provider'));
+    useEditTrigger.mockReturnValue({
+      triggerEdit: vi.fn(), registerTrigger: vi.fn(),
+      isEditMode: false, isEditModeRef: { current: false }, setEditMode: vi.fn()
+    });
+    vi.mocked(nextNavigation.useSearchParams).mockReturnValue({
+      get: () => null, getAll: () => [], has: () => false,
+      keys: () => [][Symbol.iterator](), values: () => [][Symbol.iterator](),
+      entries: () => [][Symbol.iterator](), forEach: () => {}, toString: () => '',
+      size: 0, [Symbol.iterator]: () => [][Symbol.iterator]()
+    } as unknown as URLSearchParams);
+    vi.mocked(nextNavigation.useRouter).mockReturnValue({
+      push: vi.fn(), replace: vi.fn(), prefetch: vi.fn(),
+      back: vi.fn(), forward: vi.fn(), refresh: vi.fn()
+    } as unknown as ReturnType<typeof nextNavigation.useRouter>);
+  });
+
+  it('shows AI generate FAB when there are open unpredicted games', () => {
+    renderComponent();
+    // The FAB is rendered as a button (via the @mui/material mock)
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThan(0);
+  });
+
+  it('calls bulkSetGameGuesses and closes dialog on successful generation', async () => {
+    vi.mocked(guessesActions.updateOrCreateGameGuesses).mockResolvedValueOnce({ success: true });
+    renderComponent();
+
+    // Click the AI FAB to open dialog (first button that's not disabled)
+    const fab = screen.getAllByRole('button').find(b => !b.disabled);
+    expect(fab).toBeDefined();
+    fireEvent.click(fab!);
+
+    // Dialog should now be visible
+    expect(screen.getByTestId('ai-dialog')).toBeInTheDocument();
+
+    // Click confirm
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('ai-dialog-confirm'));
+    });
+
+    expect(guessesActions.updateOrCreateGameGuesses).toHaveBeenCalledTimes(1);
+    expect(mockBulkSetGameGuesses).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows error and keeps dialog open when server returns success=false', async () => {
+    vi.mocked(guessesActions.updateOrCreateGameGuesses).mockResolvedValueOnce({
+      success: false, error: 'Server error'
+    });
+    renderComponent();
+
+    const fab = screen.getAllByRole('button').find(b => !b.disabled);
+    fireEvent.click(fab!);
+    expect(screen.getByTestId('ai-dialog')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('ai-dialog-confirm'));
+    });
+
+    expect(mockBulkSetGameGuesses).not.toHaveBeenCalled();
+    // Dialog still open
+    expect(screen.getByTestId('ai-dialog')).toBeInTheDocument();
   });
 });

@@ -1,11 +1,12 @@
 'use client'
 
-import { Box, Fab, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Fab, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import { useMemo, useContext, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { ScrollShadowContainer } from './common/scroll-shadow-container';
 import { FilterContextProvider, useFilterContext } from './context-providers/filter-context-provider';
 import { useEditTrigger } from './context-providers/edit-trigger-context-provider';
@@ -14,7 +15,7 @@ import { PredictionStatusHeader, computeGamesHeaderVariant } from './prediction-
 import { SecondaryFilters } from './secondary-filters';
 import { GamesListWithScroll } from './games-list-with-scroll';
 import { ExtendedGameData } from '../definitions';
-import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCompletion } from '../db/tables-definition';
+import { Team, Tournament, TournamentGroup, PlayoffRound, TournamentPredictionCompletion, GameGuessNew } from '../db/tables-definition';
 import { TournamentGameCounts } from '../db/game-repository';
 import { filterGames } from '../utils/game-filters';
 import { GuessesContext } from './context-providers/guesses-context-provider';
@@ -22,6 +23,10 @@ import { findScrollTarget, scrollToGame } from '../utils/auto-scroll';
 import { isGuessComplete } from '../utils/guess-utils';
 import { EDIT_NEXT_TOKEN } from '../utils/prediction-constants';
 import { calculateDeadline } from '../utils/countdown-utils';
+import { generateAIPrediction } from '../utils/ai-prediction-generator';
+import { updateOrCreateGameGuesses } from '../actions/guesses-actions';
+import type { Locale } from '../../i18n.config';
+import AiGenerateAllDialog from './ai-generate-all-dialog';
 
 // Timing constants for edit parameter handling
 const DOM_RENDER_DELAY = 50; // ms - small delay for DOM to re-render after filter change
@@ -66,6 +71,9 @@ function UnifiedGamesPageContent({
   const { triggerEdit, isEditModeRef } = useEditTrigger();
   const guessesContext = useContext(GuessesContext);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiGenerateError, setAiGenerateError] = useState<string | null>(null);
   const [pendingEditGameId, setPendingEditGameId] = useState<string | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -89,6 +97,50 @@ function UnifiedGamesPageContent({
       setGroupFilter(game.group.tournament_group_id);
     }
   }, [setActiveFilter, setGroupFilter, setRoundFilter]);
+
+  const openUnpredictedGames = useMemo(() => {
+    return games.filter(game =>
+      game.home_team &&
+      game.away_team &&
+      calculateDeadline(game.game_date) > Date.now() &&
+      !isGuessComplete(guessesContext.gameGuesses[game.id], !!game.playoffStage)
+    );
+  }, [games, guessesContext.gameGuesses]);
+
+  const handleAIGenerateAll = useCallback(async () => {
+    if (aiGenerating) return;
+    setAiGenerating(true);
+    setAiGenerateError(null);
+    try {
+      const guessesToSave: GameGuessNew[] = openUnpredictedGames.map(game => {
+        const { homeScore, awayScore, homePenaltyWinner, awayPenaltyWinner } = generateAIPrediction(
+          (teamsMap[game.home_team!] as { rank?: number | null })?.rank,
+          (teamsMap[game.away_team!] as { rank?: number | null })?.rank,
+          !!game.playoffStage
+        );
+        return {
+          game_id: game.id,
+          game_number: game.game_number,
+          user_id: '',
+          home_score: homeScore,
+          away_score: awayScore,
+          ...(homePenaltyWinner !== undefined && { home_penalty_winner: homePenaltyWinner }),
+          ...(awayPenaltyWinner !== undefined && { away_penalty_winner: awayPenaltyWinner }),
+        };
+      });
+      const result = await updateOrCreateGameGuesses(guessesToSave, locale as Locale);
+      if (result.success) {
+        guessesContext.bulkSetGameGuesses(guessesToSave);
+        setAiDialogOpen(false);
+      } else {
+        setAiGenerateError(result.error ?? t('aiGenerate.errorMessage'));
+      }
+    } catch {
+      setAiGenerateError(t('aiGenerate.errorMessage'));
+    } finally {
+      setAiGenerating(false);
+    }
+  }, [aiGenerating, openUnpredictedGames, teamsMap, guessesContext, locale, t]);
 
 // Effect 1: Detect edit parameter and clear filters
   useEffect(() => {
@@ -280,6 +332,23 @@ function UnifiedGamesPageContent({
             nowAvailableRoundIds={nowAvailableRoundIdsSet}
           />
         </Box>
+
+        {/* AI Generate All button */}
+        {openUnpredictedGames.length > 0 && (
+          <Tooltip title={t('aiGenerate.generateAllButton')}>
+            <span>
+              <Fab
+                size="small"
+                color="primary"
+                aria-label={t('aiGenerate.generateAllButton')}
+                onClick={() => setAiDialogOpen(true)}
+                disabled={aiGenerating}
+              >
+                <AutoAwesomeIcon fontSize="small" />
+              </Fab>
+            </span>
+          </Tooltip>
+        )}
       </Box>
 
       {/* Scrollable Games List */}
@@ -302,6 +371,7 @@ function UnifiedGamesPageContent({
           qtPredictionLocked={tournamentPredictionCompletion?.isPredictionLocked ?? false}
           qualifiedTeamsHref={qualifiedTeamsHref}
           nowAvailableRoundIds={nowAvailableRoundIdsSet}
+          onAIGenerateClick={() => {}}
         />
 
         {/* Floating Action Button - Scroll to Next Game (mobile only) */}
@@ -321,6 +391,16 @@ function UnifiedGamesPageContent({
             <ArrowDownwardIcon />
           </Fab>
         )}
+
+        {/* AI Generate All Dialog */}
+        <AiGenerateAllDialog
+          open={aiDialogOpen}
+          onClose={() => { setAiDialogOpen(false); setAiGenerateError(null); }}
+          onConfirm={handleAIGenerateAll}
+          pendingCount={openUnpredictedGames.length}
+          loading={aiGenerating}
+          errorMessage={aiGenerateError}
+        />
 
         {/* Floating Action Button - Scroll to Top (mobile only, when scrolled) */}
         {showScrollTop && (
