@@ -202,7 +202,7 @@ User ranking and rank change calculation with competition ranking support.
 ### app/utils/ai-prediction-generator.ts
 AI-based probabilistic score generation using the Skellam model (independent Poisson per team). Rank difference drives expected goals via symmetric exponential scaling.
 
-- **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }` — Computes λHome/λAway from rank diff (`BASE_λ·exp(±K·diff)`, K=0.024, BASE_λ=1.2), samples Poisson scores independently, and for playoff draws picks a penalty winner proportional to strength difference. `rng` defaults to `Math.random`; inject for deterministic tests.
+- **generateAIPrediction(homeRank, awayRank, isPlayoff, rng?)**: `{ homeScore: number; awayScore: number; homePenaltyWinner?: boolean; awayPenaltyWinner?: boolean }` — Computes λHome/λAway from rank diff (`BASE_λ·exp(±K·diff)`, K=0.017, BASE_λ=1.2), samples Poisson scores independently, and for playoff draws picks a penalty winner proportional to strength difference. `rng` defaults to `Math.random`; inject for deterministic tests.
 
 ### app/utils/poisson-generator.ts
 Sports score generation using Poisson distribution for realistic predictions.
