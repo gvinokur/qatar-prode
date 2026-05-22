@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react';
 import {
   Button,
   CircularProgress,
@@ -11,6 +12,10 @@ import {
 } from '@mui/material';
 import { AutoAwesome as AutoAwesomeIcon } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
+
+function StrongText({ children }: { readonly children: React.ReactNode }) {
+  return <strong>{children}</strong>;
+}
 
 interface AiGenerateAllDialogProps {
   readonly open: boolean;
@@ -42,7 +47,7 @@ export default function AiGenerateAllDialog({
         <Typography variant="body1">
           {t.rich('aiGenerate.dialogMessage', {
             count: pendingCount,
-            strong: (chunks) => <strong>{chunks}</strong>,
+            strong: StrongText,
           })}
         </Typography>
         {errorMessage && (

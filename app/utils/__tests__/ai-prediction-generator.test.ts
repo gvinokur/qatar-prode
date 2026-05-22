@@ -134,6 +134,27 @@ describe('generateAIPrediction', () => {
       expect(result.awayPenaltyWinner).toBeUndefined();
     });
 
+    it('both ranks null → uses default rank 50 for both → diff=0 → equal lambdas', () => {
+      const rng = makeCounterRng([0.5, 0.5]);
+      const result = generateAIPrediction(null, null, false, rng);
+      // diff=0, λ=BASE_LAMBDA=1.2, L=exp(-1.2)≈0.301; rng=0.5>0.301→k=2; 0.25<0.301→score=1
+      expect(result.homeScore).toBe(1);
+      expect(result.awayScore).toBe(1);
+    });
+
+    it('away stronger (diff<0): away wins penalty with higher probability', () => {
+      // home=60, away=10: diff = 10-60 = -50 (away is stronger)
+      // λHome=1.2*exp(-0.017*50)≈0.506 → L=exp(-0.506)≈0.603; rng=0.5<0.603 → homeScore=0
+      // λAway=1.2*exp(0.017*50)≈2.845 → L=exp(-2.845)≈0.058; rng=0.01<0.058 → awayScore=0
+      // diff<0 → homeWinProbability=1-homeWinPct=1-0.667=0.333; rng=0.5>0.333 → away wins
+      const awayWinsRng = makeCounterRng([0.5, 0.01, 0.5]);
+      const result = generateAIPrediction(60, 10, true, awayWinsRng);
+      expect(result.homeScore).toBe(0);
+      expect(result.awayScore).toBe(0);
+      expect(result.homePenaltyWinner).toBe(false);
+      expect(result.awayPenaltyWinner).toBe(true);
+    });
+
     it('stronger home team (diff=50) has higher penalty win probability', () => {
       // With diff=50 (strong home), homeWinPct = min(75, 50 + 50/3) = min(75,66.7) ≈ 66.7%
       // home=10, away=60: diff=50; λHome=1.2*e^(0.017*50)≈2.80 → L=exp(-2.80)≈0.061
