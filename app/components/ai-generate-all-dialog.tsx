@@ -13,8 +13,8 @@ import {
 import { AutoAwesome as AutoAwesomeIcon } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
 
-function StrongText({ children }: { readonly children: React.ReactNode }) {
-  return <strong>{children}</strong>;
+function renderStrong(chunks: React.ReactNode): React.ReactNode {
+  return <strong>{chunks}</strong>;
 }
 
 interface AiGenerateAllDialogProps {
@@ -47,7 +47,7 @@ export default function AiGenerateAllDialog({
         <Typography variant="body1">
           {t.rich('aiGenerate.dialogMessage', {
             count: pendingCount,
-            strong: StrongText,
+            strong: renderStrong,
           })}
         </Typography>
         {errorMessage && (
