@@ -139,7 +139,8 @@ export default function PlayersTab({tournamentId, transfermarktUrlTemplate}: Pla
 
   const openImportPlayersModal = (team: Team) => {
     setSelectedTeam(team);
-    setTransfermarktName(team.name.replace(' ', '-') + '-fc-players');
+    const englishName = (team.name_i18n as Record<string, string> | undefined)?.en ?? team.name;
+    setTransfermarktName(englishName.replaceAll(' ', '-').toLowerCase() + '-fc-players');
     setTransfermarktId(team.transfermarkt_id ?? '');
     setDeleteExistingPlayers(false);
     setOpenImportModal(true);
