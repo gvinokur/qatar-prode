@@ -19,7 +19,7 @@ Two bugs in the Transfermarkt player import flow in the backoffice Players tab.
 |------|--------|
 | `app/actions/team-actions.ts` | Fix DOB parsing: replace `new Date()` with `dayjs` + `customParseFormat` |
 | `app/db/tournament-guess-repository.ts` | Add `clearPlayerAwardSelections(playerIds)` |
-| `app/actions/team-actions.ts` | Export new `deleteSpecificTeamPlayers` action wrapping award cleanup + player delete |
+| `app/actions/team-actions.ts` | Export `deleteSpecificTeamPlayers` (award cleanup + delete) and `updateTournamentTeamPlayer` (correct stale age/position) |
 | `app/components/backoffice/PlayersTab.tsx` | Fix delete logic: diff-delete by name-only, with award cleanup for removed players |
 
 ## Background: Award Selections
@@ -60,6 +60,14 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 
 **New functions:**
 
+- **updateTournamentTeamPlayer(playerId: string, data: { age_at_tournament: number, position: string })**: `Promise<void>`
+  Server Action. Admin-only. Updates age and position for an existing player record. Used to correct stale data on re-import.
+  Calls: getLoggedInUser, updatePlayer
+  Tests:
+  - throws Unauthorized when non-admin
+  - updates age_at_tournament and position on the player record
+  - no-ops on fields not passed
+
 - **deleteSpecificTeamPlayers(tournamentId: string, teamId: string, playerIds: string[])**: `Promise<void>`
   Server Action. Admin-only. Clears award selections for the given playerIds, then deletes those player records.
   Calls: getLoggedInUser, clearPlayerAwardSelections, deleteTournamentTeamPlayers
@@ -89,12 +97,15 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 
 - **handleImportPlayers()** — internal logic change, no signature
   - Replace `deleteTournamentTeamPlayers` import with `deleteSpecificTeamPlayers` from `team-actions`
-  - When `deleteExistingPlayers === true`: compute `toDelete` by matching existing vs new import **by name only** (remove age comparison). Call `deleteSpecificTeamPlayers(tournamentId, selectedTeam.id, toDelete.map(p => p.id))`.
-  - Update local `existingPlayers` to remove deleted players before dedup filter runs
-  - Keep existing dedup logic for insert (prevents re-adding kept players)
+  - Import `updateTournamentTeamPlayer` from `team-actions` (new action, see below)
+  - **Always** (regardless of checkbox): for each Transfermarkt player whose name matches an existing player, call `updateTournamentTeamPlayer(existingPlayer.id, { age_at_tournament, position })`. This corrects stale ages from the old broken DOB parser.
+  - When `deleteExistingPlayers === true`: compute `toDelete` by matching existing vs new import **by name only**. Call `deleteSpecificTeamPlayers(tournamentId, selectedTeam.id, toDelete.map(p => p.id))`. Update local `existingPlayers` to remove deleted entries.
+  - Insert only players not already in DB by name (unchanged logic, now correct because updates handled separately)
   - Note: name-only matching assumes player names are unique per team (standard for real squad data).
   - Tests:
-    - when `deleteExistingPlayers === false`, existing players are preserved and only new ones added
+    - matched player with stale age is updated to the new age from Transfermarkt
+    - matched player's position is updated if it changed
+    - when `deleteExistingPlayers === false`, unmatched existing players are preserved (not deleted)
     - when `deleteExistingPlayers === true`, players not in the new import are identified by name and passed to `deleteSpecificTeamPlayers`
     - when `deleteExistingPlayers === true`, players whose name appears in the new import are NOT deleted (award selections survive)
     - when `deleteExistingPlayers === true` and a player is removed from squad, `deleteSpecificTeamPlayers` is called with that player's ID (verifies award cleanup integration)
@@ -103,8 +114,8 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 ## Implementation Steps
 
 1. `app/db/tournament-guess-repository.ts`: add `clearPlayerAwardSelections`
-2. `app/actions/team-actions.ts`: add dayjs imports + fix DOB parsing; add `deleteSpecificTeamPlayers` action
-3. `app/components/backoffice/PlayersTab.tsx`: update import, switch to name-only diff-delete via `deleteSpecificTeamPlayers`
+2. `app/actions/team-actions.ts`: add dayjs imports + fix DOB parsing; add `deleteSpecificTeamPlayers` and `updateTournamentTeamPlayer` actions
+3. `app/components/backoffice/PlayersTab.tsx`: update imports; on import — update matched players (age+position), delete removed players with award cleanup, insert new players
 
 ## CODE-STRUCTURE Files to Update
 - `docs/code-structure/db.md` — add `clearPlayerAwardSelections` to tournament-guess-repository section
