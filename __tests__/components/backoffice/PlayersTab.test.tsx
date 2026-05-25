@@ -152,7 +152,7 @@ describe('PlayersTab', () => {
       // This is indirectly tested by the modal opening correctly with the populated form
     });
 
-    it('should pre-fill transfermarkt team name with team.name.replace(" ", "-") + "-fc-players"', async () => {
+    it('should pre-fill transfermarkt team name using English locale name (lowercased, hyphenated)', async () => {
       const user = userEvent.setup();
       renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
 
@@ -165,7 +165,8 @@ describe('PlayersTab', () => {
       await user.click(importButtonElement!);
 
       await waitFor(() => {
-        const nameInput = screen.getByDisplayValue('Test-Team-fc-players');
+        // Falls back to team.name when name_i18n.en is not set; lowercased and hyphenated, no suffix
+        const nameInput = screen.getByDisplayValue('test-team');
         expect(nameInput).toBeInTheDocument();
       });
     });
