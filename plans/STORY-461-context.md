@@ -5,8 +5,8 @@
 - **Story Title:** Fix player import: DOB parsing failures and delete-existing-players not working
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-461
 - **Branch:** feature/story-461
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 462
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/462
 
 ## State
 - **Current Phase:** planning
