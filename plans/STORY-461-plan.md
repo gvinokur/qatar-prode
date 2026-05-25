@@ -18,14 +18,56 @@ Two bugs in the Transfermarkt player import flow in the backoffice Players tab.
 | File | Change |
 |------|--------|
 | `app/actions/team-actions.ts` | Fix DOB parsing: replace `new Date()` with `dayjs` + `customParseFormat` |
-| `app/components/backoffice/PlayersTab.tsx` | Fix delete logic: full wipe via `deleteAllTeamPlayersInTournament` when checkbox checked |
+| `app/db/tournament-guess-repository.ts` | Add `clearPlayerAwardSelections(playerIds)` |
+| `app/actions/team-actions.ts` | Export new `deleteSpecificTeamPlayers` action wrapping award cleanup + player delete |
+| `app/components/backoffice/PlayersTab.tsx` | Fix delete logic: diff-delete by name-only, with award cleanup for removed players |
+
+## Background: Award Selections
+
+`tournament_guesses` stores per-user award picks with 4 player FK columns:
+`best_player_id`, `top_goalscorer_player_id`, `best_goalkeeper_player_id`, `best_young_player_id`.
+**There is no FK cascade** — deleting a player leaves orphaned UUIDs silently.
+We must NULL these out before deleting any players.
+`tournaments` has the same 4 columns for final results (admin-set); we do NOT auto-clear those.
+
+## Why diff-delete (not full wipe)
+
+A full wipe assigns new UUIDs on reimport → all award selections for the team are lost.
+Diff-delete (match by name) keeps existing player records for players still in the squad,
+preserving their IDs and award selections. Only players removed from the squad are deleted,
+and their award selections are cleaned up.
 
 ## Mid-Level Design
 
 ### Call Graph Changes
-No call graph changes. `PlayersTab.tsx` will import `deleteAllTeamPlayersInTournament` which already exists in `team-actions.ts` but wasn't used from this component.
+New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamPlayers` → `clearPlayerAwardSelections` + `deleteTournamentTeamPlayers`.
+
+### `app/db/tournament-guess-repository.ts` *(modified)*
+
+**New functions:**
+
+- **clearPlayerAwardSelections(playerIds: string[])**: `Promise<void>`
+  No-ops when `playerIds` is empty. Runs 4 separate `UPDATE tournament_guesses SET col = NULL WHERE col IN (playerIds)` queries (one per award column) using Kysely.
+  Tests:
+  - no-ops when playerIds is empty
+  - clears `best_player_id` where it matches a deleted player
+  - clears `top_goalscorer_player_id` where it matches
+  - clears `best_goalkeeper_player_id` where it matches
+  - clears `best_young_player_id` where it matches
+  - does not affect rows whose award columns reference other players
 
 ### `app/actions/team-actions.ts` *(modified)*
+
+**New functions:**
+
+- **deleteSpecificTeamPlayers(tournamentId: string, teamId: string, playerIds: string[])**: `Promise<void>`
+  Server Action. Admin-only. Clears award selections for the given playerIds, then deletes those player records.
+  Calls: getLoggedInUser, clearPlayerAwardSelections, deleteTournamentTeamPlayers
+  Tests:
+  - throws Unauthorized when non-admin
+  - calls clearPlayerAwardSelections before deleting players
+  - no-ops when playerIds is empty
+  - deletes only the specified player IDs
 
 **Changed functions:**
 
@@ -33,10 +75,10 @@ No call graph changes. `PlayersTab.tsx` will import `deleteAllTeamPlayersInTourn
   - Add `import dayjs from 'dayjs'` and `import customParseFormat from 'dayjs/plugin/customParseFormat'`
   - Replace `new Date(dobText)` block with `dayjs(dobText, formats, true)` where `formats = ['MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY']`
   - Log `console.error` with raw `dobText` when no format matches (keeps age-18 fallback but makes failures visible)
-  - Transfermarkt is always fetched in English (`?locale=page`) so month abbreviations are always English
+  - Transfermarkt is always fetched in English so month abbreviations are always English
   - Tests:
     - parses `"Jan 5, 1998"` (US format) correctly
-    - parses `"05.01.1998"` (European DD.MM.YYYY) correctly → NOT mis-read as May 3rd
+    - parses `"05.01.1998"` (European DD.MM.YYYY) correctly — not mis-read as May 3rd
     - parses `"5 Jan 1998"` (D MMM YYYY) correctly
     - parses `"01.01.1998"` (zero-padded European) correctly
     - falls back to age 18 and logs error when DOB is unparseable (e.g. `"99/99/9999"`)
@@ -46,28 +88,32 @@ No call graph changes. `PlayersTab.tsx` will import `deleteAllTeamPlayersInTourn
 **Changed functions:**
 
 - **handleImportPlayers()** — internal logic change, no signature
-  - Import `deleteAllTeamPlayersInTournament` from `../../actions/team-actions`
-  - When `deleteExistingPlayers === true`: call `deleteAllTeamPlayersInTournament(tournamentId, selectedTeam.id)` BEFORE fetching Transfermarkt data, set `existingPlayers = []`
-  - Remove the old diff-delete block (lines ~78–89 in current file)
-  - Note: delete-then-import is not atomic. If delete succeeds but the Transfermarkt fetch fails, the team has no players. User retries the import (delete runs again, then import). This is acceptable UX for a backoffice admin operation.
+  - Replace `deleteTournamentTeamPlayers` import with `deleteSpecificTeamPlayers` from `team-actions`
+  - When `deleteExistingPlayers === true`: compute `toDelete` by matching existing vs new import **by name only** (remove age comparison). Call `deleteSpecificTeamPlayers(tournamentId, selectedTeam.id, toDelete.map(p => p.id))`.
+  - Update local `existingPlayers` to remove deleted players before dedup filter runs
+  - Keep existing dedup logic for insert (prevents re-adding kept players)
+  - Note: name-only matching assumes player names are unique per team (standard for real squad data).
   - Tests:
-    - when `deleteExistingPlayers === false`, existing players preserved and only new ones added
-    - when `deleteExistingPlayers === true`, `deleteAllTeamPlayersInTournament` is called with correct `tournamentId` and `selectedTeam.id` before the fetch
-    - when `deleteExistingPlayers === true`, `existingPlayers` is set to `[]` before dedup filter runs
-    - when `deleteExistingPlayers === true`, all Transfermarkt players are created (no dedup against empty list)
-    - when `deleteAllTeamPlayersInTournament` throws, the error is caught and import aborts
+    - when `deleteExistingPlayers === false`, existing players are preserved and only new ones added
+    - when `deleteExistingPlayers === true`, players not in the new import are identified by name and passed to `deleteSpecificTeamPlayers`
+    - when `deleteExistingPlayers === true`, players whose name appears in the new import are NOT deleted (award selections survive)
+    - when `deleteExistingPlayers === true` and a player is removed from squad, `deleteSpecificTeamPlayers` is called with that player's ID (verifies award cleanup integration)
+    - when `deleteSpecificTeamPlayers` throws, the error propagates and import aborts
 
 ## Implementation Steps
 
-1. `app/actions/team-actions.ts`: add dayjs imports, replace `new Date(dobText)` block
-2. `app/components/backoffice/PlayersTab.tsx`: add `deleteAllTeamPlayersInTournament` import, replace diff-delete block with full wipe
+1. `app/db/tournament-guess-repository.ts`: add `clearPlayerAwardSelections`
+2. `app/actions/team-actions.ts`: add dayjs imports + fix DOB parsing; add `deleteSpecificTeamPlayers` action
+3. `app/components/backoffice/PlayersTab.tsx`: update import, switch to name-only diff-delete via `deleteSpecificTeamPlayers`
 
 ## CODE-STRUCTURE Files to Update
-- `docs/code-structure/actions.md` — update `getTransfermarktPlayerData` description
+- `docs/code-structure/db.md` — add `clearPlayerAwardSelections` to tournament-guess-repository section
+- `docs/code-structure/actions.md` — add `deleteSpecificTeamPlayers`; update `getTransfermarktPlayerData`
 - `docs/code-structure/components/components-backoffice.md` — update `handleImportPlayers` note
-- Call graph: No changes
+- Call graph: Add new flow for `deleteSpecificTeamPlayers`
 
 ## Verification
 - Import a team from Transfermarkt → verify ages look correct (not all 18)
-- Re-import same team with "delete existing players" checked → all old players removed, fresh set imported
-- Re-import same team WITHOUT checkbox → existing players preserved, only new ones added
+- A user selects a player for "best player" award → re-import same team with "delete existing players" checked → that player's award selection is preserved (player kept by name match)
+- Re-import with a player removed from the squad → that player's award selection is NULLed out in `tournament_guesses`
+- Re-import without checkbox → existing players and award selections fully preserved
