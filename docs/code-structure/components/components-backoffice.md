@@ -96,8 +96,8 @@ Admin user list with search, pagination, and ad-free toggle. [Client] self-fetch
 
 ### app/components/backoffice/PlayersTab.tsx
 Player management with Transfermarkt import. [Client] import interface and player list.
-- **PlayersTab({ tournamentId, transfermarktUrlTemplate }: PlayersTabProps)**: `JSX.Element` — [Client] Displays teams with player lists and Transfermarkt import dialog. Pre-fills team's stored Transfermarkt ID on modal open; persists it after a successful import (Story #306).
-  Calls: getPlayersInTournament, getTransfermarktPlayerData, createTournamentTeamPlayers, deleteTournamentTeamPlayers, saveTeamTransfermarktId
+- **PlayersTab({ tournamentId, transfermarktUrlTemplate }: PlayersTabProps)**: `JSX.Element` — [Client] Displays teams with player lists and Transfermarkt import dialog. Import uses upsert-by-name logic: updates age/position for matched players, deletes removed players (with award cleanup) when checkbox checked, inserts new players. Pre-fills stored Transfermarkt ID on modal open; persists it after successful import (Story #306, #461).
+  Calls: getPlayersInTournament, getTransfermarktPlayerData, createTournamentTeamPlayers, updateTournamentTeamPlayer, deleteSpecificTeamPlayers, saveTeamTransfermarktId
   Uses: useCallback, useEffect, useState
   Renders: Accordion, Dialog, TextField, Checkbox, Table, Button, Alert
 

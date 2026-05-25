@@ -280,14 +280,18 @@ Team and player management for backoffice — creates/updates teams, imports pla
   Calls: getLoggedInUser, validateRank, updateTeaminDb, deleteThemeLogoFromS3, applyLocalization
 - **getPlayersInTournament(tournamentId: string)**: `Promise<{team: Team, players: Player[]}[]>` — Returns all teams in a tournament with their player rosters.
   Calls: findTeamInTournament, findPlayersByTeamId
-- **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only).
+- **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only). Parses DOB using dayjs with format list ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD']; falls back to age 18 on parse failure.
   Calls: getLoggedInUser, getTournamentStartDate
 - **deleteAllTeamPlayersInTournament(tournamentId: string, teamId: string)**: `Promise<void>` — Deletes all players for a team in a tournament (admin only).
-  Calls: getLoggedInUser, findPlayersByTeamId, deletePlayer
+  Calls: getLoggedInUser, deleteAllPlayersInTournamentTeamDb
 - **createTournamentTeamPlayers(players: PlayerNew[])**: `Promise<Player[]>` — Bulk-creates player records (admin only).
   Calls: getLoggedInUser, createPlayer
-- **deleteTournamentTeamPlayers(players: Player[])**: `Promise<void>` — Bulk-deletes player records (admin only).
+- **deleteTournamentTeamPlayers(players: Player[])**: `Promise<void>` — Bulk-deletes player records by Player objects (admin only).
   Calls: getLoggedInUser, deletePlayer
+- **updateTournamentTeamPlayer(playerId: string, data: { age_at_tournament: number; position: string })**: `Promise<void>` — Updates age and position for an existing player record. Used on re-import to correct stale DOB-derived age (admin only).
+  Calls: getLoggedInUser, updatePlayer
+- **deleteSpecificTeamPlayers(tournamentId: string, teamId: string, playerIds: string[])**: `Promise<void>` — Clears award selections then deletes the specified player records. No-ops on empty array (admin only).
+  Calls: getLoggedInUser, clearPlayerAwardSelections, deletePlayer
 - **moveTournamentTeamPlayer(player: Player, newTeamId: string)**: `Promise<Player>` — Moves a player to a different team (admin only).
   Calls: getLoggedInUser, updatePlayer
 - **saveTeamTransfermarktId(teamId: string, transfermarktId: string)**: `Promise<void>` — Persists a team's Transfermarkt ID after a successful import for pre-filling on re-import (admin only).

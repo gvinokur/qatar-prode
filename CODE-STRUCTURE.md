@@ -534,9 +534,12 @@ Key flows:
       │     └── findTeamInTournament, findPlayersByTeamId
       ├── getTransfermarktPlayerData [server action] (on import submit)
       │     └── getTournamentStartDate → findFirstGameInTournament
-      ├── createTournamentTeamPlayers [server action] (after scrape)
+      ├── createTournamentTeamPlayers [server action] (inserts new players)
       │     └── createPlayer
-      ├── deleteTournamentTeamPlayers [server action] (when deleteExisting checked)
+      ├── updateTournamentTeamPlayer [server action] (updates age/position for name-matched players)
+      │     └── updatePlayer
+      ├── deleteSpecificTeamPlayers [server action] (when deleteExisting checked, for removed players)
+      │     ├── clearPlayerAwardSelections → db.updateTable('tournament_guesses')
       │     └── deletePlayer
       └── saveTeamTransfermarktId [server action] (fire-and-forget after successful import)
             └── updateTeaminDb

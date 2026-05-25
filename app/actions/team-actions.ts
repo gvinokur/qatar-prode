@@ -8,12 +8,16 @@ import {createS3Client, deleteThemeLogoFromS3} from "./s3";
 import {createTeam as createTeamInDb, updateTeam as updateTeaminDb, findTeamInTournament} from "../db/team-repository";
 import {createTournamentTeam} from "../db/tournament-repository";
 import * as cheerio from 'cheerio';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 import {
   createPlayer,
   findAllPlayersInTournamentWithTeamData,
   deleteAllPlayersInTournamentTeam as deleteAllPlayersInTournamentTeamDb,
   deletePlayer, updatePlayer
 } from "../db/player-repository";
+import { clearPlayerAwardSelections } from "../db/tournament-guess-repository";
 import {getTournamentStartDate} from "./tournament-actions";
 
 const s3Client = createS3Client('team_logos')
@@ -289,20 +293,21 @@ export async function getTransfermarktPlayerData(
       let ageAtTournament = 18;
 
       if (dobElement.length) {
-        // Get the text and remove any content in parentheses (age)
-        let dobText = dobElement.text().trim().replace(/\s*\([^)]*\)\s*/g, '');
-
-        try {
-          // Parse the date string
-          const date = new Date(dobText);
-
-          // Check if date is valid
-          if (!isNaN(date.getTime())) {
-            // Format as MM/DD/YYYY
-            ageAtTournament = calculateAge(date, tournamentStartDate);
-          }
-        } catch (e) {
-          console.error(`Error parsing date: ${dobText}`, e);
+        const dobText = dobElement.text().trim().replace(/\s*\([^)]*\)\s*/g, '').trim();
+        // MM/DD/YYYY is the confirmed browser-side Transfermarkt format (e.g. "05/25/1995").
+        // Server-side format may differ depending on Accept-Language handling — keep fallbacks.
+        // Do NOT add DD/MM/YYYY alongside MM/DD/YYYY; ambiguous dates (day ≤ 12) would silently mis-parse.
+        const formats = ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD'];
+        console.warn('Transfermarkt raw DOB:', dobText);
+        const parsed = formats.reduce<dayjs.Dayjs | null>((found, fmt) => {
+          if (found) return found;
+          const d = dayjs(dobText, fmt, true);
+          return d.isValid() ? d : null;
+        }, null);
+        if (parsed) {
+          ageAtTournament = calculateAge(parsed.toDate(), tournamentStartDate);
+        } else {
+          console.error(`Could not parse DOB: "${dobText}"`);
         }
       }
 
@@ -369,4 +374,29 @@ export async function saveTeamTransfermarktId(teamId: string, transfermarktId: s
   }
 
   await updateTeaminDb(teamId, { transfermarkt_id: transfermarktId });
+}
+
+export async function updateTournamentTeamPlayer(
+  playerId: string,
+  data: { age_at_tournament: number; position: string }
+): Promise<void> {
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can access this data');
+  }
+  await updatePlayer(playerId, data);
+}
+
+export async function deleteSpecificTeamPlayers(
+  tournamentId: string,
+  teamId: string,
+  playerIds: string[]
+): Promise<void> {
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error('Unauthorized: Only administrators can access this data');
+  }
+  if (playerIds.length === 0) return;
+  await clearPlayerAwardSelections(playerIds);
+  await Promise.all(playerIds.map(id => deletePlayer(id)));
 }

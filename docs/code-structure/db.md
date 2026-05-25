@@ -271,6 +271,7 @@ Repository for tournament_guesses table. Tracks overall tournament scores and ma
 - **deleteAllUserTournamentGuesses(userId: string)**: `Promise<void>` — Deletes all for user (account deletion).
 - **deleteAllTournamentGuessesByTournamentId(tournamentId: string)**: `Promise<void>` — Deletes all for tournament.
 - **recalculateGameScoresForUsers(userIds: string[], tournamentId: string)**: `Promise<TournamentGuess[]>` — Recalculates and materializes game scores from aggregation, including goal_difference counts. Also writes a daily score snapshot (writeScoreSnapshot) per user inside the loop.
+- **clearPlayerAwardSelections(playerIds: string[])**: `Promise<void>` — NULLs out all 4 award FK columns (best_player_id, top_goalscorer_player_id, best_goalkeeper_player_id, best_young_player_id) for the given player IDs. No-ops on empty array. Used before deleting players to prevent orphaned award references.
 
 ### app/db/tournament-playoff-repository.ts
 Repository for tournament_playoff_rounds and playoff games. Manages playoff bracket structure.
