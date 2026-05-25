@@ -126,6 +126,18 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 - `docs/code-structure/components/components-backoffice.md` — update `handleImportPlayers` note
 - Call graph: Add new flow for `deleteSpecificTeamPlayers`
 
+## Implementation Amendments
+
+### Amendment 1: DOB format confirmed as DD/MM/YYYY server-side
+**Date:** 2026-05-25
+**Reason:** Plan initially assumed MM/DD/YYYY based on browser observation. After deploying with debug logging (`console.warn` of raw DOB), server logs confirmed Transfermarkt returns DD/MM/YYYY server-side despite the `Accept-Language: en-US` header.
+**Change:** Swapped primary format to `DD/MM/YYYY`, removed `MM/DD/YYYY` from list (can't have both due to ambiguity for days ≤ 12), removed debug log.
+
+### Amendment 2: Team name pre-fill uses English locale name, no suffix
+**Date:** 2026-05-25
+**Reason:** User feedback — the pre-fill should use the English version of the team name (from `name_i18n.en`) rather than the localized display name, and should not append `-fc-players`.
+**Change:** `openImportPlayersModal` now reads `team.name_i18n?.en ?? team.name`, applies `replaceAll(' ', '-').toLowerCase()`, and uses that as the pre-filled value with no suffix.
+
 ## Verification
 - Import a team from Transfermarkt → verify ages look correct (not all 18)
 - A user selects a player for "best player" award → re-import same team with "delete existing players" checked → that player's award selection is preserved (player kept by name match)
