@@ -294,11 +294,10 @@ export async function getTransfermarktPlayerData(
 
       if (dobElement.length) {
         const dobText = dobElement.text().trim().replace(/\s*\([^)]*\)\s*/g, '').trim();
-        // MM/DD/YYYY is the confirmed browser-side Transfermarkt format (e.g. "05/25/1995").
-        // Server-side format may differ depending on Accept-Language handling — keep fallbacks.
-        // Do NOT add DD/MM/YYYY alongside MM/DD/YYYY; ambiguous dates (day ≤ 12) would silently mis-parse.
-        const formats = ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD'];
-        console.warn('Transfermarkt raw DOB:', dobText);
+        // Server-side Transfermarkt returns DD/MM/YYYY (confirmed). Browser-side shows MM/DD/YYYY
+        // but backend Accept-Language handling differs. Do NOT include both slash formats — ambiguous
+        // dates (day ≤ 12) would silently mis-parse.
+        const formats = ['DD/MM/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD'];
         const parsed = formats.reduce<dayjs.Dayjs | null>((found, fmt) => {
           if (found) return found;
           const d = dayjs(dobText, fmt, true);
