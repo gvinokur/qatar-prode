@@ -81,7 +81,7 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 
 - **getTransfermarktPlayerData(...)** — internal parsing change only, signature unchanged
   - Add `import dayjs from 'dayjs'` and `import customParseFormat from 'dayjs/plugin/customParseFormat'`
-  - Replace `new Date(dobText)` block with `dayjs(dobText, formats, true)` where `formats = ['MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY']`
+  - Replace `new Date(dobText)` block with `dayjs(dobText, formats, true)` where `formats = ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD']` — `MM/DD/YYYY` first because that is Transfermarkt's confirmed format (e.g. `"05/25/1995 (31)"` → after stripping parens → `"05/25/1995"`); others are defensive fallbacks
   - Log `console.error` with raw `dobText` when no format matches (keeps age-18 fallback but makes failures visible)
   - Transfermarkt is always fetched in English so month abbreviations are always English
   - Tests:
