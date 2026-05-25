@@ -81,9 +81,12 @@ New call path added: `PlayersTab (handleImportPlayers)` → `deleteSpecificTeamP
 
 - **getTransfermarktPlayerData(...)** — internal parsing change only, signature unchanged
   - Add `import dayjs from 'dayjs'` and `import customParseFormat from 'dayjs/plugin/customParseFormat'`
-  - Replace `new Date(dobText)` block with `dayjs(dobText, formats, true)` where `formats = ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD']` — `MM/DD/YYYY` first because that is Transfermarkt's confirmed format (e.g. `"05/25/1995 (31)"` → after stripping parens → `"05/25/1995"`); others are defensive fallbacks
+  - The backend fetch already sends `Accept-Language: en-US,en;q=0.5` but Transfermarkt may not honor it for date formatting — the URL path is in German (`/kader/verein/`) and date format can vary independently of the language header
+  - Replace `new Date(dobText)` block with `dayjs(dobText, formats, true)` where `formats = ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD']`
+  - `MM/DD/YYYY` is first because `"05/25/1995 (31)"` is the confirmed browser-side format; if the server returns a different format, the next formats in the list will catch it
+  - **Important ambiguity:** `MM/DD/YYYY` vs `DD/MM/YYYY` cannot be distinguished for dates where day ≤ 12. Do NOT add `DD/MM/YYYY` to the list — it would silently mis-parse ambiguous dates. If the server-side format turns out to be `DD/MM/YYYY`, we need to remove `MM/DD/YYYY` and add `DD/MM/YYYY` instead (not both).
+  - Add `console.info('Transfermarkt raw DOB:', dobText)` in the parsing block **during this implementation** so the first test deploy reveals the actual server-side format. Remove this log once confirmed.
   - Log `console.error` with raw `dobText` when no format matches (keeps age-18 fallback but makes failures visible)
-  - Transfermarkt is always fetched in English so month abbreviations are always English
   - Tests:
     - parses `"Jan 5, 1998"` (US format) correctly
     - parses `"05.01.1998"` (European DD.MM.YYYY) correctly — not mis-read as May 3rd
