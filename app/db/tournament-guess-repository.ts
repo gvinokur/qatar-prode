@@ -103,6 +103,24 @@ export async function deleteAllTournamentGuessesByTournamentId(tournamentId: str
     .execute();
 }
 
+export async function clearPlayerAwardSelections(playerIds: string[]): Promise<void> {
+  if (playerIds.length === 0) return;
+  const awardColumns = [
+    'best_player_id',
+    'top_goalscorer_player_id',
+    'best_goalkeeper_player_id',
+    'best_young_player_id',
+  ] as const;
+  await Promise.all(
+    awardColumns.map(col =>
+      db.updateTable('tournament_guesses')
+        .set({ [col]: null })
+        .where(col, 'in', playerIds)
+        .execute()
+    )
+  );
+}
+
 /**
  * Recalculate and materialize game scores for users in a tournament
  * Story #147: Performance optimization to materialize expensive SQL aggregations

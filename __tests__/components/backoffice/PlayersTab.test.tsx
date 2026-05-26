@@ -11,6 +11,8 @@ vi.mock('../../../app/actions/team-actions', () => ({
   getTransfermarktPlayerData: vi.fn(),
   createTournamentTeamPlayers: vi.fn(),
   deleteTournamentTeamPlayers: vi.fn(),
+  deleteSpecificTeamPlayers: vi.fn(),
+  updateTournamentTeamPlayer: vi.fn(),
   saveTeamTransfermarktId: vi.fn(),
 }));
 
@@ -30,6 +32,8 @@ const mockGetPlayersInTournament = vi.mocked(teamActions.getPlayersInTournament)
 const mockGetTransfermarktPlayerData = vi.mocked(teamActions.getTransfermarktPlayerData);
 const mockCreateTournamentTeamPlayers = vi.mocked(teamActions.createTournamentTeamPlayers);
 const mockDeleteTournamentTeamPlayers = vi.mocked(teamActions.deleteTournamentTeamPlayers);
+const mockDeleteSpecificTeamPlayers = vi.mocked(teamActions.deleteSpecificTeamPlayers);
+const mockUpdateTournamentTeamPlayer = vi.mocked(teamActions.updateTournamentTeamPlayer);
 const mockSaveTeamTransfermarktId = vi.mocked(teamActions.saveTeamTransfermarktId);
 
 describe('PlayersTab', () => {
@@ -80,6 +84,8 @@ describe('PlayersTab', () => {
       }),
     ]);
 
+    mockDeleteSpecificTeamPlayers.mockResolvedValue(undefined);
+    mockUpdateTournamentTeamPlayer.mockResolvedValue(undefined);
     mockSaveTeamTransfermarktId.mockResolvedValue(undefined);
   });
 
@@ -152,7 +158,7 @@ describe('PlayersTab', () => {
       // This is indirectly tested by the modal opening correctly with the populated form
     });
 
-    it('should pre-fill transfermarkt team name with team.name.replace(" ", "-") + "-fc-players"', async () => {
+    it('should pre-fill transfermarkt team name using English locale name (lowercased, hyphenated)', async () => {
       const user = userEvent.setup();
       renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
 
@@ -165,7 +171,8 @@ describe('PlayersTab', () => {
       await user.click(importButtonElement!);
 
       await waitFor(() => {
-        const nameInput = screen.getByDisplayValue('Test-Team-fc-players');
+        // Falls back to team.name when name_i18n.en is not set; lowercased and hyphenated, no suffix
+        const nameInput = screen.getByDisplayValue('test-team');
         expect(nameInput).toBeInTheDocument();
       });
     });
@@ -337,6 +344,222 @@ describe('PlayersTab', () => {
       const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
       const submitButton = dialogButtons[dialogButtons.length - 1];
       expect(submitButton).not.toBeDisabled();
+    });
+  });
+
+  describe('Import Logic - Upsert by Name', () => {
+    const mockExistingPlayer = testFactories.player({
+      id: 'player-existing',
+      name: 'John Doe',
+      position: 'GK',
+      age_at_tournament: 18, // stale age from old broken parser
+      team_id: 'team-1',
+    });
+
+    beforeEach(() => {
+      mockGetPlayersInTournament.mockResolvedValue([
+        {
+          team: mockTeamWithTransfermarktId,
+          players: [mockExistingPlayer],
+        },
+      ]);
+
+      // Transfermarkt returns the same player with corrected age
+      mockGetTransfermarktPlayerData.mockResolvedValue([
+        {
+          name: 'John Doe',
+          position: 'GK',
+          ageAtTournament: 28, // correct age
+        },
+      ]);
+
+      mockCreateTournamentTeamPlayers.mockResolvedValue([]);
+    });
+
+    it('should call updateTournamentTeamPlayer for a matched player to fix stale age', async () => {
+      const user = userEvent.setup();
+      renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Team')).toBeInTheDocument();
+      });
+
+      const importButtons = screen.getAllByText('Import Players');
+      await user.click(importButtons[0]!.closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('583')).toBeInTheDocument();
+      });
+
+      const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
+      await user.click(dialogButtons[dialogButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(mockUpdateTournamentTeamPlayer).toHaveBeenCalledWith('player-existing', {
+          age_at_tournament: 28,
+          position: 'GK',
+        });
+      });
+    });
+
+    it('should call updateTournamentTeamPlayer with the new position when it changed', async () => {
+      mockGetTransfermarktPlayerData.mockResolvedValue([
+        { name: 'John Doe', position: 'DF', ageAtTournament: 28 },
+      ]);
+
+      const user = userEvent.setup();
+      renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Team')).toBeInTheDocument();
+      });
+
+      const importButtons = screen.getAllByText('Import Players');
+      await user.click(importButtons[0]!.closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('583')).toBeInTheDocument();
+      });
+
+      const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
+      await user.click(dialogButtons[dialogButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(mockUpdateTournamentTeamPlayer).toHaveBeenCalledWith(
+          'player-existing',
+          expect.objectContaining({ position: 'DF' })
+        );
+      });
+    });
+
+    it('should NOT call deleteSpecificTeamPlayers when deleteExistingPlayers is false', async () => {
+      // Add an extra existing player who is NOT in the new import
+      const playerNotInImport = testFactories.player({
+        id: 'player-removed',
+        name: 'Old Player',
+        position: 'FW',
+        age_at_tournament: 30,
+        team_id: 'team-1',
+      });
+      mockGetPlayersInTournament.mockResolvedValue([
+        {
+          team: mockTeamWithTransfermarktId,
+          players: [mockExistingPlayer, playerNotInImport],
+        },
+      ]);
+
+      const user = userEvent.setup();
+      renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Team')).toBeInTheDocument();
+      });
+
+      const importButtons = screen.getAllByText('Import Players');
+      await user.click(importButtons[0]!.closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('583')).toBeInTheDocument();
+      });
+
+      // Do NOT check the deleteExistingPlayers checkbox — leave it unchecked
+      const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
+      await user.click(dialogButtons[dialogButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(mockUpdateTournamentTeamPlayer).toHaveBeenCalled();
+      });
+
+      expect(mockDeleteSpecificTeamPlayers).not.toHaveBeenCalled();
+    });
+
+    it('should call deleteSpecificTeamPlayers with removed player IDs when deleteExistingPlayers is true', async () => {
+      const playerNotInImport = testFactories.player({
+        id: 'player-removed',
+        name: 'Old Player',
+        position: 'FW',
+        age_at_tournament: 30,
+        team_id: 'team-1',
+      });
+      mockGetPlayersInTournament.mockResolvedValue([
+        {
+          team: mockTeamWithTransfermarktId,
+          players: [mockExistingPlayer, playerNotInImport],
+        },
+      ]);
+
+      const user = userEvent.setup();
+      renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Team')).toBeInTheDocument();
+      });
+
+      const importButtons = screen.getAllByText('Import Players');
+      await user.click(importButtons[0]!.closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('583')).toBeInTheDocument();
+      });
+
+      // Check the "delete existing players" checkbox
+      const deleteCheckbox = screen.getByRole('checkbox');
+      await user.click(deleteCheckbox);
+
+      const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
+      await user.click(dialogButtons[dialogButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(mockDeleteSpecificTeamPlayers).toHaveBeenCalledWith(
+          mockTournamentId,
+          'team-1',
+          ['player-removed']
+        );
+      });
+    });
+
+    it('should NOT include matched players in deleteSpecificTeamPlayers call', async () => {
+      const playerNotInImport = testFactories.player({
+        id: 'player-removed',
+        name: 'Old Player',
+        position: 'FW',
+        age_at_tournament: 30,
+        team_id: 'team-1',
+      });
+      mockGetPlayersInTournament.mockResolvedValue([
+        {
+          team: mockTeamWithTransfermarktId,
+          players: [mockExistingPlayer, playerNotInImport],
+        },
+      ]);
+
+      const user = userEvent.setup();
+      renderWithTheme(<PlayersTab tournamentId={mockTournamentId} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Team')).toBeInTheDocument();
+      });
+
+      const importButtons = screen.getAllByText('Import Players');
+      await user.click(importButtons[0]!.closest('button')!);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('583')).toBeInTheDocument();
+      });
+
+      const deleteCheckbox = screen.getByRole('checkbox');
+      await user.click(deleteCheckbox);
+
+      const dialogButtons = screen.getAllByRole('button', { name: /importar/i });
+      await user.click(dialogButtons[dialogButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(mockDeleteSpecificTeamPlayers).toHaveBeenCalled();
+      });
+
+      // 'player-existing' (John Doe) is in the new import — must NOT be in the delete list
+      const deleteCall = mockDeleteSpecificTeamPlayers.mock.calls[0];
+      expect(deleteCall[2]).not.toContain('player-existing');
     });
   });
 });

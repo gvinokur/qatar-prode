@@ -901,4 +901,102 @@ describe('Tournament Guess Repository - Materialization', () => {
       );
     });
   });
+
+  describe('clearPlayerAwardSelections', () => {
+    it('should no-op when playerIds is empty', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      await clearPlayerAwardSelections([]);
+
+      expect(mockDb.updateTable).not.toHaveBeenCalled();
+    });
+
+    it('should update all 4 award columns for the given player IDs', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      const mockUpdateQuery = {
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await clearPlayerAwardSelections(['player-1', 'player-2']);
+
+      expect(mockDb.updateTable).toHaveBeenCalledTimes(4);
+      expect(mockDb.updateTable).toHaveBeenCalledWith('tournament_guesses');
+    });
+
+    it('should set best_player_id to null where it matches a deleted player', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      const mockUpdateQuery = {
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await clearPlayerAwardSelections(['player-deleted']);
+
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith(
+        expect.objectContaining({ best_player_id: null })
+      );
+      expect(mockUpdateQuery.where).toHaveBeenCalledWith('best_player_id', 'in', ['player-deleted']);
+    });
+
+    it('should set top_goalscorer_player_id to null where it matches a deleted player', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      const mockUpdateQuery = {
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await clearPlayerAwardSelections(['player-deleted']);
+
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith(
+        expect.objectContaining({ top_goalscorer_player_id: null })
+      );
+      expect(mockUpdateQuery.where).toHaveBeenCalledWith('top_goalscorer_player_id', 'in', ['player-deleted']);
+    });
+
+    it('should set best_goalkeeper_player_id to null where it matches a deleted player', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      const mockUpdateQuery = {
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await clearPlayerAwardSelections(['player-deleted']);
+
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith(
+        expect.objectContaining({ best_goalkeeper_player_id: null })
+      );
+      expect(mockUpdateQuery.where).toHaveBeenCalledWith('best_goalkeeper_player_id', 'in', ['player-deleted']);
+    });
+
+    it('should set best_young_player_id to null where it matches a deleted player', async () => {
+      const { clearPlayerAwardSelections } = await import('../../app/db/tournament-guess-repository');
+
+      const mockUpdateQuery = {
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue([]),
+      };
+      mockDb.updateTable.mockReturnValue(mockUpdateQuery);
+
+      await clearPlayerAwardSelections(['player-deleted']);
+
+      expect(mockUpdateQuery.set).toHaveBeenCalledWith(
+        expect.objectContaining({ best_young_player_id: null })
+      );
+      expect(mockUpdateQuery.where).toHaveBeenCalledWith('best_young_player_id', 'in', ['player-deleted']);
+    });
+  });
 });

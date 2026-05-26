@@ -4,7 +4,8 @@ import {useState, useEffect, useCallback} from 'react';
 import {Player, PlayerNew, Team} from "../../db/tables-definition";
 import {
   createTournamentTeamPlayers,
-  deleteTournamentTeamPlayers,
+  deleteSpecificTeamPlayers,
+  updateTournamentTeamPlayer,
   getPlayersInTournament,
   getTransfermarktPlayerData,
   saveTeamTransfermarktId
@@ -73,55 +74,64 @@ export default function PlayersTab({tournamentId, transfermarktUrlTemplate}: Pla
     }
     try {
       setImportLoading(true);
-      let existingPlayers = teamsWithPlayers.find(teamWithPlayers => teamWithPlayers.team.id === selectedTeam.id)?.players || [];
-      const players = await getTransfermarktPlayerData(transfermarktName, transfermarktId, tournamentId, transfermarktUrlTemplate)
-      if(deleteExistingPlayers && existingPlayers.length > 0) {
-        const toDelete =
-          existingPlayers.filter(player =>
-            //Delete players that are not in the new players list
-            !players.some(p =>
-              p.name === player.name &&
-              p.ageAtTournament === player.age_at_tournament))
-        if(toDelete.length > 0) {
-          existingPlayers = existingPlayers.filter(player =>
-            !toDelete.some(p => p.id === player.id))
-          await deleteTournamentTeamPlayers(toDelete)
+      let existingPlayers = teamsWithPlayers.find(t => t.team.id === selectedTeam.id)?.players || [];
+      const newPlayers = await getTransfermarktPlayerData(transfermarktName, transfermarktId, tournamentId, transfermarktUrlTemplate);
+
+      // Delete players removed from the squad (diff by name, with award selection cleanup)
+      if (deleteExistingPlayers && existingPlayers.length > 0) {
+        const toDelete = existingPlayers.filter(
+          existing => !newPlayers.some(p => p.name === existing.name)
+        );
+        if (toDelete.length > 0) {
+          await deleteSpecificTeamPlayers(tournamentId, selectedTeam.id, toDelete.map(p => p.id));
+          existingPlayers = existingPlayers.filter(p => !toDelete.some(d => d.id === p.id));
         }
       }
-      const toCreate: PlayerNew[] = players
-        //Only create players that are not already in the tournament
-        .filter(
-          player => !existingPlayers.some(p =>
-              p.name === player.name &&
-              p.age_at_tournament === player.ageAtTournament)
-        ).map(player => ({
-          name: player.name,
-          position: player.position,
+
+      // Update age and position for players still in the squad (fixes stale DOB-derived ages)
+      const toUpdate = existingPlayers.filter(
+        existing => newPlayers.some(p => p.name === existing.name)
+      );
+      await Promise.all(
+        toUpdate.map(existing => {
+          const fresh = newPlayers.find(p => p.name === existing.name)!;
+          return updateTournamentTeamPlayer(existing.id, {
+            age_at_tournament: fresh.ageAtTournament,
+            position: fresh.position,
+          });
+        })
+      );
+      // Reflect updates in local state
+      existingPlayers = existingPlayers.map(existing => {
+        const fresh = newPlayers.find(p => p.name === existing.name);
+        return fresh
+          ? { ...existing, age_at_tournament: fresh.ageAtTournament, position: fresh.position }
+          : existing;
+      });
+
+      // Insert players not yet in the DB
+      const toCreate: PlayerNew[] = newPlayers
+        .filter(p => !existingPlayers.some(existing => existing.name === p.name))
+        .map(p => ({
+          name: p.name,
+          position: p.position,
           team_id: selectedTeam.id,
           tournament_id: tournamentId,
-          age_at_tournament: player.ageAtTournament
-        }))
+          age_at_tournament: p.ageAtTournament,
+        }));
       const createdPlayers = await createTournamentTeamPlayers(toCreate);
 
-      const allPlayers = [...existingPlayers, ...createdPlayers]
+      const allPlayers = [...existingPlayers, ...createdPlayers];
+      setTeamsWithPlayers(teamsWithPlayers.map(t =>
+        t.team.id === selectedTeam.id ? { team: t.team, players: allPlayers } : t
+      ));
 
-      const newTeamsWithPlayers = teamsWithPlayers.map(teamWithPlayers => {
-        if (teamWithPlayers.team.id === selectedTeam.id) {
-          return {
-            team: teamWithPlayers.team,
-            players: allPlayers
-          };
-        }
-        return teamWithPlayers;
-      });
-      setTeamsWithPlayers(newTeamsWithPlayers);
-
-      // Persist the Transfermarkt ID for pre-filling on re-import (fire-and-forget)
-      saveTeamTransfermarktId(selectedTeam.id, transfermarktId).catch((err) => {
+      // Persist Transfermarkt ID for pre-filling on re-import (fire-and-forget)
+      saveTeamTransfermarktId(selectedTeam.id, transfermarktId).catch(err => {
         console.error('Failed to persist Transfermarkt team ID:', err);
       });
     } catch (error) {
-      console.error(`Error loading Transfermarkt players for team ${selectedTeam.name}:`, error);
+      console.error(`Error importing players for team ${selectedTeam.name}:`, error);
     } finally {
       setImportLoading(false);
     }
@@ -129,7 +139,8 @@ export default function PlayersTab({tournamentId, transfermarktUrlTemplate}: Pla
 
   const openImportPlayersModal = (team: Team) => {
     setSelectedTeam(team);
-    setTransfermarktName(team.name.replace(' ', '-') + '-fc-players');
+    const englishName = team.name_i18n?.en ?? team.name;
+    setTransfermarktName(englishName.replaceAll(' ', '-').toLowerCase());
     setTransfermarktId(team.transfermarkt_id ?? '');
     setDeleteExistingPlayers(false);
     setOpenImportModal(true);
