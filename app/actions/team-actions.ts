@@ -293,7 +293,8 @@ export async function getTransfermarktPlayerData(
       let ageAtTournament = 18;
 
       if (dobElement.length) {
-        const dobText = dobElement.text().trim().replace(/\s*\([^)]*\)\s*/g, '').trim();
+        const rawDobText = dobElement.text().trim();
+        const dobText = rawDobText.includes('(') ? rawDobText.slice(0, rawDobText.indexOf('(')).trim() : rawDobText;
         // Server-side Transfermarkt returns DD/MM/YYYY (confirmed). Browser-side shows MM/DD/YYYY
         // but backend Accept-Language handling differs. Do NOT include both slash formats — ambiguous
         // dates (day ≤ 12) would silently mis-parse.
