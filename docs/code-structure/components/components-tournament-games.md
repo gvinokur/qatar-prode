@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-18
+**Last updated:** 2026-05-26
 
 ---
 
@@ -86,7 +86,7 @@ Game filter selector with counts for all/groups/playoffs/unpredicted/closingSoon
 
 **File:** `app/components/game-prediction-edit-controls.tsx`
 Full game prediction edit form with scores, penalties, boosts, keyboard navigation, and save/cancel controls. When `isGuidedMode=true` and `onSaveAndAdvance` is provided, renders "Save & Next" as the primary desktop action instead of "Save".
-- **GamePredictionEditControls** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useTranslations` - Renders: `Box, TextField, Checkbox, ToggleButtonGroup, GameBoostSelector, StepperScoreInput, Alert, IconButton, Tooltip`
+- **GamePredictionEditControls** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useTranslations` - Renders: `Box, TextField, Typography, Checkbox, FormControlLabel, Divider, ToggleButtonGroup, ToggleButton, Chip, Button, StepperScoreInput, Alert, CircularProgress, IconButton, Tooltip`
 - Props include: `isGuidedMode?: boolean` — when true and `onSaveAndAdvance` is provided, desktop shows [Cancel] [Save & Next] instead of [Cancel] [Save]; `onAIGenerateClick?: () => void` — when provided, renders a centered `AutoAwesomeIcon` button between the penalty section and boost section
 
 **File:** `app/components/game-result-edit-dialog.tsx`
