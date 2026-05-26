@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-21
+**Last updated:** 2026-05-26
 
 ---
 
@@ -280,7 +280,7 @@ Team and player management for backoffice — creates/updates teams, imports pla
   Calls: getLoggedInUser, validateRank, updateTeaminDb, deleteThemeLogoFromS3, applyLocalization
 - **getPlayersInTournament(tournamentId: string)**: `Promise<{team: Team, players: Player[]}[]>` — Returns all teams in a tournament with their player rosters.
   Calls: findTeamInTournament, findPlayersByTeamId
-- **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only). Parses DOB using dayjs with format list ['MM/DD/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD']; falls back to age 18 on parse failure.
+- **getTransfermarktPlayerData(transfermarktTeamName: string, transfermarktTeamId: string, tournamentId: string, urlTemplate?: string | null)**: `Promise<PlayerData[]>` — Scrapes player data from Transfermarkt. Uses urlTemplate (with `{teamName}` and `{teamId}` placeholders) when provided and valid; falls back to hardcoded club URL (admin only). Parses DOB using dayjs with format list ['DD/MM/YYYY', 'MMM D, YYYY', 'DD.MM.YYYY', 'D MMM YYYY', 'YYYY-MM-DD'] (DD/MM/YYYY is first — confirmed server-side format); falls back to age 18 on parse failure.
   Calls: getLoggedInUser, getTournamentStartDate
 - **deleteAllTeamPlayersInTournament(tournamentId: string, teamId: string)**: `Promise<void>` — Deletes all players for a team in a tournament (admin only).
   Calls: getLoggedInUser, deleteAllPlayersInTournamentTeamDb
