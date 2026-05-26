@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-18
+**Last updated:** 2026-05-26
 
 ---
 
@@ -61,8 +61,8 @@ Compact dashboard showing game and tournament prediction progress with urgency i
 
 **File:** `app/components/flippable-game-card.tsx`
 3D flip card for inline game editing. Shows game view on front, edit controls on back with keyboard navigation support.
-- **FlippableGameCard** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useReducedMotion` - Renders: `Box, GameView, Card, GamePredictionEditControls`
-- Props include: `onStageClick?: () => void` — passed through to `GameView`; `isGuidedMode?: boolean` — threaded to `GamePredictionEditControls`; `onAIGenerateClick?: (gameId: string) => void` — passed through to `GameView`
+- **FlippableGameCard** (FC) - `[Client]` - Calls: `generateAIPrediction` - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useReducedMotion, useMemo` - Renders: `Box, GameView, Card, GamePredictionEditControls`
+- Props include: `onStageClick?: () => void` — passed through to `GameView`; `isGuidedMode?: boolean` — threaded to `GamePredictionEditControls`; `onAIGenerateClick?: (gameId: string) => void` — passed through to `GameView` (view mode) and as a local-state handler to `GamePredictionEditControls` (edit mode)
 
 **File:** `app/components/game-boost-selector.tsx`
 Interactive boost selector with silver/golden buttons, count badges, and dialog for boost limit warnings.
@@ -86,8 +86,8 @@ Game filter selector with counts for all/groups/playoffs/unpredicted/closingSoon
 
 **File:** `app/components/game-prediction-edit-controls.tsx`
 Full game prediction edit form with scores, penalties, boosts, keyboard navigation, and save/cancel controls. When `isGuidedMode=true` and `onSaveAndAdvance` is provided, renders "Save & Next" as the primary desktop action instead of "Save".
-- **GamePredictionEditControls** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useTranslations` - Renders: `Box, TextField, Checkbox, ToggleButtonGroup, GameBoostSelector, StepperScoreInput, Alert`
-- Props include: `isGuidedMode?: boolean` — when true and `onSaveAndAdvance` is provided, desktop shows [Cancel] [Save & Next] instead of [Cancel] [Save]
+- **GamePredictionEditControls** (FC) - `[Client]` - Calls: none - Uses: `useContext(GuessesContext), useTheme, useMediaQuery, useTranslations` - Renders: `Box, TextField, Typography, Checkbox, FormControlLabel, Divider, ToggleButtonGroup, ToggleButton, Chip, Button, StepperScoreInput, Alert, CircularProgress, IconButton, Tooltip`
+- Props include: `isGuidedMode?: boolean` — when true and `onSaveAndAdvance` is provided, desktop shows [Cancel] [Save & Next] instead of [Cancel] [Save]; `onAIGenerateClick?: () => void` — when provided, renders a centered `AutoAwesomeIcon` button between the penalty section and boost section
 
 **File:** `app/components/game-result-edit-dialog.tsx`
 Dialog for editing game results or guesses. Supports penalty shootouts, game date (for results), and game guess forms.

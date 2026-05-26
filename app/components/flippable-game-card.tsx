@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import React, { useRef, useEffect, useState, useContext, useMemo } from 'react';
 import { Box, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
@@ -10,6 +10,7 @@ import { ExtendedGameData } from '../definitions';
 import { Team } from '../db/tables-definition';
 import { GuessesContext } from './context-providers/guesses-context-provider';
 import { getTeamNames } from '../utils/team-name-helper';
+import { generateAIPrediction } from '../utils/ai-prediction-generator';
 
 // Type alias for boost type (SonarQube S4323)
 type BoostType = 'silver' | 'golden' | null;
@@ -107,6 +108,20 @@ export default function FlippableGameCard({
 
   // Flip animation duration (slightly slower on mobile)
   const flipDuration = isMobile ? 0.5 : 0.4;
+
+  // AI generate handler for edit mode — updates local edit state instead of context
+  const handleAIGenerateInEditMode = useMemo(() => {
+    if (!onAIGenerateClick || !game.home_team || !game.away_team || disabled) return undefined;
+    return () => {
+      const homeRank = (teamsMap[game.home_team!] as { rank?: number | null })?.rank;
+      const awayRank = (teamsMap[game.away_team!] as { rank?: number | null })?.rank;
+      const { homeScore: aiHome, awayScore: aiAway, homePenaltyWinner, awayPenaltyWinner } = generateAIPrediction(homeRank, awayRank, isPlayoffs);
+      setEditHomeScore(aiHome);
+      setEditAwayScore(aiAway);
+      if (homePenaltyWinner !== undefined) setEditHomePenaltyWinner(homePenaltyWinner);
+      if (awayPenaltyWinner !== undefined) setEditAwayPenaltyWinner(awayPenaltyWinner);
+    };
+  }, [onAIGenerateClick, game.home_team, game.away_team, disabled, teamsMap, isPlayoffs]);
 
   // Initialize local state when entering edit mode
   useEffect(() => {
@@ -365,6 +380,7 @@ export default function FlippableGameCard({
                   onEscapePressed={handleCancel}
                   retryCallback={handleSave}
                   isGuidedMode={isGuidedMode}
+                  onAIGenerateClick={handleAIGenerateInEditMode}
                 />
               </CardContent>
             </Card>
