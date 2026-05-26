@@ -19,12 +19,15 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  alpha
+  alpha,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
   Star as StarIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  AutoAwesome as AutoAwesomeIcon
 } from '@mui/icons-material';
 import StepperScoreInput from './stepper-score-input';
 
@@ -90,6 +93,9 @@ interface GamePredictionEditControlsProps {
 
   // Guided mode: shows "Save & Next" as primary desktop action
   readonly isGuidedMode?: boolean;
+
+  // AI auto-fill callback
+  readonly onAIGenerateClick?: () => void;
 }
 
 export default function GamePredictionEditControls({
@@ -128,7 +134,8 @@ export default function GamePredictionEditControls({
   onShiftTabFromFirstField,
   onEscapePressed,
   retryCallback,
-  isGuidedMode = false
+  isGuidedMode = false,
+  onAIGenerateClick
 }: GamePredictionEditControlsProps) {
   const t = useTranslations('predictions');
   const theme = useTheme();
@@ -1309,6 +1316,21 @@ export default function GamePredictionEditControls({
 
       {/* Penalty information */}
       {renderPenaltySelection()}
+
+      {/* AI auto-fill */}
+      {onAIGenerateClick && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+          <Tooltip title={t('aiGenerate.tooltipSingle')}>
+            <IconButton
+              size="small"
+              onClick={onAIGenerateClick}
+              aria-label={t('aiGenerate.tooltipSingle')}
+            >
+              <AutoAwesomeIcon sx={{ width: '20px', height: '20px' }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
 
       {/* Boost Selection */}
       {renderBoostSelection()}
