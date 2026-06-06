@@ -267,3 +267,22 @@ Renders:
 1. **Active status = email_verified**: Assuming this follows the existing "Verified" column in UsersTab. If "active" means something else (e.g., a separate `is_active` DB column), adjust accordingly.
 2. **Awards total = 7**: 3 honor roll (champion, runner-up, third place) + 4 individual awards. If the story intends just the 4 individual awards (not honor roll), the total would be 4 and the "awards" column would exclude honor roll. Open to adjustment.
 3. **Qualifiers = group position predictions**: Each group has one prediction row per user in `tournament_user_group_positions_predictions`. Total = number of groups. If "qualifiers" means something else (e.g., qualified teams prediction), adjust the subquery.
+
+---
+
+## Implementation Amendments
+
+### Amendment 1: Corrected table names and schema
+**Date:** 2026-06-06
+**Reason:** Plan used generic names; actual schema differs.
+**Change:** `groups` → `prode_groups`, `group_members` → `prode_group_participants`, member column `user_id` → `participant_id`.
+
+### Amendment 2: Friend groups not filtered by tournament
+**Date:** 2026-06-06
+**Reason:** `prode_groups` has no `tournament_id` column; association is only indirect via `group_rankings`. Filtering by tournament would exclude groups not yet in the rankings table.
+**Change:** `grp_stats` subquery shows ALL friend groups the user belongs to (as owner or participant) across all tournaments, not filtered by tournament. This is more useful to the admin — they can see the user's social context regardless of tournament.
+
+### Amendment 3: No i18n added
+**Date:** 2026-06-06
+**Reason:** All other backoffice components (UsersTab, backoffice page tab labels) use hardcoded English. Adding translations would be inconsistent with the existing pattern.
+**Change:** `UserCompletionTab` uses hardcoded English column headers matching the existing backoffice style.

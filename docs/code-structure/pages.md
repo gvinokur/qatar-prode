@@ -105,9 +105,9 @@ Home/landing page that conditionally shows onboarding or redirects to first tour
 ### app/[locale]/backoffice/page.tsx
 Admin console page with tabbed interface for tournament management.
 
-- **Backoffice()**: `JSX.Element` — [Server] Displays backoffice tabs for active/inactive tournaments with admin subcomponents (scoring, awards, teams, games, players, users, notifications). Does NOT fetch users — UsersTab is self-fetching. Passes `transfermarkt_url_template` from the tournament record to `PlayersTab` (Story #306).
+- **Backoffice()**: `JSX.Element` — [Server] Displays backoffice tabs for active/inactive tournaments with admin subcomponents (scoring, awards, teams, games, players, users, notifications). Does NOT fetch users — UsersTab is self-fetching. Passes `transfermarkt_url_template` from the tournament record to `PlayersTab` (Story #306). Both active and inactive tournament subtabs include `UserCompletionTab` (Story #466).
   Calls: getLoggedInUser, getLocale, findAllTournaments
-  Renders: BackofficeTabs, CreateTournamentButton, UsersTab, NotificationSender, various tournament management tabs
+  Renders: BackofficeTabs, CreateTournamentButton, UsersTab, NotificationSender, UserCompletionTab, various tournament management tabs
 
 ### app/[locale]/delete-account/page.tsx
 Simple page for account deletion with centered button component.

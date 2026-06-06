@@ -23,6 +23,7 @@ import UsersTab from "../../components/backoffice/users-tab";
 
 import TournamentThirdPlaceRulesTab from "../../components/backoffice/tournament-third-place-rules-tab";
 import TournamentScoringConfigTab from "../../components/backoffice/tournament-scoring-config-tab";
+import UserCompletionTab from "../../components/backoffice/user-completion-tab";
 
 export default async function Backoffice() {
   const locale = await getLocale();
@@ -59,6 +60,7 @@ export default async function Backoffice() {
                   createTab('Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
                   createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
                   createTab('Players', <PlayersTab tournamentId={tournament.id} transfermarktUrlTemplate={tournament.transfermarkt_url_template}/>),
+                  createTab('User Completion', <UserCompletionTab tournamentId={tournament.id}/>),
                 ]}/>
               ),
               tournament.dev_only,
@@ -78,6 +80,7 @@ export default async function Backoffice() {
                   createTab('Tournament Games', <TournamentGameManagerTab tournamentId={tournament.id}/>),
                   createTab('Third-Place Rules', <TournamentThirdPlaceRulesTab tournamentId={tournament.id}/>),
                   createTab('Players', <PlayersTab tournamentId={tournament.id} transfermarktUrlTemplate={tournament.transfermarkt_url_template}/>),
+                  createTab('User Completion', <UserCompletionTab tournamentId={tournament.id}/>),
                 ]}/>
               ),
               tournament.dev_only,

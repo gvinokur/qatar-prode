@@ -421,3 +421,10 @@ Server Actions for materializing and reading per-group rank snapshots. Snapshots
   Calls: getLatestTwoGroupRankingSnapshots
 - **getMaterializedLeaderboardRanks(groupId: string, tournamentId: string)**: `Promise<Map<string, { currentRank: number; rankChange: number }>>` — Server Action. Returns a Map keyed by userId with each user's current rank and rank change (positive = moved up) for use by LeaderboardCards. `rankChange = previousRank - currentRank`; users with no previous snapshot get `rankChange: 0`. Returns empty Map when no snapshots exist or repository throws.
   Calls: getLatestRankingsForGroupWithChange
+
+
+### app/actions/admin-tournament-actions.ts
+Admin-only Server Actions for tournament-scoped admin data (Story #466).
+
+- **getUserTournamentCompletionsAction(tournamentId: string, page: number, pageSize: number)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Admin-gated Server Action. Throws 'Unauthorized' when caller is not an admin. Delegates to repository for paginated user completion stats.
+  Calls: getLoggedInUser, getUserTournamentCompletionsPaginated
