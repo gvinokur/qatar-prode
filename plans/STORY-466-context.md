@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Admin view of user completion stats per tournament
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-466
 - **Branch:** feature/story-466
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 467
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/467
 
 ## State
 - **Current Phase:** planning
