@@ -23,19 +23,25 @@ Give tournament admins a per-user breakdown of prediction activity. Admins can s
 ### Data Model
 
 **Games predicted / total:**
-- Count rows in `game_guesses` where home_score IS NOT NULL for games in this tournament
+- Count rows in `game_guesses` where `home_score IS NOT NULL AND away_score IS NOT NULL` for games in this tournament
 - Total = count of games in tournament
 
 **Qualifiers filled / total:**
-- Count rows in `tournament_user_group_positions_predictions` for user in groups belonging to this tournament
-- Total = count of tournament groups (each group has a prediction set)
+- Filled = SUM of `predicted_to_qualify = true` entries unpacked from the JSONB `team_predicted_positions` array, across all `tournament_user_group_positions_predictions` rows for this user in this tournament's groups (using `jsonb_array_elements`)
+- Total = `(COUNT(tournament_groups) × 2) + CASE WHEN allows_third_place_qualification THEN max_third_place_qualifiers ELSE 0 END` (read `allows_third_place_qualification` and `max_third_place_qualifiers` from the tournaments table)
 
 **Awards filled / total:**
 - In `tournament_guesses`: count non-null fields from: champion_team_id, runner_up_team_id, third_place_team_id (final standings = 3) + best_player_id, top_goalscorer_player_id, best_goalkeeper_player_id, best_young_player_id (individual awards = 4)
 - Total = 7 always
 
+**Friend groups (count + tooltip):**
+- Count of friend groups the user belongs to that are associated with this tournament
+- Tooltip on hover shows group names (comma-separated)
+- SQL: LEFT JOIN subquery aggregating `group_members` → `groups` (filtered by tournament_id) with `COUNT(*)` and `array_agg(name)`
+
 **Overall Completion %:**
-- `(games_predicted + qualifiers_filled + awards_filled) / (total_games + total_groups + 7) * 100`
+- `(games_predicted + qualifiers_filled + awards_filled) / (total_games + total_qualifiers + 7) * 100`
+- `total_qualifiers = (COUNT(groups) × 2) + (allows_third_place_qualification ? max_third_place_qualifiers : 0)`
 
 **Active status:**
 - Maps to `email_verified` on the users table (consistent with the existing UsersTab "Verified" column)
@@ -56,28 +62,29 @@ Give tournament admins a per-user breakdown of prediction activity. Admins can s
 ### User Completion Tab
 
 ```
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                         User Completion Statistics                            │
-├────────────────────┬────────┬────────────┬───────────────┬──────────┬────────┤
-│  Display Name      │ Active │ Completion │    Games      │Qualifiers│ Awards │
-│                    │        │     %      │               │          │        │
-├────────────────────┼────────┼────────────┼───────────────┼──────────┼────────┤
-│  Alice             │  Yes   │   82%      │   35 / 48     │  8 / 8   │ 6 / 7  │
-│  Bob               │  Yes   │   60%      │   25 / 48     │  6 / 8   │ 2 / 7  │
-│  Carlos            │  Yes   │   12%      │    8 / 48     │  0 / 8   │ 0 / 7  │
-├────────────────────┼────────┼────────────┼───────────────┼──────────┼────────┤
-│  Dana              │  No    │    0%      │    0 / 48     │  0 / 8   │ 0 / 7  │
-│  Eve               │  Yes   │    0%      │    0 / 48     │  0 / 8   │ 0 / 7  │
-├────────────────────┴────────┴────────────┴───────────────┴──────────┴────────┤
-│                     [< Prev]   Page 1 of 5   [Next >]                        │
-└───────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                              User Completion Statistics                                │
+├──────────────────┬────────┬────────────┬──────────────┬──────────┬────────┬───────────┤
+│  Display Name    │ Active │ Completion │    Games     │Qualifiers│ Awards │  Groups   │
+│                  │        │     %      │              │          │        │           │
+├──────────────────┼────────┼────────────┼──────────────┼──────────┼────────┼───────────┤
+│  Alice           │  Yes   │   82%      │  35 / 48     │ 16 / 20  │ 6 / 7  │  [3]      │  ← tooltip: "Los Campeones, Familia, Work"
+│  Bob             │  Yes   │   60%      │  25 / 48     │ 12 / 20  │ 2 / 7  │  [1]      │  ← tooltip: "Familia"
+│  Carlos          │  Yes   │   12%      │   8 / 48     │  0 / 20  │ 0 / 7  │  [2]      │
+├──────────────────┼────────┼────────────┼──────────────┼──────────┼────────┼───────────┤
+│  Dana            │  No    │    0%      │   0 / 48     │  0 / 20  │ 0 / 7  │  —        │
+│  Eve             │  Yes   │    0%      │   0 / 48     │  0 / 20  │ 0 / 7  │  [1]      │
+├──────────────────┴────────┴────────────┴──────────────┴──────────┴────────┴───────────┤
+│                         [< Prev]   Page 1 of 5   [Next >]                             │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Design notes:**
-- "Active" column uses a Chip component: green ("Yes") for email_verified, grey ("No") for unverified — same style as other status chips in the admin
+- "Active" column: `<Chip label={t('yes')} color="success" size="small" />` or grey `<Chip label={t('no')} size="small" />`
 - "Completion %" — plain percentage text
 - Games/Qualifiers/Awards — show as "X / Y" format
-- Divider row between "has predictions" and "no predictions" users (visual only, achieved via a subtle background difference or Divider MUI component)
+- "Groups" column: MUI `<Chip label={groupCount} />` wrapped in `<Tooltip title="Group A, Group B, ...">`. Shows "—" when groupCount is 0
+- Divider row between "has predictions" and "no predictions" users (via subtle `sx={{ opacity: 0.6 }}` on zero-prediction rows)
 - No search bar needed (out of scope)
 - MUI TablePagination at the bottom
 
@@ -137,11 +144,13 @@ export interface UserTournamentCompletionRow {
   isEmailVerified: boolean
   gamesPredicted: number
   totalGames: number
-  qualifiersFilled: number
-  qualifiersTotal: number
-  awardsFilled: number   // max 7: 3 honor roll + 4 individual
-  awardsTotal: number    // always 7
-  overallPct: number     // rounded integer
+  qualifiersFilled: number   // count of predicted_to_qualify=true entries in JSONB
+  qualifiersTotal: number    // groups*2 + (allows_third_place_qualification ? max_third_place_qualifiers : 0)
+  awardsFilled: number       // max 7: 3 honor roll + 4 individual
+  awardsTotal: number        // always 7
+  groupCount: number         // count of friend groups user belongs to for this tournament
+  groupNames: string[]       // group names for tooltip
+  overallPct: number         // rounded integer
 }
 ```
 
@@ -151,10 +160,11 @@ export interface UserTournamentCompletionRow {
   Single Kysely query:
   - FROM `users`
   - LEFT JOIN `tournament_guesses` ON (user_id, tournament_id)
-  - LEFT JOIN subquery `gg_stats` = (SELECT user_id, COUNT(*) as games_predicted FROM game_guesses JOIN games ON game_id = games.id AND games.tournament_id = ? WHERE home_score IS NOT NULL GROUP BY user_id)
-  - LEFT JOIN subquery `qp_stats` = (SELECT tugpp.user_id, COUNT(*) as qualifiers_filled FROM tournament_user_group_positions_predictions tugpp JOIN tournament_groups tg ON tugpp.group_id = tg.id WHERE tg.tournament_id = ? GROUP BY tugpp.user_id)
+  - LEFT JOIN subquery `gg_stats` = (SELECT user_id, COUNT(*) as games_predicted FROM game_guesses JOIN games ON game_id = games.id AND games.tournament_id = ? WHERE home_score IS NOT NULL AND away_score IS NOT NULL GROUP BY user_id)
+  - LEFT JOIN subquery `qp_stats` = (SELECT tugpp.user_id, COUNT(*) FILTER (WHERE (pos->>'predicted_to_qualify')::boolean = true) as qualifiers_filled FROM tournament_user_group_positions_predictions tugpp JOIN tournament_groups tg ON tugpp.group_id = tg.id CROSS JOIN jsonb_array_elements(tugpp.team_predicted_positions) AS pos WHERE tg.tournament_id = ? GROUP BY tugpp.user_id)
+  - LEFT JOIN subquery `grp_stats` = (SELECT gm.user_id, COUNT(*) as group_count, array_agg(g.name ORDER BY g.name) as group_names FROM group_members gm JOIN groups g ON g.id = gm.group_id AND g.tournament_id = ? GROUP BY gm.user_id)
   - CROSS JOIN `(SELECT COUNT(*) FROM games WHERE tournament_id = ?)` as total_games
-  - CROSS JOIN `(SELECT COUNT(*) FROM tournament_groups WHERE tournament_id = ?)` as total_groups
+  - CROSS JOIN `(SELECT COUNT(*) * 2 + COALESCE(CASE WHEN t.allows_third_place_qualification THEN t.max_third_place_qualifiers ELSE 0 END, 0) FROM tournaments t JOIN tournament_groups tg ON tg.tournament_id = t.id WHERE t.id = ? GROUP BY t.allows_third_place_qualification, t.max_third_place_qualifiers)` as total_qualifiers
   - ORDER BY `CASE WHEN gg_stats.games_predicted > 0 THEN 0 ELSE 1 END ASC, users.nickname ASC`
   - LIMIT pageSize OFFSET (page * pageSize)
   - Parallel count query for total
