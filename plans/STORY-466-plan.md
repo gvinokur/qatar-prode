@@ -47,9 +47,9 @@ Give tournament admins a per-user breakdown of prediction activity. Admins can s
 - Maps to `email_verified` on the users table (consistent with the existing UsersTab "Verified" column)
 
 ### Sort Order
-- Users with `games_predicted > 0` (any game prediction made) appear first — sorted by nickname ASC
-- Users with zero game predictions appear after — sorted by nickname ASC
-- This sort happens at the DB level for correct pagination
+- Sort by `(games_predicted + qualifiers_filled + awards_filled) DESC, nickname ASC`
+- This puts the most active users at the top and fully inactive users at the bottom
+- Sort happens at DB level for correct pagination
 
 ### Pagination
 - 25 users per page (same as UsersTab)
@@ -165,7 +165,7 @@ export interface UserTournamentCompletionRow {
   - LEFT JOIN subquery `grp_stats` = (SELECT user_id, COUNT(*) as group_count, array_agg(name ORDER BY name) as group_names FROM (SELECT gm.user_id, g.name FROM group_members gm JOIN groups g ON g.id = gm.group_id AND g.tournament_id = ? UNION SELECT g.owner_user_id, g.name FROM groups g WHERE g.tournament_id = ?) combined GROUP BY user_id)
   - CROSS JOIN `(SELECT COUNT(*) FROM games WHERE tournament_id = ?)` as total_games
   - CROSS JOIN `(SELECT COUNT(*) * 2 + COALESCE(CASE WHEN t.allows_third_place_qualification THEN t.max_third_place_qualifiers ELSE 0 END, 0) FROM tournaments t JOIN tournament_groups tg ON tg.tournament_id = t.id WHERE t.id = ? GROUP BY t.allows_third_place_qualification, t.max_third_place_qualifiers)` as total_qualifiers
-  - ORDER BY `CASE WHEN gg_stats.games_predicted > 0 THEN 0 ELSE 1 END ASC, users.nickname ASC`
+  - ORDER BY `(COALESCE(gg_stats.games_predicted, 0) + COALESCE(qp_stats.qualifiers_filled, 0) + COALESCE(awards_filled_expr, 0)) DESC, users.nickname ASC`
   - LIMIT pageSize OFFSET (page * pageSize)
   - Parallel count query for total
 
@@ -173,9 +173,9 @@ export interface UserTournamentCompletionRow {
 
   Tests (use `testFactories.createUser()`, `createGame()`, `createTournamentGroup()`, `createGameGuess()`, `createTournamentGuess()`):
   - returns empty `rows` and `total: 0` when no users exist
-  - users with at least one game prediction appear before users with zero predictions
-  - NULL `games_predicted` (from LEFT JOIN miss) is treated as 0 for sort ordering
-  - within each group (predicted/not-predicted), users are sorted by nickname ascending
+  - users are sorted by total completed items (games + qualifiers + awards) descending
+  - NULL values from LEFT JOIN misses are treated as 0 in the sort expression
+  - users with equal total completed items are sorted by nickname ascending
   - pagination: page 0 returns first N users, page 1 returns next N users
   - `gamesPredicted` equals count of game_guess rows with non-null scores for that tournament
   - `qualifiersFilled` equals count of group position prediction rows for that tournament's groups; total qualifiers = number of tournament_groups (same for all users)
