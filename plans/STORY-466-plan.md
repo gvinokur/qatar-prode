@@ -37,7 +37,7 @@ Give tournament admins a per-user breakdown of prediction activity. Admins can s
 **Friend groups (count + tooltip):**
 - Count of friend groups the user belongs to that are associated with this tournament
 - Tooltip on hover shows group names (comma-separated)
-- SQL: LEFT JOIN subquery aggregating `group_members` → `groups` (filtered by tournament_id) with `COUNT(*)` and `array_agg(name)`
+- SQL: LEFT JOIN subquery using UNION of `group_members` (regular members) and `groups.owner_user_id` (group owners are not in group_members), both filtered by tournament_id, then aggregated with `COUNT(*)` and `array_agg(name)`
 
 **Overall Completion %:**
 - `(games_predicted + qualifiers_filled + awards_filled) / (total_games + total_qualifiers + 7) * 100`
@@ -162,7 +162,7 @@ export interface UserTournamentCompletionRow {
   - LEFT JOIN `tournament_guesses` ON (user_id, tournament_id)
   - LEFT JOIN subquery `gg_stats` = (SELECT user_id, COUNT(*) as games_predicted FROM game_guesses JOIN games ON game_id = games.id AND games.tournament_id = ? WHERE home_score IS NOT NULL AND away_score IS NOT NULL GROUP BY user_id)
   - LEFT JOIN subquery `qp_stats` = (SELECT tugpp.user_id, COUNT(*) FILTER (WHERE (pos->>'predicted_to_qualify')::boolean = true) as qualifiers_filled FROM tournament_user_group_positions_predictions tugpp JOIN tournament_groups tg ON tugpp.group_id = tg.id CROSS JOIN jsonb_array_elements(tugpp.team_predicted_positions) AS pos WHERE tg.tournament_id = ? GROUP BY tugpp.user_id)
-  - LEFT JOIN subquery `grp_stats` = (SELECT gm.user_id, COUNT(*) as group_count, array_agg(g.name ORDER BY g.name) as group_names FROM group_members gm JOIN groups g ON g.id = gm.group_id AND g.tournament_id = ? GROUP BY gm.user_id)
+  - LEFT JOIN subquery `grp_stats` = (SELECT user_id, COUNT(*) as group_count, array_agg(name ORDER BY name) as group_names FROM (SELECT gm.user_id, g.name FROM group_members gm JOIN groups g ON g.id = gm.group_id AND g.tournament_id = ? UNION SELECT g.owner_user_id, g.name FROM groups g WHERE g.tournament_id = ?) combined GROUP BY user_id)
   - CROSS JOIN `(SELECT COUNT(*) FROM games WHERE tournament_id = ?)` as total_games
   - CROSS JOIN `(SELECT COUNT(*) * 2 + COALESCE(CASE WHEN t.allows_third_place_qualification THEN t.max_third_place_qualifiers ELSE 0 END, 0) FROM tournaments t JOIN tournament_groups tg ON tg.tournament_id = t.id WHERE t.id = ? GROUP BY t.allows_third_place_qualification, t.max_third_place_qualifiers)` as total_qualifiers
   - ORDER BY `CASE WHEN gg_stats.games_predicted > 0 THEN 0 ELSE 1 END ASC, users.nickname ASC`
