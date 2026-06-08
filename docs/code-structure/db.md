@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-26
+**Last updated:** 2026-06-08
 
 ---
 
@@ -408,4 +408,14 @@ Repository for the `user_favorite_groups` table. Manages user-level favorite and
 - **setMainGroup(userId: string, groupId: string)**: `Promise<void>` — Clears any existing main group for the user, then upserts the row with is_main=true. Group must already be a favorite (upsert will add it if not).
   Calls: db
 - **clearMainGroup(userId: string)**: `Promise<void>` — Sets is_main=false for the user's current main group; no-op if no main group is set.
+  Calls: db
+
+
+### app/db/user-tournament-completion-repository.ts
+Repository for admin-only per-user prediction completion stats per tournament (Story #466). Uses raw SQL via Kysely `sql` tagged template for a complex multi-join query.
+
+**Exported types:**
+- **UserTournamentCompletionRow**: `{ userId, nickname, isEmailVerified, gamesPredicted, totalGames, qualifiersFilled, qualifiersTotal, awardsFilled, awardsTotal, groupCount, groupNames: string[], overallPct }` — one row per user.
+
+- **getUserTournamentCompletionsPaginated(tournamentId: string, page: number, pageSize: number)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Returns paginated users with their prediction stats for a tournament. Runs two parallel raw SQL queries: (1) paginated results via a multi-join SELECT (users LEFT JOIN tournament_guesses, game_guesses subquery, qualifier predictions subquery, friend groups subquery, CROSS JOIN game totals and qualifier totals); (2) COUNT of all users. Sort order: total completed items (games+qualifiers+awards) DESC, nickname ASC. Friend groups count shows ALL groups the user belongs to (as owner or participant, across all tournaments — prode_groups has no tournament_id). overallPct denominator = total_games + qualifiers_total + 7; returns 0 when denominator is 0.
   Calls: db

@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-26
+**Last updated:** 2026-06-08
 
 ---
 
@@ -141,3 +141,10 @@ Tournament-level admin actions for import, recalculation, deactivation. [Client]
   Calls: generateDbTournamentTeamPlayers, recalculateAllPlayoffFirstRoundGameGuesses, calculateGameScores, triggerQualifiedTeamsScoringAction, deactivateTournament, deleteDBTournamentTree
   Uses: useLocale, useRouter, useState
   Renders: Button, Dialog, Grid, Typography, DebugObject, Snackbar, Alert
+
+### app/components/backoffice/user-completion-tab.tsx
+Per-tournament user prediction completion stats for admin review (Story #466). [Client] self-fetching paginated table.
+- **UserCompletionTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Shows paginated table of all users with their prediction stats for a tournament: display name, active status (email_verified), overall completion %, games predicted/total, qualifiers filled/total, awards filled/total, and friend group count (tooltip shows names). Zero-prediction rows are visually dimmed (opacity 0.6). Fetches on mount and page change.
+  Calls: getUserTournamentCompletionsAction
+  Uses: useState, useEffect
+  Renders: Table, TableHead, TableBody, TableRow, TableCell, TablePagination, TableContainer, Paper, Chip, Tooltip, CircularProgress, Alert, Typography, Box
