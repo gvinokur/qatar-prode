@@ -1,3 +1,5 @@
+'use server'
+
 import type { Metadata } from 'next'
 import {Grid, AppBar, Box} from "../../../components/mui-wrappers";
 import GroupSelector from "../../../components/groups-page/group-selector";
