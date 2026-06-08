@@ -22,7 +22,7 @@ import { getUserTournamentCompletionsAction, type UserTournamentCompletionRow } 
 const PAGE_SIZE = 25
 
 interface Props {
-  tournamentId: string
+  readonly tournamentId: string
 }
 
 export default function UserCompletionTab({ tournamentId }: Props) {
