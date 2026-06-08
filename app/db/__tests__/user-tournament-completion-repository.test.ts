@@ -163,4 +163,19 @@ describe('getUserTournamentCompletionsPaginated', () => {
 
     expect(executeQuery).toHaveBeenCalledTimes(2)
   })
+
+  it('returns total 0 when count query returns empty rows array', async () => {
+    const executor = {
+      transformQuery: vi.fn((node: unknown) => node),
+      compileQuery: vi.fn(() => ({ sql: '', parameters: [], queryId: {} })),
+      executeQuery: vi.fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] }),
+    }
+    vi.mocked(db.getExecutor as ReturnType<typeof vi.fn>).mockReturnValue(executor)
+
+    const result = await getUserTournamentCompletionsPaginated(TOURNAMENT_ID, 0, 25)
+
+    expect(result.total).toBe(0)
+  })
 })
