@@ -214,6 +214,15 @@ The only CODE-STRUCTURE update required: **none** (internal layout only).
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Increase flex-basis from 150px to 200px
+**Date:** 2026-06-10
+**Reason:** After testing in Vercel Preview, user requested a wider minimum text width so wrapping triggers earlier in narrower containers.
+**Change:** `flex: '1 1 150px'` changed to `flex: '1 1 200px'` in the expanded section Typography.
+
+---
+
 ## Open Questions
 
 None — the fix is well-defined and isolated.
