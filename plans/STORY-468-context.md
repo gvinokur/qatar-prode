@@ -16,8 +16,8 @@
 
 ## PR
 
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 469
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/469
 
 ## Phase
 
