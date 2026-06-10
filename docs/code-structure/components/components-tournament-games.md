@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-05-26
+**Last updated:** 2026-06-10
 
 ---
 
@@ -257,8 +257,7 @@ Type definitions for the status header variant descriptor pattern.
 
 **File:** `app/components/prediction-status-header/prediction-status-header.tsx`
 Presentational component rendering any StatusHeaderVariant descriptor as a toned MUI card with optional action buttons.
-- **PredictionStatusHeader({ variant })**: `JSX.Element` — [Client] Renders header card from descriptor. Background tint + left border from tone using MUI palette tokens. All action buttons use `color="primary"`. message rendered with `white-space: pre-line`. href actions use Next.js Link; onClick actions call the handler directly.
-  Uses: useTheme
+- **PredictionStatusHeader({ variant })**: `JSX.Element` — [Client] Renders header card from descriptor. Background tint + left border from tone using MUI palette tokens. All action buttons use `color="primary"`. Expanded section wraps to a new row in narrow containers (`flexWrap: wrap`, message `flex: 1 1 200px`), with action buttons right-aligned via `ml: auto`. href actions use Next.js Link; onClick actions call the handler directly.
 
 **File:** `app/components/prediction-status-header/games-header-variant.ts`
 Pure selector functions for the Games prediction page header variant.

@@ -114,13 +114,17 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
   let expandedActions: React.ReactNode = null;
   if (bothActions) {
     expandedActions = (
-      <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center', ml: 'auto' }}>
         {renderAction(variant.action!, 'contained')}
         {renderAction(variant.secondaryAction!, 'outlined')}
       </Box>
     );
   } else if (variant.action) {
-    expandedActions = renderAction(variant.action, 'contained');
+    expandedActions = (
+      <Box sx={{ flexShrink: 0, ml: 'auto' }}>
+        {renderAction(variant.action, 'contained')}
+      </Box>
+    );
   }
 
   return (
@@ -204,10 +208,10 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
         {isExpanded && (
           <>
             <Divider />
-            <Box sx={{ pl: 1.25, pr: 1.25, py: 1.25, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+            <Box sx={{ pl: 1.25, pr: 1.25, py: 1.25, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.25 }}>
               <Typography
                 variant="body2"
-                sx={{ flex: 1, minWidth: 0, fontWeight: 600, lineHeight: 1.4, color: 'text.primary', fontSize: 14 }}
+                sx={{ flex: '1 1 200px', minWidth: 0, fontWeight: 600, lineHeight: 1.4, color: 'text.primary', fontSize: 14 }}
               >
                 {variant.message}
               </Typography>
