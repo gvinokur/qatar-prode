@@ -211,7 +211,7 @@ export function PredictionStatusHeader({ variant }: PredictionStatusHeaderProps)
             <Box sx={{ pl: 1.25, pr: 1.25, py: 1.25, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.25 }}>
               <Typography
                 variant="body2"
-                sx={{ flex: '1 1 150px', minWidth: 0, fontWeight: 600, lineHeight: 1.4, color: 'text.primary', fontSize: 14 }}
+                sx={{ flex: '1 1 200px', minWidth: 0, fontWeight: 600, lineHeight: 1.4, color: 'text.primary', fontSize: 14 }}
               >
                 {variant.message}
               </Typography>
