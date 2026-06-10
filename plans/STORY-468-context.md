@@ -21,7 +21,7 @@
 
 ## Phase
 
-- **Current Phase:** planning
+- **Current Phase:** review-ready
 
 ## Plan File
 
