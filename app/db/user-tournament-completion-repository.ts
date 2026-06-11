@@ -36,9 +36,20 @@ interface CountRow {
 export async function getUserTournamentCompletionsPaginated(
   tournamentId: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  groupId?: string
 ): Promise<{ rows: UserTournamentCompletionRow[]; total: number }> {
   const offset = page * pageSize
+
+  const groupFilter = groupId
+    ? sql`AND EXISTS (
+        SELECT 1 FROM prode_group_participants pgp2
+        WHERE pgp2.participant_id = u.id AND pgp2.prode_group_id = ${groupId}
+        UNION ALL
+        SELECT 1 FROM prode_groups pg2
+        WHERE pg2.owner_user_id = u.id AND pg2.id = ${groupId}
+      )`
+    : sql``
 
   const [rowsResult, countResult] = await Promise.all([
     sql<RawCompletionRow>`
@@ -107,6 +118,7 @@ export async function getUserTournamentCompletionsPaginated(
             0
           ) AS total_qualifiers
       ) tq
+      WHERE TRUE ${groupFilter}
       ORDER BY (
         COALESCE(gg.games_predicted, 0) +
         COALESCE(qp.qualifiers_filled, 0) +
@@ -121,7 +133,7 @@ export async function getUserTournamentCompletionsPaginated(
       LIMIT ${pageSize} OFFSET ${offset}
     `.execute(db),
 
-    sql<CountRow>`SELECT COUNT(*) AS count FROM users`.execute(db),
+    sql<CountRow>`SELECT COUNT(*) AS count FROM users u WHERE TRUE ${groupFilter}`.execute(db),
   ])
 
   const rows = rowsResult.rows.map((row) => {

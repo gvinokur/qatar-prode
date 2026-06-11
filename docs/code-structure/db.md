@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-11
 
 ---
 
@@ -191,6 +191,7 @@ Repository for prode_groups (friend groups) and related tables. Manages group cr
 - **countPublicGroups(searchTerm?: string)**: `Promise<number>` — Counts public groups for pagination.
 - **updateGroupPrivacy(groupId: string, isPublic: boolean, description?: string | null)**: `Promise<ProdeGroup>` — Updates privacy and rejects discovery requests if making private.
 - **findAllPublicGroupsForSitemap()**: `Promise<{ id: string }[]>` — Returns IDs of all public groups for sitemap generation. No pagination, no joins.
+- **findAllProdeGroupsForAdmin()**: `Promise<{ id: string; name: string }[]>` — Returns id and name for all groups ordered by name. Used to populate the backoffice group filter dropdown.
 
 ### app/db/qualified-teams-repository.ts
 Repository for group position predictions (JSONB-based). Handles group position predictions and qualified team selections.
@@ -417,5 +418,5 @@ Repository for admin-only per-user prediction completion stats per tournament (S
 **Exported types:**
 - **UserTournamentCompletionRow**: `{ userId, nickname, isEmailVerified, gamesPredicted, totalGames, qualifiersFilled, qualifiersTotal, awardsFilled, awardsTotal, groupCount, groupNames: string[], overallPct }` — one row per user.
 
-- **getUserTournamentCompletionsPaginated(tournamentId: string, page: number, pageSize: number)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Returns paginated users with their prediction stats for a tournament. Runs two parallel raw SQL queries: (1) paginated results via a multi-join SELECT (users LEFT JOIN tournament_guesses, game_guesses subquery, qualifier predictions subquery, friend groups subquery, CROSS JOIN game totals and qualifier totals); (2) COUNT of all users. Sort order: total completed items (games+qualifiers+awards) DESC, nickname ASC. Friend groups count shows ALL groups the user belongs to (as owner or participant, across all tournaments — prode_groups has no tournament_id). overallPct denominator = total_games + qualifiers_total + 7; returns 0 when denominator is 0.
+- **getUserTournamentCompletionsPaginated(tournamentId: string, page: number, pageSize: number, groupId?: string)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Returns paginated users with their prediction stats for a tournament. When groupId is provided, filters to users who are owner or participant of that group (EXISTS subquery). Runs two parallel raw SQL queries: (1) paginated results via a multi-join SELECT (users LEFT JOIN tournament_guesses, game_guesses subquery, qualifier predictions subquery, friend groups subquery, CROSS JOIN game totals and qualifier totals); (2) COUNT matching users. Sort order: total completed items (games+qualifiers+awards) DESC, nickname ASC. Friend groups count shows ALL groups the user belongs to (as owner or participant, across all tournaments — prode_groups has no tournament_id). overallPct denominator = total_games + qualifiers_total + 7; returns 0 when denominator is 0.
   Calls: db

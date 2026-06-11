@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-11
 
 ---
 
@@ -424,7 +424,9 @@ Server Actions for materializing and reading per-group rank snapshots. Snapshots
 
 
 ### app/actions/admin-tournament-actions.ts
-Admin-only Server Actions for tournament-scoped admin data (Story #466).
+Admin-only Server Actions for tournament-scoped admin data (Story #466, #470).
 
-- **getUserTournamentCompletionsAction(tournamentId: string, page: number, pageSize: number)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Admin-gated Server Action. Throws 'Unauthorized' when caller is not an admin. Delegates to repository for paginated user completion stats.
+- **getUserTournamentCompletionsAction(tournamentId: string, page: number, pageSize: number, groupId?: string)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Admin-gated Server Action. Throws 'Unauthorized' when caller is not an admin. Delegates to repository for paginated user completion stats. Optional groupId filters results to members of that group.
   Calls: getLoggedInUser, getUserTournamentCompletionsPaginated
+- **getAllGroupsForAdminAction()**: `Promise<{ id: string; name: string }[]>` — Admin-gated Server Action. Returns all friend groups (id + name) ordered by name. Used to populate the backoffice completion stats group filter dropdown. Throws 'Unauthorized' when caller is not an admin.
+  Calls: getLoggedInUser, findAllProdeGroupsForAdmin
