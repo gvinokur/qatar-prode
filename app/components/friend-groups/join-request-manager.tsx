@@ -14,14 +14,16 @@ import {
   Typography,
   Box,
   CircularProgress,
-  Alert
+  Alert,
+  Divider,
 } from '@mui/material';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { approveJoinRequestAction, rejectJoinRequestAction } from '@/app/actions/prode-group-join-request-actions';
 import { Locale } from '@/i18n.config';
-import { PersonAdd as PersonAddIcon, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
+import { PersonAdd as PersonAddIcon, Check as CheckIcon, Close as CloseIcon, PersonRemove as PersonRemoveIcon } from '@mui/icons-material';
 import { trackEvent } from '@/app/utils/ga4';
+import RemoveMembersDialog from './remove-members-dialog';
 
 interface JoinRequest {
   id: string;
@@ -34,27 +36,37 @@ interface JoinRequest {
   message?: string | null;
 }
 
+interface Member {
+  id: string;
+  nombre: string;
+  is_admin: boolean;
+}
+
 type Props = {
   groupId: string;
   initialRequests: JoinRequest[];
   locale?: Locale;
   tournamentId?: string;
+  members?: Member[];
+  ownerId?: string;
+  isOwner?: boolean;
 };
 
-export default function JoinRequestManager({ groupId, initialRequests, locale = 'es', tournamentId }: Readonly<Props>) {
+export default function JoinRequestManager({ groupId, initialRequests, locale = 'es', tournamentId, members: initialMembers, ownerId, isOwner = false }: Readonly<Props>) {
   const t = useTranslations('groups.joinRequests');
   const router = useRouter();
   const [requests, setRequests] = useState<JoinRequest[]>(initialRequests);
   const [loadingRequests, setLoadingRequests] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [removeMembersOpen, setRemoveMembersOpen] = useState(false);
+  const [members, setMembers] = useState<Member[]>(initialMembers ?? []);
 
   const handleApprove = async (requestId: string) => {
     setLoadingRequests(prev => new Set(prev).add(requestId));
     setError(null);
     setSuccessMessage(null);
 
-    // Optimistic update: remove from list
     const previousRequests = [...requests];
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
@@ -66,9 +78,7 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
       if (result && result.success && result.analyticsEvent) {
         trackEvent(result.analyticsEvent.name, result.analyticsEvent.params);
       }
-
     } catch (err) {
-      // Revert optimistic update on error
       setRequests(previousRequests);
       setError(err instanceof Error ? err.message : t('approveFailed'));
       console.error('Error approving join request:', err);
@@ -86,7 +96,6 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
     setError(null);
     setSuccessMessage(null);
 
-    // Optimistic update: remove from list
     const previousRequests = [...requests];
     setRequests(prev => prev.filter(r => r.id !== requestId));
 
@@ -95,7 +104,6 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
       setSuccessMessage(t('rejectSuccess'));
       router.refresh();
     } catch (err) {
-      // Revert optimistic update on error
       setRequests(previousRequests);
       setError(err instanceof Error ? err.message : t('rejectFailed'));
       console.error('Error rejecting join request:', err);
@@ -106,6 +114,13 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
         return newSet;
       });
     }
+  };
+
+  const handleRemoveSuccess = (removedIds: string[]) => {
+    setMembers(prev => prev.filter(m => !removedIds.includes(m.id)));
+    setSuccessMessage(t('removeMembersDialog.success'));
+    setRemoveMembersOpen(false);
+    router.refresh();
   };
 
   const formatDate = (date: Date) => {
@@ -129,18 +144,11 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
   const pendingRequests = requests.filter(r => r.status === 'pending');
   const rejectedRequests = requests.filter(r => r.status === 'rejected');
 
-  if (pendingRequests.length === 0 && rejectedRequests.length === 0) {
-    return (
-      <Card>
-        <CardHeader title={t('title')} avatar={<PersonAddIcon />} />
-        <CardContent>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 2 }}>
-            {t('noPendingRequests')}
-          </Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+  const hasRemovableMembers = ownerId !== undefined && members.some(m => {
+    if (m.id === ownerId) return false;
+    if (m.is_admin && !isOwner) return false;
+    return true;
+  });
 
   const renderRequestItem = (request: JoinRequest, isPending: boolean) => (
     <ListItem
@@ -203,37 +211,75 @@ export default function JoinRequestManager({ groupId, initialRequests, locale = 
   );
 
   return (
-    <Card>
-      <CardHeader title={t('title')} avatar={<PersonAddIcon />} />
-      <CardContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
-            {successMessage}
-          </Alert>
-        )}
+    <>
+      <Card>
+        <CardHeader title={t('title')} avatar={<PersonAddIcon />} />
+        <CardContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
+              {successMessage}
+            </Alert>
+          )}
 
-        {pendingRequests.length > 0 && (
-          <List>
-            {pendingRequests.map((request) => renderRequestItem(request, true))}
-          </List>
-        )}
-
-        {rejectedRequests.length > 0 && (
-          <Box sx={{ mt: pendingRequests.length > 0 ? 2 : 0 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              {t('recentlyRejectedTitle')}
+          {pendingRequests.length === 0 && rejectedRequests.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 2 }}>
+              {t('noPendingRequests')}
             </Typography>
-            <List>
-              {rejectedRequests.map((request) => renderRequestItem(request, false))}
-            </List>
-          </Box>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <>
+              {pendingRequests.length > 0 && (
+                <List>
+                  {pendingRequests.map((request) => renderRequestItem(request, true))}
+                </List>
+              )}
+              {rejectedRequests.length > 0 && (
+                <Box sx={{ mt: pendingRequests.length > 0 ? 2 : 0 }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('recentlyRejectedTitle')}
+                  </Typography>
+                  <List>
+                    {rejectedRequests.map((request) => renderRequestItem(request, false))}
+                  </List>
+                </Box>
+              )}
+            </>
+          )}
+
+          {hasRemovableMembers && (
+            <>
+              <Divider sx={{ mt: 2, mb: 2 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  startIcon={<PersonRemoveIcon />}
+                  onClick={() => setRemoveMembersOpen(true)}
+                >
+                  {t('removeMembersButton')}
+                </Button>
+              </Box>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {hasRemovableMembers && ownerId && (
+        <RemoveMembersDialog
+          open={removeMembersOpen}
+          onClose={() => setRemoveMembersOpen(false)}
+          onSuccess={handleRemoveSuccess}
+          groupId={groupId}
+          members={members}
+          ownerId={ownerId}
+          isOwner={isOwner}
+        />
+      )}
+    </>
   );
 }

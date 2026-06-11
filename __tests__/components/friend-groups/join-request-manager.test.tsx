@@ -13,6 +13,20 @@ vi.mock('@/app/actions/prode-group-join-request-actions', () => ({
   rejectJoinRequestAction: vi.fn(),
 }));
 
+vi.mock('@/app/actions/prode-group-actions', () => ({
+  removeGroupMembersAction: vi.fn(),
+}));
+
+vi.mock('@/app/components/friend-groups/remove-members-dialog', () => ({
+  default: ({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: (ids: string[]) => void }) =>
+    open ? (
+      <div data-testid="remove-members-dialog">
+        <button onClick={() => onSuccess(['member-1'])}>confirm-remove</button>
+        <button onClick={onClose}>close-dialog</button>
+      </div>
+    ) : null,
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
 }));
@@ -263,6 +277,66 @@ describe('JoinRequestManager', () => {
       expect(screen.getByRole('button', { name: /Rechazar/i })).toBeInTheDocument();
       // Rejected request has "Aprobar de todas formas" button
       expect(screen.getByRole('button', { name: /Aprobar de todas formas/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('Remove Members button', () => {
+    const removableMembers = [
+      { id: 'member-1', nombre: 'Carol', is_admin: false },
+      { id: 'member-2', nombre: 'David', is_admin: false },
+    ];
+
+    it('does not render Remove Members button when members prop is absent', () => {
+      renderWithTheme(<JoinRequestManager {...defaultProps} />);
+
+      expect(screen.queryByRole('button', { name: /Eliminar Miembros/i })).not.toBeInTheDocument();
+    });
+
+    it('renders Remove Members button when members prop has removable members', () => {
+      renderWithTheme(
+        <JoinRequestManager
+          {...defaultProps}
+          members={removableMembers}
+          ownerId="owner-1"
+          isOwner={false}
+        />
+      );
+
+      expect(screen.getByRole('button', { name: /Eliminar Miembros/i })).toBeInTheDocument();
+    });
+
+    it('opens RemoveMembersDialog on Remove Members click', () => {
+      renderWithTheme(
+        <JoinRequestManager
+          {...defaultProps}
+          members={removableMembers}
+          ownerId="owner-1"
+          isOwner={false}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Eliminar Miembros/i }));
+
+      expect(screen.getByTestId('remove-members-dialog')).toBeInTheDocument();
+    });
+
+    it('shows success Alert after successful removal and closes dialog', async () => {
+      renderWithTheme(
+        <JoinRequestManager
+          {...defaultProps}
+          members={removableMembers}
+          ownerId="owner-1"
+          isOwner={false}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /Eliminar Miembros/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'confirm-remove' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Miembros eliminados correctamente')).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('remove-members-dialog')).not.toBeInTheDocument();
     });
   });
 });

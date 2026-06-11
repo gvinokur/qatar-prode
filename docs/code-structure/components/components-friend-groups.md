@@ -74,11 +74,12 @@ Tooltip icon showing group privacy status. [Client]
   Uses: useTranslations
 
 ### app/components/friend-groups/join-request-manager.tsx
-Admin card to view, approve, and reject pending join requests. [Client]
+Admin card to view, approve, and reject pending join requests. Shows a "Remove Members" button when members prop is provided. [Client]
 
-- **JoinRequestManager(props: Props)**: `JSX.Element` — [Client] List pending and rejected requests with approve/reject buttons, formatted timestamps, and source info.
+- **JoinRequestManager(props: Props)**: `JSX.Element` — [Client] List pending and rejected requests with approve/reject buttons, formatted timestamps, source info, and optional member-removal section.
   Calls: approveJoinRequestAction, rejectJoinRequestAction, trackEvent
   Uses: useTranslations, useRouter
+  Renders: RemoveMembersDialog (conditional)
 
 ### app/components/friend-groups/public-groups-browser.tsx
 Searchable paginated browser for discovering and requesting to join public groups. [Client]
@@ -128,10 +129,17 @@ Four use case cards showing example group scenarios. [Client]
 - **UseCases()**: `JSX.Element` — [Client] Grid of four use case cards.
   Uses: useTranslations
 
-### app/components/friend-groups/admin-section-tabs.tsx
-Four-tab admin interface for requests, privacy, betting, and customization. [Client]
+### app/components/friend-groups/remove-members-dialog.tsx
+Dialog with a checkbox list for selecting and confirming removal of group members. [Client]
 
-- **AdminSectionTabs(props: Props)**: `JSX.Element` — [Client] Tabs for join requests (with badge), privacy settings, betting config, and group customization.
+- **RemoveMembersDialog(props: RemoveMembersDialogProps)**: `JSX.Element` — [Client] Multiselect dialog; filters visible members by caller permissions (owner sees admins+members, non-owner admin sees only regular members). Calls removeGroupMembersAction on confirm.
+  Calls: removeGroupMembersAction
+  Uses: useTranslations
+
+### app/components/friend-groups/admin-section-tabs.tsx
+Four-tab admin interface for requests, privacy, betting, and customization. Passes member list and ownership props to JoinRequestManager to enable member removal. [Client]
+
+- **AdminSectionTabs(props: Props)**: `JSX.Element` — [Client] Tabs for join requests (with badge), privacy settings, betting config, and group customization. Props include ownerId and isOwner for member-removal feature.
   Renders: JoinRequestManager, GroupPrivacySettings, GroupTournamentBettingAdmin, ProdeGroupThemer
 
 ### app/components/friend-groups/friend-groups-themer.tsx

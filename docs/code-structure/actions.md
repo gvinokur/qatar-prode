@@ -177,6 +177,8 @@ Friend group management — creation, membership, scoring, and theme updates.
   Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, updateGroupPrivacy
 - **leaveGroupAction(groupId)**: `Promise<{ success: true }>` — Current user leaves a group.
   Calls: getLoggedInUser, findProdeGroupById, deleteParticipantFromGroup
+- **removeGroupMembersAction(groupId, memberIds)**: `Promise<void>` — Owner or admin removes one or more members. Owner can remove admins and members; admins can only remove regular members; owner cannot be removed.
+  Calls: getLoggedInUser, findProdeGroupById, findParticipantsInGroup, deleteParticipantFromGroup
 - **getUsersForGroup(groupId)**: `Promise<string[]>` — Gets all user IDs in a group.
   Calls: findProdeGroupById, findParticipantsInGroup
 - **getUserScoresForTournament(userIds, tournamentId)**: `Promise<UserScore[]>` — Calculates tournament scores for a set of users. Return shape includes badge fields (totalExactGuesses, totalCorrectGuesses, qualifiedTeamsCorrect, boostsUsed, scoredBoosts). Does not include yesterdayTotalPoints (removed in Story #277); snapshot fields (latestSnapshotPoints, penultimateSnapshotPoints) are patched on by pages after calling computeSnapshotScores.
