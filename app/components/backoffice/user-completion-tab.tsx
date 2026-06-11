@@ -107,7 +107,7 @@ export default function UserCompletionTab({ tournamentId }: Props) {
       >
         <TableCell>{row.nickname}</TableCell>
         <TableCell>
-          {row.isEmailVerified ? (
+          {row.gamesPredicted > 0 || row.qualifiersFilled > 0 || row.awardsFilled > 0 ? (
             <Chip label="Yes" color="success" size="small" />
           ) : (
             <Chip label="No" size="small" />

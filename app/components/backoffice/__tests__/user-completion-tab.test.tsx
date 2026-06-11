@@ -77,9 +77,9 @@ describe('UserCompletionTab', () => {
     })
   })
 
-  it('shows "Yes" chip for email-verified user', async () => {
+  it('shows "Yes" chip for user with at least one prediction', async () => {
     mockGroups()
-    mockAction([makeRow({ isEmailVerified: true })])
+    mockAction([makeRow({ gamesPredicted: 5, qualifiersFilled: 0, awardsFilled: 0 })])
 
     renderWithTheme(<UserCompletionTab tournamentId={TOURNAMENT_ID} />)
 
@@ -88,9 +88,9 @@ describe('UserCompletionTab', () => {
     })
   })
 
-  it('shows "No" chip for non-email-verified user', async () => {
+  it('shows "No" chip for user with no predictions', async () => {
     mockGroups()
-    mockAction([makeRow({ isEmailVerified: false })])
+    mockAction([makeRow({ gamesPredicted: 0, qualifiersFilled: 0, awardsFilled: 0, overallPct: 0 })])
 
     renderWithTheme(<UserCompletionTab tournamentId={TOURNAMENT_ID} />)
 
