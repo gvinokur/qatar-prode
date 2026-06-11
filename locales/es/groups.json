@@ -242,6 +242,19 @@
       "invite_link": "mediante enlace de invitación",
       "discovery": "mediante descubrimiento",
       "email_invite": "mediante invitación por email"
+    },
+    "removeMembersButton": "Eliminar Miembros",
+    "removeMembersDialog": {
+      "title": "Eliminar Miembros",
+      "selectionCount": "{count} miembro(s) seleccionado(s)",
+      "confirmButton": "Eliminar ({count})",
+      "cancelButton": "Cancelar",
+      "roles": {
+        "admin": "Admin",
+        "member": "Miembro"
+      },
+      "success": "Miembros eliminados correctamente",
+      "error": "Error al eliminar miembros"
     }
   },
   "pendingRequest": {

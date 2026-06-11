@@ -42,13 +42,16 @@ type Props = {
   initialDescription: string | null;
   // GroupTournamentBettingAdmin
   isAdmin: boolean;
-  members: { id: string; nombre: string }[];
+  members: { id: string; nombre: string; is_admin: boolean }[];
   config: ProdeGroupTournamentBetting | null;
   payments: ProdeGroupTournamentBettingPayment[];
   // ProdeGroupThemer
   group: ProdeGroup;
   // Tab logic
   pendingRequestCount: number;
+  // Remove members
+  ownerId: string;
+  isOwner: boolean;
 };
 
 export default function AdminSectionTabs({
@@ -65,6 +68,8 @@ export default function AdminSectionTabs({
   payments,
   group,
   pendingRequestCount,
+  ownerId,
+  isOwner,
 }: Readonly<Props>) {
   const t = useTranslations('groups.adminSectionTabs');
 
@@ -121,6 +126,9 @@ export default function AdminSectionTabs({
             initialRequests={initialRequests}
             locale={locale}
             tournamentId={tournamentId}
+            members={members}
+            ownerId={ownerId}
+            isOwner={isOwner}
           />
         </TabPanel>
         <TabPanel value="privacy" sx={{ px: 0 }}>

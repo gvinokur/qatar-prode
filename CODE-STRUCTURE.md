@@ -422,6 +422,9 @@ Key flows:
             └── deleteParticipantFromGroup
     AdminSectionTabs [Client] (admin view — 4 tabs)
       ├── JoinRequestManager [renders] → approveJoinRequestAction / rejectJoinRequestAction
+      │     └── RemoveMembersDialog [renders, conditional]
+      │           └── removeGroupMembersAction [server action]
+      │                 └── deleteParticipantFromGroup
       ├── GroupPrivacySettings [renders]
       │     └── updateGroupPrivacyAction [server action]
       │           └── updateGroupPrivacy

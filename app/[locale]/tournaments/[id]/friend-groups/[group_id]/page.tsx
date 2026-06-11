@@ -322,6 +322,8 @@ export default async function TournamentScopedFriendGroup(props : Props){
                 payments={payments}
                 group={prodeGroup}
                 pendingRequestCount={pendingRequestCount}
+                ownerId={prodeGroup.owner_user_id}
+                isOwner={isOwner}
               />
             }
           />

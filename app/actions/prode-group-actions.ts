@@ -250,6 +250,32 @@ export async function leaveGroupAction(groupId: string) {
   return { success: true };
 }
 
+export async function removeGroupMembersAction(groupId: string, memberIds: string[]): Promise<void> {
+  const user = await getLoggedInUser();
+  if (!user) {
+    throw new Error('Should not call this action from a logged out page');
+  }
+  const group = await findProdeGroupById(groupId);
+  if (!group) {
+    throw new Error('Group not found');
+  }
+  const participants = await findParticipantsInGroup(groupId);
+  const callerParticipant = participants.find(p => p.user_id === user.id);
+  const isOwner = group.owner_user_id === user.id;
+  const isAdmin = isOwner || !!callerParticipant?.is_admin;
+  if (!isAdmin) {
+    throw new Error('Only group admins can remove members');
+  }
+  for (const memberId of memberIds) {
+    if (memberId === group.owner_user_id) continue;
+    const targetParticipant = participants.find(p => p.user_id === memberId);
+    if (targetParticipant?.is_admin && !isOwner) {
+      throw new Error('Only the group owner can remove admins');
+    }
+    await deleteParticipantFromGroup(groupId, memberId);
+  }
+}
+
 export async function getUsersForGroup(groupId: string): Promise<string[]> {
   const group = await findProdeGroupById(groupId);
   if (!group) {

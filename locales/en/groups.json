@@ -242,6 +242,19 @@
       "invite_link": "via invite link",
       "discovery": "via discovery",
       "email_invite": "via email invite"
+    },
+    "removeMembersButton": "Remove Members",
+    "removeMembersDialog": {
+      "title": "Remove Members",
+      "selectionCount": "{count} member(s) selected",
+      "confirmButton": "Remove ({count})",
+      "cancelButton": "Cancel",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member"
+      },
+      "success": "Members removed successfully",
+      "error": "Failed to remove members"
     }
   },
   "pendingRequest": {
