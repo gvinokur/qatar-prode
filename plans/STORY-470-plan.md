@@ -167,3 +167,10 @@ Tests:
 ## Open Questions
 
 None.
+
+## Implementation Amendments
+
+### Amendment 1: Active column changed to prediction-based
+**Date:** 2026-06-11
+**Reason:** During Vercel Preview testing, the "Active" column (previously showing `isEmailVerified`) was observed to show "Yes" for users with 0% completion, which was misleading. User confirmed "Active" should mean "has made at least one prediction."
+**Change:** `UserCompletionTab` now renders the Active chip based on `gamesPredicted > 0 || qualifiersFilled > 0 || awardsFilled > 0` instead of `isEmailVerified`. Tests updated accordingly. The `isEmailVerified` field is still fetched from the DB but no longer displayed.
