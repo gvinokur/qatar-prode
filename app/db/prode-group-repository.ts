@@ -283,3 +283,11 @@ export async function updateGroupPrivacy(
 
   return updated;
 }
+
+export async function findAllProdeGroupsForAdmin(): Promise<{ id: string; name: string }[]> {
+  return db
+    .selectFrom('prode_groups')
+    .select(['id', 'name'])
+    .orderBy('name', 'asc')
+    .execute()
+}

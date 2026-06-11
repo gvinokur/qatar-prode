@@ -24,6 +24,7 @@ vi.mock('@/app/db/prode-group-repository', () => ({
   deleteParticipantFromAllGroups: vi.fn(),
   deleteProdeGroup: vi.fn(),
   findProdeGroupsByOwner: vi.fn(),
+  findAllProdeGroupsForAdmin: vi.fn(),
 }))
 vi.mock('@/app/db/tournament-guess-repository', () => ({
   deleteAllUserTournamentGuesses: vi.fn(),
@@ -87,7 +88,8 @@ describe('getUserTournamentCompletionsAction', () => {
     expect(repo.getUserTournamentCompletionsPaginated).toHaveBeenCalledWith(
       TOURNAMENT_ID,
       PAGE,
-      PAGE_SIZE
+      PAGE_SIZE,
+      undefined
     )
     expect(result).toEqual(fakeResult)
   })

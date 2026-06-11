@@ -143,8 +143,8 @@ Tournament-level admin actions for import, recalculation, deactivation. [Client]
   Renders: Button, Dialog, Grid, Typography, DebugObject, Snackbar, Alert
 
 ### app/components/backoffice/user-completion-tab.tsx
-Per-tournament user prediction completion stats for admin review (Story #466). [Client] self-fetching paginated table.
-- **UserCompletionTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Shows paginated table of all users with their prediction stats for a tournament: display name, active status (email_verified), overall completion %, games predicted/total, qualifiers filled/total, awards filled/total, and friend group count (tooltip shows names). Zero-prediction rows are visually dimmed (opacity 0.6). Fetches on mount and page change.
-  Calls: getUserTournamentCompletionsAction
+Per-tournament user prediction completion stats for admin review (Story #466, #470). [Client] self-fetching paginated table with group filter.
+- **UserCompletionTab({ tournamentId }: Props)**: `JSX.Element` — [Client] Shows paginated table of all users with their prediction stats for a tournament: display name, active status (email_verified), overall completion %, games predicted/total, qualifiers filled/total, awards filled/total, and friend group count (tooltip shows names). Includes a "Filter by group" dropdown that narrows the table to members of the selected group (page resets to 0 on filter change). Zero-prediction rows are visually dimmed (opacity 0.6). Fetches groups once on mount; re-fetches rows on mount, page change, or group change.
+  Calls: getUserTournamentCompletionsAction, getAllGroupsForAdminAction
   Uses: useState, useEffect
-  Renders: Table, TableHead, TableBody, TableRow, TableCell, TablePagination, TableContainer, Paper, Chip, Tooltip, CircularProgress, Alert, Typography, Box
+  Renders: FormControl, InputLabel, Select, MenuItem, Table, TableHead, TableBody, TableRow, TableCell, TablePagination, TableContainer, Paper, Chip, Tooltip, CircularProgress, Alert, Typography, Box

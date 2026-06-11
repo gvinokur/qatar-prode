@@ -5,11 +5,11 @@
 - **Story Title:** [Story] Filter completion stats by friend group in backoffice
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-470
 - **Branch:** feature/story-470
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 473
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/473
 
 ## State
-- **Current Phase:** planning
+- **Current Phase:** review-ready
 - **Plan File:** plans/STORY-470-plan.md
 - **Task File:** (fill when implementation starts)
 

@@ -735,13 +735,17 @@ Key flows:
       → [branch: !hasData] renders empty state (InsightsIcon + noData text)
       → [branch: hasData] renders total score h3 + momentum chip + category rows + Sparkline SVG + "See all statistics" → /${locale}/tournaments/${tournamentId}/stats
 
-33. Backoffice User Completion tab (Story #466)
+33. Backoffice User Completion tab (Story #466, #470)
     Backoffice [Server] → UserCompletionTab [Client] (per tournament, self-fetching)
-      └── getUserTournamentCompletionsAction(tournamentId, page, pageSize) [server action]
-            └── getUserTournamentCompletionsPaginated(tournamentId, page, pageSize)
+      ├── getAllGroupsForAdminAction() [server action, on mount — populates group filter dropdown]
+      │     └── findAllProdeGroupsForAdmin()
+      │           └── db (SELECT id, name FROM prode_groups ORDER BY name)
+      └── getUserTournamentCompletionsAction(tournamentId, page, pageSize, groupId?) [server action]
+            └── getUserTournamentCompletionsPaginated(tournamentId, page, pageSize, groupId?)
                   └── db (raw SQL: users LEFT JOIN tournament_guesses, game_guesses subquery,
                           qualifier predictions subquery, friend groups subquery,
-                          CROSS JOIN game totals, qualifier totals; parallel COUNT query)
+                          CROSS JOIN game totals, qualifier totals; parallel COUNT query;
+                          optional WHERE EXISTS group membership filter)
 
 34. Rank history read path — History tab (Story #335)
     FriendGroupPage / TournamentScopedFriendGroup (Server):
