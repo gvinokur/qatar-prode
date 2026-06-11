@@ -137,8 +137,10 @@ export default function RemoveMembersDialog({
                   <ListItemText
                     primary={member.nombre}
                     secondary={member.is_admin ? t('roles.admin') : t('roles.member')}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
+                    slotProps={{
+                      primary: { variant: 'body2' },
+                      secondary: { variant: 'caption' },
+                    }}
                   />
                 </ListItem>
               </React.Fragment>
