@@ -5,8 +5,8 @@
 - **Story Title:** [Story] Group admins can remove members from a group
 - **Worktree Path:** /Users/gvinokur/Personal/qatar-prode-story-471
 - **Branch:** feature/story-471
-- **PR Number:** (fill after PR creation)
-- **PR URL:** (fill after PR creation)
+- **PR Number:** 472
+- **PR URL:** https://github.com/gvinokur/qatar-prode/pull/472
 
 ## State
 - **Current Phase:** planning
