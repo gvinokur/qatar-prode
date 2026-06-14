@@ -26,9 +26,20 @@ vi.mock('next-intl', () => ({
       'header.userMenu.logout': 'Salir',
       'header.userMenu.deleteAccount': 'Delete Account',
       'header.userMenu.backoffice': 'Ir al Back Office',
+      'header.userMenu.fillLatestScores': 'Fill Latest Scores',
     };
     return translations[key] || key;
   },
+}));
+
+// Mock QuickScoreWizardDialog
+vi.mock('../../../app/components/header/quick-score-wizard-dialog', () => ({
+  default: ({ open, onClose }: any) => (
+    <div data-testid="quick-score-wizard-dialog">
+      <span data-testid="quick-score-wizard-open">{open ? 'true' : 'false'}</span>
+      <button data-testid="close-wizard" onClick={onClose}>Close Wizard</button>
+    </div>
+  ),
 }));
 
 // Mock next-auth/react
@@ -301,13 +312,44 @@ describe('UserActions', () => {
         ...mockUser,
         isAdmin: true,
       };
-      
+
       render(<UserActions user={adminUser} />);
-      
+
       fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
       fireEvent.click(screen.getByText('Ir al Back Office'));
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith('/es/backoffice');
+    });
+
+    it('does not render Fill Latest Scores menu item for non-admin user', () => {
+      const regularUser: User = { ...mockUser, isAdmin: false };
+
+      render(<UserActions user={regularUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+
+      expect(screen.queryByText('Fill Latest Scores')).not.toBeInTheDocument();
+    });
+
+    it('renders Fill Latest Scores menu item for admin user', () => {
+      const adminUser: User = { ...mockUser, isAdmin: true };
+
+      render(<UserActions user={adminUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+
+      expect(screen.getByText('Fill Latest Scores')).toBeInTheDocument();
+    });
+
+    it('opens QuickScoreWizardDialog when Fill Latest Scores is clicked', () => {
+      const adminUser: User = { ...mockUser, isAdmin: true };
+
+      render(<UserActions user={adminUser} />);
+
+      fireEvent.click(screen.getByLabelText('Abrir Menu de Usuario'));
+      fireEvent.click(screen.getByText('Fill Latest Scores'));
+
+      expect(screen.getByTestId('quick-score-wizard-open')).toHaveTextContent('true');
     });
 
     it('navigates to delete account page when delete account is clicked', () => {

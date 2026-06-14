@@ -14,5 +14,17 @@
     "subscriptionNotFound": "Subscription not found",
     "sendFailed": "Failed to send notification",
     "groupNotFound": "Group not found"
+  },
+  "wizard": {
+    "title": "Fill Latest Scores",
+    "progress": "Game {current} of {total}",
+    "saveAndPublish": "Save & Publish",
+    "skip": "Skip",
+    "emptyTitle": "All caught up!",
+    "emptyDescription": "No unscored games in the last 24 hours.",
+    "loading": "Loading games...",
+    "close": "Close",
+    "saveError": "Failed to save. Please try again.",
+    "penaltyShootout": "Penalty Shootout"
   }
 }

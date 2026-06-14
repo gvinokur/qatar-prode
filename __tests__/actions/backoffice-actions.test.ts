@@ -14,10 +14,13 @@ import {
   updateTournamentHonorRoll,
   copyTournament,
   getTournamentPermissionData,
-  updateTournamentPermissions
+  updateTournamentPermissions,
+  getRecentUnscoredGames,
+  saveAndPublishSingleGameResult,
 } from '../../app/actions/backoffice-actions';
 import { GameResult, Tournament, TournamentUpdate } from '../../app/db/tables-definition';
 import { ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
+import { testFactories } from '../db/test-factories';
 
 // Mock the auth module
 vi.mock('../../auth', () => ({
@@ -112,7 +115,12 @@ vi.mock('../../app/db/team-repository', () => ({
   findQualifiedTeams: vi.fn(),
   findTeamInGroup: vi.fn(),
   findTeamInTournament: vi.fn(),
+  findTeamsByIds: vi.fn(),
   getTeamByName: vi.fn(),
+}));
+
+vi.mock('../../app/db/quick-score-repository', () => ({
+  findRecentUnscoredGames: vi.fn(),
 }));
 
 vi.mock('../../app/db/tournament-group-repository', () => ({
@@ -271,6 +279,7 @@ vi.mock('../../app/actions/group-ranking-actions', () => ({
 // Import mocked functions
 import * as tournamentRepository from '../../app/db/tournament-repository';
 import * as teamRepository from '../../app/db/team-repository';
+import * as quickScoreRepository from '../../app/db/quick-score-repository';
 import * as tournamentGroupRepository from '../../app/db/tournament-group-repository';
 import * as tournamentPlayoffRepository from '../../app/db/tournament-playoff-repository';
 import * as gameRepository from '../../app/db/game-repository';
@@ -365,6 +374,8 @@ const mockUpdateTournamentGuess = vi.mocked(tournamentGuessRepository.updateTour
 const mockUpdateTournamentGuessByUserIdTournament = vi.mocked(tournamentGuessRepository.updateTournamentGuessByUserIdTournament);
 
 const mockGetLoggedInUser = vi.mocked(userActions.getLoggedInUser);
+const mockFindTeamsByIds = vi.mocked(teamRepository.findTeamsByIds);
+const mockFindRecentUnscoredGames = vi.mocked(quickScoreRepository.findRecentUnscoredGames);
 
 const mockUpdatePlayoffGameGuesses = vi.mocked(guessesActions.updatePlayoffGameGuesses);
 
@@ -1549,6 +1560,89 @@ describe('Backoffice Actions', () => {
 
         expect(mockAddUsersToTournament).toHaveBeenCalledWith('tournament-123', userIds);
       });
+    });
+  });
+
+  describe('getRecentUnscoredGames', () => {
+    it('throws Unauthorized when user is not admin', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockRegularUser } as any);
+
+      await expect(getRecentUnscoredGames('en')).rejects.toThrow();
+    });
+
+    it('throws Unauthorized when no session', async () => {
+      mockGetLoggedInUser.mockResolvedValue(null as any);
+
+      await expect(getRecentUnscoredGames('en')).rejects.toThrow();
+    });
+
+    it('returns empty games and teamsMap when no recent unscored games', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      mockFindRecentUnscoredGames.mockResolvedValue([]);
+      mockFindTeamsByIds.mockResolvedValue([]);
+
+      const result = await getRecentUnscoredGames('en');
+
+      expect(result.games).toEqual([]);
+      expect(result.teamsMap).toEqual({});
+      expect(mockFindTeamsByIds).toHaveBeenCalledWith([]);
+    });
+
+    it('returns localized games and teamsMap for valid admin', async () => {
+      const game = testFactories.game({ id: 'game-1', home_team: 'team-1', away_team: 'team-2' });
+      const team1 = testFactories.team({ id: 'team-1' });
+      const team2 = testFactories.team({ id: 'team-2' });
+
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      mockFindRecentUnscoredGames.mockResolvedValue([game] as any);
+      mockFindTeamsByIds.mockResolvedValue([team1, team2]);
+
+      const result = await getRecentUnscoredGames('en');
+
+      expect(result.games).toHaveLength(1);
+      expect(result.teamsMap).toHaveProperty('team-1');
+      expect(result.teamsMap).toHaveProperty('team-2');
+    });
+
+    it('builds teamsMap with all teams referenced by returned games', async () => {
+      const game = testFactories.game({ id: 'game-1', home_team: 'team-1', away_team: 'team-2' });
+      const team1 = testFactories.team({ id: 'team-1', name: 'Spain' });
+      const team2 = testFactories.team({ id: 'team-2', name: 'France' });
+
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      mockFindRecentUnscoredGames.mockResolvedValue([game] as any);
+      mockFindTeamsByIds.mockResolvedValue([team1, team2]);
+
+      const result = await getRecentUnscoredGames('en');
+
+      expect(mockFindTeamsByIds).toHaveBeenCalledWith(expect.arrayContaining(['team-1', 'team-2']));
+      expect(Object.keys(result.teamsMap)).toHaveLength(2);
+    });
+  });
+
+  describe('saveAndPublishSingleGameResult', () => {
+    it('throws Unauthorized when user is not admin', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockRegularUser } as any);
+
+      const game = testFactories.game({ id: 'game-1' });
+      await expect(saveAndPublishSingleGameResult(game as any, 'en')).rejects.toThrow();
+    });
+
+    it('calls saveGameResults with is_draft set to false', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      mockCreateGameResult.mockResolvedValue(undefined as any);
+      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+
+      const game = testFactories.game({ id: 'game-1', home_team: 'team-1', away_team: 'team-2' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: true });
+      const gameWithResult = { ...game, gameResult, playoffStage: null };
+
+      await saveAndPublishSingleGameResult(gameWithResult as any, 'en');
+
+      expect(mockCreateGameResult).toHaveBeenCalledWith(
+        expect.objectContaining({ is_draft: false })
+      );
     });
   });
 });

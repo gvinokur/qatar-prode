@@ -6,6 +6,7 @@ import {
   findTeamInGroup,
   findGuessedQualifiedTeams,
   findQualifiedTeams,
+  findTeamsByIds,
   createTeam,
   updateTeam,
   deleteTeam,
@@ -378,6 +379,39 @@ describe('Team Repository', () => {
           allGroupsComplete: false,
         });
       });
+    });
+  });
+
+  describe('findTeamsByIds', () => {
+    it('returns empty array without hitting the DB when ids is empty', async () => {
+      const result = await findTeamsByIds([]);
+
+      expect(result).toEqual([]);
+      expect(mockDb.selectFrom).not.toHaveBeenCalled();
+    });
+
+    it('returns matching teams for given ids', async () => {
+      const teams = [
+        testFactories.team({ id: 'team-1' }),
+        testFactories.team({ id: 'team-2' }),
+      ];
+      const mockQuery = createMockSelectQuery(teams);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findTeamsByIds(['team-1', 'team-2']);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('team-1');
+    });
+
+    it('returns only found teams when some ids are unknown', async () => {
+      const teams = [testFactories.team({ id: 'team-1' })];
+      const mockQuery = createMockSelectQuery(teams);
+      mockDb.selectFrom.mockReturnValue(mockQuery as any);
+
+      const result = await findTeamsByIds(['team-1', 'unknown-id']);
+
+      expect(result).toHaveLength(1);
     });
   });
 

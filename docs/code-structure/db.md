@@ -237,6 +237,7 @@ Repository for teams table. Manages team records across tournaments. Returns raw
 - **findTeamInGroup(groupId: string)**: `Promise<Team[]>` — Finds teams in group (cached).
 - **findGuessedQualifiedTeams(tournamentId: string, userId: string, inGroupId?: string)**: `Promise<Team[]>` — Finds teams user predicted as qualified (cached).
 - **findQualifiedTeams(tournamentId: string, inGroupId?: string)**: `Promise<QualifiedTeamsResult>` — Finds qualified teams progressively (1st/2nd from complete groups, 3rd when playoff known) (cached).
+- **findTeamsByIds(ids: string[])**: `Promise<Team[]>` — Fetches teams by a list of IDs; returns empty array when ids is empty.
 
 ### app/db/tournament-group-repository.ts
 Repository for tournament_groups and team standings. Manages group structure and standings.
@@ -420,3 +421,8 @@ Repository for admin-only per-user prediction completion stats per tournament (S
 
 - **getUserTournamentCompletionsPaginated(tournamentId: string, page: number, pageSize: number, groupId?: string)**: `Promise<{ rows: UserTournamentCompletionRow[], total: number }>` — Returns paginated users with their prediction stats for a tournament. When groupId is provided, filters to users who are owner or participant of that group (EXISTS subquery). Runs two parallel raw SQL queries: (1) paginated results via a multi-join SELECT (users LEFT JOIN tournament_guesses, game_guesses subquery, qualifier predictions subquery, friend groups subquery, CROSS JOIN game totals and qualifier totals); (2) COUNT matching users. Sort order: total completed items (games+qualifiers+awards) DESC, nickname ASC. Friend groups count shows ALL groups the user belongs to (as owner or participant, across all tournaments — prode_groups has no tournament_id). overallPct denominator = total_games + qualifiers_total + 7; returns 0 when denominator is 0.
   Calls: db
+
+### app/db/quick-score-repository.ts
+Repository for the quick score wizard. Queries games that need scoring across all tournaments, without tournament filter.
+
+- **findRecentUnscoredGames(hoursBack: number)**: `Promise<ExtendedGameData[]>` — Finds games from the last N hours across all tournaments that have no published result. LEFT JOINs game_results to filter out published results; includes group, playoffStage, and draft gameResult subqueries via jsonObjectFrom. Ordered by game_date ASC.

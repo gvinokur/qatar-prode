@@ -10,6 +10,7 @@
       "settings": "Settings",
       "tutorial": "View Tutorial",
       "backoffice": "Go to Back Office",
+      "fillLatestScores": "Fill Latest Scores",
       "logout": "Log Out",
       "deleteAccount": "Delete Account"
     }

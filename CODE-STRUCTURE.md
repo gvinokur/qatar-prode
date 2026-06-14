@@ -759,4 +759,15 @@ Key flows:
           when non-null → HistoryTab merges with displayNames from historyData.userHistories
                           → passes merged data to RankHistoryChart (replaces computed ranks)
           when null     → HistoryTab falls back to computed ranks from getScoreHistoryForGroup (existing behavior)
+
+35. Quick Score Wizard (Story #474)
+    UserActions [Client] (header) → QuickScoreWizardDialog [Client] (on "Fill Latest Scores" menu click)
+      ├── getRecentUnscoredGames(locale) [server action, on open]
+      │     ├── getLoggedInUser (admin check)
+      │     ├── findRecentUnscoredGames(24) → games with no published result in last 24h across all tournaments
+      │     ├── applyLocalization (per game and per team)
+      │     └── findTeamsByIds(uniqueTeamIds) → teamsMap
+      └── saveAndPublishSingleGameResult(game, locale) [server action, per game]
+            ├── getLoggedInUser (admin check)
+            └── saveGameResults([publishedGame]) → processGameResult → calculateGameScores
 ```

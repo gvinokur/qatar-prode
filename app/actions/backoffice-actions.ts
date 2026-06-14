@@ -13,6 +13,7 @@ import {
 import {
   createTeam,
   findTeamInTournament,
+  findTeamsByIds,
   getTeamByName
 } from "../db/team-repository";
 import {
@@ -102,6 +103,7 @@ import {
 import {writeScoreSnapshot} from '../db/score-history-repository';
 import {getTodayYYYYMMDD} from '../utils/date-utils';
 import {recalculateGroupRankingsForUsers} from './group-ranking-actions';
+import {findRecentUnscoredGames} from '../db/quick-score-repository';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
@@ -390,6 +392,45 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
     // Step 4: Recalculate with new scores (processes published results)
     await calculateGameScores(false, false);
   }
+}
+
+export async function getRecentUnscoredGames(locale: string): Promise<{ games: ExtendedGameData[], teamsMap: Record<string, Team> }> {
+  const t = await getTranslations({ locale: locale as Locale, namespace: 'backoffice' });
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error(t('unauthorized'));
+  }
+
+  const games = await findRecentUnscoredGames(24);
+  const localizedGames = games.map(game => applyLocalization(game, locale, [
+    { field: 'location', i18nField: 'location_i18n' }
+  ]));
+
+  const uniqueTeamIds = [...new Set(
+    localizedGames.flatMap(g => [g.home_team, g.away_team].filter(Boolean) as string[])
+  )];
+
+  const teams = await findTeamsByIds(uniqueTeamIds);
+  const localizedTeams = teams.map(team => applyLocalization(team, locale, [
+    { field: 'name', i18nField: 'name_i18n' }
+  ]));
+  const teamsMap: Record<string, Team> = Object.fromEntries(localizedTeams.map(t => [t.id, t]));
+
+  return { games: localizedGames, teamsMap };
+}
+
+export async function saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string): Promise<void> {
+  const t = await getTranslations({ locale: locale as Locale, namespace: 'backoffice' });
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) {
+    throw new Error(t('unauthorized'));
+  }
+
+  const publishedGame: ExtendedGameData = {
+    ...game,
+    gameResult: game.gameResult ? { ...game.gameResult, is_draft: false } : game.gameResult,
+  };
+  await saveGameResults([publishedGame]);
 }
 
 export async function saveGamesData(games: ExtendedGameData[]) {

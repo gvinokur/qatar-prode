@@ -18,6 +18,7 @@ import {User} from "next-auth";
 import UserSettingsDialog from "../auth/user-settings-dialog";
 import OnboardingDialogClient from "../onboarding/onboarding-dialog-client";
 import { useLocale, useTranslations } from 'next-intl';
+import QuickScoreWizardDialog from './quick-score-wizard-dialog';
 
 type UserActionProps = {
   user?: User
@@ -32,6 +33,7 @@ export default function UserActions({ user }: UserActionProps) {
   const [openLoginDialog, setOpenLoginDialog] = useState(forceOpen);
   const [openNicknameDialog, setOpenNicknameDialog] = useState(false);
   const [openOnboardingDialog, setOpenOnboardingDialog] = useState(false);
+  const [openScoreWizard, setOpenScoreWizard] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const router = useRouter()
 
@@ -133,6 +135,11 @@ export default function UserActions({ user }: UserActionProps) {
               <Typography textAlign="center">{t('header.userMenu.tutorial')}</Typography>
             </MenuItem>
             {user.isAdmin && (
+              <MenuItem onClick={() => { setOpenScoreWizard(true); handleCloseUserMenu(); }}>
+                {t('header.userMenu.fillLatestScores')}
+              </MenuItem>
+            )}
+            {user.isAdmin && (
               <MenuItem onClick={() => router.push(`/${locale}/backoffice`)}>
                 {t('header.userMenu.backoffice')}
               </MenuItem>
@@ -185,6 +192,10 @@ export default function UserActions({ user }: UserActionProps) {
           onClose={handleCloseOnboarding}
         />
       )}
+      <QuickScoreWizardDialog
+        open={openScoreWizard}
+        onClose={() => setOpenScoreWizard(false)}
+      />
     </>
   )
 }

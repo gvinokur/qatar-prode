@@ -82,8 +82,12 @@ Icon button for switching between light and dark themes.
 - `ThemeSwitcher` - [Client] - Uses: `useTheme` (next-themes), `useTranslations` - Renders: Avatar with DarkMode/LightMode icons
 
 **app/components/header/user-actions.tsx**
-User menu displaying login button or user avatar with dropdown menu (settings, tutorial, backoffice, logout, delete account).
-- `UserActions` - [Client] - Calls: `signOut` - Uses: `useSearchParams`, `useRouter`, `useLocale`, `useTranslations` - Renders: UserSettingsDialog, LoginOrSignupDialog, OnboardingDialogClient
+User menu displaying login button or user avatar with dropdown menu (settings, tutorial, fill latest scores (admin), backoffice, logout, delete account).
+- `UserActions` - [Client] - Calls: `signOut` - Uses: `useSearchParams`, `useRouter`, `useLocale`, `useTranslations` - Renders: UserSettingsDialog, LoginOrSignupDialog, OnboardingDialogClient, QuickScoreWizardDialog
+
+**app/components/header/quick-score-wizard-dialog.tsx**
+Full-screen (mobile) / centered (desktop) dialog wizard for scoring recent unscored games one at a time. Admin-only. Loads games on open, shows score inputs, supports Save & Publish and Skip per game.
+- `QuickScoreWizardDialog({ open, onClose })` - [Client] - Calls: `getRecentUnscoredGames`, `saveAndPublishSingleGameResult` - Uses: `useLocale`, `useTranslations('backoffice')`, `useTheme`, `useMediaQuery`, `useState`, `useEffect` - Renders: Dialog, DialogTitle, DialogContent, LinearProgress, Typography, BackofficeGameResultEditControls, Button, CircularProgress, CheckCircleIcon
 
 **app/components/header/language-switcher.tsx**
 Language selector with menu showing English and Español options.
