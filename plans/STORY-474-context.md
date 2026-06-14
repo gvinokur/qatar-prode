@@ -9,7 +9,7 @@
 - **PR URL:** https://github.com/gvinokur/qatar-prode/pull/475
 
 ## State
-- **Current Phase:** implementing
+- **Current Phase:** review-ready
 - **Plan File:** plans/STORY-474-plan.md
 - **Task File:** plans/STORY-474-tasks.md
 
