@@ -21,8 +21,10 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: findGameResultByGameId, updateGameResult, createGameResult, calculateGameScores, isGameResultPublishable
 - **getRecentUnscoredGames(locale: string)**: `Promise<{ games: ExtendedGameData[], teamsMap: Record<string, Team> }>` — Returns games from the last 24h across all tournaments with no published result, localized. Admin-only.
   Calls: getLoggedInUser, findRecentUnscoredGames, applyLocalization, findTeamsByIds
-- **saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string)**: `Promise<void>` — Sets is_draft=false on the game result and delegates to saveGameResults. Admin-only.
-  Calls: getLoggedInUser, saveGameResults
+- **saveGamesAndRecalculate(games: ExtendedGameData[], tournamentId: string, locale: string)**: `Promise<void>` — Saves game results and runs the full recalculation pipeline. For group games: updates standings, advances playoff bracket, and recalculates qualified-team scores. For all games: recalculates user prediction scores. Admin-only.
+  Calls: getLoggedInUser, saveGameResults, findGamesInGroup, findTeamsInGroup, findTournamentById, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateAndStoreQualifiedTeamsScores, calculateGameScores
+- **saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string)**: `Promise<void>` — Sets is_draft=false on the game result and runs the full recalculation pipeline via saveGamesAndRecalculate. Admin-only.
+  Calls: getLoggedInUser, saveGamesAndRecalculate
 - **saveGamesData(games)**: `Promise<void>` — Saves game scheduling data (teams, dates).
   Calls: updateGame
 - **calculateAndSavePlayoffGamesForTournament(tournamentId)**: `Promise<void>` — Calculates playoff team assignments from group standings.

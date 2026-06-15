@@ -17,6 +17,7 @@ import {
   updateTournamentPermissions,
   getRecentUnscoredGames,
   saveAndPublishSingleGameResult,
+  saveGamesAndRecalculate,
 } from '../../app/actions/backoffice-actions';
 import { GameResult, Tournament, TournamentUpdate } from '../../app/db/tables-definition';
 import { ExtendedGameData, ExtendedGroupData, ExtendedPlayoffRoundData } from '../../app/definitions';
@@ -276,6 +277,10 @@ vi.mock('../../app/actions/group-ranking-actions', () => ({
   recalculateGroupRankingsForUsers: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../../app/actions/qualified-teams-scoring-actions', () => ({
+  calculateAndStoreQualifiedTeamsScores: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Import mocked functions
 import * as tournamentRepository from '../../app/db/tournament-repository';
 import * as teamRepository from '../../app/db/team-repository';
@@ -299,6 +304,7 @@ import * as groupPositionCalculator from '../../app/utils/group-position-calcula
 import * as gameScoreCalculator from '../../app/utils/game-score-calculator';
 import * as objectUtils from '../../app/utils/ObjectUtils';
 import * as database from '../../app/db/database';
+import * as qualifiedTeamsScoringActions from '../../app/actions/qualified-teams-scoring-actions';
 import { revalidatePath } from 'next/cache';
 
 // Mock functions
@@ -386,6 +392,8 @@ const mockCustomToMap = vi.mocked(objectUtils.customToMap);
 const mockToMap = vi.mocked(objectUtils.toMap);
 
 const mockDb = vi.mocked(database.db);
+
+const mockCalculateAndStoreQualifiedTeamsScores = vi.mocked(qualifiedTeamsScoringActions.calculateAndStoreQualifiedTeamsScores);
 
 const mockFindAllUsers = vi.mocked(usersRepository.findAllUsers);
 const mockFindUserIdsForTournament = vi.mocked(tournamentViewPermissionRepository.findUserIdsForTournament);
@@ -1620,7 +1628,126 @@ describe('Backoffice Actions', () => {
     });
   });
 
+  describe('saveGamesAndRecalculate', () => {
+    function setupCommonMocks() {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      mockCreateGameResult.mockResolvedValue(undefined as any);
+      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+      mockFindAllGamesWithPublishedResultsAndGameGuesses.mockResolvedValue([]);
+      mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([
+        { id: 'stage-1', games: [], round_order: 1, is_final: false } as any
+      ]);
+      mockCalculatePlayoffTeams.mockResolvedValue({});
+      mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue([]);
+      mockFindGamesInTournament.mockResolvedValue([]);
+      mockFindGameResultByGameIds.mockResolvedValue([]);
+      mockCustomToMap.mockReturnValue({});
+      mockToMap.mockReturnValue({});
+    }
+
+    it('throws Unauthorized when user is not admin', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockRegularUser } as any);
+      const game = testFactories.game({ id: 'game-1' });
+      await expect(saveGamesAndRecalculate([game as any], 'tournament-1', 'en')).rejects.toThrow();
+    });
+
+    it('calls saveGameResults with the provided games', async () => {
+      setupCommonMocks();
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 1, away_score: 0, is_draft: false });
+      const gameWithResult = { ...game, gameResult, group: null, playoffStage: null };
+
+      await saveGamesAndRecalculate([gameWithResult as any], 'tournament-1', 'en');
+
+      expect(mockCreateGameResult).toHaveBeenCalledWith(
+        expect.objectContaining({ game_id: 'game-1' })
+      );
+    });
+
+    it('calls calculateGameScores for all games including playoff games', async () => {
+      setupCommonMocks();
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: false });
+      const playoffGame = { ...game, gameResult, group: null, playoffStage: { id: 'stage-1', round_name: 'QF' } };
+
+      await saveGamesAndRecalculate([playoffGame as any], 'tournament-1', 'en');
+
+      expect(mockFindAllGamesWithPublishedResultsAndGameGuesses).toHaveBeenCalled();
+    });
+
+    it('does not call group pipeline for playoff games', async () => {
+      setupCommonMocks();
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: false });
+      const playoffGame = { ...game, gameResult, group: null, playoffStage: { id: 'stage-1' } };
+
+      await saveGamesAndRecalculate([playoffGame as any], 'tournament-1', 'en');
+
+      expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      expect(mockFindPlayoffStagesWithGamesInTournament).not.toHaveBeenCalled();
+      expect(mockCalculateAndStoreQualifiedTeamsScores).not.toHaveBeenCalled();
+    });
+
+    it('calls group pipeline for group games', async () => {
+      setupCommonMocks();
+      mockFindGamesInGroup.mockResolvedValue([]);
+      mockFindTeamsInGroup.mockResolvedValue([]);
+      mockFindTournamentById.mockResolvedValue({ tiebreaker_mode: 'standard' } as any);
+      mockCalculateGroupPosition.mockReturnValue([]);
+
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 1, away_score: 0, is_draft: false });
+      const groupGame = { ...game, gameResult, group: { tournament_group_id: 'group-1' }, playoffStage: null };
+
+      await saveGamesAndRecalculate([groupGame as any], 'tournament-1', 'en');
+
+      expect(mockFindGamesInGroup).toHaveBeenCalledWith('group-1', true, false);
+      expect(mockFindTeamsInGroup).toHaveBeenCalledWith('group-1');
+      expect(mockFindTournamentById).toHaveBeenCalledWith('tournament-1');
+      expect(mockFindPlayoffStagesWithGamesInTournament).toHaveBeenCalled();
+      expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1', 'en');
+    });
+
+    it('uses sortByGamesBetweenTeams=true when tournament.tiebreaker_mode is head_to_head', async () => {
+      setupCommonMocks();
+      mockFindGamesInGroup.mockResolvedValue([]);
+      mockFindTeamsInGroup.mockResolvedValue([{ team_id: 'team-1', conduct_score: 0 } as any]);
+      mockFindTournamentById.mockResolvedValue({ tiebreaker_mode: 'head_to_head' } as any);
+      mockCalculateGroupPosition.mockReturnValue([]);
+
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 1, away_score: 0, is_draft: false });
+      const groupGame = { ...game, gameResult, group: { tournament_group_id: 'group-1' }, playoffStage: null };
+
+      await saveGamesAndRecalculate([groupGame as any], 'tournament-1', 'en');
+
+      expect(mockCalculateGroupPosition).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        true,
+        expect.anything()
+      );
+    });
+  });
+
   describe('saveAndPublishSingleGameResult', () => {
+    function setupCommonMocks() {
+      mockFindGameResultByGameId.mockResolvedValue(undefined);
+      mockCreateGameResult.mockResolvedValue(undefined as any);
+      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+      mockFindAllGamesWithPublishedResultsAndGameGuesses.mockResolvedValue([]);
+      mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue([
+        { id: 'stage-1', games: [], round_order: 1, is_final: false } as any
+      ]);
+      mockCalculatePlayoffTeams.mockResolvedValue({});
+      mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue([]);
+      mockFindGamesInTournament.mockResolvedValue([]);
+      mockFindGameResultByGameIds.mockResolvedValue([]);
+      mockCustomToMap.mockReturnValue({});
+      mockToMap.mockReturnValue({});
+    }
+
     it('throws Unauthorized when user is not admin', async () => {
       mockGetLoggedInUser.mockResolvedValue({ ...mockRegularUser } as any);
 
@@ -1628,21 +1755,52 @@ describe('Backoffice Actions', () => {
       await expect(saveAndPublishSingleGameResult(game as any, 'en')).rejects.toThrow();
     });
 
-    it('calls saveGameResults with is_draft set to false', async () => {
+    it('publishes game result with is_draft set to false', async () => {
       mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
-      mockFindGameResultByGameId.mockResolvedValue(undefined);
-      mockCreateGameResult.mockResolvedValue(undefined as any);
-      mockFindAllGuessesForGamesWithResultsInDraft.mockResolvedValue([]);
+      setupCommonMocks();
 
       const game = testFactories.game({ id: 'game-1', home_team: 'team-1', away_team: 'team-2' });
       const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: true });
-      const gameWithResult = { ...game, gameResult, playoffStage: null };
+      const gameWithResult = { ...game, gameResult, group: null, playoffStage: null };
 
       await saveAndPublishSingleGameResult(gameWithResult as any, 'en');
 
       expect(mockCreateGameResult).toHaveBeenCalledWith(
         expect.objectContaining({ is_draft: false })
       );
+    });
+
+    it('calls group pipeline for group-stage games', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      setupCommonMocks();
+      mockFindGamesInGroup.mockResolvedValue([]);
+      mockFindTeamsInGroup.mockResolvedValue([]);
+      mockFindTournamentById.mockResolvedValue({ tiebreaker_mode: 'standard' } as any);
+      mockCalculateGroupPosition.mockReturnValue([]);
+
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 1, away_score: 0, is_draft: true });
+      const groupGame = { ...game, gameResult, group: { tournament_group_id: 'group-1' }, playoffStage: null };
+
+      await saveAndPublishSingleGameResult(groupGame as any, 'en');
+
+      expect(mockFindGamesInGroup).toHaveBeenCalledWith('group-1', true, false);
+      expect(mockCalculateAndStoreQualifiedTeamsScores).toHaveBeenCalledWith('tournament-1', 'en');
+    });
+
+    it('does not call group pipeline for playoff-stage games', async () => {
+      mockGetLoggedInUser.mockResolvedValue({ ...mockAdminUser } as any);
+      setupCommonMocks();
+
+      const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
+      const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: true });
+      const playoffGame = { ...game, gameResult, group: null, playoffStage: { id: 'stage-1' } };
+
+      await saveAndPublishSingleGameResult(playoffGame as any, 'en');
+
+      expect(mockFindGamesInGroup).not.toHaveBeenCalled();
+      expect(mockCalculateAndStoreQualifiedTeamsScores).not.toHaveBeenCalled();
+      expect(mockFindAllGamesWithPublishedResultsAndGameGuesses).toHaveBeenCalled();
     });
   });
 });

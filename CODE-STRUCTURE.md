@@ -769,5 +769,11 @@ Key flows:
       │     └── findTeamsByIds(uniqueTeamIds) → teamsMap
       └── saveAndPublishSingleGameResult(game, locale) [server action, per game]
             ├── getLoggedInUser (admin check)
-            └── saveGameResults([publishedGame]) → processGameResult → calculateGameScores
+            └── saveGamesAndRecalculate([publishedGame], tournamentId, locale)
+                  ├── saveGameResults([game]) → processGameResult
+                  ├── [group games only] findGamesInGroup(groupId, true, false) + findTeamsInGroup + findTournamentById
+                  ├── [group games only] calculateAndStoreGroupPosition → updateTournamentGroupTeams
+                  ├── [group games only] calculateAndSavePlayoffGamesForTournament → fills R16 bracket slots
+                  ├── [group games only] calculateAndStoreQualifiedTeamsScores
+                  └── calculateGameScores → recalculates all user prediction scores
 ```

@@ -40,6 +40,7 @@ import {
 import {
   createGame,
   deleteAllGamesFromTournament, findAllGamesWithPublishedResultsAndGameGuesses,
+  findGamesInGroup,
   findGamesInTournament,
   updateGame
 } from "../db/game-repository";
@@ -104,6 +105,7 @@ import {writeScoreSnapshot} from '../db/score-history-repository';
 import {getTodayYYYYMMDD} from '../utils/date-utils';
 import {recalculateGroupRankingsForUsers} from './group-ranking-actions';
 import {findRecentUnscoredGames} from '../db/quick-score-repository';
+import {calculateAndStoreQualifiedTeamsScores} from './qualified-teams-scoring-actions';
 
 
 export async function deleteDBTournamentTree(tournament: Tournament, locale: Locale = 'es') {
@@ -419,6 +421,34 @@ export async function getRecentUnscoredGames(locale: string): Promise<{ games: E
   return { games: localizedGames, teamsMap };
 }
 
+export async function saveGamesAndRecalculate(
+  games: ExtendedGameData[],
+  tournamentId: string,
+  locale: string
+): Promise<void> {
+  const user = await getLoggedInUser();
+  if (!user?.isAdmin) throw new Error('Unauthorized');
+
+  await saveGameResults(games);
+
+  const groupGame = games.find(g => g.group);
+  if (groupGame) {
+    const groupId = groupGame.group!.tournament_group_id;
+    const [groupGames, groupTeams, tournament] = await Promise.all([
+      findGamesInGroup(groupId, true, false),
+      findTeamsInGroup(groupId),
+      findTournamentById(tournamentId),
+    ]);
+    const teamIds = groupTeams.map(t => t.team_id);
+    const sortByH2H = tournament?.tiebreaker_mode === 'head_to_head';
+    await calculateAndStoreGroupPosition(groupId, teamIds, groupGames as ExtendedGameData[], sortByH2H);
+    await calculateAndSavePlayoffGamesForTournament(tournamentId);
+    await calculateAndStoreQualifiedTeamsScores(tournamentId, locale as Locale);
+  }
+
+  await calculateGameScores(false, false, locale as Locale);
+}
+
 export async function saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string): Promise<void> {
   const t = await getTranslations({ locale: locale as Locale, namespace: 'backoffice' });
   const user = await getLoggedInUser();
@@ -430,7 +460,7 @@ export async function saveAndPublishSingleGameResult(game: ExtendedGameData, loc
     ...game,
     gameResult: game.gameResult ? { ...game.gameResult, is_draft: false } : game.gameResult,
   };
-  await saveGameResults([publishedGame]);
+  await saveGamesAndRecalculate([publishedGame], publishedGame.tournament_id, locale);
 }
 
 export async function saveGamesData(games: ExtendedGameData[]) {
