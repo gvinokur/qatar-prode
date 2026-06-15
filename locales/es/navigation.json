@@ -10,6 +10,7 @@
       "settings": "Configuracion",
       "tutorial": "Ver Tutorial",
       "backoffice": "Ir al Back Office",
+      "fillLatestScores": "Ingresar Últimos Resultados",
       "logout": "Salir",
       "deleteAccount": "Eliminar Cuenta"
     }

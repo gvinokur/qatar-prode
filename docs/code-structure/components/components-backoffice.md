@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-06-11
+**Last updated:** 2026-06-15
 
 ---
 
@@ -124,7 +124,7 @@ Grid of groups with edit action. [Client] group management interface.
 ### app/components/backoffice/group-backoffice-tab.tsx
 Group-specific backoffice with games, standings, and conduct score editing. [Client] group data management.
 - **GroupBackoffice({ group, tournamentId, tiebreakerMode }: Props)**: `JSX.Element` — [Client] Manages games, team standings, and conduct scores for a specific group. Accepts optional `tiebreakerMode?: TiebreakerMode` (default `'standard'`) from parent `GroupsTab`; passes `sortByGamesBetweenTeams = tiebreakerMode === 'head_to_head'` to `calculateGroupPosition` (Story #443). Per-group H2H toggle removed.
-  Calls: getCompleteGroupData, calculateGroupPosition, saveGameResults, calculateAndSavePlayoffGamesForTournament, saveGamesData, calculateAndStoreGroupPosition, calculateGameScores, calculateAndStoreQualifiedTeamsScores, updateGroupTeamConductScores
+  Calls: getCompleteGroupData, calculateGroupPosition, saveGamesAndRecalculate, saveGamesData, calculateAndStoreGroupPosition, calculateGameScores, calculateAndStoreQualifiedTeamsScores, updateGroupTeamConductScores
   Uses: useLocale, useEffect, useState
   Renders: BackofficeFlippableGameCard, BulkActionsMenu, TeamStandingsCards, TeamStatsEditDialog, Button, Grid, Paper, Snackbar, Alert
 

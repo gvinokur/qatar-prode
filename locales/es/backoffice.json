@@ -14,5 +14,17 @@
     "subscriptionNotFound": "Suscripción no encontrada",
     "sendFailed": "Error al enviar la notificación",
     "groupNotFound": "Grupo no encontrado"
+  },
+  "wizard": {
+    "title": "Ingresar Últimos Resultados",
+    "progress": "Partido {current} de {total}",
+    "saveAndPublish": "Guardar y Publicar",
+    "skip": "Omitir",
+    "emptyTitle": "¡Todo al día!",
+    "emptyDescription": "No hay partidos sin resultado en las últimas 24 horas.",
+    "loading": "Cargando partidos...",
+    "close": "Cerrar",
+    "saveError": "Error al guardar. Por favor, intenta de nuevo.",
+    "penaltyShootout": "Tanda de Penales"
   }
 }

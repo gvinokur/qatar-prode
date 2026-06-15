@@ -2,7 +2,7 @@
 
 Part of the CODE-STRUCTURE.md system. See `CODE-STRUCTURE.md` for the full index and call graph.
 
-**Last updated:** 2026-06-11
+**Last updated:** 2026-06-15
 
 ---
 
@@ -19,6 +19,12 @@ Administrative tournament management — full lifecycle operations: tournament c
   Calls: findTournamentByName, deleteDBTournamentTree, createTournament, getTeamByName, createTeam, createTournamentTeam, createTournamentGroup, createTournamentGroupTeam, createPlayoffRound, createGame, createTournamentGroupGame, createPlayoffRoundGame
 - **saveGameResults(gamesWithResults)**: `Promise<void>` — Saves game results with special handling when a published result changes. Throws if any result is being published (`is_draft: false`) but fails `isGameResultPublishable` (missing scores or tied playoff without penalty scores).
   Calls: findGameResultByGameId, updateGameResult, createGameResult, calculateGameScores, isGameResultPublishable
+- **getRecentUnscoredGames(locale: string)**: `Promise<{ games: ExtendedGameData[], teamsMap: Record<string, Team> }>` — Returns games from the last 24h across all tournaments with no published result, localized. Admin-only.
+  Calls: getLoggedInUser, findRecentUnscoredGames, applyLocalization, findTeamsByIds
+- **saveGamesAndRecalculate(games: ExtendedGameData[], tournamentId: string, locale: string)**: `Promise<void>` — Saves game results and runs the full recalculation pipeline. For group games: updates standings, advances playoff bracket, and recalculates qualified-team scores. For all games: recalculates user prediction scores. Admin-only.
+  Calls: getLoggedInUser, saveGameResults, findGamesInGroup, findTeamsInGroup, findTournamentById, calculateAndStoreGroupPosition, calculateAndSavePlayoffGamesForTournament, calculateAndStoreQualifiedTeamsScores, calculateGameScores
+- **saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string)**: `Promise<void>` — Sets is_draft=false on the game result and runs the full recalculation pipeline via saveGamesAndRecalculate. Admin-only.
+  Calls: getLoggedInUser, saveGamesAndRecalculate
 - **saveGamesData(games)**: `Promise<void>` — Saves game scheduling data (teams, dates).
   Calls: updateGame
 - **calculateAndSavePlayoffGamesForTournament(tournamentId)**: `Promise<void>` — Calculates playoff team assignments from group standings.

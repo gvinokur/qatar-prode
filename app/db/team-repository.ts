@@ -265,3 +265,20 @@ export const findQualifiedTeams = cache(async (tournamentId: string, inGroupId?:
   };
 })
 
+/**
+ * Find teams by a list of IDs.
+ *
+ * ⚠️ RETURNS RAW DATA - i18n fields must be localized in Server Action
+ * ⚠️ DO NOT add locale parameter to this function
+ * ⚠️ DO NOT apply localization here
+ *
+ * @see applyLocalization() in /app/utils/localization-helper.ts must be called in Server Action layer
+ */
+export async function findTeamsByIds(ids: string[]): Promise<Team[]> {
+  if (ids.length === 0) return []
+  return await db.selectFrom(tableName)
+    .where('id', 'in', ids)
+    .selectAll()
+    .execute()
+}
+

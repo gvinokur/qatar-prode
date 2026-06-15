@@ -15,10 +15,9 @@ import {
 import BackofficeFlippableGameCard from "./backoffice-flippable-game-card";
 import BulkActionsMenu from "./bulk-actions-menu";
 import {
-  calculateAndSavePlayoffGamesForTournament,
   calculateAndStoreGroupPosition,
   calculateGameScores,
-  saveGameResults,
+  saveGamesAndRecalculate,
   saveGamesData,
   updateGroupTeamConductScores,
 } from "../../actions/backoffice-actions";
@@ -82,13 +81,9 @@ export default function GroupBackoffice({group, tournamentId, tiebreakerMode = '
 
   }, [teamsMap, gamesMap, setPositions, tiebreakerMode, conductScores]);
 
-  const saveGamesAndRecalculate = async (newGamesMap: {[k: string]: ExtendedGameData}) => {
-    await saveGameResults(Object.values(newGamesMap))
-    await calculateAndSavePlayoffGamesForTournament(tournamentId)
+  const handleSaveAndRecalculate = async (newGamesMap: {[k: string]: ExtendedGameData}) => {
+    await saveGamesAndRecalculate(Object.values(newGamesMap), tournamentId, locale)
     await saveGamesData(Object.values(newGamesMap))
-    await calculateAndStoreGroupPosition(group.id, Object.keys(teamsMap), Object.values(newGamesMap), tiebreakerMode === 'head_to_head')
-    await calculateGameScores(false, false, locale)
-    await calculateAndStoreQualifiedTeamsScores(tournamentId)
     setSaved(false)
   }
 
@@ -97,7 +92,7 @@ export default function GroupBackoffice({group, tournamentId, tiebreakerMode = '
       ...gamesMap,
       [updatedGame.id]: updatedGame
     };
-    await saveGamesAndRecalculate(newGamesMap);
+    await handleSaveAndRecalculate(newGamesMap);
     setGamesMap(newGamesMap);
   };
 
@@ -114,7 +109,7 @@ export default function GroupBackoffice({group, tournamentId, tiebreakerMode = '
           }
         }
       };
-      await saveGamesAndRecalculate(newGamesMap);
+      await handleSaveAndRecalculate(newGamesMap);
       setGamesMap(newGamesMap);
     }
   };

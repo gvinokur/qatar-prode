@@ -13,13 +13,15 @@ vi.mock('@/app/actions/tournament-actions', () => ({
 
 // Mock backoffice actions
 vi.mock('@/app/actions/backoffice-actions', () => ({
-  saveGameResults: vi.fn().mockResolvedValue(undefined),
-  calculateAndSavePlayoffGamesForTournament: vi.fn().mockResolvedValue(undefined),
+  saveGamesAndRecalculate: vi.fn().mockResolvedValue(undefined),
   saveGamesData: vi.fn().mockResolvedValue(undefined),
   calculateAndStoreGroupPosition: vi.fn().mockResolvedValue(undefined),
   calculateGameScores: vi.fn().mockResolvedValue(undefined),
-  calculateAndStoreQualifiedTeamsPoints: vi.fn().mockResolvedValue(undefined),
   updateGroupTeamConductScores: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/app/actions/qualified-teams-scoring-actions', () => ({
+  calculateAndStoreQualifiedTeamsScores: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock child components
@@ -89,12 +91,10 @@ vi.mock('@/app/components/skeletons', () => ({
 // Import mocked modules
 import { getCompleteGroupData } from '@/app/actions/tournament-actions';
 import {
-  saveGameResults,
-  calculateAndSavePlayoffGamesForTournament,
+  saveGamesAndRecalculate,
   saveGamesData,
   calculateAndStoreGroupPosition,
   calculateGameScores,
-  calculateAndStoreQualifiedTeamsPoints,
   updateGroupTeamConductScores,
 } from '@/app/actions/backoffice-actions';
 
@@ -335,7 +335,7 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).toHaveBeenCalled();
       });
 
       // Game card should still be rendered with updated data
@@ -355,11 +355,11 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).toHaveBeenCalled();
       });
 
       // Verify the updated games map is used for recalculation (all games, not just the updated one)
-      const savedGames = vi.mocked(saveGameResults).mock.calls[0][0];
+      const [savedGames] = vi.mocked(saveGamesAndRecalculate).mock.calls[0];
       expect(savedGames).toEqual(expect.arrayContaining([
         expect.objectContaining({ id: 'game-1' }),
         expect.objectContaining({ id: 'game-2' }),
@@ -383,10 +383,10 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(publishButton);
 
       await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).toHaveBeenCalled();
       });
 
-      const savedGames = vi.mocked(saveGameResults).mock.calls[0][0];
+      const [savedGames] = vi.mocked(saveGamesAndRecalculate).mock.calls[0];
       const updatedGame = savedGames.find((g) => g.id === 'game-1');
 
       // Game result should have is_draft toggled to false
@@ -407,10 +407,10 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(publishButton);
 
       await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).toHaveBeenCalled();
       });
 
-      const savedGames = vi.mocked(saveGameResults).mock.calls[0][0];
+      const [savedGames] = vi.mocked(saveGamesAndRecalculate).mock.calls[0];
       const updatedGame = savedGames.find((g) => g.id === 'game-2');
 
       // Game result should have is_draft toggled to true
@@ -432,7 +432,7 @@ describe('GroupBackoffice Integration Tests', () => {
 
       // Should not attempt to save since game has no result
       await waitFor(() => {
-        expect(saveGameResults).not.toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).not.toHaveBeenCalled();
       }, { timeout: 500 });
     });
   });
@@ -861,7 +861,7 @@ describe('GroupBackoffice Integration Tests', () => {
   });
 
   describe('Group Position Recalculation', () => {
-    it('should use tiebreakerMode prop in recalculation', async () => {
+    it('should call saveGamesAndRecalculate when a game is saved', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} tiebreakerMode="head_to_head" />
       );
@@ -874,16 +874,15 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(calculateAndStoreGroupPosition).toHaveBeenCalledWith(
-          group.id,
+        expect(saveGamesAndRecalculate).toHaveBeenCalledWith(
           expect.any(Array),
-          expect.any(Array),
-          true // tiebreakerMode === 'head_to_head'
+          tournament.id,
+          expect.any(String)
         );
       });
     });
 
-    it('should recalculate positions whenever games are saved', async () => {
+    it('should recalculate via saveGamesAndRecalculate on every save', async () => {
       renderWithTheme(
         <GroupBackoffice group={extendedGroup} tournamentId={tournament.id} />
       );
@@ -896,7 +895,7 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton1);
 
       await waitFor(() => {
-        expect(calculateAndStoreGroupPosition).toHaveBeenCalledTimes(1);
+        expect(saveGamesAndRecalculate).toHaveBeenCalledTimes(1);
       });
 
       vi.clearAllMocks();
@@ -905,7 +904,7 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton2);
 
       await waitFor(() => {
-        expect(calculateAndStoreGroupPosition).toHaveBeenCalledTimes(1);
+        expect(saveGamesAndRecalculate).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -948,7 +947,7 @@ describe('GroupBackoffice Integration Tests', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(saveGameResults).toHaveBeenCalled();
+        expect(saveGamesAndRecalculate).toHaveBeenCalled();
       });
 
       // Snackbar should not appear for game saves (only for conduct scores)

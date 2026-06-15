@@ -51,6 +51,7 @@ const spanishTranslations: Record<string, any> = {
   awards: require('./locales/es/awards.json'),
   'qualified-teams': require('./locales/es/qualified-teams.json'),
   tournament: require('./locales/es/tournament.json'),
+  backoffice: require('./locales/es/backoffice.json'),
   // Add other namespaces as needed
 };
 
@@ -64,6 +65,7 @@ const englishTranslations: Record<string, any> = {
   tournament: require('./locales/en/tournament.json'),
   groups: require('./locales/en/groups.json'),
   common: require('./locales/en/common.json'),
+  backoffice: require('./locales/en/backoffice.json'),
   // Add other namespaces as needed
 };
 
