@@ -397,7 +397,7 @@ export async function saveGameResults(gamesWithResults: ExtendedGameData[]) {
 }
 
 export async function getRecentUnscoredGames(locale: string): Promise<{ games: ExtendedGameData[], teamsMap: Record<string, Team> }> {
-  const t = await getTranslations({ locale: locale as Locale, namespace: 'backoffice' });
+  const t = await getTranslations({ locale, namespace: 'backoffice' });
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
     throw new Error(t('unauthorized'));
@@ -441,7 +441,7 @@ export async function saveGamesAndRecalculate(
     ]);
     const teamIds = groupTeams.map(t => t.team_id);
     const sortByH2H = tournament?.tiebreaker_mode === 'head_to_head';
-    await calculateAndStoreGroupPosition(groupId, teamIds, groupGames as ExtendedGameData[], sortByH2H);
+    await calculateAndStoreGroupPosition(groupId, teamIds, groupGames, sortByH2H);
     await calculateAndSavePlayoffGamesForTournament(tournamentId);
     await calculateAndStoreQualifiedTeamsScores(tournamentId, locale as Locale);
   }
@@ -450,7 +450,7 @@ export async function saveGamesAndRecalculate(
 }
 
 export async function saveAndPublishSingleGameResult(game: ExtendedGameData, locale: string): Promise<void> {
-  const t = await getTranslations({ locale: locale as Locale, namespace: 'backoffice' });
+  const t = await getTranslations({ locale, namespace: 'backoffice' });
   const user = await getLoggedInUser();
   if (!user?.isAdmin) {
     throw new Error(t('unauthorized'));
