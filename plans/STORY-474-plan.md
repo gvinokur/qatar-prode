@@ -485,6 +485,21 @@ Setup: import `testFactories`, `setupTestMocks`, mock `getRecentUnscoredGames` a
 
 ---
 
+## Implementation Amendments
+
+### Amendment 1: Full Recalculation Pipeline Missing from saveAndPublishSingleGameResult
+**Date:** 2026-06-15
+**Reason:** During Vercel Preview testing, it was discovered that `saveAndPublishSingleGameResult` only called `saveGameResults` — it was missing the full downstream pipeline. User prediction scores, group standings, playoff bracket slots, and qualified team scores were NOT updated after publishing via the wizard.
+**Change:** Extracted a new shared server action `saveGamesAndRecalculate(games, tournamentId, locale)` that:
+- Handles group vs playoff branching internally using `games.find(g => g.group)`
+- For group games: calls `findGamesInGroup(groupId, true, false)` (published only), `findTeamsInGroup`, `findTournamentById`, `calculateAndStoreGroupPosition`, `calculateAndSavePlayoffGamesForTournament` (first-stage R16 slots only), `calculateAndStoreQualifiedTeamsScores`
+- For all games: calls `calculateGameScores(false, false, locale)`
+- Updated `saveAndPublishSingleGameResult` to delegate to `saveGamesAndRecalculate` instead of `saveGameResults`
+- Updated `group-backoffice-tab.tsx` to call `saveGamesAndRecalculate` instead of sequencing 5 actions manually
+- Tests expanded: new `saveGamesAndRecalculate` describe block (5 tests); `saveAndPublishSingleGameResult` expanded to 4 tests covering group/playoff branching
+
+---
+
 ## Open Questions / Assumptions
 
 - **Cross-tournament scope**: Wizard shows games from ALL tournaments (no filter on tournament active status), relying on the 24h time window to limit results. Acceptable for v1.
