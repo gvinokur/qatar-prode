@@ -773,7 +773,7 @@ Key flows:
                   ├── saveGameResults([game]) → processGameResult
                   ├── [group games only] findGamesInGroup(groupId, true, false) + findTeamsInGroup + findTournamentById
                   ├── [group games only] calculateAndStoreGroupPosition → updateTournamentGroupTeams
-                  ├── [group games only] calculateAndSavePlayoffGamesForTournament → fills R16 bracket slots
                   ├── [group games only] calculateAndStoreQualifiedTeamsScores
+                  ├── [group or published playoff games] calculateAndSavePlayoffGamesForTournament → seeds R16 from groups + propagates winners through all subsequent rounds
                   └── calculateGameScores → recalculates all user prediction scores
 ```
