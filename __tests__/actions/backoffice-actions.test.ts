@@ -1676,7 +1676,7 @@ describe('Backoffice Actions', () => {
       expect(mockFindAllGamesWithPublishedResultsAndGameGuesses).toHaveBeenCalled();
     });
 
-    it('does not call group pipeline for playoff games', async () => {
+    it('does not call group pipeline for playoff games but does trigger playoff propagation', async () => {
       setupCommonMocks();
       const game = testFactories.game({ id: 'game-1', tournament_id: 'tournament-1' });
       const gameResult = testFactories.gameResult({ game_id: 'game-1', home_score: 2, away_score: 1, is_draft: false });
@@ -1685,8 +1685,9 @@ describe('Backoffice Actions', () => {
       await saveGamesAndRecalculate([playoffGame as any], 'tournament-1', 'en');
 
       expect(mockFindGamesInGroup).not.toHaveBeenCalled();
-      expect(mockFindPlayoffStagesWithGamesInTournament).not.toHaveBeenCalled();
       expect(mockCalculateAndStoreQualifiedTeamsScores).not.toHaveBeenCalled();
+      // Published playoff games now trigger playoff winner propagation
+      expect(mockFindPlayoffStagesWithGamesInTournament).toHaveBeenCalled();
     });
 
     it('calls group pipeline for group games', async () => {

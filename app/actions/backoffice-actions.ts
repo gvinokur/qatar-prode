@@ -71,6 +71,8 @@ import {
   deleteAllGameResultsByTournamentId
 } from "../db/game-result-repository";
 import {calculatePlayoffTeams} from "../utils/playoff-teams-calculator";
+import {getGameWinner, getGameLoser} from "../utils/score-utils";
+import {isTeamWinnerRule} from "../utils/playoffs-rule-helper";
 import {isGameResultPublishable} from "../utils/game-result-utils";
 import {
   findAllGuessesForGamesWithResultsInDraft,
@@ -446,6 +448,11 @@ export async function saveGamesAndRecalculate(
     await calculateAndStoreQualifiedTeamsScores(tournamentId, locale as Locale);
   }
 
+  const playoffGame = games.find(g => g.playoffStage && g.gameResult && !g.gameResult.is_draft);
+  if (playoffGame) {
+    await calculateAndSavePlayoffGamesForTournament(tournamentId);
+  }
+
   await calculateGameScores(false, false, locale as Locale);
 }
 
@@ -491,13 +498,53 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
   const gamesMap = toMap(games)
   const gameResultMap = customToMap(gameResults, (result) => result.game_id)
 
+  // Build a lookup from game_number → game for TeamWinnerRule resolution
+  const gamesByNumber: { [gameNumber: number]: ExtendedGameData } = Object.fromEntries(
+    Object.values(gamesMap).map(g => [g.game_number, g])
+  )
+
+  // Keep both maps in sync after in-memory updates so subsequent stages see resolved teams
+  const updateLocalGame = (gameId: string, gameNumber: number, homeTeam: string | null, awayTeam: string | null) => {
+    const updated = { ...gamesMap[gameId], home_team: homeTeam, away_team: awayTeam }
+    gamesMap[gameId] = updated
+    gamesByNumber[gameNumber] = updated
+  }
+
+  // Stage 0: seed from group positions (existing logic)
   const calculatedTeamsPerGame = await calculatePlayoffTeams(tournamentId, firstPlayoffStage, groups, gamesMap, gameResultMap, {})
-  return Promise.all(firstPlayoffStage.games.map(async (game) => {
-    return updateGame(game.game_id, {
-      home_team: calculatedTeamsPerGame[game.game_id]?.homeTeam?.team_id || null,
-      away_team: calculatedTeamsPerGame[game.game_id]?.awayTeam?.team_id || null
-    })
+  await Promise.all(firstPlayoffStage.games.map(async ({ game_id }) => {
+    const homeTeam = calculatedTeamsPerGame[game_id]?.homeTeam?.team_id || null
+    const awayTeam = calculatedTeamsPerGame[game_id]?.awayTeam?.team_id || null
+    updateLocalGame(game_id, gamesMap[game_id].game_number, homeTeam, awayTeam)
+    return updateGame(game_id, { home_team: homeTeam, away_team: awayTeam })
   }))
+
+  // Stages 1+: propagate actual winners from published results
+  for (let i = 1; i < playoffStages.length; i++) {
+    await Promise.all(playoffStages[i].games.map(async ({ game_id }) => {
+      const game = gamesMap[game_id]
+      const homeRule = game.home_team_rule
+      const awayRule = game.away_team_rule
+
+      if (!isTeamWinnerRule(homeRule) || !isTeamWinnerRule(awayRule)) return
+
+      const homeSourceGame = gamesByNumber[homeRule.game]
+      const awaySourceGame = gamesByNumber[awayRule.game]
+
+      const homePublished = homeSourceGame?.gameResult && !homeSourceGame.gameResult.is_draft
+      const homeTeam = homePublished
+        ? (homeRule.winner ? getGameWinner(homeSourceGame!) : getGameLoser(homeSourceGame!)) ?? null
+        : null
+
+      const awayPublished = awaySourceGame?.gameResult && !awaySourceGame.gameResult.is_draft
+      const awayTeam = awayPublished
+        ? (awayRule.winner ? getGameWinner(awaySourceGame!) : getGameLoser(awaySourceGame!)) ?? null
+        : null
+
+      updateLocalGame(game_id, game.game_number, homeTeam, awayTeam)
+      return updateGame(game_id, { home_team: homeTeam, away_team: awayTeam })
+    }))
+  }
 }
 
 export async function getGroupDataWithGamesAndTeams(tournamentId: string) {
