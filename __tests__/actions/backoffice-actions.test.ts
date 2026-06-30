@@ -1804,4 +1804,148 @@ describe('Backoffice Actions', () => {
       expect(mockFindAllGamesWithPublishedResultsAndGameGuesses).toHaveBeenCalled();
     });
   });
+
+  describe('calculateAndSavePlayoffGamesForTournament', () => {
+    function buildR32Game(id: string, gameNumber: number, homeTeam: string, awayTeam: string, homeScore: number, awayScore: number, isDraft = false) {
+      const result = testFactories.gameResult({ game_id: id, home_score: homeScore, away_score: awayScore, is_draft: isDraft });
+      return { ...testFactories.game({ id, game_number: gameNumber, home_team: homeTeam, away_team: awayTeam }), gameResult: result };
+    }
+
+    function buildNextRoundGame(id: string, gameNumber: number, homeSourceGameNumber: number, awaySourceGameNumber: number, homeWinner = true, awayWinner = true) {
+      return {
+        ...testFactories.game({ id, game_number: gameNumber, home_team: null, away_team: null }),
+        gameResult: null,
+        home_team_rule: { game: homeSourceGameNumber, winner: homeWinner },
+        away_team_rule: { game: awaySourceGameNumber, winner: awayWinner },
+      };
+    }
+
+    function setupMocks(games: any[], stages: any[]) {
+      mockFindGroupsWithGamesAndTeamsInTournament.mockResolvedValue([]);
+      mockFindGamesInTournament.mockResolvedValue(games as any);
+      mockFindPlayoffStagesWithGamesInTournament.mockResolvedValue(stages as any);
+      mockFindGameResultByGameIds.mockResolvedValue([]);
+      mockCustomToMap.mockReturnValue({});
+      mockCalculatePlayoffTeams.mockResolvedValue(
+        Object.fromEntries(stages[0]?.games.map((g: any) => [g.game_id, { homeTeam: null, awayTeam: null }]) ?? [])
+      );
+      mockUpdateGame.mockResolvedValue(undefined as any);
+      const gamesById: Record<string, any> = Object.fromEntries(games.map(g => [g.id, g]));
+      mockToMap.mockReturnValue(gamesById as any);
+    }
+
+    it('updates stage 1 game teams from stage 0 published results', async () => {
+      const r32 = buildR32Game('game-r32', 1, 'team-a', 'team-b', 2, 0);
+      const qf = buildNextRoundGame('game-qf', 2, 1, 1, true, false);
+
+      setupMocks([r32, qf], [
+        { id: 'stage-0', games: [{ game_id: 'game-r32' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-qf' }], round_order: 1 },
+      ]);
+      mockCalculatePlayoffTeams.mockResolvedValue({
+        'game-r32': { homeTeam: { team_id: 'team-a' }, awayTeam: { team_id: 'team-b' } },
+      });
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      // getGameWinner(r32) = 'team-a' (home wins 2-0), getGameLoser(r32) = 'team-b'
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-qf', { home_team: 'team-a', away_team: 'team-b' });
+    });
+
+    it('sets team to null for stage 1 when source result is still draft', async () => {
+      const r32 = buildR32Game('game-r32', 1, 'team-a', 'team-b', 2, 0, true);
+      const qf = buildNextRoundGame('game-qf', 2, 1, 1);
+
+      setupMocks([r32, qf], [
+        { id: 'stage-0', games: [{ game_id: 'game-r32' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-qf' }], round_order: 1 },
+      ]);
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-qf', { home_team: null, away_team: null });
+    });
+
+    it('sets team to null when source game has no result', async () => {
+      const r32 = { ...testFactories.game({ id: 'game-r32', game_number: 1, home_team: 'team-a', away_team: 'team-b' }), gameResult: null };
+      const qf = buildNextRoundGame('game-qf', 2, 1, 1);
+
+      setupMocks([r32, qf], [
+        { id: 'stage-0', games: [{ game_id: 'game-r32' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-qf' }], round_order: 1 },
+      ]);
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-qf', { home_team: null, away_team: null });
+    });
+
+    it('assigns loser team when winner=false (3rd-place game scenario)', async () => {
+      const sf1 = buildR32Game('game-sf1', 1, 'team-a', 'team-b', 1, 2);
+      const thirdPlace = buildNextRoundGame('game-3rd', 2, 1, 1, false, false);
+
+      setupMocks([sf1, thirdPlace], [
+        { id: 'stage-0', games: [{ game_id: 'game-sf1' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-3rd' }], round_order: 1 },
+      ]);
+      mockCalculatePlayoffTeams.mockResolvedValue({
+        'game-sf1': { homeTeam: { team_id: 'team-a' }, awayTeam: { team_id: 'team-b' } },
+      });
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      // sf1: away wins 2-1 → winner='team-b', loser='team-a'; both slots use loser
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-3rd', { home_team: 'team-a', away_team: 'team-a' });
+    });
+
+    it('skips stage 1 games whose rules are not TeamWinnerRule', async () => {
+      const r32 = buildR32Game('game-r32', 1, 'team-a', 'team-b', 2, 0);
+      const qf = {
+        ...testFactories.game({ id: 'game-qf', game_number: 2 }),
+        gameResult: null,
+        home_team_rule: { group: 'A', position: 1 },
+        away_team_rule: { group: 'B', position: 1 },
+      };
+
+      setupMocks([r32, qf], [
+        { id: 'stage-0', games: [{ game_id: 'game-r32' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-qf' }], round_order: 1 },
+      ]);
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      expect(mockUpdateGame).not.toHaveBeenCalledWith('game-qf', expect.anything());
+    });
+
+    it('chains winners through 3 stages correctly', async () => {
+      // stage-0: sf game (home team-a wins 3-0)
+      const sf = buildR32Game('game-sf', 1, 'team-a', 'team-b', 3, 0);
+      // stage-1: final game — seeded from sf winner/loser, and itself has a published result (team-a wins 2-1)
+      const finalResult = testFactories.gameResult({ game_id: 'game-final', home_score: 2, away_score: 1, is_draft: false });
+      const final = {
+        ...testFactories.game({ id: 'game-final', game_number: 2, home_team: 'team-a', away_team: 'team-b' }),
+        gameResult: finalResult,
+        home_team_rule: { game: 1, winner: true },
+        away_team_rule: { game: 1, winner: false },
+      };
+      // stage-2: trophy game — seeded from final winner/loser
+      const trophy = buildNextRoundGame('game-trophy', 3, 2, 2, true, false);
+
+      setupMocks([sf, final, trophy], [
+        { id: 'stage-0', games: [{ game_id: 'game-sf' }], round_order: 0 },
+        { id: 'stage-1', games: [{ game_id: 'game-final' }], round_order: 1 },
+        { id: 'stage-2', games: [{ game_id: 'game-trophy' }], round_order: 2 },
+      ]);
+      mockCalculatePlayoffTeams.mockResolvedValue({
+        'game-sf': { homeTeam: { team_id: 'team-a' }, awayTeam: { team_id: 'team-b' } },
+      });
+
+      await calculateAndSavePlayoffGamesForTournament('tournament-1');
+
+      // stage-1: sf winner=team-a (3-0), loser=team-b → final slots: home=team-a, away=team-b
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-final', { home_team: 'team-a', away_team: 'team-b' });
+      // stage-2: final winner=team-a (2-1), loser=team-b → trophy: home=team-a, away=team-b
+      expect(mockUpdateGame).toHaveBeenCalledWith('game-trophy', { home_team: 'team-a', away_team: 'team-b' });
+    });
+  });
 });

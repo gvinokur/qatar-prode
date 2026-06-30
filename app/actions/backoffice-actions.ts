@@ -448,8 +448,8 @@ export async function saveGamesAndRecalculate(
     await calculateAndStoreQualifiedTeamsScores(tournamentId, locale as Locale);
   }
 
-  const playoffGame = games.find(g => g.playoffStage && g.gameResult && !g.gameResult.is_draft);
-  if (playoffGame) {
+  const hasPublishedPlayoffGame = games.some(g => g.playoffStage && g.gameResult && !g.gameResult.is_draft);
+  if (hasPublishedPlayoffGame) {
     await calculateAndSavePlayoffGamesForTournament(tournamentId);
   }
 
@@ -532,14 +532,16 @@ export async function calculateAndSavePlayoffGamesForTournament(tournamentId: st
       const awaySourceGame = gamesByNumber[awayRule.game]
 
       const homePublished = homeSourceGame?.gameResult && !homeSourceGame.gameResult.is_draft
-      const homeTeam = homePublished
-        ? (homeRule.winner ? getGameWinner(homeSourceGame!) : getGameLoser(homeSourceGame!)) ?? null
-        : null
+      let homeTeam: string | null = null
+      if (homePublished) {
+        homeTeam = (homeRule.winner ? getGameWinner(homeSourceGame!) : getGameLoser(homeSourceGame!)) ?? null
+      }
 
       const awayPublished = awaySourceGame?.gameResult && !awaySourceGame.gameResult.is_draft
-      const awayTeam = awayPublished
-        ? (awayRule.winner ? getGameWinner(awaySourceGame!) : getGameLoser(awaySourceGame!)) ?? null
-        : null
+      let awayTeam: string | null = null
+      if (awayPublished) {
+        awayTeam = (awayRule.winner ? getGameWinner(awaySourceGame!) : getGameLoser(awaySourceGame!)) ?? null
+      }
 
       updateLocalGame(game_id, game.game_number, homeTeam, awayTeam)
       return updateGame(game_id, { home_team: homeTeam, away_team: awayTeam })
