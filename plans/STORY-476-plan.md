@@ -3,6 +3,19 @@
 ## Objective
 Fix winner propagation in the playoff bracket so that when an admin publishes a playoff game's result, the next-round game automatically displays the correct advancing team — not the logged-in user's prediction.
 
+## Historical Context
+
+The backoffice **playoff tab** (`app/components/backoffice/playoff-tab.tsx`) has always handled winner propagation correctly via a client-side `modifyAffectedTeams()` function. It runs in the browser, updates the in-memory `gamesMap` for downstream games, then persists via `saveGamesData()`. This path still works.
+
+The bug only affects paths that bypass that client-side component:
+- **Quick score wizard** (`saveAndPublishSingleGameResult` → `saveGamesAndRecalculate`) — added in story #474, never wired up propagation
+- **Score generator** (dev tool calling `calculateAndSavePlayoffGamesForTournament` directly)
+- Any future server-side automation
+
+The fix ports the propagation logic from the client to the server, where it belongs.
+
+---
+
 ## Problem / Root Cause
 
 There are **two bugs** in `app/actions/backoffice-actions.ts`, both in how `calculateAndSavePlayoffGamesForTournament` is invoked and what it does:
@@ -65,37 +78,23 @@ For each game in stage N:
 
 Stages must be processed **sequentially** (stage 1 fully before stage 2) because each stage depends on the prior stage's resolved teams.
 
-### New private helpers — `getWinnerTeamId` / `getLoserTeamId`
+### Reuse existing helpers from `score-utils.tsx`
 
-`home_score` and `away_score` in `GameResultNew` represent the full-time + extra-time aggregate (standard in this codebase). `home_penalty_score` / `away_penalty_score` are the shootout scores and are only non-null when the match went to penalties.
+`getGameWinner(game: ExtendedGameData)` and `getGameLoser(game: ExtendedGameData)` already exist in `app/utils/score-utils.tsx` and handle all score/penalty logic correctly. **No new helper functions needed.**
+
+In the stage loop, construct an `ExtendedGameData`-shaped object by spreading the `Game` from `gamesMap` with the result from `gameResultMap`:
 
 ```typescript
-function getWinnerTeamId(result: GameResultNew, game: Game): string | null {
-  const home = result.home_score ?? 0;
-  const away = result.away_score ?? 0;
-  if (home > away) return game.home_team ?? null;
-  if (away > home) return game.away_team ?? null;
-  // Tied after regular + extra time — use penalty shootout
-  const homePen = result.home_penalty_score ?? 0;
-  const awayPen = result.away_penalty_score ?? 0;
-  if (homePen > awayPen) return game.home_team ?? null;
-  if (awayPen > homePen) return game.away_team ?? null;
-  return null; // Game not yet fully resolved
-}
-
-function getLoserTeamId(result: GameResultNew, game: Game): string | null {
-  const winner = getWinnerTeamId(result, game);
-  if (!winner) return null;
-  return winner === game.home_team ? (game.away_team ?? null) : (game.home_team ?? null);
-}
-```
-
-`TeamWinnerRule.winner = false` (used for 3rd-place game) routes through `getLoserTeamId`. The stage loop selects explicitly:
-```typescript
+const extendedGame: ExtendedGameData = {
+  ...gamesMap[sourceGameId],
+  gameResult: gameResultMap[sourceGameId],
+};
 const teamId = rule.winner
-  ? getWinnerTeamId(result, sourceGame)
-  : getLoserTeamId(result, sourceGame);
+  ? getGameWinner(extendedGame)
+  : getGameLoser(extendedGame);
 ```
+
+`TeamWinnerRule.winner = false` (used for 3rd-place game) routes through `getGameLoser`.
 
 ### Stage chaining — in-memory gamesMap update
 
@@ -117,7 +116,7 @@ This ensures stage 2 lookups via `gamesByNumber[rule.game]` return the teams res
 
 | File | Change |
 |------|--------|
-| `app/actions/backoffice-actions.ts` | Fix `saveGamesAndRecalculate` + `calculateAndSavePlayoffGamesForTournament` + add `getWinnerTeamId` helper |
+| `app/actions/backoffice-actions.ts` | Fix `saveGamesAndRecalculate` + `calculateAndSavePlayoffGamesForTournament`; reuse existing `getGameWinner`/`getGameLoser` from `score-utils.tsx` |
 
 No UI changes needed — this is a backend-only fix.
 
@@ -134,24 +133,7 @@ This path now also fires when the game being saved has `playoffStage` (not just 
 
 ### `app/actions/backoffice-actions.ts` *(modified)*
 
-**New private functions:**
-
-- **`getWinnerTeamId(result: GameResultNew, game: Game): string | null`**
-  Returns the team_id of the winning team based on the published result's scores and penalty scores. Returns null if the outcome cannot be determined.
-  Tests:
-  - returns `game.home_team` when `home_score > away_score`
-  - returns `game.away_team` when `away_score > home_score`
-  - returns `game.home_team` when tied on regular scores but `home_penalty_score > away_penalty_score`
-  - returns `game.away_team` when tied on regular scores but `away_penalty_score > home_penalty_score`
-  - returns `null` when both scores are tied and no penalties are set
-  - returns `null` when `game.home_team` is null (teams not yet assigned)
-
-- **`getLoserTeamId(result: GameResultNew, game: Game): string | null`**
-  Returns the team_id of the losing team (used for 3rd-place game `winner: false` rules).
-  Tests:
-  - returns `game.away_team` when home team wins on score
-  - returns `game.home_team` when away team wins on penalties
-  - returns `null` when `getWinnerTeamId` returns null (game unresolved)
+**No new private functions.** Uses existing `getGameWinner` / `getGameLoser` from `app/utils/score-utils.tsx`.
 
 **Changed functions:**
 
@@ -167,7 +149,7 @@ This path now also fires when the game being saved has `playoffStage` (not just 
 
 - **`calculateAndSavePlayoffGamesForTournament(tournamentId)`** *(behavior change)*
   After processing stage 0 (unchanged), iterates through `playoffStages[1..N]` sequentially. For each game, resolves `home_team` and `away_team` by looking up the source game via `TeamWinnerRule.game` (game_number), reading its published result, and calling `getWinnerTeamId`/`getLoserTeamId`. Updates DB and local `gamesMap` (and `gamesByNumber`) so chains work across stages. If a source game's result is absent or draft, sets team to `null`. If a game's rule is not a `TeamWinnerRule`, skips it (safety guard). Stage 0 logic is not modified.
-  Calls: `findGroupsWithGamesAndTeamsInTournament`, `findGamesInTournament`, `findPlayoffStagesWithGamesInTournament`, `findGameResultByGameIds`, `calculatePlayoffTeams`, `updateGame`, `getWinnerTeamId`, `getLoserTeamId`, `isTeamWinnerRule`
+  Calls: `findGroupsWithGamesAndTeamsInTournament`, `findGamesInTournament`, `findPlayoffStagesWithGamesInTournament`, `findGameResultByGameIds`, `calculatePlayoffTeams`, `updateGame`, `getGameWinner`, `getGameLoser`, `isTeamWinnerRule`
   Tests:
   - updates stage 1 game home/away teams when stage 0 results are all published
   - leaves stage 1 game teams as null when stage 0 results are not yet published
@@ -181,9 +163,8 @@ This path now also fires when the game being saved has `playoffStage` (not just 
 
 ## Implementation Steps
 
-1. Add private `getWinnerTeamId(result, game)` and `getLoserTeamId(result, game)` helpers (file-private, not exported)
-2. Modify `saveGamesAndRecalculate`: add playoff-game trigger alongside existing group-game trigger
-3. Modify `calculateAndSavePlayoffGamesForTournament`: build `gamesByNumber` lookup, add `updateLocalGame` helper, update stage 0 to call `updateLocalGame`, add sequential `for` loop for stages 1..N
+1. Modify `saveGamesAndRecalculate`: add playoff-game trigger alongside existing group-game trigger
+2. Modify `calculateAndSavePlayoffGamesForTournament`: build `gamesByNumber` lookup, add `updateLocalGame` helper, update stage 0 to call `updateLocalGame`, add sequential `for` loop for stages 1..N using existing `getGameWinner`/`getGameLoser`
 
 ---
 
